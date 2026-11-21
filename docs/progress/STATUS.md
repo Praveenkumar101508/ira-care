@@ -25,7 +25,7 @@ Round 1 is merged to `main`. Round 2:
 | R2-2 | home-and-location | `feat/home-and-location` | Merged (pull request 11) |
 | R2-3 | fall-detection | `feat/fall-detection` | Merged (pull request 12) |
 | R2-4 | ira-conversation | `feat/ira-conversation` | Merged (pull request 13) |
-| R2-5 | demo-mode | `feat/demo-mode` | Built and recorded locally; pull request pending |
+| R2-5 | demo-mode | `feat/demo-mode` | Built and recorded locally; pull request 14 open, CI did not start (see below) |
 | R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Not started |
 | R2-7 | deployment-ready | `feat/deployment-ready` | Not started |
 | R2-8 | store-readiness | `feat/store-readiness` | Not started |
