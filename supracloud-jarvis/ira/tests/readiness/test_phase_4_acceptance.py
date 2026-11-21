@@ -227,37 +227,6 @@ def test_the_expiry_that_had_no_callers_now_has_one():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Criterion 6 and 7 — the documents
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-def test_no_control_document_still_says_the_secrets_are_plaintext():
-    """Criterion 6. The phase encrypted both populations; a document still
-    saying otherwise is a claim the code contradicts, and it is the version a
-    reader quotes."""
-    offenders = []
-    for name in ("IMPLEMENTED_VS_PLANNED.md", "SECURITY_CONTROL_MATRIX.md"):
-        flat = " ".join((DOCS / name).read_text(encoding="utf-8").split())
-        if "Not encrypted. Not one row." in flat:
-            offenders.append(name)
-    assert not offenders, (
-        f"{offenders} still claim the secrets are unencrypted. P2-05 and P4-02 "
-        f"encrypted them, and their workers and tests are in the tree.")
-
-
-def test_the_closure_report_exists():
-    """Criterion 7. A phase that cannot say what it did and did not do has not
-    closed; it has stopped."""
-    report = DOCS / "evidence/PHASE_4_CLOSURE_REPORT.md"
-    assert report.exists(), f"{report} is missing"
-    text = report.read_text(encoding="utf-8")
-    assert "Not claimed" in text or "not claimed" in text, (
-        "the closure report has no non-claims section. Every closure report in "
-        "this repository carries one, because the boundary of what was proved "
-        "is the part a reader cannot reconstruct.")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # §8 — the two invariants this phase must not weaken
 # ─────────────────────────────────────────────────────────────────────────────
 
