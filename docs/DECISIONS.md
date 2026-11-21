@@ -168,3 +168,18 @@ Twilio adapter exists and is constructed only when its three settings
 (`IRA_CARE_TWILIO_ACCOUNT_SID`, `IRA_CARE_TWILIO_AUTH_TOKEN`, `IRA_CARE_TWILIO_FROM`) are all
 present; nothing in the repository signs up for or buys a service. No monitoring-centre
 adapter exists yet: a contract comes first. Push goes through the existing notifier.
+
+## D-017 The watch app's shape (phase 5)
+
+Kotlin, Compose for Wear OS, minimum Wear OS 3 (API 30), compile SDK 35. Sensors come
+through Wear OS Health Services (passive monitoring of heart rate and daily steps, plus the
+system off-body sensor for wrist state) behind a `SensorSource` interface, so a vendor SDK
+can be added after partner approval without touching the rest. Speech uses the watch's own
+text-to-speech and speech recogniser; audio never leaves the device and is never stored.
+The check-in conversation is a state machine with no Android in it (`CheckinController`),
+driven by the foreground service: ask, listen, repeat louder with vibration after a minute,
+give up two minutes later, report every step to the backend. Readings go to a file-backed
+offline queue (bounded, oldest dropped) and are re-sent until acknowledged; the backend
+de-duplicates. The device token lives in the app's private preferences; a revoked token is
+refused server-side at once. The backend address is a build setting. Nothing has run on a
+real watch yet.

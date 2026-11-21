@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">IRA CARE</string>
+    <string name="im_ok">I\'m OK</string>
+    <string name="help">Help</string>
+    <string name="pair_title">Pair this watch</string>
+    <string name="pair_hint">Type the pairing code from the family app.</string>
+    <string name="pair_button">Pair</string>
+    <string name="permission_title">Background sensors</string>
+    <string name="permission_hint">IRA needs to read your heart rate and movement in the background. Allow it in the next screen.</string>
+    <string name="permission_button">Allow</string>
+    <string name="status_listening">Listening…</string>
+    <string name="status_quiet">Quiet hours</string>
+    <string name="status_ok">All well</string>
+    <string name="notification_channel">IRA CARE</string>
+    <string name="notification_text">IRA is with you.</string>
+</resources>
