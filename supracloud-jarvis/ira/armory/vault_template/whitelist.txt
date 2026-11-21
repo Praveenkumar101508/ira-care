@@ -1,0 +1,22 @@
+# Armory Vault — Authorized Target Scope
+#
+# ONE entry per line. A tool refuses to run against any target that does not
+# match an entry here (fail-closed). Lines beginning with '#' and blank lines
+# are ignored. Matching is case-insensitive.
+#
+# Supported entry forms:
+#   exact host         example.com
+#   wildcard host      *.example.com          (fnmatch — matches sub.example.com)
+#   single IPv4/IPv6   192.0.2.10   ::1
+#   CIDR range         192.0.2.0/24   2001:db8::/32
+#   localhost aliases  localhost   127.0.0.1
+#
+# A target is authorized when it matches at least one entry. URLs are reduced
+# to their hostname before matching (https://sub.example.com/path -> sub.example.com).
+#
+# ⚠ Only add hosts you own or are explicitly authorized in writing to test.
+#   Scanning or attacking systems without authorization is illegal.
+
+localhost
+127.0.0.1
+::1

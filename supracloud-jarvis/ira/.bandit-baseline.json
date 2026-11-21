@@ -1,0 +1,90 @@
+{
+  "threshold": "severity>=MEDIUM AND confidence>=MEDIUM",
+  "generated_by": "P16-02, re-measured by P16-05, updated by P16-R3, +1 site by B2; code text added 23 October (entries match by it, not by line)",
+  "entries": [
+    {
+      "test_id": "B108",
+      "file": "armory/docker_manager.py",
+      "line": 231,
+      "code": "\"--tmpfs\", \"/tmp:rw,noexec,nosuid,size=64m\","
+    },
+    {
+      "test_id": "B108",
+      "file": "armory/executors.py",
+      "line": 148,
+      "code": "\"--ro-bind\", \"/\", \"/\", \"--tmpfs\", \"/tmp\","
+    },
+    {
+      "test_id": "B108",
+      "file": "utils/cmd_safety.py",
+      "line": 31,
+      "code": "return (Path.cwd().resolve(), Path(\"/tmp\").resolve())"
+    },
+    {
+      "test_id": "B108",
+      "file": "utils/playbooks.py",
+      "line": 52,
+      "code": "_DEFAULT_SNAPSHOT_DIR = \"/tmp/ira-logs\""
+    },
+    {
+      "test_id": "B310",
+      "file": "core/billing/provider.py",
+      "line": 299,
+      "code": "with urllib.request.urlopen(request, timeout=20) as response:"
+    },
+    {
+      "test_id": "B310",
+      "file": "reasoning/model_availability.py",
+      "line": 124,
+      "code": "with urllib.request.urlopen(req, timeout=timeout) as resp: # noqa: S310 — scheme checked above"
+    },
+    {
+      "test_id": "B310",
+      "file": "scripts/_net.py",
+      "line": 52,
+      "code": "with urllib.request.urlopen(request, timeout=timeout) as response:"
+    },
+    {
+      "test_id": "B314",
+      "file": "actions/android_actuator.py",
+      "line": 78,
+      "code": "root = ET.fromstring(m.group(0))"
+    },
+    {
+      "test_id": "B608",
+      "file": "core/privacy/erasure.py",
+      "line": 781,
+      "code": "f\"DELETE FROM {table} WHERE EXISTS (\" # noqa: S608"
+    },
+    {
+      "test_id": "B608",
+      "file": "core/privacy/erasure.py",
+      "line": 817,
+      "code": "f\"DELETE FROM {table} WHERE tenant_id = $1\", tenant_id"
+    },
+    {
+      "test_id": "B608",
+      "file": "core/privacy/store.py",
+      "line": 161,
+      "code": "f\"UPDATE memory_embeddings SET review_state = $3, deleted_at = {deleted} \""
+    },
+    {
+      "test_id": "B608",
+      "file": "core/privacy/store.py",
+      "line": 211,
+      "code": "f\"UPDATE memory_embeddings SET {', '.join(sets)} \""
+    },
+    {
+      "test_id": "B608",
+      "file": "owner_profile.py",
+      "line": 106,
+      "code": "f\"UPDATE owner_profile SET {set_clause}, updated_at = NOW() WHERE id IS TRUE\","
+    },
+    {
+      "test_id": "B608",
+      "file": "tasks/manager.py",
+      "line": 121,
+      "code": "f\"UPDATE tasks SET {set_clause}, updated_at=NOW() WHERE id=$1\","
+    }
+  ]
+}

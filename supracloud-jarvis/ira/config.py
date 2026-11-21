@@ -1,0 +1,909 @@
+"""
+Central configuration — all values come from environment variables.
+Pydantic-settings validates types and provides clear error messages for missing vars.
+
+MODEL TIERS (2026):
+  Fast      — Qwen3-8B   (conversational, <2s TTFT)
+  Deep      — Qwen3-14B or DeepSeek-R1-Distill-14B (complex reasoning, code)
+  Reasoning — DeepSeek-R1-Distill-32B or Qwen3-32B  (Think Mode / DeepSearch)
+
+CLOUD UPGRADE PATH (8×H100 80GB):
+  Fast      — Qwen3-30B-A3B  (MoE, fast despite 30B params)
+  Deep      — Qwen3-72B      (dense, beats GPT-4o on most benchmarks)
+  Reasoning — DeepSeek-R1 671B or Qwen3-235B-A22B (MoE, world-class reasoning)
+  Vision    — Qwen3-VL-72B   (multimodal, beats Gemini 1.5 Pro on vision evals)
+"""
+
+import ipaddress
+import os
+from functools import lru_cache
+from pathlib import Path
+from typing import Optional
+from urllib.parse import urlparse
+
+from pydantic import field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Fix P19: only load .env when the file is present; in Docker, config comes
+# from environment: blocks and no .env is copied into the image.
+# Resolve relative to THIS module (ira/config.py -> project root), not the CWD,
+# so launching uvicorn from ira/ still finds the root .env. Docker (no file)
+# still yields None and reads real env vars, preserving that path.
+_ENV_CANDIDATE = Path(__file__).resolve().parent.parent / ".env"
+_ENV_FILE = str(_ENV_CANDIDATE) if _ENV_CANDIDATE.exists() else None
+
+# Native (non-Docker) runs read config from a CWD-relative .env. pydantic-settings
+# loads it into the Settings object, but several modules read flags DIRECTLY via
+# os.getenv (e.g. IRA_USE_CORTEX in api/routes/chat.py and cortex_bridge.py) — those
+# consult os.environ, NOT this Settings .env. In Docker the values are real env vars
+# so os.getenv works; running uvicorn natively we must mirror .env into os.environ.
+# load_dotenv(override=False) leaves real env vars (Docker) authoritative.
+if _ENV_FILE:
+    from dotenv import load_dotenv
+    load_dotenv(_ENV_FILE, override=False)
+
+
+#: The longest a refresh token may live, and so the longest any IRA credential
+#: that carries a token version lives. Migration 096's purge window is the same
+#: seven days; the two must move together.
+MAX_REFRESH_TOKEN_EXPIRE_DAYS = 7
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=_ENV_FILE,
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    # ── Edition (Phase 1) ─────────────────────────────────────────────────────
+    # Which product this process serves: "private" (today's local-first, single
+    # owner edition) or "cloud" (the multi-tenant SaaS, Phase 2 onward).
+    #
+    # Resolved ONCE at startup from configuration. It is never inferred from a
+    # request, header or hostname — a request-derived edition would let a caller
+    # choose which security posture applies to them.
+    #
+    # Unset => "private", so an existing install keeps its current behaviour
+    # exactly. See core/editions.py for the edition-scoped defaults table and
+    # docs/cloud-transformation/adr/ADR-0001-TWO-EDITIONS.md for the decision.
+    ira_edition: str = "private"
+
+    # ── Identity ──────────────────────────────────────────────────────────────
+    ira_version: str = "1.0.0"
+    ira_domain: str = "ira.local"
+    # Tailscale Serve host (e.g. shadow.tailnet-name.ts.net) — set so the phone PWA's
+    # HTTPS origin is allowed by CORS. Mobile getUserMedia (mic) requires HTTPS, which
+    # `tailscale serve` provides with a valid *.ts.net cert. Blank = not used.
+    ira_ts_host: str = ""
+
+    # ── Auth ──────────────────────────────────────────────────────────────────
+    ira_secret_key: str
+    ira_admin_username: str = "admin"
+    ira_admin_password: str
+    # P2.1: short-lived access tokens + long-lived refresh tokens
+    access_token_expire_minutes: int = 30   # 30 min — stolen token expires fast
+    # At most MAX_REFRESH_TOKEN_EXPIRE_DAYS: migration 096 purges a counter that
+    # has not moved for that long, which is safe only while no token can outlive
+    # it. The cap is enforced below.
+    refresh_token_expire_days: int = 7      # 7 day refresh window
+    # Legacy alias kept for backward compat (not used by auth.py since P2.1)
+    token_expire_hours: int = 24
+
+    # ── Database ──────────────────────────────────────────────────────────────
+    postgres_user: str = "jarvis"
+    postgres_password: str
+    postgres_db: str = "jarvis_db"
+    # L4: default localhost for native Windows (no Docker). The future Docker
+    # stack overrides with POSTGRES_HOST=postgres (the compose service name).
+    postgres_host: str = "localhost"
+    postgres_port: int = 5432
+
+    @property
+    def database_url(self) -> str:
+        return (
+            f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
+            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+        )
+
+    @property
+    def database_dsn(self) -> str:
+        """asyncpg-native DSN (no dialect prefix)."""
+        return (
+            f"postgresql://{self.postgres_user}:{self.postgres_password}"
+            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+        )
+
+    # ── Redis ─────────────────────────────────────────────────────────────────
+    redis_password: str
+    # L4: default localhost for native Windows (no Docker). The future Docker
+    # stack overrides with REDIS_HOST=redis (the compose service name).
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+
+    @property
+    def redis_url(self) -> str:
+        return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/0"
+
+    # ── vLLM Endpoints ────────────────────────────────────────────────────────
+    # Papercut fix (V1·Phase 2): the vLLM key is a *backend* secret, required ONLY
+    # when llm_backend="vllm" is actually selected. On the default Ollama path it is
+    # never used (utils.llm passes the literal "ollama" to the local client), so a
+    # blank default lets IRA start local-first without inventing a fake key. The
+    # model_validator below enforces it when — and only when — vLLM is selected.
+    vllm_api_key: str = ""
+    # Fast path — Qwen3-8B (2026: best small model, beats Llama 3.1 8B significantly)
+    # Cloud upgrade: set FAST_MODEL=Qwen/Qwen3-30B-A3B (MoE, fits in 2×H100)
+    vllm_fast_url: str = "http://vllm-fast:8001/v1"
+    vllm_fast_model: str = "qwen3-fast"
+    # Deep path — DeepSeek-R1-Distill-Qwen-14B (reasoning + code, beats Qwen2.5 14B)
+    # Cloud upgrade: set DEEP_MODEL=Qwen/Qwen3-72B (requires 4×H100 80GB)
+    vllm_deep_url: str = "http://vllm-deep:8002/v1"
+    vllm_deep_model: str = "qwen3-deep"
+    # Reasoning path — dedicated endpoint for Think Mode + DeepSearch
+    # Falls back to deep path if VLLM_REASONING_URL is not set
+    # Cloud upgrade: set REASONING_MODEL=deepseek-ai/DeepSeek-R1 or Qwen/Qwen3-235B-A22B
+    vllm_reasoning_url: str = ""    # e.g. http://vllm-reasoning:8003/v1
+    vllm_reasoning_model: str = "qwen3-reasoning"
+
+    # Routing thresholds
+    fast_max_tokens: int = 4096     # Upgraded: Qwen3 handles longer outputs at fast tier
+    deep_max_tokens: int = 16384    # Upgraded: 16k for deep reasoning tasks
+    reasoning_max_tokens: int = 32768  # Full context for Think Mode chains
+    fast_temperature: float = 0.6
+    deep_temperature: float = 0.3    # Lower temp for deterministic reasoning
+    reasoning_temperature: float = 0.1  # Near-deterministic for step-by-step thinking
+
+    # ── Deployment mode (V2·Phase 1) ──────────────────────────────────────────
+    # "standard"      → normal deployment; nothing changed.
+    # "portable_demo" → single-click USB demo. A GUARD RAIL, not a new behaviour: it
+    #   re-uses the V1-hardened defaults (egress off, Cortex off, Ollama/mock backend,
+    #   loopback bind, no unsafe actuators) and REFUSES to start if any of them are
+    #   overridden to an unsafe value. It never loosens a security check.
+    ira_mode: str = "standard"
+
+    # V2·Phase 5: portable voice second factor. OFF by default — voice is an OPTIONAL
+    # 2FA behind the master password, never a primary unlock (see
+    # portable/BIOMETRIC_AND_VOICE.md). A voiceprint is spoofable, so it can only ADD
+    # to the master-password gate, never replace it.
+    ira_portable_voice_2fa: bool = False
+
+    # ── L2: Engine selection (LLM_BACKEND switch) ─────────────────────────────
+    # "ollama" → local native Ollama (dev workstation, Windows, no Docker, 20GB A4500).
+    # "vllm"   → the existing GPU/Docker path (kept dormant for the future scale-up).
+    # This is INDEPENDENT of dev_mode: with llm_backend="ollama" the engine is local
+    # but auth + biometric gates stay ON (we are not relying on dev_mode here).
+    llm_backend: str = "ollama"
+    # Two-model stack on the 20GB A4500: qwen3:8b (fast, voice — low TTFT) and
+    # qwen3:14b (deep/reasoning). Pull both: `ollama pull qwen3:8b` + `qwen3:14b`.
+    # Per-tier override via OLLAMA_MODEL_FAST / OLLAMA_MODEL_DEEP / OLLAMA_MODEL_REASONING.
+    # Both fit warm together with KV-cache quant (OLLAMA_FLASH_ATTENTION=1,
+    # OLLAMA_KV_CACHE_TYPE=q8_0); the voice path pins the fast tier for latency.
+    ollama_model_fast: str = "qwen3:14b"
+    ollama_model_deep: str = "qwen3:14b"
+    ollama_model_reasoning: str = "qwen3:14b"
+    # Seconds to wait for the local model's next bytes (OLLAMA_READ_TIMEOUT_S).
+    # A non-streamed answer sends nothing until it is complete, so this bounds
+    # the whole answer. 120 suits a GPU; a CPU-only machine — supported — needs
+    # longer for a memory-augmented prompt, and setup-native.sh /
+    # setup-windows.ps1 write a larger value when they detect no GPU.
+    ollama_read_timeout_s: float = 120.0
+    # The context window, in tokens, that the Ollama server runs
+    # (OLLAMA_CONTEXT_LENGTH). IRA cannot set it per request: Ollama's
+    # OpenAI-compatible route has no field for it. So IRA keeps each request
+    # inside it instead, asking for no more output than prompt + output fits
+    # (core/models/providers/openai_compatible.py). Past the window Ollama's
+    # llama-server silently discards the system prompt and the question and
+    # keeps generating (traced 1 November 2026). Ollama's own name on purpose:
+    # start-ira.sh exports .env to the `ollama serve` it starts, so one line
+    # sets both. 4096 is Ollama's default below 24 GiB of VRAM (every CPU-only
+    # install, an 8 GB Mac); 0 means that default. A larger window costs
+    # memory: about 144 KB of KV cache per token for qwen3:4b (0.6 GB at 4096,
+    # 1.15 GB at 8192). An Ollama started some other way (the macOS app, a
+    # service) must be given the same value, or this one must match it.
+    ollama_context_length: int = 4096
+    # Seconds a non-streamed chat answer (POST /api/v1/chat) may take in all
+    # (IRA_CHAT_TIMEOUT_S). Past it the API answers 504 with error_code
+    # "model_timeout" and stops waiting for the model. 840 is one minute inside
+    # the 15 minutes after which the web app's proxy (frontend/next.config.js,
+    # proxyTimeout) drops a request and the caller gets an empty 500 instead.
+    # A turn can make more than one model call, so a per-call read timeout
+    # alone does not bound it. Raising this above 900 lets the proxy cut first.
+    ira_chat_timeout_s: float = 840.0
+
+    # ── Smart model selection (ira/reasoning/model_*) ─────────────────────────
+    # Central, validated surface for the env vars the model-selection layer also
+    # reads directly. Defaults are local-first and safe; the layer keeps reading
+    # the environment so its unit tests stay dependency-light. When
+    # ira_use_model_router is on (default), utils.llm resolves each Ollama tier
+    # through the profile + availability layer, falling back to the static
+    # ollama_model_* names so the existing chat flow is never broken.
+    ira_model_profile: str = "balanced_local"   # IRA_MODEL_PROFILE
+    # Phase 2. Self-serve account creation, and it is OFF by default on purpose.
+    # The capability being built is not the same decision as opening it to the
+    # public internet: enabling it means accepting unsolicited account creation,
+    # the abuse surface that comes with it, and an outbound mail path that does
+    # not exist yet. A deployment turns it on deliberately.
+    ira_cloud_registration_enabled: bool = False  # IRA_CLOUD_REGISTRATION_ENABLED
+    # How long a verification link is good for. Short enough that a leaked link
+    # in a mailbox archive is usually spent, long enough to survive a user who
+    # checks email the next morning.
+    ira_email_verification_ttl_hours: int = 24    # IRA_EMAIL_VERIFICATION_TTL_HOURS
+    ira_allow_external_api: bool = False         # IRA_ALLOW_EXTERNAL_API (master off)
+    ira_require_api_consent: bool = True         # IRA_REQUIRE_API_CONSENT
+    ira_privacy_mode: str = "local_first"        # IRA_PRIVACY_MODE
+    ira_use_model_router: bool = True            # IRA_USE_MODEL_ROUTER (live wiring)
+    # Classify the model tier and choose the answer policy on the user's own
+    # words (`utils.prompt_safety.strip_pasted_material`), not on the document
+    # they pasted below them. Every pasted document is over the router's 120-word
+    # line, so classifying the whole message sent "who prepared this? one
+    # sentence." to the reasoning tier and asked for a reasoning trail nobody
+    # wanted. `false` restores classification on the whole message.
+    ira_tier_classify_own_words: bool = True     # IRA_TIER_CLASSIFY_OWN_WORDS
+    # MOD-03. When on, the registry decides the exact model, version and
+    # revision BEFORE any provider is called, and the licence gate runs on the
+    # request path rather than only at the write.
+    #
+    # Off by default, and "off" means the registry is NOT CONSULTED — not
+    # consulted-and-ignored, which is the shape that passes silently. A
+    # deployment that has not registered its models keeps working; one that has
+    # turns this on and gets refusals for anything unapproved.
+    #
+    # This is NOT a gateway bypass. Since Phase 8 the live inference path goes
+    # through `IRAModelGateway` in every edition; this flag decides how much the
+    # gateway checks, never whether it is consulted.
+    ira_registry_required: bool = False          # IRA_REGISTRY_REQUIRED
+
+    # ── Embeddings ────────────────────────────────────────────────────────────
+    embedding_model: str = "BAAI/bge-large-en-v1.5"
+    embedding_dim: int = 1024
+    embedding_device: str = "cpu"     # Run embeddings on CPU to save VRAM
+    rag_top_k: int = 5                # Top-K memories to retrieve per query
+    rag_min_similarity: float = 0.6   # Fix P20: configurable threshold; tune from DEBUG logs
+
+    # ── Self-Knowledge corpus (memory/self_knowledge.py) ──────────────────────
+    # A SEPARATE pgvector namespace holding the owner's CV / project write-ups /
+    # this repo's own docs, so IRA can answer questions about Praveen's work from
+    # source material instead of guessing. Never mixed with owner chat memory.
+    self_knowledge_dir: str = ""            # blank => ira/data/self_knowledge
+    self_knowledge_top_k: int = 6           # chunks fed to the grounded prompt
+    self_knowledge_min_similarity: float = 0.45   # cosine floor for "relevant"
+    # Cross-encoder floor. memory/reranker.py pins a sigmoid, so the score is a
+    # probability in [0, 1] and a floor of 0.0 would filter nothing. Measured
+    # with bge-reranker-v2-m3: relevant pairs 0.8-1.0, unrelated pairs 0.00.
+    self_knowledge_min_rerank: float = 0.1
+    self_knowledge_chunk_tokens: int = 500
+    self_knowledge_chunk_overlap: int = 50
+
+    # ── Technical Library (memory/technical_library.py) ───────────────────────
+    # A THIRD pgvector namespace, for the owner's study material (textbooks,
+    # guides, notes). Kept apart from self-knowledge on purpose: a textbook's
+    # claims are not the owner's record, and mixing them would let IRA
+    # attribute a book's example to the owner. Off until turned on.
+    technical_library_enabled: bool = False
+    technical_library_top_k: int = 6              # chunks fed to the grounded prompt
+    technical_library_candidate_k: int = 30       # per retriever, before fusion
+    technical_library_rrf_k: int = 60             # Reciprocal Rank Fusion constant
+    technical_library_min_similarity: float = 0.35  # cosine floor, vector list only
+    # Cross-encoder floor after fusion; a probability, as above. Measured on the
+    # fixture library: answerable questions' top chunk 0.81-1.00, unanswerable 0.00.
+    technical_library_min_rerank: float = 0.1
+    # Chunk sizes are in TOKENS, estimated from whitespace words (see
+    # technical_library._WORDS_PER_TOKEN) so the path needs no tokenizer.
+    technical_library_chunk_tokens: int = 400
+    technical_library_chunk_overlap: int = 60
+    # Caps are in CHARACTERS of extracted text. They replace self-knowledge's
+    # whole-file byte limit, which skips exactly the long books worth indexing.
+    technical_library_max_page_chars: int = 20_000
+    technical_library_max_doc_chars: int = 2_000_000
+    technical_library_min_page_chars: int = 80    # below this a page needs OCR
+    # Pages flagged `needs_review` (e.g. a font-encoding defect that drops a
+    # letter) are excluded unless this is set.
+    technical_library_include_needs_review: bool = False
+    # OCR for PDF pages the gates reject (scanned, or garbled by a font
+    # defect), via the local `pdftoppm` and `tesseract` tools. Off by default:
+    # it needs both installed and costs seconds per page.
+    technical_library_ocr: bool = False
+    technical_library_ocr_lang: str = "eng"   # tesseract language code(s), e.g. "eng+deu"
+
+    # Hybrid (vector + full-text) retrieval for PERSONAL memory. Off keeps
+    # memory.store.retrieve() byte-for-byte what it was.
+    memory_hybrid_retrieval: bool = False
+
+    # ── Confidence signalling (reasoning/confidence.py) ───────────────────────
+    # Derived from retrieval scores + existing verifier findings — never from
+    # asking a model how confident it is. Report-and-shape only: an answer is
+    # hedged or replaced with an honest refusal, never blocked or regenerated.
+    confidence_enabled: bool = True
+    confidence_grounded_min_similarity: float = 0.65   # cosine bar for GROUNDED
+    confidence_grounded_min_rerank: float = 0.1        # cross-encoder bar (probability) for GROUNDED
+
+    # ── Multimodal surfaces (assist/media.py) ─────────────────────────────────
+    # Resource caps so a demo can't hang the box. Local-first: no surface calls
+    # an external provider while IRA_ALLOW_EXTERNAL_API is false.
+    assist_max_image_mb: int = 15
+    assist_max_video_mb: int = 100
+    assist_max_video_frames: int = 12
+
+    # ── Meeting anticipation loop (meetings/anticipate.py) ────────────────────
+    # Speculative pre-drafting during the other party's turn. OFF by default:
+    # it only helps for predictable questions, and a wrong-but-confident
+    # pre-draft is worse than none. The match threshold is the whole game —
+    # loose surfaces mismatched drafts, strict rarely fires.
+    anticipation_enabled: bool = False
+    anticipation_match_threshold: float = 0.85
+    anticipation_max_drafts: int = 2
+
+    # ── Agent behaviour ───────────────────────────────────────────────────────
+    max_tool_calls: int = 10
+    max_context_messages: int = 20
+
+    # ── Proactive Intelligence (Phase 4) ──────────────────────────────────────
+    # Hour (UTC) to send the morning briefing (default 08:00)
+    briefing_hour_utc: int = 8
+    # IANA timezone for end-of-day calculations in briefings (e.g. "Asia/Kolkata")
+    briefing_timezone: str = "UTC"
+
+    # ── Notifications: Telegram ───────────────────────────────────────────────
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
+
+    # ── Notifications: Email (SMTP) ───────────────────────────────────────────
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_to: str = ""          # Recipient — defaults to smtp_user if blank
+
+    # ── Email triage: IMAP (read-only inbox, local-first) ─────────────────────
+    imap_host: str = ""
+    imap_port: int = 993
+    imap_user: str = ""
+    imap_password: str = ""
+    imap_mailbox: str = "INBOX"
+    imap_use_ssl: bool = True
+
+    # ── Notes (local-first, on-disk markdown) ─────────────────────────────────
+    notes_dir: str = "data/notes"
+
+    # ── Command Center (PR #68): project workspaces + local-only secrets ─────
+    projects_dir: str = "data/projects"          # per-project folders + notes
+    secrets_dir: str = "data/secrets"            # chmod-600 .env files, NEVER committed
+
+    # ── Calendar: Cal.com ─────────────────────────────────────────────────────
+    calcom_api_key: str = ""
+    calcom_api_url: str = "https://api.cal.com"
+
+    # ── Calendar: CalDAV (local-first, self-hosted) ───────────────────────────
+    caldav_url: str = ""
+    caldav_username: str = ""
+    caldav_password: str = ""
+    caldav_calendar: str = ""   # calendar name; first calendar is used if blank
+
+    # ── Experimental: Android actuator (droidclaw-derived; OFF by default) ─────
+    # Sandboxed, fully local (adb + Ollama). CVE-2026-10216 mitigation: pairing is
+    # loopback-only + rate-limited (see actions/android_pairing.py) — never on LAN.
+    android_actuator_enabled: bool = False
+    android_adb_path: str = "adb"
+    android_pairing_host: str = "127.0.0.1"   # MUST stay loopback
+    android_pairing_max_attempts: int = 5
+    android_pairing_window_s: int = 60
+    android_screen_max_elements: int = 40
+    android_recovery_repeat_limit: int = 3
+
+    # ── Calendar: Google ──────────────────────────────────────────────────────
+    google_calendar_id: str = ""
+    google_service_account_json: str = ""  # Path to service account JSON file
+
+    # ── LiveKit (for voice token generation) ──────────────────────────────────
+    livekit_api_key: str = ""
+    livekit_api_secret: str = ""
+    livekit_room_name: str = "ira-voice"
+    # Public WebSocket URL returned to the frontend browser client
+    # e.g. wss://ira.yourdomain.com  or  ws://localhost:7880
+    # Falls back to wss://{ira_domain}/livekit if not set
+    livekit_public_url: str = ""
+
+    # ── Webhooks ──────────────────────────────────────────────────────────────
+    webhook_secret: str = ""    # Shared secret for validating inbound webhooks
+    # Hot-lead detection — comma-separated lists; change without redeploying code
+    hot_lead_keywords: str = "urgent,asap,immediately,enterprise,critical"
+    hot_lead_budgets: str = "enterprise,250k+,100k-250k"
+
+    # ── Owner / Biometric Gate ────────────────────────────────────────────────
+    owner_name: str = "CHANGE_ME_your_name"
+    biometric_threshold: float = 0.75   # Cosine similarity floor for voice auth
+
+    # ── Armory Vault (armory/) ────────────────────────────────────────────────
+    # Encrypted, owner-gated cabinet of security tools. OFF by default. The
+    # Master Key is NEVER stored — only a salted PBKDF2 verifier lives here, set
+    # by scripts/setup_vault.py. External egress by Armory tools still obeys the
+    # IRA_ALLOW_EXTERNAL_API master switch above (local/private targets only when
+    # it is false).
+    armory_enabled: bool = False                 # ARMORY_ENABLED
+    armory_vault_dir: str = "data/armory"        # ARMORY_VAULT_DIR (holds vault.sealed)
+    armory_master_key_hash: str = ""             # ARMORY_MASTER_KEY_HASH (PBKDF2 verifier)
+    armory_session_ttl_seconds: int = 300        # ARMORY_SESSION_TTL_SECONDS (idle auto-lock)
+    armory_docker_enabled: bool = True           # ARMORY_DOCKER_ENABLED (allow the Docker backend)
+    # Execution backend: "auto" prefers Docker, then firejail, then bubblewrap.
+    # Docker is NOT required — firejail/bubblewrap give the network killswitch via
+    # Linux namespaces with no daemon. "local" runs unsandboxed on the host and is
+    # refused unless armory_allow_unsandboxed is also true.
+    armory_execution_backend: str = "auto"       # ARMORY_EXECUTION_BACKEND (auto|docker|firejail|bubblewrap|local)
+    armory_allow_unsandboxed: bool = False       # ARMORY_ALLOW_UNSANDBOXED (permit the no-isolation local backend)
+    # High-risk tools require a valid TOTP (2FA) code to run. When true (default)
+    # the owner must have enrolled TOTP (POST /auth/totp/enroll) and supply a code;
+    # set false to fall back to a plain explicit-confirmation approval.
+    armory_require_totp_for_high_risk: bool = True  # ARMORY_REQUIRE_TOTP_FOR_HIGH_RISK
+    # Master-Key brute-force protection: after this many failed unlock attempts the
+    # Armory refuses further attempts for the lockout window (fail-closed backoff).
+    armory_max_unlock_attempts: int = 5             # ARMORY_MAX_UNLOCK_ATTEMPTS
+    armory_unlock_lockout_seconds: int = 300        # ARMORY_UNLOCK_LOCKOUT_SECONDS
+
+    # ── Career Tools ──────────────────────────────────────────────────────────
+    github_token: str = ""
+    apify_api_token: str = ""
+    # Fix #47: Apify actor IDs as env vars so they can be updated without a
+    # code change if Apify deprecates or renames an actor.
+    apify_linkedin_actor: str = "BHzefUZlZRKWxkTck"
+    apify_indeed_actor: str = "misceres/indeed-scraper"
+    apify_fallback_actor: str = "apify/web-scraper"
+
+    # ── Browser Agent (flight search / web lookup) ────────────────────────────
+    # Read-only Playwright browsing: navigate, wait, extract text. Never clicks
+    # buy/book/pay/sign-in and never submits forms (blocklist-enforced).
+    browser_agent_enabled: bool = True
+    browser_task_timeout_s: int = 60    # Hard ceiling per browser task
+    browser_headless: bool = True       # false = visible Chromium for debugging
+
+    # ── Voice Service ─────────────────────────────────────────────────────────
+    # JWT sub that the voice agent uses — only this identity may set is_voice_owner
+    ira_voice_service_username: str = "ira-voice"
+
+    # ── X / Twitter Search ───────────────────────────────────────────────────
+    # Official X API v2 bearer token — get at developer.x.com (required for best results)
+    twitter_bearer_token: str = ""
+    # Cheap third-party X API fallback (e.g. twitterapi.io) — $5/month, no rate limits
+    x_fallback_api_url: str = "https://api.twitterapi.io"
+    x_fallback_api_key: str = ""
+
+    # ── Database Backup ───────────────────────────────────────────────────────
+    # Fix L5: moved from module-level os.getenv() in backup.py to lazy config
+    backup_dir: str = "/backups"          # Path to the backup volume (BACKUP_DIR)
+    backup_keep: int = 7                  # Number of most-recent backups to retain
+
+    # ── Security Monitor Log Paths ────────────────────────────────────────────
+    # Fix L16: moved from module-level os.getenv() in security_monitor.py to lazy config
+    nginx_log_path: str = "/var/log/nginx/access.log"
+    ssh_log_path: str = "/var/log/auth.log"   # /var/log/secure on RHEL/CentOS
+
+    # ── Replicate Audio/Music Models ──────────────────────────────────────────
+    # Fix L15: moved from module-level os.getenv() in audio_gen.py to lazy config
+    replicate_music_model: str = (
+        "meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb"
+    )
+    replicate_music_stereo_model: str = "meta/musicgen-stereo-melody-large"
+    replicate_bark_model: str = (
+        "suno-ai/bark:b76242b40d67c76ab6742e987628a2a9ac019e11d56ab96c4e91ce03b79b2787"
+    )
+    replicate_sfx_model: str = (
+        "haoheliu/audio-ldm:b61392adecdd660326fc9cfc5398182437dbe5e97b5decfb36e1a36de68b5b95"
+    )
+
+    # ── Image Generation ──────────────────────────────────────────────────────
+    # Provider: "replicate" (cloud, Flux Schnell) | "sd_webui" (local SD WebUI) | "comfyui"
+    # Cloud upgrade: "replicate" with REPLICATE_API_TOKEN gives instant Flux Pro access
+    image_gen_url: str = ""            # SD WebUI / ComfyUI local endpoint
+    # V1·Phase 4 (honest defaults): local-first default. "replicate" (cloud) is an
+    # explicit opt-in and still also needs REPLICATE_API_TOKEN to make any call.
+    image_gen_provider: str = "sd_webui"  # "sd_webui" (local) | "comfyui" (local) | "replicate" (cloud)
+    replicate_api_token: str = ""
+    flux_model: str = "black-forest-labs/flux-schnell"  # Replicate model ID for image gen
+    # Fix #73: pix2pix model version as config so it survives Replicate model updates
+    replicate_pix2pix_model: str = (
+        "timbrooks/instruct-pix2pix:"
+        "30c1d0b916a6f8efce20493f5d61ee27491ab2a60437c13c588468b9810ec23f"
+    )
+
+    # ── Vision Model ──────────────────────────────────────────────────────────
+    # Multimodal endpoint for image analysis (Qwen3-VL or LLaVA-NeXT)
+    # Defaults to the deep path which should be a vision-capable model
+    # Cloud upgrade: set VLLM_VISION_URL=http://vllm-vision:8004/v1 with Qwen3-VL-72B
+    vllm_vision_url: str = ""
+    vllm_vision_model: str = "qwen3-vl"
+    # Local (Ollama) vision-language model — the sovereign image path served by the
+    # same Ollama as the text models. Pull it on the dev workstation first:
+    #   ollama pull qwen2.5vl     (or a llava tag)
+    # Empty string disables local vision (the helper then fails soft).
+    ollama_vision_model: str = "qwen2.5vl"
+
+    # ── Expert Mode ───────────────────────────────────────────────────────────
+    # Max specialist agents that may call the LLM at the same time.
+    # Lower to 2 if the vLLM server saturates under full fan-out.
+    expert_concurrency: int = 4
+
+    # ── A1: Accuracy layer (local, flag-gated, reversible) ────────────────────
+    # Each lever is independent of LLM_BACKEND. With every flag at its *disabled*
+    # value the system behaves exactly as before (clean A/B + one-line rollback).
+
+    # Reranker — improves which memories reach the model. It is a SEPARATE CPU
+    # cross-encoder; it does NOT touch the stored 1024-dim embeddings or the DB.
+    # reranker_enabled=False => memory.retrieve() behaves exactly as today.
+    # Default False (10 November 2026): .env.example ships RERANKER_ENABLED=false
+    # and every recorded recall measurement ran with it off, but an install that
+    # does not copy the example loaded the 2.2 GB bge-reranker-v2-m3 at startup
+    # next to a 3.3 GB chat model on an 8 GB Mac. The code default now matches
+    # the documented one; RERANKER_ENABLED=true turns it on as before.
+    reranker_enabled: bool = False
+    reranker_model: str = "BAAI/bge-reranker-v2-m3"   # CPU cross-encoder
+    reranker_device: str = "cpu"                       # keep VRAM free for the 14B
+    rag_candidate_k: int = 20      # over-fetch this many, rerank, keep rag_top_k
+
+    # Web search grounding. PRIVACY: this is the ONLY lever that leaves the box.
+    # "searxng" (self-hosted) keeps it fully private; "duckduckgo" needs no key
+    # but queries hit DDG; "tavily"/"serper" need an API key. Only the query
+    # string is ever sent — never memory/PII. Disabled => no external calls.
+    # V1·Phase 4 (honest defaults): OFF by default — IRA is local-first, so external
+    # web search is an explicit opt-in (set WEB_SEARCH_ENABLED=true), not a surprise.
+    web_search_enabled: bool = False
+    web_search_provider: str = "duckduckgo"   # searxng | duckduckgo | tavily | serper
+    searxng_url: str = "http://localhost:8888"
+    # Sovereign web-research layer (Phase 3B) — self-hosted backends only.
+    # SearXNG (search) reuses searxng_url above; Crawl4AI (clean web reader) here.
+    # Both MUST stay local/self-hosted so research queries never leave the box.
+    crawl4ai_url: str = "http://localhost:11235"
+    tavily_api_key: str = ""
+    serper_api_key: str = ""
+    web_search_max_results: int = 5
+    web_search_timeout_s: float = 6.0
+
+    # The council — multi-agent deliberation built on agents/expert_mode.py.
+    # GPU-expensive on a 20 GB A4500 (Ollama serializes), so it is opt-in and
+    # routed (A6). council_enabled=False => expert mode behaves exactly as today.
+    council_enabled: bool = False
+    council_self_consistency: int = 1       # >1 = sample N times & reconcile (factual Qs)
+    council_judge_enabled: bool = True      # final verifier/synthesis pass
+
+    # ── Strategy mode (bounded deliberation) ──────────────────────────────────
+    # Ranked, honest option analysis for strategic asks. Bounded by design.
+    strategy_branches: int = 4              # candidate options to weigh
+    strategy_depth: int = 1                 # lookahead steps; HARD-capped at 2 in run_strategy
+    strategy_self_consistency: int = 1      # >1 = sample N times & average the estimates
+    strategy_deep_synthesis: bool = True    # use the deep (qwen3:14b) tier for the analysis
+    strategy_calibration_enabled: bool = True  # Phase 6: calibrate success estimates vs the owner's recorded outcomes
+
+    # ── Reflexion (grounded self-correction) ──────────────────────────────────
+    # A flag-gated generate→critique→revise loop for the Actions/drafting path
+    # ONLY (never conversational/voice turns — the extra round-trips hurt the
+    # voice loop). The critic is GROUNDED where a real verifier exists (run the
+    # test suite for code tasks; check pgvector memory for factual claims) and
+    # falls back to an LLM critic otherwise. reflexion_enabled=False => drafting
+    # behaves exactly as today.
+    reflexion_enabled: bool = False
+    reflexion_pass_threshold: float = 0.75   # critique score in [0,1] needed to PASS
+    reflexion_max_revisions: int = 3         # hard cap on revise rounds (bounded loop)
+
+    # ── Dev Mode (dev workstation / local development) ──────────────────────────────
+    # DEV_MODE=true routes LLM calls to a local Ollama instance,
+    # bypasses biometric gate, and auto-authenticates as admin.
+    # NEVER enable in production.
+    dev_mode: bool = False
+
+    # Phase 5(a): when true, a Redis error during a token revocation / version check
+    # DENIES access (fail CLOSED) instead of allowing it. Default false preserves the
+    # current availability behaviour (fail open). Enable for a hardened, security-over-
+    # availability posture. Env: AUTH_FAIL_CLOSED_ON_REDIS.
+    # Fail-open is the deliberate availability default for a single-owner local box
+    # (a Redis blip shouldn't lock the owner out); flipping it is a separate decision.
+    auth_fail_closed_on_redis: bool = False
+
+    # Phase 5(d): the interface the API server binds to. DEV_MODE bypasses auth, so the
+    # IRA_DOMAIN label alone is not trusted — a "local" domain with a non-loopback bind
+    # host can still be exposed. If DEV_MODE is on and this is non-loopback, startup is
+    # refused unless allow_dev_mode_exposed is explicitly set. Env: API_BIND_HOST.
+    api_bind_host: str = "127.0.0.1"
+    # Explicit opt-in acknowledging the risk of DEV_MODE on a non-loopback bind host.
+    # Env: ALLOW_DEV_MODE_EXPOSED.
+    allow_dev_mode_exposed: bool = False
+
+    @property
+    def is_local_domain(self) -> bool:
+        """Fix P9: True when ira_domain resolves to a localhost/private address.
+
+        Checked at startup: DEV_MODE with a public domain is refused.
+        Local values: localhost, 127.x, *.local, RFC1918 (10/172.16-31/192.168).
+        """
+        import re as _re
+        d = self.ira_domain.lower().split(":")[0]  # strip port if present
+        if d in ("localhost", "127.0.0.1") or d.endswith(".local"):
+            return True
+        # RFC1918 prefixes
+        _rfc1918 = _re.compile(
+            r"^(10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+)$"
+        )
+        return bool(_rfc1918.match(d))
+    # L2: Ollama base URL — default localhost for native Windows (no Docker).
+    # Override with OLLAMA_BASE_URL=http://host.docker.internal:11434/v1 when the
+    # API itself runs inside Docker and needs to reach Ollama on the Windows host.
+    ollama_base_url: str = "http://localhost:11434/v1"
+    # L2: DORMANT — superseded by the tiered ollama_model_* settings above.
+    # Kept (not deleted) for backwards compatibility; no longer read by llm.py.
+    # Legacy single-model name used by the old dev_mode-only Ollama path.
+    dev_model: str = "qwen3:14b"
+
+    @model_validator(mode="after")
+    def _resolve_edition(self) -> "Settings":
+        """Validate IRA_EDITION and apply edition-scoped defaults (Phase 1).
+
+        Two properties matter here:
+
+        1. An unknown edition is FATAL, not silently coerced to private. It means
+           the operator believes they configured a posture this build does not
+           implement, and guessing which one they meant is the class of silent
+           assumption the edition split exists to remove.
+
+        2. Edition defaults are only applied to fields the operator did NOT set
+           explicitly (`model_fields_set`). An explicit value always wins, so
+           this can never override a deliberate choice — and, critically, the
+           private edition's resolved values are identical to what they were
+           before this validator existed.
+        """
+        from core.editions import (
+            EDITION_CLOUD,
+            edition_default,
+            normalise_edition,
+        )
+
+        # Raises UnknownEditionError (a ValueError) for anything unrecognised.
+        edition = normalise_edition(self.ira_edition)
+        self.ira_edition = edition
+
+        if edition != EDITION_CLOUD:
+            # Private: nothing to override. Existing behaviour, byte for byte.
+            return self
+
+        # Cloud-only tightening. Each of these is a fail-closed default that
+        # stays until the phase that can honour it lands (see core/editions.py).
+        if "browser_agent_enabled" not in self.model_fields_set:
+            self.browser_agent_enabled = bool(edition_default("browser_agent_enabled", edition))
+        if "ira_privacy_mode" not in self.model_fields_set:
+            self.ira_privacy_mode = str(edition_default("privacy_mode", edition))
+        # Phase 9: a revocation check that cannot reach Redis must deny in a
+        # multi-user service. Failing open means a token the user revoked starts
+        # working again for the duration of an outage. See core/editions.py.
+        if "auth_fail_closed_on_redis" not in self.model_fields_set:
+            self.auth_fail_closed_on_redis = bool(
+                edition_default("auth_fail_closed_on_redis", edition)
+            )
+
+        # Owner-grade tooling is excluded from cloud structurally (ADR-0001);
+        # these are belt-and-braces so a stray env var cannot switch it on.
+        if self.armory_enabled:
+            raise RuntimeError(
+                "ARMORY_ENABLED=true is refused on IRA_EDITION=cloud. The Armory is "
+                "a Private-edition capability and is not available in a multi-user "
+                "service. See docs/cloud-transformation/adr/ADR-0001-TWO-EDITIONS.md."
+            )
+        if self.dev_mode:
+            raise RuntimeError(
+                "DEV_MODE=true is refused on IRA_EDITION=cloud — it bypasses "
+                "authentication, which in a multi-tenant service means bypassing "
+                "tenant isolation."
+            )
+        # Forge is the third owner-grade capability, and it was the only one
+        # refusing LATER than the other two. Every /forge route depends on
+        # `require_owner` → `is_owner`, which is False in cloud whatever the
+        # username is, so the endpoints already refuse — this is not an open
+        # hole being closed. It is the same refusal moved to boot, where
+        # Armory's and DEV_MODE's already are, because a router that mounts,
+        # publishes itself in /docs and then 403s is a worse failure mode than
+        # one that never starts: it tells a cloud operator the capability is
+        # present and merely unauthorised.
+        #
+        # Read the way `api/routes/forge.py::forge_enabled` reads it, so the
+        # flag has ONE parse. A Settings field would be a second, and the four
+        # test modules that drive this feature monkeypatch the environment
+        # variable directly — a cached field would silently stop honouring them.
+        if (os.getenv("IRA_FORGE_ENABLED") or "false").strip().lower() in (
+            "1", "true", "yes", "on",
+        ):
+            raise RuntimeError(
+                "IRA_FORGE_ENABLED=true is refused on IRA_EDITION=cloud. Forge is "
+                "a Private-edition capability: it creates git worktrees and runs "
+                "commands on the host, which is owner authority no tenant can be "
+                "granted. See docs/cloud-transformation/adr/ADR-0001-TWO-EDITIONS.md."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _refresh_tokens_cannot_outlive_the_purge(self) -> "Settings":
+        """A refresh token may live at most seven days (migration 096).
+
+        "Log out everywhere" refuses a token stamped with an older version than
+        the account's counter. 096 purges a counter that has not moved for seven
+        days, because by then every token it refused has expired. A longer
+        refresh lifetime would break that: a token refused before the purge
+        would be accepted after it. So a longer setting is refused at start,
+        not silently clamped.
+        """
+        if not 1 <= self.refresh_token_expire_days <= MAX_REFRESH_TOKEN_EXPIRE_DAYS:
+            raise RuntimeError(
+                f"REFRESH_TOKEN_EXPIRE_DAYS={self.refresh_token_expire_days} is refused: "
+                f"it must be between 1 and {MAX_REFRESH_TOKEN_EXPIRE_DAYS}. Migration 096 "
+                f"forgets a signed-out account's token version after "
+                f"{MAX_REFRESH_TOKEN_EXPIRE_DAYS} days, so no token may live longer."
+            )
+        return self
+
+    @field_validator("webhook_secret", mode="after")
+    @classmethod
+    def _a_comment_is_not_a_webhook_secret(cls, value: str) -> str:
+        """A WEBHOOK_SECRET that begins with '#' is a comment, not a secret: unset.
+
+        Until 31 October 2026 `.env.example` shipped the line
+        `WEBHOOK_SECRET=<spaces># openssl rand -hex 32`, and every `.env` made
+        from it, by hand or by the setup scripts, still has it. python-dotenv
+        before 1.2.4, and Docker Compose's own env-file parser, read that line as
+        the value "# openssl rand -hex 32", so the webhooks accepted a string
+        anyone with the template knows. Read as unset, they answer 503 "not
+        configured", which is what the empty line meant. A generated secret
+        (`openssl rand -hex 32`) never begins with '#'.
+        """
+        return "" if value.lstrip().startswith("#") else value
+
+    @model_validator(mode="after")
+    def _forbid_dev_mode_on_public_domain(self) -> "Settings":
+        """P0.2: DEV_MODE on a public domain is forbidden — it would expose
+        an unauthenticated admin endpoint on the internet.
+        """
+        if self.dev_mode and not self.is_local_domain:
+            raise RuntimeError(
+                f"DEV_MODE is forbidden on a non-local domain "
+                f"(IRA_DOMAIN={self.ira_domain!r}). "
+                "Set DEV_MODE=false or point IRA_DOMAIN at a local address "
+                "(ira.local, localhost, 127.0.0.1, ::1, or *.local)."
+            )
+        # Phase 5(d): don't trust the domain label alone. DEV_MODE bypasses auth, so a
+        # non-loopback API bind host can expose an unauthenticated admin endpoint even
+        # when IRA_DOMAIN looks local. Require an explicit opt-in for that combination.
+        if (
+            self.dev_mode
+            and not _is_loopback_host(self.api_bind_host)
+            and not self.allow_dev_mode_exposed
+        ):
+            raise RuntimeError(
+                f"DEV_MODE with a non-loopback API bind host "
+                f"(API_BIND_HOST={self.api_bind_host!r}) is refused: it can expose an "
+                "unauthenticated admin endpoint. Bind to 127.0.0.1/::1, set DEV_MODE=false, "
+                "or set ALLOW_DEV_MODE_EXPOSED=true to explicitly accept the risk."
+            )
+        # V1·Phase 2: validate backend secrets ONLY for the selected backend. The
+        # vLLM key is mandatory when, and only when, llm_backend="vllm" — on the
+        # default Ollama path it is never read, so requiring it there is a papercut.
+        if self.llm_backend.strip().lower() == "vllm" and not self.vllm_api_key:
+            raise RuntimeError(
+                "LLM_BACKEND=vllm requires VLLM_API_KEY to be set (the vLLM endpoint "
+                "is key-gated). Set VLLM_API_KEY, or use LLM_BACKEND=ollama for the "
+                "local-first default."
+            )
+        # V2·Phase 1: portable_demo is a guard rail — refuse to start if any hardened
+        # default has been overridden to an unsafe value. It never loosens a check.
+        if self.ira_mode.strip().lower() == "portable_demo":
+            import os as _os
+
+            violations: list[str] = []
+            if self.web_search_enabled:
+                violations.append("WEB_SEARCH_ENABLED must be false (egress off)")
+            if self.llm_backend.strip().lower() == "vllm":
+                violations.append("LLM_BACKEND must be 'ollama' (local), not 'vllm'")
+            if _os.getenv("IRA_USE_CORTEX", "false").strip().lower() in ("1", "true", "yes", "on"):
+                violations.append("IRA_USE_CORTEX must be false")
+            if getattr(self, "android_actuator_enabled", False):
+                violations.append("ANDROID_ACTUATOR_ENABLED must be false")
+            if self.dev_mode:
+                violations.append("DEV_MODE must be false (production-like checks on)")
+            if not _is_loopback_host(self.api_bind_host):
+                violations.append(
+                    f"API_BIND_HOST must be loopback (got {self.api_bind_host!r})"
+                )
+            if violations:
+                raise RuntimeError(
+                    "IRA_MODE=portable_demo refuses to start — unsafe overrides:\n  - "
+                    + "\n  - ".join(violations)
+                )
+        return self
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    return Settings()
+
+
+# Hosts that keep the Cortex gateway traffic on the box.
+_LOCAL_CORTEX_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
+
+
+def cortex_local_only_warning(
+    use_cortex: Optional[bool] = None,
+    cortex_url: Optional[str] = None,
+) -> Optional[str]:
+    """Sovereignty guard for the Cortex engine.
+
+    When IRA_USE_CORTEX is true, the gateway URL MUST point at localhost/127.0.0.1
+    — a non-local URL would route prompts through a remote gateway (e.g. Cortex
+    Portal), defeating the "nothing leaves the box" guarantee. Returns a warning
+    string when the URL is NOT local (so startup can warn loudly), else None.
+
+    Reads IRA_USE_CORTEX / IRA_CORTEX_URL from the environment when not passed in.
+    This NEVER blocks startup — it only describes the misconfiguration.
+    """
+    if use_cortex is None:
+        use_cortex = os.getenv("IRA_USE_CORTEX", "false").strip().lower() in (
+            "1", "true", "yes", "on",
+        )
+    if not use_cortex:
+        return None
+    if cortex_url is None:
+        cortex_url = os.getenv("IRA_CORTEX_URL", "http://127.0.0.1:8642/v1")
+    host = (urlparse(cortex_url).hostname or "").lower()
+    if host in _LOCAL_CORTEX_HOSTS:
+        return None
+    return (
+        f"IRA_USE_CORTEX=true but IRA_CORTEX_URL={cortex_url!r} is NOT local "
+        f"(host={host!r}); prompts would leave the box via a remote gateway."
+    )
+
+
+def _is_loopback_host(host: str) -> bool:
+    """True only for loopback (localhost / 127.x / ::1) — NOT RFC1918 or 0.0.0.0.
+
+    Used by the DEV_MODE bind-host guard: 0.0.0.0 (all interfaces) and LAN addresses
+    are exposed and must NOT count as safe.
+    """
+    host = (host or "").lower().strip()
+    if host in ("localhost", "127.0.0.1", "::1"):
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
+def _is_local_or_private_host(host: str) -> bool:
+    """True for localhost/loopback, *.local, or RFC1918/private (i.e. self-hosted)."""
+    host = (host or "").lower()
+    if host in _LOCAL_CORTEX_HOSTS or host.endswith(".local"):
+        return True
+    try:
+        return ipaddress.ip_address(host).is_private
+    except ValueError:
+        return False
+
+
+def research_backends_warning(searxng_url: Optional[str] = None,
+                              crawl4ai_url: Optional[str] = None) -> Optional[str]:
+    """Sovereignty guard for the web-research backends (Phase 3B).
+
+    SearXNG and Crawl4AI MUST be local/self-hosted so research queries never leave
+    the box. Returns a warning string listing any backend whose host is not
+    local/self-hosted, else None. Never blocks startup.
+    """
+    if searxng_url is None or crawl4ai_url is None:
+        cfg = get_settings()
+        searxng_url = cfg.searxng_url if searxng_url is None else searxng_url
+        crawl4ai_url = getattr(cfg, "crawl4ai_url", "") if crawl4ai_url is None else crawl4ai_url
+
+    offenders = []
+    for label, url in (("SEARXNG_URL", searxng_url), ("CRAWL4AI_URL", crawl4ai_url)):
+        if not url:
+            continue
+        host = (urlparse(url).hostname or "").lower()
+        if not _is_local_or_private_host(host):
+            offenders.append(f"{label}={url!r} (host={host!r})")
+    if not offenders:
+        return None
+    return (
+        "web-research backends are NOT local/self-hosted: " + "; ".join(offenders)
+        + " — research queries could leave the box."
+    )

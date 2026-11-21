@@ -1,0 +1,64 @@
+# requirements.lock — P16-03 (DEP-01), corrected by P16-R1a and P16-R3.
+#
+# GENERATED. Do not hand-edit. Regenerate with:
+#
+#   grep -v -- "--extra-index-url" requirements.txt \
+#     | grep -v "^torch==\|^torchaudio==" > /tmp/req-pypi.txt
+#   uv pip compile /tmp/req-pypi.txt --generate-hashes -p 3.12 -o requirements.lock
+#   python scripts/strip_torch_subtree.py     # FINDING AM — see below
+#   python scripts/reconcile_locks.py         # FINDING AN — see below
+#   python scripts/build_licence_inventory.py # keeps the licence answer current
+#
+# The last three steps are not optional tidying. Skipping any of them fails
+# `scripts/check_dependency_gates.py` or `scripts/check_torch_supply_chain.py`.
+#
+# This header lives in `requirements.lock.header` and is re-applied by
+# `strip_torch_subtree.py` on every regeneration, replacing uv's two-line
+# preamble. It is kept in a separate file for a reason: the previous version of
+# it survived in the lock long after it stopped being true, and stated that the
+# torch family was unlocked and UNKNOWN three batches after P16-R2 had closed
+# that. A header nobody regenerates is a comment that outlives its subject.
+#
+# ── What this locks ────────────────────────────────────────────────────────
+#
+# `requirements.txt` is ~96% exactly pinned. That is not a lockfile: 187
+# packages resolve from its 56 requirement lines, so the transitive set floated.
+# A version pin names a RELEASE; a hash names an ARTIFACT. This file carries the
+# hashes.
+#
+# ── Why the torch family is locked in a SEPARATE file ──────────────────────
+#
+# `torch` and `torchaudio` are pinned `2.11.0+cpu`, a local version served only
+# by download.pytorch.org. `uv` refuses by default to resolve across PyPI and
+# that index together, and its reason is this batch's own subject: the PyTorch
+# index also serves `requests`, so picking the best version across indexes is a
+# DEPENDENCY CONFUSION attack. `--index-strategy unsafe-best-match` would have
+# produced one fuller lock by turning that protection off.
+#
+# P16-03 declined that trade and carried the family as UNKNOWN on advisory,
+# checksum and licence. P16-R2 closed it properly instead: the family resolves
+# on its own against a SINGLE `--index-url`, in `requirements-torch.lock`, so
+# confusion is not disabled — there is no second index to be confused with.
+# Nothing is UNKNOWN as a result: `scripts/check_torch_supply_chain.py` audits
+# that lock at the base release, hashes and all.
+#
+# ── FINDING AM: excluding torch from the INPUT does not exclude it ─────────
+#
+# `sentence-transformers` requires torch, so the resolver pulls it regardless of
+# the `grep -v` above — and it pulls the **PyPI GPU build**, whose dependency
+# set is not the one this product installs. P16-R1a removed the two package
+# blocks from the output and left their subtree behind: 25 packages nothing else
+# needed, including the entire NVIDIA CUDA stack and `triton`, none of which
+# appear in any tree this deployment ever creates.
+#
+# `scripts/strip_torch_subtree.py` removes them by closure over this file's own
+# `# via` annotations, so the set is derived rather than named.
+#
+# ── FINDING AN: two locks must not pin the same package ────────────────────
+#
+# Two independent resolutions overlap. `scripts/reconcile_locks.py` gives every
+# shared name to this file, and `check_torch_supply_chain.py` then verifies the
+# surviving versions against what the pinned torch wheel actually requires.
+#
+# `--extra-index-url` stays in `requirements.txt` because plain `pip` still
+# needs it to install the two wheels. It is stripped only for this resolution.

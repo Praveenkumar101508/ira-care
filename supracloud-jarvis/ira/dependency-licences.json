@@ -1,0 +1,1233 @@
+{
+  "generated_by": "scripts/build_licence_inventory.py",
+  "package_count": 175,
+  "packages": {
+    "aiohappyeyeballs": {
+      "licence": "PSF-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.7.1"
+    },
+    "aiohttp": {
+      "licence": "Apache-2.0 AND MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.14.5"
+    },
+    "aiosignal": {
+      "licence": "Apache 2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.4.0"
+    },
+    "annotated-doc": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.0.5"
+    },
+    "annotated-types": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.8.0"
+    },
+    "anyio": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "4.14.2"
+    },
+    "apify-client": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.8.1"
+    },
+    "apify-shared": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.3.0"
+    },
+    "apscheduler": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.10.4"
+    },
+    "asgiref": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.12.1"
+    },
+    "asyncpg": {
+      "licence": "Apache License, Version 2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.30.0"
+    },
+    "attrs": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "26.1.0"
+    },
+    "av": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "18.1.0"
+    },
+    "bcrypt": {
+      "licence": "Apache License, Version 2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "4.0.1"
+    },
+    "boto3": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.43.67"
+    },
+    "botocore": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.43.70"
+    },
+    "caldav": {
+      "licence": "GPL-3.0-or-later OR Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.1.1"
+    },
+    "certifi": {
+      "licence": "MPL-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2026.10.19"
+    },
+    "cffi": {
+      "licence": "MIT-0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.1.1"
+    },
+    "chardet": {
+      "licence": "0BSD",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "7.5.1"
+    },
+    "charset-normalizer": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.5.0"
+    },
+    "click": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "8.4.2"
+    },
+    "croniter": {
+      "licence": "MIT License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.0.3"
+    },
+    "cryptography": {
+      "licence": "Apache-2.0 OR BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "50.0.0"
+    },
+    "ctranslate2": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "4.8.3"
+    },
+    "deprecated": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.3.1"
+    },
+    "distro": {
+      "licence": "Apache License, Version 2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.9.0"
+    },
+    "dnspython": {
+      "licence": "ISC",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.9.2"
+    },
+    "duckduckgo-search": {
+      "licence": "MIT License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "6.4.2"
+    },
+    "email-validator": {
+      "licence": "Unlicense",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.3.0"
+    },
+    "et-xmlfile": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.0.0"
+    },
+    "fastapi": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.141.1"
+    },
+    "faster-whisper": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.2.1"
+    },
+    "feedparser": {
+      "licence": "BSD-2-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "6.0.11"
+    },
+    "filelock": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "4.2.4"
+    },
+    "flatbuffers": {
+      "licence": "Apache 2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "25.12.19"
+    },
+    "frozenlist": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.8.0"
+    },
+    "fsspec": {
+      "artifact_sha256": "b57ddbafedfaef7018c1ecab32aa200a9d7ca26b77965f64e48b70061249d279",
+      "licence": "BSD 3-Clause License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "artifact-licence-file: fsspec-2026.7.0-py3-none-any.whl!fsspec-2026.7.0.dist-info/licenses/LICENSE",
+      "version": "2026.7.0"
+    },
+    "googleapis-common-protos": {
+      "licence": "Apache 2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.75.1"
+    },
+    "greenlet": {
+      "licence": "MIT License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.0.3"
+    },
+    "h11": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.16.0"
+    },
+    "hf-xet": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.6.0"
+    },
+    "httpcore": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.0.9"
+    },
+    "httptools": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.8.0"
+    },
+    "httpx": {
+      "licence": "BSD License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.27.2"
+    },
+    "huggingface-hub": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.27.0"
+    },
+    "hyperpyyaml": {
+      "licence": "Apache Software License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.2.3"
+    },
+    "icalendar": {
+      "licence": "BSD-2-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "7.2.2"
+    },
+    "idna": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.18"
+    },
+    "jinja2": {
+      "licence": "BSD License",
+      "lock": "requirements-torch.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.1.6"
+    },
+    "jiter": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.16.0"
+    },
+    "jmespath": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.1.0"
+    },
+    "joblib": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.5.3"
+    },
+    "jsonpatch": {
+      "licence": "Modified BSD License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.33"
+    },
+    "jsonpointer": {
+      "licence": "Modified BSD License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.1.1"
+    },
+    "langchain-core": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.5.4"
+    },
+    "langchain-protocol": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.0.18"
+    },
+    "langgraph": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.2.11"
+    },
+    "langgraph-checkpoint": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "4.3.0"
+    },
+    "langgraph-checkpoint-postgres": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.1.3"
+    },
+    "langgraph-prebuilt": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.1.0"
+    },
+    "langgraph-sdk": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.4.7"
+    },
+    "langsmith": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.10.18"
+    },
+    "limits": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "5.8.0"
+    },
+    "livekit-api": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.7.1"
+    },
+    "livekit-protocol": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.1.17"
+    },
+    "lxml": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "6.1.1"
+    },
+    "markdown-it-py": {
+      "licence": "MIT License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "4.2.0"
+    },
+    "markupsafe": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements-torch.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.0.3"
+    },
+    "mdurl": {
+      "licence": "MIT License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.1.2"
+    },
+    "more-itertools": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "11.1.0"
+    },
+    "mpmath": {
+      "licence": "BSD",
+      "lock": "requirements-torch.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.3.0"
+    },
+    "multidict": {
+      "licence": "Apache License 2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "6.9.1"
+    },
+    "networkx": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements-torch.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.6.1"
+    },
+    "numpy": {
+      "licence": "BSD License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.26.4"
+    },
+    "onnxruntime": {
+      "licence": "MIT License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.31.0"
+    },
+    "openai": {
+      "licence": "Apache Software License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.58.1"
+    },
+    "openpyxl": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.1.5"
+    },
+    "opentelemetry-api": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.45.2"
+    },
+    "opentelemetry-exporter-http-transport": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.66b2"
+    },
+    "opentelemetry-exporter-otlp-common": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.66b2"
+    },
+    "opentelemetry-exporter-otlp-proto-common": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.45.2"
+    },
+    "opentelemetry-exporter-otlp-proto-http": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.45.2"
+    },
+    "opentelemetry-instrumentation": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.66b2"
+    },
+    "opentelemetry-instrumentation-asgi": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.66b2"
+    },
+    "opentelemetry-instrumentation-asyncpg": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.66b2"
+    },
+    "opentelemetry-instrumentation-fastapi": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.66b2"
+    },
+    "opentelemetry-instrumentation-httpx": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.66b2"
+    },
+    "opentelemetry-instrumentation-redis": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.66b2"
+    },
+    "opentelemetry-proto": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.45.2"
+    },
+    "opentelemetry-sdk": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.45.2"
+    },
+    "opentelemetry-semantic-conventions": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.66b2"
+    },
+    "opentelemetry-util-http": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.66b2"
+    },
+    "orjson": {
+      "licence": "MPL-2.0 AND (Apache-2.0 OR MIT)",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.11.9"
+    },
+    "ormsgpack": {
+      "licence": "Apache-2.0 OR MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.12.2"
+    },
+    "packaging": {
+      "licence": "Apache Software License AND BSD License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "24.2"
+    },
+    "passlib": {
+      "licence": "BSD",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.7.4"
+    },
+    "pillow": {
+      "licence": "MIT-CMU",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "13.0.0"
+    },
+    "playwright": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.47.0"
+    },
+    "primp": {
+      "licence": "MIT License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.3.1"
+    },
+    "propcache": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.5.2"
+    },
+    "protobuf": {
+      "licence": "3-Clause BSD License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "7.35.1"
+    },
+    "psutil": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "6.1.0"
+    },
+    "psycopg": {
+      "licence": "GNU Lesser General Public License v3 (LGPLv3)",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.2.3"
+    },
+    "psycopg-binary": {
+      "licence": "GNU Lesser General Public License v3 (LGPLv3)",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.2.3"
+    },
+    "psycopg-pool": {
+      "licence": "LGPL-3.0-only",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.3.1"
+    },
+    "pycparser": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.0"
+    },
+    "pydantic": {
+      "licence": "MIT License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.9.2"
+    },
+    "pydantic-core": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.23.4"
+    },
+    "pydantic-settings": {
+      "licence": "MIT License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.6.1"
+    },
+    "pyee": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "12.0.0"
+    },
+    "pygments": {
+      "licence": "BSD-2-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.20.0"
+    },
+    "pyjwt": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.15.0"
+    },
+    "pyotp": {
+      "licence": "MIT License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.9.0"
+    },
+    "pypdf": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "6.21.4"
+    },
+    "python-dateutil": {
+      "licence": "Dual License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.9.0"
+    },
+    "python-docx": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.1.2"
+    },
+    "python-dotenv": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.2.4"
+    },
+    "python-multipart": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.0.31"
+    },
+    "python-pptx": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.0.2"
+    },
+    "pytz": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2026.3.post1"
+    },
+    "pyyaml": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "6.0.2"
+    },
+    "recurring-ical-events": {
+      "licence": "LGPL-3.0-or-later",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.8.2"
+    },
+    "redis": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "5.2.0"
+    },
+    "regex": {
+      "licence": "Apache-2.0 AND CNRI-Python",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2026.7.19"
+    },
+    "reportlab": {
+      "licence": "BSD license (see license.txt for details), Copyright (c) 2000-2022, ReportLab Inc.",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "4.2.5"
+    },
+    "requests": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.34.2"
+    },
+    "requests-toolbelt": {
+      "licence": "Apache 2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.0.0"
+    },
+    "rich": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "15.0.0"
+    },
+    "ruamel-yaml": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.18.17"
+    },
+    "ruamel-yaml-clib": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.2.15"
+    },
+    "s3transfer": {
+      "licence": "Apache License 2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.19.2"
+    },
+    "safetensors": {
+      "licence": "Apache Software License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.8.0"
+    },
+    "scikit-learn": {
+      "licence": "BSD License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.5.2"
+    },
+    "scipy": {
+      "licence": "BSD License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.17.1"
+    },
+    "sentence-transformers": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "5.7.0"
+    },
+    "sentencepiece": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.2.2"
+    },
+    "setuptools": {
+      "licence": "MIT License",
+      "lock": "requirements-torch.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "78.1.0"
+    },
+    "sgmllib3k": {
+      "licence": "BSD License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.0.0"
+    },
+    "shellingham": {
+      "licence": "ISC License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.5.4"
+    },
+    "six": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.17.0"
+    },
+    "slowapi": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.1.9"
+    },
+    "sniffio": {
+      "licence": "MIT OR Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.3.1"
+    },
+    "soundfile": {
+      "licence": "BSD 3-Clause License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.14.0"
+    },
+    "speechbrain": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.1.0"
+    },
+    "sqlalchemy": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.0.36"
+    },
+    "sse-starlette": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.1.3"
+    },
+    "starlette": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.6.0"
+    },
+    "sympy": {
+      "licence": "BSD",
+      "lock": "requirements-torch.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.14.0"
+    },
+    "tenacity": {
+      "licence": "Apache 2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "9.0.0"
+    },
+    "threadpoolctl": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.6.0"
+    },
+    "tokenizers": {
+      "licence": "Apache Software License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.22.2"
+    },
+    "torch": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements-torch.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.11.0+cpu"
+    },
+    "torchaudio": {
+      "licence": "BSD License",
+      "lock": "requirements-torch.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.11.0+cpu"
+    },
+    "tqdm": {
+      "licence": "MPL-2.0 AND MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "4.70.0"
+    },
+    "transformers": {
+      "licence": "Apache 2.0 License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "5.15.0"
+    },
+    "typer": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.27.1"
+    },
+    "types-protobuf": {
+      "licence": "Apache-2.0 license",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "4.25.0.20240417"
+    },
+    "typing-extensions": {
+      "licence": "PSF-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "4.16.0"
+    },
+    "typing-inspection": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.4.4"
+    },
+    "tzdata": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2026.3"
+    },
+    "tzlocal": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "5.4.4"
+    },
+    "urllib3": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.8.0"
+    },
+    "uuid-utils": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.17.0"
+    },
+    "uvicorn": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.32.1"
+    },
+    "uvloop": {
+      "licence": "MIT License",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.22.1"
+    },
+    "watchfiles": {
+      "licence": "MIT",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.2.0"
+    },
+    "websockets": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "15.0.1"
+    },
+    "wrapt": {
+      "licence": "BSD-2-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.3.0"
+    },
+    "x-wr-timezone": {
+      "licence": "LGPL-3.0-or-later",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2.0.1"
+    },
+    "xlsxwriter": {
+      "licence": "BSD-2-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "3.2.9"
+    },
+    "xxhash": {
+      "licence": "BSD-2-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "4.0.0"
+    },
+    "yarl": {
+      "licence": "Apache-2.0",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "1.25.1"
+    },
+    "yt-dlp": {
+      "licence": "Unlicense",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "2026.7.4"
+    },
+    "zstandard": {
+      "licence": "BSD-3-Clause",
+      "lock": "requirements.lock",
+      "resolved": true,
+      "source": "pypi-json",
+      "version": "0.25.0"
+    }
+  },
+  "source": "requirements.lock + requirements-torch.lock + PyPI JSON API"
+}

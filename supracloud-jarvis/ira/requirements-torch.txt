@@ -1,0 +1,36 @@
+# P16-R2 — the torch family, resolved from ONE index.
+#
+# ── Why this file exists ────────────────────────────────────────────────────
+#
+# `torch` and `torchaudio` were excluded from `requirements.lock` since P16-03
+# and carried as UNKNOWN on advisory, checksum AND licence. That was recorded
+# honestly and it was not harmless: queried against OSV at its base version, the
+# pinned `torch==2.4.1+cpu` had **23 advisories**. An UNKNOWN is not a neutral
+# state.
+#
+# ── Why a separate file rather than --index-strategy unsafe-best-match ──────
+#
+# P16-03 declined to lock these by turning off uv's cross-index protection,
+# and that judgement was right: the PyTorch index also serves `requests`, so
+# best-match across two indexes is a dependency-confusion hole.
+#
+# Resolving the torch family on its own against `--index-url` (not
+# `--extra-index-url`) means there is exactly ONE index in play. Confusion is
+# not disabled here — it is **structurally impossible**, because there is no
+# second index to be confused with. The main lock keeps its protection intact.
+#
+# ── Why 2.11.0 and not something newer ──────────────────────────────────────
+#
+# `torchaudio`'s last CPU build is 2.11.0 (checked against the index listing;
+# 2.12 and 2.13 have none), and `requirements.txt` documents why the pair must
+# match exactly. torch 2.13.0 has zero advisories but cannot be used while
+# torchaudio is a dependency — so 2.11.0 is the best available pair, at 1
+# advisory instead of 23. The remaining one is declared and dispositioned in
+# `scripts/check_torch_supply_chain.py`.
+#
+# Regenerate with:
+#   uv pip compile requirements-torch.txt \
+#     --index-url https://download.pytorch.org/whl/cpu \
+#     --generate-hashes -p 3.12 -o requirements-torch.lock
+torch==2.11.0+cpu
+torchaudio==2.11.0+cpu

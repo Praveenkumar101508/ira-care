@@ -1,0 +1,64 @@
+# P16-02 — SEC-07, the correctness half.
+#
+# **This is deliberately not "ruff's default rules".** The default set reports
+# 215 findings on this tree, 121 of them unused imports. A gate that starts at
+# 215 is a gate somebody turns off, and a gate turned off is worse than no gate
+# because the row that claims it exists stays green.
+#
+# So the selection is: rules where a hit is a **defect**, not a preference.
+# Every one below is at ZERO on this tree, which is what makes the gate
+# meaningful — a new hit is a new defect, and there is no baseline to hide in.
+#
+# ── Why this set specifically ───────────────────────────────────────────────
+#
+# `F821` is here because it earned its place. P16-01 ran ruff once, by hand,
+# and F821 found TWO live defects that fifteen phases of tests had not:
+#
+#   FINDING AH  api/routes/brain.py — `retrieve(principal, ...)` where
+#               `principal` was bound nowhere. NameError on every call,
+#               swallowed by the closure's own `except Exception` into `[]`,
+#               so the affect layer's relational recall had never worked.
+#   FINDING AI  voice/tts_indic.py — `revision_for_named` called but never
+#               imported. NameError swallowed into "Indic TTS unavailable",
+#               so the artefact pinning MOD-02 added fell back silently.
+#
+# Both are the same shape: **a NameError becoming a benign value.** That is the
+# class Phase 13 spent a batch removing, and neither test suites nor review
+# found them, because the failure path is indistinguishable from the empty
+# path. A linter reads what the interpreter will do.
+#
+# The style rules are NOT selected. Not because they do not matter, but because
+# mixing them in is how a correctness gate becomes a formatting argument and
+# then an `--exit-zero`. They can be added later, as their own decision, once
+# somebody has actually fixed the 215.
+#
+# `tests/` is excluded: test files legitimately redefine and shadow.
+
+target-version = "py311"
+line-length = 100
+exclude = ["tests", ".venv", "node_modules", "third_party"]
+
+[lint]
+select = [
+  "F821",  # undefined name — a guaranteed NameError. Findings AH and AI.
+  "F811",  # redefinition of unused name — the second definition wins silently
+  "F632",  # `is` against a literal — compares identity, works by accident
+  "F702",  # `continue` outside a loop
+  "E711",  # `== None` — not `is None`; wrong for anything overriding __eq__
+  "E712",  # `== True` / `== False`
+  "E713",  # `not x in y`
+  "E714",  # `not x is y`
+  "E722",  # bare `except:` — swallows KeyboardInterrupt and SystemExit
+  "E9",    # syntax and IO errors ruff itself hit
+  "B002",  # `++n` is not an increment
+  "B006",  # mutable default argument — shared across every call
+  "B012",  # `break`/`return` in `finally` swallows the exception in flight
+  "B018",  # useless expression — a statement that does nothing
+  "PLE",   # pylint errors: genuine mistakes, not opinions
+]
+
+# No `ignore` list and no per-file ignores. Both are empty ON PURPOSE: this set
+# is at zero, so the first entry added here is a decision somebody has to write
+# a reason for, in a diff, where it is visible. A suppression that arrives
+# quietly is how a gate stops gating.
+ignore = []

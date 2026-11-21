@@ -1,0 +1,637 @@
+"""
+Voice endpoints.
+
+GET  /voice/token          → generate a LiveKit access token for the frontend
+POST /voice/enroll         → owner submits reference audio for biometric enrolment
+GET  /voice/profile/status → check whether an owner voice profile exists
+"""
+
+from __future__ import annotations
+
+import logging
+import os
+import secrets
+import uuid
+
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Form, Response
+from fastapi.concurrency import run_in_threadpool
+from pydantic import BaseModel
+
+from api.middleware.auth import dev_mode_active, is_owner, require_auth
+from config import get_settings
+
+router = APIRouter(prefix="/voice", tags=["voice"])
+logger = logging.getLogger("ira.voice.api")
+
+# Anti-replay challenge TTL — challenges expire after 60 seconds.
+# If the user hasn't spoken the phrase and submitted within 60 s the
+# challenge is stale; the client must request a fresh one.
+_CHALLENGE_TTL = 60  # seconds
+
+
+# ── Response models ───────────────────────────────────────────────────────────
+
+class LiveKitTokenResponse(BaseModel):
+    token: str
+    room: str
+    livekit_url: str
+
+
+class EnrolmentResponse(BaseModel):
+    status: str
+    segments_processed: int
+    message: str
+
+
+class ChallengeResponse(BaseModel):
+    challenge_id: str
+    phrase: str
+    expires_in: int  # seconds
+
+
+# ── LiveKit access token factory ──────────────────────────────────────────────
+
+@router.get("/token", response_model=LiveKitTokenResponse)
+async def get_livekit_token(_user: str = Depends(require_auth)):
+    """
+    Generate a signed LiveKit access token for the authenticated user.
+
+    The token grants room-join access to the caller's own voice room and is
+    valid for 1 hour. The frontend VoiceButton uses this token to connect to
+    LiveKit and start a voice session with IRA.
+
+    One room per person. Every caller used to be sent to `livekit_room_name`
+    itself, with the right to listen, so a household account could join while
+    the owner was talking and hear the owner's microphone and IRA's spoken
+    answers. The voice agent is dispatched per room, and the frontend reads the
+    room from the token, so nothing else depends on the shared name. The name
+    carries a digest of the account, not the account itself, because room
+    names are visible to anything that lists rooms.
+    """
+    import hashlib
+    from datetime import timedelta
+
+    cfg = get_settings()
+    room = f"{cfg.livekit_room_name}-{hashlib.sha256(_user.encode('utf-8')).hexdigest()[:16]}"
+
+    if not cfg.livekit_api_key or not cfg.livekit_api_secret:
+        raise HTTPException(
+            status_code=503,
+            detail="LiveKit is not configured. Set LIVEKIT_API_KEY and LIVEKIT_API_SECRET in .env",
+        )
+
+    try:
+        from livekit.api import AccessToken, VideoGrants
+
+        token = (
+            AccessToken(cfg.livekit_api_key, cfg.livekit_api_secret)
+            .with_identity(_user)
+            .with_name(_user)
+            .with_ttl(timedelta(hours=1))
+            .with_grants(
+                VideoGrants(
+                    room_join=True,
+                    room=room,
+                    can_publish=True,      # user can send microphone audio
+                    can_subscribe=True,    # user can hear IRA's TTS audio
+                )
+            )
+        )
+        jwt = token.to_jwt()
+    except ImportError:
+        raise HTTPException(
+            status_code=503,
+            detail="livekit-api package not installed. Run: pip install livekit-api",
+        )
+    except Exception as e:
+        logger.error(f"LiveKit token generation failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate voice token")
+
+    _livekit_url = cfg.livekit_public_url or f"wss://{cfg.ira_domain}/livekit"
+    return LiveKitTokenResponse(
+        token=jwt,
+        room=room,
+        livekit_url=_livekit_url,
+    )
+
+
+# ── Local TTS (browser-native voice) ──────────────────────────────────────────
+
+class SayRequest(BaseModel):
+    text: str
+    voice: str | None = None   # M1–M5 / F1–F5; defaults to IRA_VOICE (F1, female)
+    lang: str | None = None    # ISO 639-1; ta/te/kn/ml -> native Indic engine, else Supertonic
+    timings: bool = False      # True → JSON with base64 WAV + viseme timestamps (lip sync)
+
+
+class VisemeFrame(BaseModel):
+    value: str                 # viseme name (sil PP FF TH DD kk CH SS nn RR aa E ih oh ou)
+    offset: float              # seconds from audio start
+    duration: float            # seconds
+    weight: float | None = None
+
+
+class SayTimedResponse(BaseModel):
+    audio_b64: str             # the same audio/wav payload, base64-encoded
+    timestamps: list[VisemeFrame]
+    timing_source: str         # "whisper" (forced alignment) | "estimated"
+
+
+@router.post("/say")
+async def say(req: SayRequest, _user: str = Depends(require_auth)):
+    """Synthesise `text` to a WAV and return it as audio/wav.
+
+    Picks the TTS engine by language: Tamil/Telugu/Kannada/Malayalam use the native
+    Indic engine (fail-soft to Supertonic), everything else (incl. Hindi) uses the
+    on-device Supertonic engine (female F1 default). Browser-native path — no LiveKit,
+    no cloud. `require_auth` bypasses the token in DEV_MODE and enforces it otherwise.
+
+    With ``timings: true`` the response is JSON (``SayTimedResponse``): the same WAV
+    base64-encoded plus viseme timestamps for the holographic avatar's lip sync.
+    Timings come from a faster-whisper forced-alignment pass over the synthesized
+    audio (word-level, sovereign, on-device), falling back to duration-based
+    estimation when whisper is unavailable (see voice/lipsync.py).
+    """
+    text = (req.text or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="`text` must not be empty.")
+
+    voice = req.voice or os.getenv("IRA_VOICE", "F1")
+    lang = req.lang or "en"
+    steps = int(os.getenv("IRA_TTS_STEPS", "6"))   # low = fast time-to-first-audio
+
+    # Lazy import: the synth engines pull numpy/scipy/supertonic/torch and are only
+    # needed on the voice host — keep them out of module import so the route loads
+    # (and its sibling endpoints test) without those heavy deps.
+    try:
+        from voice.tts_factory import synthesize_say
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"TTS engine module unavailable: {e}")
+        raise HTTPException(status_code=503, detail="On-device TTS engine unavailable.")
+
+    # Synthesis is CPU/GPU-bound and synchronous — run it off the event loop.
+    wav_bytes = await run_in_threadpool(synthesize_say, text, lang=lang, voice=voice, steps=steps)
+    if not wav_bytes:
+        raise HTTPException(status_code=503, detail="TTS synthesis failed or produced no audio.")
+
+    if not req.timings:
+        return Response(content=wav_bytes, media_type="audio/wav")
+
+    import base64
+
+    from voice.lipsync import viseme_timestamps
+
+    # The alignment pass is CPU-bound (one whisper transcription of the
+    # synthesized audio) — keep it off the event loop like the synthesis.
+    frames, source = await run_in_threadpool(viseme_timestamps, text, wav_bytes)
+    return SayTimedResponse(
+        audio_b64=base64.b64encode(wav_bytes).decode("ascii"),
+        timestamps=[VisemeFrame(**f) for f in frames],
+        timing_source=source,
+    )
+
+
+# ── Local STT (sovereign) + owner gate ────────────────────────────────────────
+
+class TranscribeResponse(BaseModel):
+    text: str
+    is_owner: bool
+
+
+#: A spoken command. Hands-free capture stops at 8 s (VoiceConsole.tsx
+#: UTTERANCE_MAX_MS); push-to-talk records for as long as the button is held,
+#: and nothing else posts here. The upload is read in chunks up to the byte
+#: limit, and decoding stops at the length limit, so neither the request nor
+#: its decoded audio is held in memory whole. 2 minutes of 48 kHz stereo
+#: 16-bit WAV is 23 MB.
+VOICE_MAX_SECONDS = 120
+VOICE_MAX_BYTES = 25 * 1024 * 1024
+
+
+@router.post("/transcribe", response_model=TranscribeResponse)
+async def transcribe(
+    request: Request,
+    audio: UploadFile = File(..., description="Recorded utterance (webm/opus or WAV)."),
+    _user: str = Depends(require_auth),
+):
+    """Transcribe an uploaded utterance locally with faster-whisper (sovereign — the
+    audio never leaves the box) and, when biometrics are active (i.e. NOT DEV_MODE),
+    run the ECAPA owner-gate on the same audio.
+
+    Returns the transcript and whether the speaker is the enrolled owner. DEV_MODE →
+    is_owner=True (gate bypassed). Non-owner / no profile / low confidence / model
+    unavailable → is_owner=False (fail closed).
+    """
+    from utils.file_utils import read_with_size_cap
+    blob = await read_with_size_cap(audio, max_bytes=VOICE_MAX_BYTES)
+    if not blob:
+        raise HTTPException(status_code=400, detail="No audio uploaded.")
+
+    # Lazy import: faster-whisper + PyAV are heavy and only on the voice host — keep
+    # them out of module import so this route loads (and tests) without them.
+    try:
+        from voice.stt import AudioTooLong, STTUnavailable, transcribe_audio_bytes
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"Local STT engine unavailable: {e}")
+        raise HTTPException(status_code=503, detail="Local STT engine unavailable.")
+
+    try:
+        text, _lang, _conf, pcm16 = await run_in_threadpool(
+            transcribe_audio_bytes, blob, max_seconds=VOICE_MAX_SECONDS)
+    except AudioTooLong:
+        limit = (f"{VOICE_MAX_SECONDS // 60} minutes" if VOICE_MAX_SECONDS % 60 == 0
+                 else f"{VOICE_MAX_SECONDS} seconds")
+        raise HTTPException(
+            status_code=413,
+            detail=f"The recording is longer than {limit}, the most a spoken command can be.")
+    except STTUnavailable as e:
+        # The engine, not the audio: faster-whisper missing, an unpinned
+        # WHISPER_MODEL, or a failed model load. This used to fall through to the
+        # 422 below and tell the browser its recording was undecodable.
+        logger.error(f"Local STT engine unavailable: {e}")
+        raise HTTPException(status_code=503, detail="Local STT engine unavailable.")
+    except Exception as e:  # noqa: BLE001 — undecodable/corrupt audio
+        logger.error(f"Transcription failed: {e}")
+        raise HTTPException(status_code=422, detail="Could not decode or transcribe the audio.")
+
+    cfg = get_settings()
+    # P2-02: edition-gated — this skips the ECAPA speaker check entirely.
+    if dev_mode_active():
+        is_owner = True
+    else:
+        # Fail-closed ECAPA owner check on the same 16kHz PCM the STT decoded.
+        from voice.gate import gate_from_audio
+        decision = await gate_from_audio(pcm16, session_id="voice_transcribe")
+        is_owner = bool(decision["is_owner"])
+
+    # Feed the owner's utterance to the continuous brain as a voice percept
+    # (no-op unless the brain is running). Only the owner drives the brain, and
+    # the percept still passes the brain's own sanitization. Fail-soft.
+    if is_owner and text:
+        from api.routes.brain import feed_percept
+        await feed_percept(request.app, "voice", text)
+
+    return TranscribeResponse(text=text, is_owner=is_owner)
+
+
+# ── Anti-replay challenge ─────────────────────────────────────────────────────
+
+# A pool of short, unambiguous phrases for the user to speak during enrolment.
+# Having variety means the phrase cannot be pre-recorded.
+_CHALLENGE_PHRASES = [
+    "IRA authenticate now",
+    "voice lock open",
+    "secure access granted",
+    "identity confirm",
+    "biometric verify",
+    "owner access code",
+    "unlock voice gate",
+    "speak to proceed",
+]
+
+
+@router.get("/challenge", response_model=ChallengeResponse)
+async def get_voice_challenge(_user: str = Depends(require_auth)):
+    """
+    Issue a one-time anti-replay challenge phrase. (Fix #36)
+
+    The challenge is a random UUID stored in Redis with a 60-second TTL.
+    The caller must include the ``challenge_id`` when submitting enrolment audio.
+    The challenge is consumed (deleted) on first use, so a recorded replay of an
+    earlier enrolment session will fail with 409 Conflict.
+    """
+    if not is_owner(_user):
+        raise HTTPException(
+            status_code=403,
+            detail="Only the system administrator may request a biometric challenge.",
+        )
+
+    challenge_id = str(uuid.uuid4())
+    phrase = secrets.choice(_CHALLENGE_PHRASES)
+
+    try:
+        from utils.redis_client import get_redis
+        redis = get_redis()
+        await redis.setex(f"bio:challenge:{challenge_id}", _CHALLENGE_TTL, phrase)
+    except Exception as e:
+        logger.error(f"Could not store biometric challenge in Redis: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail="Challenge service unavailable — Redis connection failed.",
+        )
+
+    logger.info(f"Issued biometric challenge {challenge_id} to user '{_user}'")
+    return ChallengeResponse(
+        challenge_id=challenge_id,
+        phrase=phrase,
+        expires_in=_CHALLENGE_TTL,
+    )
+
+
+async def _consume_challenge(challenge_id: str) -> None:
+    """
+    Verify a challenge exists (not expired, not already used) and consume it.
+    Raises HTTPException on failure.
+    """
+    try:
+        from utils.redis_client import get_redis
+        redis = get_redis()
+        key = f"bio:challenge:{challenge_id}"
+        # Atomic check-and-delete: returns the value if it existed, None if not
+        phrase = await redis.getdel(key)
+        if phrase is None:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Challenge not found or already used. "
+                    "Request a fresh challenge from GET /voice/challenge."
+                ),
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Could not verify biometric challenge in Redis: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail="Challenge verification failed — Redis connection error.",
+        )
+
+
+# ── Biometric voice enrolment ─────────────────────────────────────────────────
+
+@router.post("/consent/revoke")
+async def revoke_voice_consent_route(
+    reason: str = Form(..., min_length=1,
+                       description="Why consent is being withdrawn. Recorded."),
+    _user: str = Depends(require_auth),
+):
+    """Withdraw consent for the enrolled voiceprint.
+
+    Owner-gated like enrolment: the same person who may enrol may withdraw.
+
+    This does NOT delete the template — that is an erasure request, and
+    `core/privacy/erasure.py` is what destroys the material. This withdraws
+    permission to USE it, which takes effect on the next verification because
+    `voice_consent_state` is read per attempt and never cached.
+    """
+    if not is_owner(_user):
+        raise HTTPException(
+            status_code=403,
+            detail="Only the system administrator may revoke a voice profile.",
+        )
+    from voice.biometrics import revoke_voice_consent
+
+    if not await revoke_voice_consent(reason):
+        # Counted, not assumed. Reporting success for a revocation that matched
+        # nothing tells somebody their voiceprint is withdrawn while it still
+        # authenticates.
+        raise HTTPException(
+            status_code=404,
+            detail="No live voiceprint with active consent was found to revoke.",
+        )
+    return {"revoked": True}
+
+
+@router.post("/enroll", response_model=EnrolmentResponse)
+async def enroll_voice(
+    audio_files: list[UploadFile] = File(
+        ...,
+        description="3–10 WAV/PCM audio files (16kHz mono) of the owner speaking.",
+    ),
+    challenge_id: str = Form(
+        ...,
+        description=(
+            "One-time challenge ID obtained from GET /voice/challenge. "
+            "Prevents replay attacks — the challenge is consumed on use."
+        ),
+    ),
+    consent_reference: str = Form(
+        ...,
+        min_length=1,
+        description=(
+            "What the enrolling person agreed to — a policy version, a signed "
+            "form id, whatever this deployment can point at afterwards. "
+            "REQUIRED: a voiceprint is the most sensitive thing this system "
+            "holds about a body, and `037` has had a column to record consent "
+            "for it since Phase 3B with nothing ever writing one."
+        ),
+    ),
+    _user: str = Depends(require_auth),
+):
+    """
+    Owner voice enrolment endpoint.
+
+    Submit 3–10 audio segments (≥3 seconds each, 16kHz mono PCM/WAV)
+    together with a one-time ``challenge_id`` from GET /voice/challenge.
+
+    Fix #36 (anti-replay): the challenge_id is consumed on first use so that
+    a previously recorded enrolment session cannot be replayed by an attacker.
+
+    IRA computes an ECAPA-TDNN embedding for each segment, averages them
+    into a robust reference profile, and stores it in the database.
+
+    Security: only the admin user can enrol. The stored profile is used for
+    all subsequent biometric gate checks on voice requests.
+
+    Recommended: record yourself saying different sentences of varying length
+    to build a representative voice profile.
+    """
+    if not is_owner(_user):
+        raise HTTPException(
+            status_code=403,
+            detail="Only the system administrator may enrol a voice profile.",
+        )
+
+    # Consume the anti-replay challenge before processing any audio (#36)
+    await _consume_challenge(challenge_id)
+
+    if len(audio_files) < 3:
+        raise HTTPException(status_code=400, detail="At least 3 audio files are required for a reliable voice profile. Submit 3–10 segments.")
+    if len(audio_files) > 10:
+        raise HTTPException(status_code=400, detail="Maximum 10 audio files per enrolment.")
+
+    try:
+        from voice.biometrics import compute_embedding, save_owner_profile, invalidate_profile_cache
+    except ImportError:
+        raise HTTPException(
+            status_code=503,
+            detail="Biometric module unavailable. Ensure speechbrain is installed.",
+        )
+
+    embeddings = []
+    failed = 0
+
+    for f in audio_files:
+        audio_bytes = await f.read()
+        # Validate WAV format: must be 16kHz, mono, 16-bit PCM
+        if audio_bytes[:4] == b"RIFF":
+            import wave, io as _io
+            try:
+                with wave.open(_io.BytesIO(audio_bytes)) as wf:
+                    sr = wf.getframerate()
+                    ch = wf.getnchannels()
+                    sw = wf.getsampwidth()
+                    if sr != 16000:
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Audio file '{f.filename}' must be 16kHz (got {sr} Hz). "
+                                   "Resample with: ffmpeg -ar 16000 -ac 1 input.wav output.wav",
+                        )
+                    if ch != 1:
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Audio file '{f.filename}' must be mono (got {ch} channels). "
+                                   "Downmix with: ffmpeg -ac 1 input.wav output.wav",
+                        )
+                    if sw != 2:
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Audio file '{f.filename}' must be 16-bit PCM (got {sw*8}-bit).",
+                        )
+                    audio_bytes = wf.readframes(wf.getnframes())
+            except HTTPException:
+                raise
+            except Exception as exc:
+                # P13-01 finding Y. This was `audio_bytes = audio_bytes[44:]`,
+                # described as a fallback. It is not a fallback — it is a
+                # bypass of the three checks immediately above it.
+                #
+                # A file that starts with `RIFF` but that `wave` cannot open
+                # went straight past the 16 kHz, mono and 16-bit gates and was
+                # enrolled as a biometric template on a guessed header offset.
+                # Measured: a RIFF/WEBP container yields 4 bytes and a
+                # truncated WAV yields 0, and both were passed to
+                # `compute_embedding` with the endpoint reporting success.
+                #
+                # Refusing is not a new behaviour — it is what the `else`
+                # branch eight lines below already does for a file that is not
+                # RIFF at all. A container this parser cannot read is in
+                # exactly that category, and enrolment is the one place where
+                # accepting unreadable input is worst: it decides what the
+                # owner's voice is.
+                logger.warning(
+                    "voiceprint enrolment refused %r: RIFF header but "
+                    "unreadable as WAV (%s: %s)",
+                    f.filename, type(exc).__name__, exc)
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"File '{f.filename}' begins like a WAV file but could "
+                        "not be read as one, so its sample rate, channel count "
+                        "and bit depth could not be checked. Re-encode with: "
+                        "ffmpeg -i input -ar 16000 -ac 1 -c:a pcm_s16le output.wav"
+                    ),
+                ) from exc
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File '{f.filename}' is not a valid WAV file. "
+                       "Only 16kHz mono 16-bit WAV files are accepted for enrolment.",
+            )
+
+        embedding = await compute_embedding(audio_bytes)
+        if embedding is not None:
+            embeddings.append(embedding)
+        else:
+            failed += 1
+            logger.warning(f"Embedding failed for file: {f.filename}")
+
+    if not embeddings:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Could not extract embeddings from any of the {len(audio_files)} files. "
+                   f"Ensure audio is 16kHz mono PCM/WAV, ≥3 seconds.",
+        )
+
+    # P12-04: the enrolment records WHAT was agreed to. `consent_reference` is
+    # required by `save_owner_profile` rather than defaulted, so a route that
+    # forgot to collect it fails loudly instead of storing a biometric template
+    # nobody can show was consented to.
+    success = await save_owner_profile(embeddings, consent_reference=consent_reference)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to save voice profile to database.")
+
+    invalidate_profile_cache()
+
+    return EnrolmentResponse(
+        status="enrolled",
+        segments_processed=len(embeddings),
+        message=(
+            f"Voice profile enrolled successfully from {len(embeddings)} segment(s). "
+            f"{'(' + str(failed) + ' segment(s) skipped due to processing errors.) ' if failed else ''}"
+            f"Biometric gate is now active for voice requests."
+        ),
+    )
+
+
+# ── Wake Mode v1 (PR #66) — visible, local-only, owner-toggled ────────────────
+
+class WakeToggleBody(BaseModel):
+    enabled: bool
+
+
+async def _wake_status_payload(request: Request) -> dict:
+    """Combine the listener's live state with the owner's configured wake word.
+
+    Wake mode is a LOCAL-ONLY input path. Toggling it never touches privacy
+    settings or external-API flags, and raw audio is processed in memory only.
+    """
+    from voice import wakeword as _wakeword
+
+    payload = _wakeword.status(request.app)
+    try:
+        import owner_profile as _profile
+        prof = await _profile.get_profile()
+        payload["wake_word"] = prof.get("wake_word") or "ira"
+    except Exception:  # profile store down → still report listener state
+        payload["wake_word"] = "ira"
+    return payload
+
+
+@router.get("/wake/status")
+async def wake_status(request: Request, _user: str = Depends(require_auth)):
+    """Visible mic status: off / listening / awake / processing + availability."""
+    return await _wake_status_payload(request)
+
+
+@router.post("/wake")
+async def wake_toggle(
+    body: WakeToggleBody,
+    request: Request,
+    _user: str = Depends(require_auth),
+):
+    """Turn Wake Mode on/off at runtime (owner's explicit choice; OFF by default).
+
+    Starting is fail-soft: if the local wake-word stack (openWakeWord/onnxruntime/
+    mic) is unavailable the status will say so instead of pretending. This toggle
+    only starts/stops the local listener — it cannot change privacy mode, enable
+    external APIs, or persist any audio.
+    """
+    from voice import wakeword as _wakeword
+
+    if body.enabled:
+        await _wakeword.start_wakeword(request.app, force=True)
+    else:
+        await _wakeword.stop_wakeword(request.app)
+    return await _wake_status_payload(request)
+
+
+@router.get("/profile/status")
+async def profile_status(_user: str = Depends(require_auth)):
+    """Check whether an owner voice profile has been enrolled."""
+    try:
+        from utils.db import acquire
+        async with acquire() as conn:
+            row = await conn.fetchrow(
+                "SELECT owner_name, created_at, updated_at FROM voice_profiles LIMIT 1"
+            )
+        if row:
+            return {
+                "enrolled": True,
+                "owner": row["owner_name"],
+                "enrolled_at": row["created_at"].isoformat(),
+                "last_updated": row["updated_at"].isoformat(),
+            }
+        return {"enrolled": False, "message": "No voice profile found. POST /voice/enroll to register."}
+    except Exception as e:
+        return {"enrolled": False, "error": str(e)}

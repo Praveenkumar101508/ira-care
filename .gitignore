@@ -1,0 +1,115 @@
+# Environment — plaintext secrets NEVER committed
+.env
+.env.local
+.env.*.local
+!.env.example
+# SEC-01 (Phase 0 audit): backup copies of .env carry the same live secrets.
+# Match them anywhere in the tree, whatever suffix the backup tool added.
+.env.backup*
+**/.env.backup*
+.env.bak*
+**/.env.bak*
+
+# start-ira.sh runtime state (PID files + service logs)
+.ira-run/
+
+# Encrypted secrets — safe to commit (.env.enc should NOT appear here)
+
+# TLS / credentials
+nginx/certs/
+*.key
+*.pem
+*.p12
+*.sqlite
+.cloudflared/
+
+# P18-03: screenshots are PRODUCED BY A RUN, never committed.
+#
+# The two PNGs this replaces were committed once and cited in three documents as
+# evidence for a year, across a Next.js major upgrade, with nothing re-taking
+# them and nothing checking the screen still existed. A committed screenshot is
+# a claim that goes stale in silence — which is the whole finding Phase 18
+# starts from. The floor that governs the generated ones IS committed, at
+# assets/screenshots/.screens-baseline.json.
+artifacts/screenshots/
+
+# Same rule, same reason: the rendered diagrams are the §27 deliverable and they
+# are produced by a run. A committed SVG is a picture of an architecture that
+# may have moved since — which is the other half of what Phase 18 exists to end.
+artifacts/diagrams/
+
+# Fix P6/P11: generated & personal resume artifacts
+# Use **/ so these match under the nested supracloud-jarvis/ project root too
+# (a bare "ira/..." pattern is anchored to this .gitignore's dir and would miss it).
+**/tailored_resume.md
+**/tailored_resumes/
+**/base_resume.md
+
+# Security scans — machine-specific dev inventory (run on the real box, not CI)
+security/dev-baseline.ndjson
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.tsbuildinfo
+
+# Build outputs
+dist/
+build/
+.next/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# IRA Portable demo — runtime state & secrets (never commit)
+supracloud-jarvis/portable/.env
+supracloud-jarvis/portable/config/
+supracloud-jarvis/data/
+supracloud-jarvis/logs/
+supracloud-jarvis/models/
+supracloud-jarvis/config/
+master.enc
+master.key
+
+# Command Center (PR #68) — local project data + secrets (never commit)
+supracloud-jarvis/ira/data/projects/
+supracloud-jarvis/ira/data/secrets/
+supracloud-jarvis/ira/data/notes/
+
+# Armory Vault — the sealed vault is per-machine and the Master Key derives its
+# contents; never commit it (the template under armory/vault_template/ IS committed).
+supracloud-jarvis/ira/data/armory/
+**/vault.sealed
+
+# P16-R3 — the LeetCode company-wise snapshot is NOT redistributable.
+# `third_party/leetcode-companywise/NOTICE.md` records why: upstream declares no
+# licence, and the data underneath was scraped from a paid product against that
+# product's terms. Build it locally with the command in that notice; it must not
+# be committed. `tests/test_interview.py` fails if it reappears.
+supracloud-jarvis/ira/data/interview/leetcode-companies.json
+
+# P17-02: system benchmark output. A run describes the machine that made it,
+# so a local run must not be committed as if it were the CI figure. CI uploads
+# it as a build artefact instead.
+artifacts/system-benchmark/
+
+# Redis snapshot. redis-server writes dump.rdb into whatever directory it was
+# started from, so a local benchmark or failover run drops one in the tree. It is
+# a local artefact and never belongs in the repository.
+dump.rdb
+
+# P17-04 acceptance scratch: driven runs, not committed evidence.
+artifacts/acceptance/
+
+# Technical Library — study material, extracted text and ingestion/eval reports
+# are personal and must never be committed. See docs/TECHNICAL_LIBRARY.md.
+technical_library_data/
+*.techlib-report.json
+*.techlib-report.md

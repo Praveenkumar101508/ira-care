@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "supracloud-ira-forge"
+version = "0.1.0"
+description = "Local-first SupraCloud IRA engineering, evaluation, and release CLI"
+requires-python = ">=3.11"
+authors = [{ name = "Praveen Kumar" }]
+
+[project.scripts]
+ira = "coding.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["coding*"]

@@ -1,0 +1,53 @@
+# Armory Vault — container definitions for the security toolchain.
+#
+# This file lives ENCRYPTED inside the vault; it is decrypted to RAM only while
+# the Armory is unlocked. DockerManager (armory/docker_manager.py) builds
+# `docker run` invocations directly rather than `docker compose up`, so that
+# every tool run is a single throwaway container (`--rm`) with no persistent
+# state. This compose file documents the images/network the manager targets and
+# lets an owner `docker compose pull` them ahead of time.
+#
+# Network posture (killswitch):
+#   * The 'tor' service is the ONLY service with outbound network access.
+#   * Tool containers are launched by DockerManager attached either to
+#     `armory_tor` (egress via Tor SOCKS proxy on 127.0.0.1:9050) or to NO
+#     network at all (`--network none`). If Tor is down, network tools get zero
+#     internet — fail-closed by construction.
+
+version: "3.8"
+
+services:
+  tor:
+    # Tor SOCKS proxy. Every network-capable tool egresses through this and
+    # nothing else. Bound to loopback only — never exposed on the LAN.
+    image: dperson/torproxy:latest
+    container_name: armory_tor
+    networks:
+      - armory_tor
+    ports:
+      - "127.0.0.1:9050:9050"
+    restart: "no"
+
+  kali:
+    # The toolbox image. Not started as a long-running service — DockerManager
+    # spawns `--rm` instances of it per command. Declared here so it can be
+    # pulled/built ahead of time and to document the mount-free, network-gated
+    # contract the manager enforces at runtime.
+    image: kalilinux/kali-rolling:latest
+    container_name: armory_kali
+    networks:
+      - armory_tor
+    # No volumes: containers are ephemeral and leave nothing on disk.
+    # No published ports: tools reach out through Tor, nothing reaches in.
+    entrypoint: ["/bin/sh", "-c", "echo 'armory kali toolbox — launched per-command by DockerManager' && sleep 1"]
+    depends_on:
+      - tor
+    restart: "no"
+
+networks:
+  # Isolated bridge shared only by tor + tool containers. Tool containers that
+  # must NOT touch the network are launched with `--network none` instead and
+  # never join this network.
+  armory_tor:
+    name: armory_tor
+    driver: bridge

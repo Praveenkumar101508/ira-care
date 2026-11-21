@@ -1,0 +1,520 @@
+{
+ "_readme": "Applied migration files are immutable. A changed hash fails CI unless an approved exception below names the exact before/after pair. Corrections normally use a NEW numbered migration. Verified by supracloud-jarvis/ira/scripts/check_migration_integrity.py; see MIGRATION_HISTORY_INTEGRITY_REPORT.md.",
+ "exceptions": [
+  {
+   "approved": true,
+   "approved_by": "owner, 2026-08-05",
+   "change": "the private-tenant UUID is inlined as a literal; the value is unchanged",
+   "changed_in_commit": "17132bb",
+   "current_sha256": "f8f194fe8972829f9abcac4c5ef76970173368f8a89f7be673374d3756272945",
+   "defect": "psql \\set metacommand; asyncpg rejects it with 'syntax error at or near \"\\\"'",
+   "filename": "023_tenancy.sql",
+   "migration_number": 23,
+   "previous_sha256": "2cc7d9b641a3e936b077108cc5e6881a78e111b34929106cac4a1c559ec3e118",
+   "production_use_of_previous_version": "none \u2014 no production or customer database exists",
+   "verified": "fresh install and incremental upgrade both produce an equivalent schema; see the integrity report",
+   "why_a_later_migration_could_not_repair_it": "The defect is a PARSE error in this file. A later migration cannot run at all on a fresh database, because the chain stops here \u2014 so there is no position in the sequence from which a repair could be applied."
+  },
+  {
+   "approved": true,
+   "approved_by": "owner, 2026-08-05",
+   "change": "the private-tenant UUID is inlined as a literal; the value is unchanged",
+   "changed_in_commit": "17132bb",
+   "current_sha256": "efe9d152ad0410ac24f7aea5bb92f5467ed0d89cf293250584e64a59dd5e2a4c",
+   "defect": "identical \\set metacommand defect",
+   "filename": "031_pretenancy_isolation.sql",
+   "migration_number": 31,
+   "previous_sha256": "5f8fa784895409501c95528186a6f575ccec2ba38d3fc6e9aca6809efda12798",
+   "production_use_of_previous_version": "none \u2014 no production or customer database exists",
+   "verified": "as 023",
+   "why_a_later_migration_could_not_repair_it": "as 023 \u2014 the chain cannot reach a later file"
+  }
+ ],
+ "migrations": {
+  "002_phase4.sql": {
+   "migration_number": 2,
+   "sha256": "b10d7440754a04b88727945998a79bbc782db25020833e429054cf47a1d3214b",
+   "status": "applied"
+  },
+  "003_biometrics.sql": {
+   "migration_number": 3,
+   "sha256": "0aa542d98961012d32bdcfd90d7911540473cedf30ac9997a643d198e5ab5cbe",
+   "status": "applied"
+  },
+  "004_memory_isolation_hnsw.sql": {
+   "migration_number": 4,
+   "sha256": "408b9ea5ce959fbd938e2e9bfe52bd35013f0d0dfda6dc73ea35bf8d991d2408",
+   "status": "applied"
+  },
+  "005_files.sql": {
+   "migration_number": 5,
+   "sha256": "d30856c50de817e77a401648abc1a812ee0d7748440530981ab4d32823a87f49",
+   "status": "applied"
+  },
+  "006_totp.sql": {
+   "migration_number": 6,
+   "sha256": "91f5a8803a15f1af40aa5de6d90c0bab6c421ad24141346e23bf8b9a504c5e09",
+   "status": "applied"
+  },
+  "007_totp_enabled.sql": {
+   "migration_number": 7,
+   "sha256": "238caa856b0f858c66b2be4654994a222b0bd4cf0e6c206fb1b51f5a6fd65a8b",
+   "status": "applied"
+  },
+  "008_business_data.sql": {
+   "migration_number": 8,
+   "sha256": "e9699e9ec234684109aae835dff356917ac49c000637d38353c2ac76a2852f5d",
+   "status": "applied"
+  },
+  "009_owner_profile.sql": {
+   "migration_number": 9,
+   "sha256": "5aae8957b927399c735b797ed26872b9d160db00cd6306820f3beac22280f93f",
+   "status": "applied"
+  },
+  "010_strategy_calibration.sql": {
+   "migration_number": 10,
+   "sha256": "cb097a0fb6231acacedc0e59ab1eeefb787cfb0d345e6e2e1b35d93c7e7e5639",
+   "status": "applied"
+  },
+  "011_life_graph.sql": {
+   "migration_number": 11,
+   "sha256": "e7d4bf6056e80c0a64d18507924489001153a0249239f696922f6fad96a5622d",
+   "status": "applied"
+  },
+  "012_decision_journal.sql": {
+   "migration_number": 12,
+   "sha256": "644b77d29cd1a1e19fa54f8345d0e460059019d9fbc5049d0c50b0e2f5749fe7",
+   "status": "applied"
+  },
+  "013_heartbeat.sql": {
+   "migration_number": 13,
+   "sha256": "1c9e36ef6710255cd89a4c3d8baeffd5d93617fc7ba5b81d07ee6ae5b375fbd5",
+   "status": "applied"
+  },
+  "014_owner_onboarding.sql": {
+   "migration_number": 14,
+   "sha256": "d27f13552e1d3ecb0aa23a30ca9f070c1fe7729ab1ce46edb41cb5f2ab6df28a",
+   "status": "applied"
+  },
+  "015_relationships_access.sql": {
+   "migration_number": 15,
+   "sha256": "845079cbeaa66e126ebb729061fb6a3faa89e2aa9c9552588864125162749fc6",
+   "status": "applied"
+  },
+  "016_command_center.sql": {
+   "migration_number": 16,
+   "sha256": "4db29cf6793ecea6ba7a55ee9ca3b7d82a13442bd8720b63202a3badadab18d1",
+   "status": "applied"
+  },
+  "017_temporal_memory.sql": {
+   "migration_number": 17,
+   "sha256": "87c82ae0429dbaa2f289087d8f69ac844fc9b7dba349d12929c691119c5f2bcc",
+   "status": "applied"
+  },
+  "018_lifeos_commitments_events.sql": {
+   "migration_number": 18,
+   "sha256": "788f7603d90370b735f1fd5b326ddbf896256b975ae827bd27c1ae138c389f79",
+   "status": "applied"
+  },
+  "019_privacy_envelopes.sql": {
+   "migration_number": 19,
+   "sha256": "5a90da6a2005ae75d0a7b26c7750a5b4cc1ec63a8ff555c082b34b82c5494fd9",
+   "status": "applied"
+  },
+  "020_trust_ledger.sql": {
+   "migration_number": 20,
+   "sha256": "bc2d427ca886082c4959ad4ecbdd823a7bbe20d022a74f55d457a9cb9252e017",
+   "status": "applied"
+  },
+  "021_neurokernel.sql": {
+   "migration_number": 21,
+   "sha256": "c41de5d9b8c41999355cf29ddf5375fbda9554a78df0b9813f0162ff36f9b0e5",
+   "status": "applied"
+  },
+  "022_cognitive_loop.sql": {
+   "migration_number": 22,
+   "sha256": "e8cccc1ac6d52653ab0ec2a91766e007d5a32279103c3481786a254a6a9e8e4d",
+   "status": "applied"
+  },
+  "023_tenancy.sql": {
+   "migration_number": 23,
+   "sha256": "f8f194fe8972829f9abcac4c5ef76970173368f8a89f7be673374d3756272945",
+   "status": "applied"
+  },
+  "024_companion_catalogue.sql": {
+   "migration_number": 24,
+   "sha256": "97c2151dadcec0e5fbf26816e266c338bae4fd3d388beded78529302df9da3ea",
+   "status": "applied"
+  },
+  "025_governance.sql": {
+   "migration_number": 25,
+   "sha256": "bd57e00240d9204ee0005254f069ae1974344c2fb9fda0da2a3ee434892c2df7",
+   "status": "applied"
+  },
+  "026_privacy.sql": {
+   "migration_number": 26,
+   "sha256": "03ca7fcd00d0efe9dceca75c87a6e4e735bbefe538de9c6bd5c0c46d1bc60868",
+   "status": "applied"
+  },
+  "027_realtime.sql": {
+   "migration_number": 27,
+   "sha256": "c79879237a670a4c001da7841834695cf0767f932b4203d35b10ce71a04cd7e9",
+   "status": "applied"
+  },
+  "028_connectors.sql": {
+   "migration_number": 28,
+   "sha256": "25f0e9e40b6b20c07df5d96c2f09775527f273bc0024b6c583ce3bd35aa3acd5",
+   "status": "applied"
+  },
+  "029_commercial.sql": {
+   "migration_number": 29,
+   "sha256": "c2cd55d7474bd65db2b3ad81b8f6f5f90f4c53bf424a8e97b8a87c2ab6679a39",
+   "status": "applied"
+  },
+  "030_key_management.sql": {
+   "migration_number": 30,
+   "sha256": "89e69d6d3c9976886ed3a2bbbbda430e0b7a0d2f558325712d1d49dd9011b505",
+   "status": "applied"
+  },
+  "031_pretenancy_isolation.sql": {
+   "migration_number": 31,
+   "sha256": "efe9d152ad0410ac24f7aea5bb92f5467ed0d89cf293250584e64a59dd5e2a4c",
+   "status": "applied"
+  },
+  "032_atomic_request_quota.sql": {
+   "migration_number": 32,
+   "sha256": "f563dc94e9e67e1070273ede971dbda1ca0232f116b385f21667a7d873d650e6",
+   "status": "applied"
+  },
+  "033_organisations_workspaces.sql": {
+   "migration_number": 33,
+   "sha256": "c33017027d29849825ba904fb387967a7cc27b60b02b3019ddb54360ab3f6ea1",
+   "status": "applied"
+  },
+  "034_identity_mapping.sql": {
+   "migration_number": 34,
+   "sha256": "b149ca8f32c5b795acbf0e9ca52ae570bd9aff5b828716d05e2ff9459795be29",
+   "status": "applied"
+  },
+  "035_memberships.sql": {
+   "migration_number": 35,
+   "sha256": "558e392da23812ac695b30d6990ce07d3d7da02efa4e1552578f116a3a1a1b28",
+   "status": "applied"
+  },
+  "036_totp_ownership.sql": {
+   "migration_number": 36,
+   "sha256": "8c111a36e7edb5b0f4bfe0084b253f70d1481a01a7a5d9159db170a0654d9d25",
+   "status": "applied"
+  },
+  "037_voice_profile_ownership.sql": {
+   "migration_number": 37,
+   "sha256": "988ff95b0523e0f87e27c98a4c3eee7d1ba9aa4b79057e9e6e4ceefd7dfb554a",
+   "status": "applied"
+  },
+  "038_biometric_audit_context.sql": {
+   "migration_number": 38,
+   "sha256": "36859ed34662efeab6384a004992dcb0b866ca1a57a9fbaeac5dd50e7b6bf3a5",
+   "status": "applied"
+  },
+  "039_workspace_substrate.sql": {
+   "migration_number": 39,
+   "sha256": "a0b7cd611ea39d57f50f7c648ceb1932118ccd9c8f901a8d13dea84378fc6eda",
+   "status": "applied"
+  },
+  "040_membership_grants.sql": {
+   "migration_number": 40,
+   "sha256": "ccb9a2c5d16366d1259f166c3194509adcc5ee87fe711687948fa02c5071e24e",
+   "status": "applied"
+  },
+  "041_biometric_claim_telemetry.sql": {
+   "migration_number": 41,
+   "sha256": "d50013d7147e7523d14ed18080c760f0fb2c1e3467ee1b991be7a7409ec85dda",
+   "status": "applied"
+  },
+  "042_role_ownership_separation.sql": {
+   "migration_number": 42,
+   "sha256": "99879cd0b0bc3fd553115ae50bc3979c11bca4770ad8c4ad58cfa26b52375498",
+   "status": "applied"
+  },
+  "043_tenant_scope_operational_content.sql": {
+   "migration_number": 43,
+   "sha256": "8ab6464e1420e9a788406d45b73a9470893b5c9a6dd7f7f8bc47a58be8a99afe",
+   "status": "applied"
+  },
+  "044_strategy_calibration_tenant_key.sql": {
+   "migration_number": 44,
+   "sha256": "01cd2f7ad1f6490619ee03b61934c131335fcda9e4c2bae4de125f9a23dc72a0",
+   "status": "applied"
+  },
+  "045_workspace_columns.sql": {
+   "migration_number": 45,
+   "sha256": "e4f3d01de6439543128751adcd31c7c91f79bfb2e068d5b1421144b02544d9a3",
+   "status": "applied"
+  },
+  "046_workspace_constraints.sql": {
+   "migration_number": 46,
+   "sha256": "b53f0fd60eae52116d5c9b727a028a3a469561dd0695d173615cb5040fa37a8d",
+   "status": "applied"
+  },
+  "047_graph_scope_constraints.sql": {
+   "migration_number": 47,
+   "sha256": "74e12a5f5645e0cf8d7a17c22a06e0975698d6eadcfa1dbe686811b550e6070d",
+   "status": "applied"
+  },
+  "048_workspace_backfill.sql": {
+   "migration_number": 48,
+   "sha256": "5d101d737f461c574fe18ec0c249de533c076ca2a89c177f30ca0de2e876a5d0",
+   "status": "applied"
+  },
+  "049_workspace_policies.sql": {
+   "migration_number": 49,
+   "sha256": "20b0e30dcbeccaf33c0a63fd04cad83b56ee3ec854414232f7bb381ec5685c73",
+   "status": "applied"
+  },
+  "050_workspace_not_null.sql": {
+   "migration_number": 50,
+   "sha256": "ba2152fecd5eea932b1c7148b47c0dc1dfb87198588e61e367b7210ec123d6e7",
+   "status": "applied"
+  },
+  "051_notifications_tenancy.sql": {
+   "migration_number": 51,
+   "sha256": "384ff389625b80c25519a5d249500e2776a49e799cfb38b9d00f8797a3c21868",
+   "status": "applied"
+  },
+  "052_totp_tenancy.sql": {
+   "migration_number": 52,
+   "sha256": "65e01b49d628f9af622bb994994dd8c17c06f8855be4f5366e26c499306b1fe4",
+   "status": "applied"
+  },
+  "053_mfa_key_material.sql": {
+   "migration_number": 53,
+   "sha256": "db5c1aec223d9e497ab725e43447357e3aa1b75f13ae385bd8f748173f9f3ca4",
+   "status": "applied"
+  },
+  "054_registration.sql": {
+   "migration_number": 54,
+   "sha256": "09081f176e33681a32d12c7183505cdab8a9c04a6d1fec23bd9bec6344fb2488",
+   "status": "applied"
+  },
+  "055_invitations.sql": {
+   "migration_number": 55,
+   "sha256": "7bb4092fed48cb31ded1897fe337932651a2fd4f122da41189689a0ebbd428f2",
+   "status": "applied"
+  },
+  "056_mfa_recovery.sql": {
+   "migration_number": 56,
+   "sha256": "36f27b44a86d361fd9d4858a63bb3cb49fe8433c4b5345d0e3a769017eb7c01b",
+   "status": "applied"
+  },
+  "057_session_isolation.sql": {
+   "migration_number": 57,
+   "sha256": "5d6c1eda498e2df194f4dba38c15448829d9e23dfcc853e3594323fdd4166f1c",
+   "status": "applied"
+  },
+  "058_password_reset.sql": {
+   "migration_number": 58,
+   "sha256": "5f4bea310babdf29e4e825db23b4473ef2c437c16b08bd686da6db7ebf8d4049",
+   "status": "applied"
+  },
+  "059_external_identities.sql": {
+   "migration_number": 59,
+   "sha256": "ef66237a24316e58a87e4860833461cb999eea92a0ad09a624249aa5344e040e",
+   "status": "applied"
+  },
+  "060_user_scoped_credentials.sql": {
+   "migration_number": 60,
+   "sha256": "7c77ff7d84f3d25eb0b3903b742d3ed4863ced6261e91db7573118fce05459c4",
+   "status": "applied"
+  },
+  "061_auth_events.sql": {
+   "migration_number": 61,
+   "sha256": "a6a42a69b3d67f3ab08a7078013aed00f65cd52eccabb66cad8c8b1e08751e7f",
+   "status": "applied"
+  },
+  "062_voiceprint_encryption.sql": {
+   "migration_number": 62,
+   "sha256": "f8b9b771b509180d3993d383d98817e044362339c9b9adf07a647697d65eca39",
+   "status": "applied"
+  },
+  "064_auth_event_expiry.sql": {
+   "migration_number": 64,
+   "sha256": "0d1d416c3e54394d7f301fccc9cc1d1416c6c7fd97425d78d92b094d2c088728",
+   "status": "applied"
+  },
+  "065_totp_enrolment_is_per_tenant.sql": {
+   "migration_number": 65,
+   "sha256": "c18b5915ea9ecbee0d2f0f36729d5dbd0f137c7d972d10c5be822f8c22613ca1",
+   "status": "applied"
+  },
+  "066_job_runs.sql": {
+   "migration_number": 66,
+   "sha256": "b07b343750bb9fb8c3cac681168b818d3d09d976180bdbe0e906ed4c6e1cbbcd",
+   "status": "applied"
+  },
+  "067_model_registry.sql": {
+   "migration_number": 67,
+   "sha256": "a7eec6ec579d8de4867d7f2a87a3e1ce7b145390dd218c688cf697962b1b3dd5",
+   "status": "applied"
+  },
+  "068_model_licence_register.sql": {
+   "migration_number": 68,
+   "sha256": "7dcca75f3b8c462e1a1e743751725787a5e15631b4d61b3bdd11ee1213210735",
+   "status": "applied"
+  },
+  "069_model_licence_evidence.sql": {
+   "migration_number": 69,
+   "sha256": "f76754b52de5c4860a83b7c45e752e3630b3b488b4c1ff7d6a5fcc5a562c2c97",
+   "status": "applied"
+  },
+  "070_training_datasets.sql": {
+   "migration_number": 70,
+   "sha256": "e18dc1ca764d4bca8225406bd12a4f25e3be6e08f621c870d8b5ab4696c06465",
+   "status": "applied"
+  },
+  "071_model_training_runs.sql": {
+   "migration_number": 71,
+   "sha256": "583738ef34a1d60a270ee8db352042863419efc183ca76ff17eaf467188bf11b",
+   "status": "applied"
+  },
+  "072_model_promotion_gate.sql": {
+   "migration_number": 72,
+   "sha256": "a75497404b1c58432a2e7665877cdd36a75e9ec4e35c2b043ce14cc65504a2c5",
+   "status": "applied"
+  },
+  "073_artefact_manifests.sql": {
+   "migration_number": 73,
+   "sha256": "ee3fd3d376ae0c16ec52e84e69926f67186b1d0378e01e09c99295880f72dd8d",
+   "status": "applied"
+  },
+  "074_omnivoice_card_evidence.sql": {
+   "migration_number": 74,
+   "sha256": "c77dc2a4d2370da0cc096b6b6dd6e39357f5b08537c64855205648d7370a27ac",
+   "status": "applied"
+  },
+  "075_usage_outcomes.sql": {
+   "migration_number": 75,
+   "sha256": "fa1e1cf39554e7ab553ff21ff67d49be682ec87b26406dbe8ca137616fe34c4e",
+   "status": "applied"
+  },
+  "076_provider_disclosure_is_not_writable.sql": {
+   "migration_number": 76,
+   "sha256": "b3b46ce3792ecb81faac34ed9e7b8e8d0f9ffebfc36a5323e52c8285699c5813",
+   "status": "applied"
+  },
+  "077_ledger_chain_eras.sql": {
+   "migration_number": 77,
+   "sha256": "15d17bd72133272ba7b2004b5c005c32143ef84f7da5540abfe2737f5295395d",
+   "status": "applied"
+  },
+  "078_billing_plans_and_entitlements.sql": {
+   "migration_number": 78,
+   "sha256": "4602def928163284fd6ad9ff0a7639c5731ad6b5a447f35e766a9cb0a9c37fd3",
+   "status": "applied"
+  },
+  "079_invoices.sql": {
+   "migration_number": 79,
+   "sha256": "6c28081fd820da7455fc1b8ac2fc923dd02ccb9a1e3781837137357cd6ce57ad",
+   "status": "applied"
+  },
+  "080_payment_events.sql": {
+   "migration_number": 80,
+   "sha256": "4a66efd5303a0d39210ef1d218ed782324a7837053ffad1b2f2a136b8607f7ba",
+   "status": "applied"
+  },
+  "081_briefings_tenancy.sql": {
+   "migration_number": 81,
+   "sha256": "22cde5d4cd5ded3b53c1e6c72d7bd99f222ebaac88086cc48adcda815f0c6f84",
+   "status": "applied"
+  },
+  "082_heartbeat_surfaced_scope.sql": {
+   "migration_number": 82,
+   "sha256": "87c2c26e986cd8add63f3ecbe7042ca4dbd9368d5bdde4466eacdae857ae1e1e",
+   "status": "applied"
+  },
+  "083_biometric_consent_reason.sql": {
+   "migration_number": 83,
+   "sha256": "16d5722cfbd6403c41d3f11321cb38cc476b8eb6246b0daccc7669b1140aaf94",
+   "status": "applied"
+  },
+  "084_realtime_unknown_end_reason.sql": {
+   "migration_number": 84,
+   "sha256": "6fabbc05e75a018a559f3e74b5142129a58e827f7b52d59919a013264c363aae",
+   "status": "applied"
+  },
+  "085_business_events_dedupe_key.sql": {
+   "migration_number": 85,
+   "sha256": "1d974bd63d2fd3a81675bf99b852ba91e61a4c2e80c02b477732ff75eddd5f5d",
+   "status": "applied"
+  },
+  "086_ira_pro_plan_and_price.sql": {
+   "migration_number": 86,
+   "sha256": "29407fc9afdfde008705d68f7ff73e080b72957c9167beb9d04bd6a55d37be77",
+   "status": "applied"
+  },
+  "087_billing_provider_lifecycle.sql": {
+   "migration_number": 87,
+   "sha256": "d3977346eed431110e13984973ddf2a4d2c98b3cf00c64944e5d3602b692dc8a",
+   "status": "applied"
+  },
+  "088_technical_library_fulltext.sql": {
+   "migration_number": 88,
+   "sha256": "48c56ffdc87d57eac4f7f3f5a4ff94d384bc32516d1ef291338cd8c481bcd57a",
+   "status": "applied"
+  },
+  "089_evidence_repair.sql": {
+   "migration_number": 89,
+   "sha256": "5355279a75c4ebe9355cd8ded3689e0ed6eef83736b1e122514503c5a8d56978",
+   "status": "applied"
+  },
+  "090_voice_model_pins.sql": {
+   "migration_number": 90,
+   "sha256": "94f817e4d964f3ebdce0ff19728e9ec067500d8467fe38402f04f862ef199b26",
+   "status": "applied"
+  },
+  "091_f1_token_revocations.sql": {
+   "migration_number": 91,
+   "sha256": "7eedb586682df89af6a4654c8e1867b3a05d83e754c60baade1f1386edc689b4",
+   "status": "applied"
+  },
+  "092_private_account_memberships.sql": {
+   "migration_number": 92,
+   "sha256": "41e06eb1600a6dc4d3ebf60028bfbdebff7da2ae6f8984967c9386419ee7c8a2",
+   "status": "applied"
+  },
+  "093_conversation_ownership.sql": {
+   "migration_number": 93,
+   "sha256": "c3e6336303a710e5dd42e7f6528e9d63c78c35b42107dbd87a9089226a490582",
+   "status": "applied"
+  },
+  "094_remembered_facts_into_vault.sql": {
+   "migration_number": 94,
+   "sha256": "059507e2286634342b726c6c6b1c27abf8e4266282189a7bb12377886a32702b",
+   "status": "applied"
+  },
+  "095_owners_and_single_user_backfill.sql": {
+   "migration_number": 95,
+   "sha256": "720e47a0f559ea16d53ccd4da90284fe6c2099ff7268ff03cacca0c9b75e7979",
+   "status": "applied"
+  },
+  "096_auth_token_versions.sql": {
+   "migration_number": 96,
+   "sha256": "0238715d02af1f62ec612efffd08ca970b622809aa846bc56af11ea53395791a",
+   "status": "applied"
+  },
+  "097_langgraph_checkpoint_tables.sql": {
+   "migration_number": 97,
+   "sha256": "6303f6bf701f031991e5cf96aef1c410507c3a3b6226a4bd0e2d3f4f638709e6",
+   "status": "applied"
+  },
+  "098_memory_and_speaker_model_pins.sql": {
+   "migration_number": 98,
+   "sha256": "4bf5f1c4f61bb4eca9271d81b02b70c7823bd7322beaebf59b733a6421b6af35",
+   "status": "applied"
+  },
+  "init.sql": {
+   "migration_number": null,
+   "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",
+   "status": "applied"
+  }
+ }
+}

@@ -1,0 +1,115 @@
+# Gitleaks configuration — SupraCloud IRA
+# =============================================================================
+# Phase 0 (Security Baseline). This config is the source of truth for the
+# `secret-scan` CI job in .github/workflows/test.yml.
+#
+# Policy
+# ------
+#   * A detected secret FAILS the build. There is no warn-only mode.
+#   * The global allowlist below is PATHS ONLY, and only for trees that are not
+#     ours or are generated. Never add a source path, and never add
+#     `.env.example` — an example file with a real value in it is exactly what
+#     this gate exists to catch.
+#   * The one exception to "paths only" is the rule-scoped entry at the bottom
+#     of this file. It is NARROWER than a path entry, not wider: a finding is
+#     dropped only when an exact file path AND the value's shape (a SHA-256 hex
+#     digest) both match. Anything else in those files is still reported.
+#   * A secret-shaped literal inside a source file is exempted per-line with an
+#     inline `# gitleaks:allow` comment instead, so the exemption is visible in
+#     review at the point it applies and cannot silently cover a future real
+#     credential added to the same file. See
+#     supracloud-jarvis/ira/tests/test_research_guard.py, whose negative fixtures
+#     must stay credential-shaped to test the egress guard.
+#
+# `useDefault = true` inherits the full upstream ruleset (~170 provider rules plus
+# the generic high-entropy detector) AND its stopword allowlist. Rule
+# definitions are deliberately NOT re-declared here: re-declaring one replaces
+# the upstream definition and silently discards the stopwords that keep it
+# precise. The single `[[rules]]` entry at the bottom defines nothing; it names
+# an upstream rule by id only to attach a narrower allowlist, which extends the
+# rule rather than replacing it (verified against 8.24.3, see that entry).
+#
+# NOTE on syntax: the `[[allowlists]]` (plural, array-of-tables) form is NOT
+# honoured by gitleaks 8.24.x when combined with `[extend] useDefault`. It parses
+# without error and is then ignored — which fails open. Use the singular
+# `[allowlist]` table below. Verified against 8.24.3.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Trees that are not ours to hold credentials, and generated output"
+paths = [
+  # Vendored third-party source.
+  '''third_party/''',
+  '''(^|/)node_modules/''',
+  # Dependency lockfiles: integrity hashes, not credentials.
+  '''(^|/)package-lock\.json$''',
+  # Build output. Not committed (.gitignore covers it), but `gitleaks dir` walks
+  # the filesystem rather than the git index, so a local run after `npm run build`
+  # would otherwise report Next.js' per-build preview/encryption keys. Those are
+  # generated fresh per build and are not repository secrets.
+  '''(^|/)\.next/''',
+  '''(^|/)dist/''',
+  '''(^|/)build/''',
+]
+
+# ── Content-hash manifests: digests, not credentials ─────────────────────────
+#
+# Two F1 verification files map file paths to the SHA-256 of each file's
+# content. When a path contains a word such as `secret`, `auth` or `access`,
+# `generic-api-key` reads `"…/final-secret-scan.json": "<64 hex>"` as a key
+# assignment and reports the digest. It is the same class as the lockfile
+# integrity hashes allowlisted above.
+#
+# Not a path entry, so the files stay scanned: the finding is dropped only when
+# BOTH the exact path AND the value's shape match (`condition = "AND"`). A
+# token, password or any value that is not a 64-character lowercase hex digest
+# is still reported in these files, and a digest anywhere else is untouched.
+# That matters because a bare 64-hex secret is a real format: the self-test
+# (.github/scripts/verify-secret-scan.sh) plants one as IRA_SECRET_KEY.
+#
+# Declaring the rule id here EXTENDS the upstream `generic-api-key` rule in
+# 8.24.3; it does not replace it. Verified before this was added: the regex,
+# entropy and upstream stopwords all still apply. The global `[[allowlists]]`
+# form was also tried and, as noted at the top, is silently ignored.
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "SHA-256 content digests in the F1 delivery manifests"
+condition = "AND"
+paths = [
+  '''^docs/f1/verification/DELIVERY_FILES\.json$''',
+  '''^docs/f1/verification/protected-baseline-hashes\.json$''',
+]
+regexTarget = "secret"
+regexes = ['''^[0-9a-f]{64}$''']
+
+# ── Benchmark catalogue entry names in two recorded Kaggle runs ──────────────
+#
+# Commit b684442a recorded, for two GPU-free inference benchmark runs, which
+# catalogue entry each model run used, in a JSON field then named
+# `catalogue_key`. `generic-api-key` reads `"catalogue_key": "qwen3-…"` as a key
+# assignment and the history gate reports the five lines. The values are the
+# harness's model slugs (benchmarks/gpu-free-inference/kaggle_cpu_bench.py,
+# MODEL_CATALOGUE), never credentials. The field was renamed `catalogue_entry`
+# in 5bbbb875; the earlier commit stays in history and is not rewritten.
+#
+# Owner approval: 14 November 2026 (option 1 of the PR #252 remediation).
+# Scope, as approved: the two exact file paths, the complete `catalogue_key`
+# line, and only the four identifiers that appear there. Same mechanism as the
+# manifest entry above (condition AND, rule-scoped): the files stay scanned, any
+# other value in that field or any other field in those files is still reported,
+# and the rule is unchanged everywhere else. `^\s*` absorbs the newline that
+# precedes the line when gitleaks reports a history-mode match.
+[[rules.allowlists]]
+description = "catalogue_key model identifiers in two recorded benchmark runs (PR #252, commit b684442a)"
+condition = "AND"
+paths = [
+  '''^supracloud-jarvis/docs/research/gpu-free-inference-2026-11-12/evidence/kaggle-runs/ab-same-vm-v1/run\.json$''',
+  '''^supracloud-jarvis/docs/research/gpu-free-inference-2026-11-12/evidence/kaggle-runs/70b-q2k-in-ram-v1/run\.json$''',
+]
+regexTarget = "line"
+regexes = [
+  '''^\s*"catalogue_key": "(qwen3-4b-instruct-2507-q4km|qwen3-4b-instruct-2507-q8|qwen3-30b-a3b-instruct-2507-q4km|llama-3\.3-70b-instruct-q2k)",?\s*$''',
+]
