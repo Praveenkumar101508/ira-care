@@ -197,3 +197,15 @@ key is configured). The alert list orders the most serious unacknowledged first;
 way" is one tap; the "call 999 now" screen appears only when the backend set that flag at
 tier 3, and dialling is the person's own action through the phone's dialler, never the
 app's. The person's words are shown only when the backend says consent allows it.
+
+## D-019 The dashboard's shape (phase 7)
+
+Next.js 15 with the app router, TypeScript, no UI framework and no chart library: the
+charts are plain SVG sparklines that describe readings without coloured thresholds, because
+a threshold on a chart is a judgement the product does not make. The session is held in the
+browser's session storage for the tab's life. Roles come from the verified workspace
+membership: viewers and members read; administrators add people, routines, medication and
+circle members, change the safety settings, record consents, issue pairing codes and read
+the access log. Conversation text is requested from the backend and the 403 it returns
+without consent is shown as such, so the dashboard never caches or infers what it may not
+show. Tests run with Vitest and Testing Library (no browser).

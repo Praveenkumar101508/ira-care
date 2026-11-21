@@ -1,0 +1,258 @@
+'use client';
+
+import { useParams, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
+import { AlertCard } from '@/components/AlertCard';
+import { Sparkline } from '@/components/Sparkline';
+import { canManage, useApi } from '@/components/useApi';
+import { ApiError, type Reading } from '@/lib/api';
+import type {
+  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, PersonStatus, Routine, SafetySettings, Transcript,
+} from '@/lib/types';
+import { byDay, checkinCounts, series, sortAlerts, timeAgo } from '@/lib/view';
+
+const TABS = ['timeline', 'readings', 'routines', 'medication', 'circle', 'settings', 'consent', 'conversation', 'access'] as const;
+type Tab = (typeof TABS)[number];
+
+export default function PersonPage() {
+  const { id } = useParams<{ id: string }>();
+  const search = useSearchParams();
+  const tab = (search.get('tab') as Tab | null) ?? 'timeline';
+  const { api, session, ready } = useApi();
+  const manage = canManage(session);
+
+  const [status, setStatus] = useState<PersonStatus | null>(null);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [checkins, setCheckins] = useState<{ checkins: Checkin[]; answers_included: boolean }>({ checkins: [], answers_included: false });
+  const [vitals, setVitals] = useState<Reading[]>([]);
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [meds, setMeds] = useState<Medication[]>([]);
+  const [medEvents, setMedEvents] = useState<MedicationEvent[]>([]);
+  const [circle, setCircle] = useState<CircleMember[]>([]);
+  const [settings, setSettings] = useState<SafetySettings | null>(null);
+  const [consents, setConsents] = useState<ConsentList | null>(null);
+  const [transcripts, setTranscripts] = useState<Transcript[] | 'refused' | null>(null);
+  const [access, setAccess] = useState<AccessEntry[]>([]);
+  const [pairing, setPairing] = useState<Device | null>(null);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!api) return;
+    try {
+      const [s, a, c, v, r, m, me, ci, se, co] = await Promise.all([
+        api.status(id), api.alerts(false, id), api.checkins(id), api.vitals(id), api.routines(id), api.medications(id),
+        api.medicationEvents(id), api.circle(id), api.settings(id), api.consents(id),
+      ]);
+      setStatus(s); setAlerts(a); setCheckins(c); setVitals(v); setRoutines(r); setMeds(m); setMedEvents(me); setCircle(ci); setSettings(se); setConsents(co);
+      setError('');
+      if (tab === 'conversation') {
+        try { setTranscripts(await api.transcripts(id)); } catch (e) { setTranscripts(e instanceof ApiError && e.status === 403 ? 'refused' : null); }
+      }
+      if (tab === 'access' && manage) setAccess(await api.accessLog(id));
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) window.location.href = '/login';
+      else setError(e instanceof ApiError ? e.message : 'Could not load.');
+    }
+  }, [api, id, tab, manage]);
+  useEffect(() => { void load(); }, [load]);
+
+  if (!ready || !status) return error ? <p className="error">{error}</p> : null;
+  const person = status.person;
+  const name = person.preferred_name || person.display_name;
+  const act = async (fn: () => Promise<unknown>) => { setBusy(true); try { await fn(); await load(); } catch (e) { setError(e instanceof ApiError ? e.message : 'Failed.'); } finally { setBusy(false); } };
+  const counts = checkinCounts(checkins.checkins);
+  const device = status.devices[0];
+
+  return (
+    <>
+      <h2>{name} <span className="muted" style={{ fontSize: 14 }}>{person.display_name} · {person.timezone} · {person.status}</span></h2>
+      <div className="card row">
+        <span><strong>Watch:</strong> {device ? `${device.status}, battery ${device.battery_percent ?? '?'} %, ${device.on_wrist === false ? 'off the wrist' : 'on the wrist'}, synced ${timeAgo(device.last_sync_at)}${device.background_sensor_permission === false ? ', sensor permission OFF' : ''}` : 'none paired'}</span>
+        <span><strong>Check-ins (last 200):</strong> {counts.answered} answered, {counts.missed} missed, {counts.skippedQuiet} at night</span>
+        <span><strong>Open alerts:</strong> {status.open_alerts.length}</span>
+      </div>
+      <nav className="tabs">
+        {TABS.filter((t) => t !== 'access' || manage).map((t) => <Link key={t} href={`/people/${id}?tab=${t}`} className={t === tab ? 'on' : ''}>{t[0].toUpperCase() + t.slice(1)}</Link>)}
+      </nav>
+      {error ? <p className="error">{error}</p> : null}
+
+      {tab === 'timeline' && (
+        <>
+          {sortAlerts(alerts).filter((a) => a.status !== 'resolved').map((a) => (
+            <AlertCard key={a.id} alert={a} personName={name} busy={busy}
+              onAcknowledge={(x) => { void act(() => api!.acknowledge(x.id, 'from the dashboard')); }}
+              onResolve={(x) => { const r = window.prompt('What happened?', 'Checked; all well.'); if (r) void act(() => api!.resolve(x.id, r)); }} />
+          ))}
+          {byDay(checkins.checkins, 'scheduled_at').map(({ day, items }) => (
+            <div className="card" key={day}>
+              <strong>{day}</strong>
+              <table><tbody>
+                {items.map((c) => (
+                  <tr key={c.id}>
+                    <td className="muted">{c.scheduled_at.slice(11, 16)}</td>
+                    <td>{c.question_kind}</td>
+                    <td><span className={`pill ${c.status === 'answered' ? 'ok' : c.status === 'missed' ? 'urgent' : 'grey'}`}>{c.status}</span></td>
+                    <td>{c.answer_summary}{checkins.answers_included && c.answer_text ? <em className="muted"> “{c.answer_text}”</em> : null}</td>
+                  </tr>
+                ))}
+              </tbody></table>
+            </div>
+          ))}
+          {!checkins.answers_included ? <p className="muted">Summaries only: the person&apos;s own words need their recorded consent for your role.</p> : null}
+        </>
+      )}
+
+      {tab === 'readings' && (
+        <div className="grid">
+          {['heart_rate', 'steps', 'movement', 'on_wrist', 'battery'].map((k) => (
+            <div className="card" key={k}><Sparkline points={series(vitals, k)} label={k.replace('_', ' ')} /></div>
+          ))}
+          {settings ? <div className="card"><strong>Range set for this person</strong><div className="muted">Heart rate {settings.heart_rate_min ?? 'not set'} to {settings.heart_rate_max ?? 'not set'}. Set by a carer or clinician; there is no built-in range.</div></div> : null}
+        </div>
+      )}
+
+      {tab === 'routines' && (
+        <div className="card">
+          <table><thead><tr><th>Routine</th><th>Kind</th><th>Time</th><th>Days</th></tr></thead><tbody>
+            {routines.map((r) => <tr key={r.id}><td>{r.name}</td><td>{r.kind}</td><td>{r.time_of_day?.slice(0, 5) ?? '-'}</td><td>{r.days_of_week.join(' ')}</td></tr>)}
+          </tbody></table>
+          {manage ? <AddRoutine onAdd={(b) => act(() => api!.addRoutine(id, b))} /> : null}
+        </div>
+      )}
+
+      {tab === 'medication' && (
+        <>
+          <div className="card">
+            <table><thead><tr><th>Medication</th><th>Dose</th><th>Times</th></tr></thead><tbody>
+              {meds.map((m) => <tr key={m.id}><td>{m.name}</td><td>{m.dose}</td><td>{m.times.map((t) => t.slice(0, 5)).join(', ')}</td></tr>)}
+            </tbody></table>
+            {manage ? <AddMedication onAdd={(b) => act(() => api!.addMedication(id, b))} /> : null}
+          </div>
+          <div className="card">
+            <strong>Doses</strong>
+            <table><tbody>
+              {medEvents.map((e) => <tr key={e.id}><td className="muted">{e.due_at.slice(0, 16).replace('T', ' ')}</td><td>{meds.find((m) => m.id === e.medication_id)?.name ?? ''}</td><td><span className={`pill ${e.status === 'taken' ? 'ok' : e.status === 'missed' ? 'urgent' : 'grey'}`}>{e.status}</span></td><td className="muted">{e.confirmed_via}</td></tr>)}
+            </tbody></table>
+          </div>
+        </>
+      )}
+
+      {tab === 'circle' && (
+        <div className="card">
+          <table><thead><tr><th>Name</th><th>Role</th><th>Tier</th><th>Phone</th><th>Active</th></tr></thead><tbody>
+            {circle.map((m) => <tr key={m.id}><td>{m.display_name}{m.relationship ? ` (${m.relationship})` : ''}</td><td>{m.role.replace('_', ' ')}</td><td>{m.tier}</td><td>{m.phone}</td><td>{m.active ? 'yes' : 'no'}</td></tr>)}
+          </tbody></table>
+          {manage ? <AddMember onAdd={(b) => act(() => api!.addMember(id, b))} /> : null}
+          {manage ? (
+            <div style={{ marginTop: 12 }}>
+              <button disabled={busy || !!pairing} onClick={() => { void act(async () => setPairing(await api!.newDevice(id))); }}>Pair a new watch</button>
+              {pairing?.pairing_code ? <p>Type this on the watch within 15 minutes: <code>{pairing.pairing_code}</code></p> : null}
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {tab === 'settings' && settings ? <SettingsForm settings={settings} manage={manage} onSave={(s) => act(() => api!.putSettings(id, s))} /> : null}
+
+      {tab === 'consent' && consents ? (
+        <div className="card">
+          <p>Family see alerts and summaries. The person&apos;s words are shown to a role only under a recorded consent.</p>
+          <ul>
+            <li>Transcripts for family: <strong>{consents.effective.transcripts_family ? 'allowed' : 'not allowed'}</strong></li>
+            <li>Transcripts for carers: <strong>{consents.effective.transcripts_carer ? 'allowed' : 'not allowed'}</strong></li>
+            <li>Transcripts for the care organisation: <strong>{consents.effective.transcripts_organisation ? 'allowed' : 'not allowed'}</strong></li>
+            <li>Kept for <strong>{consents.retention_months} months</strong></li>
+          </ul>
+          <table><thead><tr><th>Kind</th><th>Decision</th><th>By</th><th>When</th></tr></thead><tbody>
+            {consents.consents.map((c) => <tr key={c.id}><td>{c.kind.replace(/_/g, ' ')}</td><td>{c.granted ? 'granted' : 'declined'}{c.revoked_at ? ' (revoked)' : ''}</td><td>{c.granted_by.replace('_', ' ')} {c.granted_by_name}</td><td className="muted">{timeAgo(c.recorded_at)}</td></tr>)}
+          </tbody></table>
+          <p className="muted">Consents are recorded from the family app or by an administrator with the person present.</p>
+        </div>
+      ) : null}
+
+      {tab === 'conversation' && (
+        <div className="card">
+          {transcripts === 'refused' ? <p>Transcripts are private. They can be read only with the person&apos;s recorded consent for your role in their care circle. This attempt was written to the access log.</p> : null}
+          {Array.isArray(transcripts) ? (
+            <table><tbody>
+              {transcripts.map((t) => <tr key={t.id}><td className="muted">{t.created_at.slice(0, 16).replace('T', ' ')}</td><td>{t.speaker === 'companion' ? 'IRA' : name}</td><td>{t.text}</td></tr>)}
+            </tbody></table>
+          ) : null}
+          {Array.isArray(transcripts) && transcripts.length === 0 ? <p className="muted">No conversation yet.</p> : null}
+        </div>
+      )}
+
+      {tab === 'access' && manage && (
+        <div className="card">
+          <p className="muted">Every view of this person&apos;s health data or transcripts.</p>
+          <table><thead><tr><th>When</th><th>Who</th><th>What</th><th>Action</th></tr></thead><tbody>
+            {access.map((e) => <tr key={e.id}><td className="muted">{e.at.slice(0, 19).replace('T', ' ')}</td><td>{e.actor_label || e.actor_user_id || 'system'}</td><td>{e.resource_kind}</td><td>{e.action}</td></tr>)}
+          </tbody></table>
+        </div>
+      )}
+    </>
+  );
+}
+
+function AddRoutine({ onAdd }: { onAdd: (b: { name: string; kind: string; time_of_day: string | null }) => Promise<void> }) {
+  const [name, setName] = useState(''); const [kind, setKind] = useState('meal'); const [time, setTime] = useState('12:30');
+  return (
+    <form className="row" style={{ marginTop: 10 }} onSubmit={(e) => { e.preventDefault(); void onAdd({ name, kind, time_of_day: time || null }); setName(''); }}>
+      <input placeholder="Routine name" value={name} onChange={(e) => setName(e.target.value)} required />
+      <select value={kind} onChange={(e) => setKind(e.target.value)}>{['meal', 'medication', 'activity', 'sleep', 'social', 'other'].map((k) => <option key={k}>{k}</option>)}</select>
+      <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+      <button type="submit">Add routine</button>
+    </form>
+  );
+}
+
+function AddMedication({ onAdd }: { onAdd: (b: { name: string; dose: string; times: string[] }) => Promise<void> }) {
+  const [name, setName] = useState(''); const [dose, setDose] = useState(''); const [times, setTimes] = useState('08:00');
+  return (
+    <form className="row" style={{ marginTop: 10 }} onSubmit={(e) => { e.preventDefault(); void onAdd({ name, dose, times: times.split(',').map((t) => t.trim()).filter(Boolean) }); setName(''); }}>
+      <input placeholder="Medication" value={name} onChange={(e) => setName(e.target.value)} required />
+      <input placeholder="Dose" value={dose} onChange={(e) => setDose(e.target.value)} />
+      <input placeholder="Times, e.g. 08:00, 20:00" value={times} onChange={(e) => setTimes(e.target.value)} />
+      <button type="submit">Add medication</button>
+    </form>
+  );
+}
+
+function AddMember({ onAdd }: { onAdd: (b: { display_name: string; role: string; tier: number; phone: string; relationship: string }) => Promise<void> }) {
+  const [name, setName] = useState(''); const [role, setRole] = useState('family'); const [phone, setPhone] = useState(''); const [rel, setRel] = useState('');
+  const tier = role === 'care_organisation' ? 2 : 1;
+  return (
+    <form className="row" style={{ marginTop: 10 }} onSubmit={(e) => { e.preventDefault(); void onAdd({ display_name: name, role, tier, phone, relationship: rel }); setName(''); setPhone(''); }}>
+      <input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} required />
+      <input placeholder="Relationship" value={rel} onChange={(e) => setRel(e.target.value)} />
+      <select value={role} onChange={(e) => setRole(e.target.value)}>{['family', 'carer', 'clinician', 'care_organisation'].map((k) => <option key={k} value={k}>{k.replace('_', ' ')}</option>)}</select>
+      <input placeholder="+44..." value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <button type="submit">Add to circle (tier {tier})</button>
+    </form>
+  );
+}
+
+function SettingsForm({ settings, manage, onSave }: { settings: SafetySettings; manage: boolean; onSave: (s: SafetySettings) => Promise<void> }) {
+  const [s, setS] = useState<SafetySettings>(settings);
+  const num = (k: keyof SafetySettings, nullable = false) => (
+    <input type="number" value={(s[k] as number | null) ?? ''} disabled={!manage}
+      onChange={(e) => setS({ ...s, [k]: e.target.value === '' ? (nullable ? null : 0) : Number(e.target.value) })} style={{ width: 90 }} />
+  );
+  return (
+    <form className="card" onSubmit={(e) => { e.preventDefault(); void onSave(s); }}>
+      <p className="muted">Set per person by a carer or clinician. An empty heart-rate bound means no heart-rate rule; there is no built-in range.</p>
+      <table><tbody>
+        <tr><td>Quiet hours</td><td><input type="time" value={s.quiet_start.slice(0, 5)} disabled={!manage} onChange={(e) => setS({ ...s, quiet_start: e.target.value })} /> to <input type="time" value={s.quiet_end.slice(0, 5)} disabled={!manage} onChange={(e) => setS({ ...s, quiet_end: e.target.value })} /></td></tr>
+        <tr><td>Check-in every (minutes)</td><td>{num('checkin_min_minutes')} to {num('checkin_max_minutes')}</td></tr>
+        <tr><td>Repeat after (s) / check sensors after (s)</td><td>{num('repeat_after_s')} / {num('sensor_check_after_s')}</td></tr>
+        <tr><td>Heart rate range (bpm)</td><td>{num('heart_rate_min', true)} to {num('heart_rate_max', true)}</td></tr>
+        <tr><td>No movement window (s) / movement floor</td><td>{num('no_movement_window_s')} / {num('movement_floor_steps')}</td></tr>
+        <tr><td>Off wrist alert (min) / battery alert (%) / no sync alert (min)</td><td>{num('off_wrist_alert_minutes')} / {num('battery_alert_percent')} / {num('sync_alert_minutes')}</td></tr>
+        <tr><td>Missed check-ins before escalation / wait for acknowledgement (min)</td><td>{num('missed_checkins_before_escalation')} / {num('ack_wait_minutes')}</td></tr>
+      </tbody></table>
+      {manage ? <button type="submit">Save settings</button> : <p className="muted">Only an administrator may change these.</p>}
+    </form>
+  );
+}
