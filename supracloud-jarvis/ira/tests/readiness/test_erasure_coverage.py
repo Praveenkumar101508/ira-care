@@ -134,6 +134,39 @@ SHREDDED: dict[str, str] = {
 #: Tables deliberately neither deleted nor redacted, with the reason. Each entry
 #: is a decision somebody made, not a table somebody missed.
 EXEMPT: dict[str, str] = {
+    "care_people":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's record with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_circle_members":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's care circle with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_devices":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's watch record with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_vitals":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's health readings with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_safety_settings":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's safety settings with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_checkins":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's check-in history with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_alerts":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's alert history with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_alert_attempts":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's record of who was called about an alert with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_acknowledgements":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's record of who acknowledged an alert with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_routines":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's routines with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_medications":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's medication list with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_medication_events":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's medication history with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_transcripts":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's conversation transcripts with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_consents":
+        "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's recorded consents with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
+    "care_access_log":
+        "IRA CARE (099): the append-only record of who looked at a person's health "
+        "data or transcripts. A trigger refuses UPDATE and DELETE. Deleting it at "
+        "account erasure would destroy the proof of who read what. Retained and "
+        "redacted like the other audit tables; its tenant key is ON DELETE RESTRICT.",
     "auth_token_versions":
         "the account's token version (migration 096): a users.id and an "
         "integer, no name or address. Erasure raises it, so no token issued "
@@ -457,6 +490,12 @@ def test_the_debt_list_is_empty(db):
 #: worse than no exemption, because it reads as a decision somebody verified.
 TENANT_LIFECYCLE_EXEMPT: frozenset[str] = frozenset({
     "organisations", "workspaces", "tenant_mfa_policy",
+    # IRA CARE (099): exempt because the rows belong to the person cared for and
+    # go with the tenant. That reason is only true if the key cascades.
+    "care_people", "care_circle_members", "care_devices", "care_vitals",
+    "care_safety_settings", "care_checkins", "care_alerts", "care_alert_attempts",
+    "care_acknowledgements", "care_routines", "care_medications",
+    "care_medication_events", "care_transcripts", "care_consents",
 })
 
 

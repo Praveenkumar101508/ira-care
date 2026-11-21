@@ -114,3 +114,8 @@ def register_routers(app: FastAPI) -> None:
     if edition_default("workspace_management_available"):
         from api.routes.workspaces import management_router
         app.include_router(management_router, prefix="/api/v1")  # P12-02: create, rename, leave
+
+    # IRA CARE: the care data model and API. Scoped by the caller's verified
+    # workspace; watches authenticate with a device token (care/routes.py).
+    from care.routes import router as care_router
+    app.include_router(care_router, prefix="/api/v1")

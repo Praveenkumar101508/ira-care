@@ -78,3 +78,39 @@ The 34 billing-test errors seen locally were a local artefact: the payment-event
 accepts the privileged role only when it is literally named `postgres`, which CI uses.
 With that role the 41 billing tests pass.
 
+## D-008 Care data belongs to the person, not to an account (phase 2)
+
+The fifteen `care_*` tables are tenant AND workspace scoped with forced row-level security,
+and none is in the account erasure scope: a family member or carer deleting their own
+account must not take the cared-for person's health history with them. A person's data is
+removed by the care package's own erasure (`DELETE /api/v1/care/people/{id}`, which
+cascades), and by tenant deletion (`ON DELETE CASCADE`). The exception is
+`care_access_log`, audit evidence: it is append-only (a trigger refuses UPDATE for
+everyone and DELETE for the runtime roles), its keys are RESTRICT, and it survives the
+person it is about. Only the schema owner can purge it, which is how a retention purge
+is an operator's deliberate act and never the application's.
+
+## D-009 Transcript consent follows the reader's role in the care circle (phase 2)
+
+Family see alerts and summaries. The person's own words (check-in answers, transcripts)
+are readable only under a consent recorded for the reader's role in that person's care
+circle: `transcripts_family` for family, `transcripts_carer` for carers and clinicians,
+`transcripts_organisation` for the care organisation. The reader's role is their row in the
+circle, matched on account id. A workspace administrator who is not in the circle gets no
+transcripts however many consents exist. In the private edition the deployment owner is
+treated as a carer. Every read, allowed or refused, writes `care_access_log`.
+
+## D-010 Workspace roles decide read, act and manage (phase 2)
+
+`viewer` reads status, alerts and summaries; `member` also acknowledges and resolves alerts
+and confirms medication; `workspace_admin` also manages people, the circle, devices, safety
+settings, routines, medication lists, consents and the access log. The deployment owner has
+every level. Roles come from the verified workspace membership, never from a header. This
+is a check on top of row-level security, not instead of it.
+
+## D-011 Watch credentials carry their scope (phase 2)
+
+A pairing code and a device token both encode the tenant and workspace they belong to, plus
+a random secret; only the SHA-256 of the whole string is stored. A request carrying one is
+bound to that scope first, and the hash is looked up inside it, so a token can never be
+matched against another family's devices. Pairing codes live 15 minutes and are single use.

@@ -166,6 +166,10 @@ async def teardown(conn, matrix: Matrix) -> None:
         # below. Listed here rather than cascaded deliberately: a suite that
         # leaves one should fail loudly, not have the evidence swept away.
         "notifications",
+        # IRA CARE (099): `care_access_log` is audit evidence with RESTRICT
+        # keys, so it must go explicitly (the privileged role may purge it);
+        # `care_people` cascades to every other care table.
+        "care_access_log", "care_people",
     )
     for tenant in matrix.tenants:
         for table in content:

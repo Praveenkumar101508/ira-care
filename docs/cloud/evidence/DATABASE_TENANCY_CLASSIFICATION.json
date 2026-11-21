@@ -1,7 +1,7 @@
 {
   "phase": "3B batch 0/1",
   "schema_version": 1,
-  "table_count": 126,
+  "table_count": 141,
   "tables": {
     "access_audit_log": {
       "access": {
@@ -1478,6 +1478,1142 @@
         ],
         "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
         "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_access_log": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_access_log:{key}",
+      "classification": "APPEND_ONLY_AUDIT",
+      "current": {
+        "column_count": 11,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 2,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": true,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "only after retention expiry",
+        "legal_hold": "blocks deletion",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "redact; retain for the audit retention period (tenant key is ON DELETE RESTRICT)",
+        "user_deletion": "kept: the rows record who looked at health data, and user ids are set to NULL by the care package on request",
+        "workspace_deletion": "retained (ON DELETE RESTRICT)"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Who viewed, searched or exported a person's health data or transcripts, and when. Append-only: a trigger refuses UPDATE and DELETE. Carries no foreign keys so a row outlives what it is about. Workspace-scoped (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_access_log/",
+      "retention": "audit retention period (owner to set); never cascade-deleted with the tenant",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "DENIED (no DELETE policy, append-only trigger; retention purge by the schema owner only)",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "DENIED (no UPDATE policy, append-only trigger)"
+      }
+    },
+    "care_acknowledgements": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_acknowledgements:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 9,
+        "has_tenant_id": true,
+        "has_user_id": true,
+        "has_workspace_id": true,
+        "policy_count": 3,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Who acknowledged an alert, how ('I'm on my way') and when. Workspace-scoped with the alert (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_acknowledgements/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "DENIED (no UPDATE policy)"
+      }
+    },
+    "care_alert_attempts": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_alert_attempts:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 11,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 2,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Every attempt to reach somebody about an alert: tier, member, channel, outcome. The record of what the escalation tried; never updated or deleted by the runtime, removed only with the alert or the tenant. Workspace-scoped (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_alert_attempts/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "DENIED (no DELETE policy; removed with the alert or the tenant)",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "DENIED (no UPDATE policy)"
+      }
+    },
+    "care_alerts": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_alerts:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 15,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Safety alerts: what was observed (no answer and no movement, a reading outside the carer-set range, help requested, watch off the wrist, low battery, no sync), the tier reached and the outcome. Workspace-scoped with the person (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_alerts/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_checkins": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_checkins:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 15,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Every check-in question asked (or scheduled) and the answer given. Personal content about the person cared for; summaries are what family see, answers are shown under consent rules. Workspace-scoped with the person (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_checkins/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_circle_members": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_circle_members:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 18,
+        "has_tenant_id": true,
+        "has_user_id": true,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Who is around the person and in what order they are called: role, escalation tier, priority, contact channels. `user_id` links a member to an account when they have one (ON DELETE SET NULL, so a deleted account leaves the circle entry without a login). Workspace-scoped with the person it belongs to (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_circle_members/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_consents": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_consents:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 13,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Consents recorded for the person (or by their legal representative): who may read transcripts, who may see health data, and the retention period. Workspace-scoped with the person (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_consents/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_devices": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_devices:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 19,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material; device tokens and pairing codes are stored only as SHA-256 hashes"
+      },
+      "justification": "The watch paired to a person: platform, pairing state, battery, wrist-on, permission state, last sync. Only HASHES of the pairing code and the device token are stored. Workspace-scoped with the person (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_devices/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_medication_events": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_medication_events:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 10,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Whether each due dose was confirmed taken, missed or unknown, and how it was confirmed. Workspace-scoped with the person (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_medication_events/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_medications": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_medications:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 11,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "The person's medications and the times they are due, as entered by a carer. Health data about the person cared for. Workspace-scoped with the person (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_medications/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_people": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_people:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 13,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "The person IRA CARE looks after: name, preferred name, timezone, language and status. Scoped to the family's or care organisation's workspace (099). Not personal data about an ACCOUNT holder, so account erasure leaves it; the care package's per-person erasure and tenant deletion (ON DELETE CASCADE) remove it.",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_people/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_routines": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_routines:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 11,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "The person's daily routines (meals, activity, sleep) that check-ins are drawn from. Workspace-scoped with the person (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_routines/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_safety_settings": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_safety_settings:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 20,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "One row per person: quiet hours, check-in interval, and the safe ranges a carer or clinician set. The heart-rate range is NULL until set; there is no built-in medical threshold. Workspace-scoped with the person (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_safety_settings/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_transcripts": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_transcripts:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 8,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 3,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Text of what the person and the companion said during check-ins. Audio is never stored. Readable only under a recorded consent (care_consents) and every read is written to care_access_log. Workspace-scoped with the person (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_transcripts/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "DENIED (no UPDATE policy)"
+      }
+    },
+    "care_vitals": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_vitals:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 11,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 3,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Time series of readings from the watch (heart rate, steps, movement, wrist-on, battery). Health data about the person cared for; never updated, deleted by retention or the care package's per-person erasure. Every read is written to care_access_log. Workspace-scoped with the person (099).",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_vitals/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "DENIED (no UPDATE policy)"
       }
     },
     "checkpoint_blobs": {

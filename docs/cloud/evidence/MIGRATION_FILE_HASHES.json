@@ -511,6 +511,11 @@
    "sha256": "4bf5f1c4f61bb4eca9271d81b02b70c7823bd7322beaebf59b733a6421b6af35",
    "status": "applied"
   },
+  "099_care_foundation.sql": {
+   "migration_number": 99,
+   "sha256": "f4e03fb1d24a5bfdc940c15a3c08fa17eef81c3cfaa528b3d3027f24380f8acc",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",

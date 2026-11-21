@@ -1,0 +1,482 @@
+"""`/api/v1/care`: the care API.
+
+Two kinds of caller:
+
+* **People**, authenticated by the existing login and bound to a verified
+  workspace through `require_workspace_principal`. Their workspace role decides
+  read / act / manage (`care.authz`).
+* **Watches**, authenticated by a device token in the `X-Device-Token` header
+  (`care.devices`). A watch may report readings and state, answer check-ins and
+  ask for help, and nothing else.
+
+Every read of readings, check-in answers, medication or transcripts writes a
+row to `care_access_log` in the same transaction as the read.
+"""
+from __future__ import annotations
+
+import datetime as dt
+import uuid
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
+
+from api.middleware.workspace import require_workspace_principal
+from core.identity.db_context import workspace_connection
+from core.identity.principal import Principal
+
+from . import audit, consent, repository as repo, schemas
+from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
+
+router = APIRouter(prefix="/care", tags=["care"])
+
+DEVICE_TOKEN_HEADER = "X-Device-Token"
+
+
+def _not_found(what: str = "Not found") -> HTTPException:
+    return HTTPException(status_code=404, detail=what)
+
+
+async def require_device(
+    x_device_token: Optional[str] = Header(default=None, alias=DEVICE_TOKEN_HEADER),
+) -> tuple[Principal, dict]:
+    if not x_device_token:
+        raise HTTPException(status_code=401, detail="Device token required.")
+    found = await repo.authenticate_device(x_device_token)
+    if found is None:
+        raise HTTPException(status_code=401, detail="Device token not recognised.")
+    return found
+
+
+# ── People ───────────────────────────────────────────────────────────────────
+
+@router.post("/people", status_code=201)
+async def create_person(body: schemas.PersonCreate, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    return await repo.create_person(p, body.model_dump())
+
+
+@router.get("/people")
+async def list_people(include_archived: bool = False, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    people = await repo.list_people(p, include_archived=include_archived)
+    return {"people": people, "count": len(people)}
+
+
+@router.get("/people/{person_id}")
+async def get_person(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    person = await repo.get_person(p, person_id)
+    if person is None:
+        raise _not_found("Person not found.")
+    return person
+
+
+@router.patch("/people/{person_id}")
+async def update_person(person_id: uuid.UUID, body: schemas.PersonUpdate,
+                        p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    person = await repo.update_person(p, person_id, body.model_dump(exclude_unset=True))
+    if person is None:
+        raise _not_found("Person not found.")
+    return person
+
+
+@router.delete("/people/{person_id}", status_code=204)
+async def erase_person(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    """Delete the person and everything recorded about them (the access log stays)."""
+    ensure_can_manage(p)
+    async with workspace_connection(p) as conn:
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="person",
+                                  resource_id=person_id, action="export",
+                                  detail={"event": "erasure requested"})
+    if not await repo.erase_person(p, person_id):
+        raise _not_found("Person not found.")
+    return None
+
+
+@router.get("/people/{person_id}/status")
+async def person_status(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    """Live status for the family app: device state, latest readings, open alerts."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        status = await repo.person_status(conn, person_id)
+        if status is None:
+            raise _not_found("Person not found.")
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="vitals",
+                                  detail={"view": "status"})
+    return status
+
+
+# ── Care circle ──────────────────────────────────────────────────────────────
+
+@router.get("/people/{person_id}/circle")
+async def list_members(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    members = await repo.list_members(p, person_id)
+    return {"members": members, "count": len(members)}
+
+
+@router.post("/people/{person_id}/circle", status_code=201)
+async def add_member(person_id: uuid.UUID, body: schemas.CircleMemberCreate,
+                     p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    member = await repo.add_member(p, person_id, body.model_dump())
+    if member is None:
+        raise _not_found("Person not found.")
+    return member
+
+
+@router.patch("/circle/{member_id}")
+async def update_member(member_id: uuid.UUID, body: schemas.CircleMemberUpdate,
+                        p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    member = await repo.update_member(p, member_id, body.model_dump(exclude_unset=True))
+    if member is None:
+        raise _not_found("Member not found.")
+    return member
+
+
+@router.delete("/circle/{member_id}", status_code=204)
+async def remove_member(member_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    if not await repo.remove_member(p, member_id):
+        raise _not_found("Member not found.")
+    return None
+
+
+# ── Safety settings ──────────────────────────────────────────────────────────
+
+@router.get("/people/{person_id}/settings")
+async def get_settings(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    settings = await repo.get_settings(p, person_id)
+    if settings is None:
+        raise _not_found("Person not found.")
+    return settings
+
+
+@router.put("/people/{person_id}/settings")
+async def put_settings(person_id: uuid.UUID, body: schemas.SafetySettings,
+                       p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    settings = await repo.put_settings(p, person_id, body.model_dump())
+    if settings is None:
+        raise _not_found("Person not found.")
+    return settings
+
+
+# ── Devices (family side) ────────────────────────────────────────────────────
+
+@router.post("/people/{person_id}/devices", status_code=201)
+async def create_device(person_id: uuid.UUID, body: schemas.DeviceCreate,
+                        p: Principal = Depends(require_workspace_principal)):
+    """Register a watch and get its one-time pairing code (shown once; valid 15 minutes)."""
+    ensure_can_manage(p)
+    device = await repo.create_device(p, person_id, body.model_dump())
+    if device is None:
+        raise _not_found("Person not found.")
+    return device
+
+
+@router.get("/people/{person_id}/devices")
+async def list_devices(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    devices = await repo.list_devices(p, person_id)
+    return {"devices": devices, "count": len(devices)}
+
+
+@router.post("/devices/{device_id}/revoke")
+async def revoke_device(device_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    device = await repo.revoke_device(p, device_id)
+    if device is None:
+        raise _not_found("Device not found.")
+    return device
+
+
+# ── Devices (watch side) ─────────────────────────────────────────────────────
+
+@router.post("/devices/pair")
+async def pair_device(body: schemas.PairRequest):
+    """Exchange a pairing code for a device token. No login: the code is the credential."""
+    device = await repo.pair_device(body.pairing_code, app_version=body.app_version)
+    if device is None:
+        raise HTTPException(status_code=404, detail="Pairing code not recognised or expired.")
+    return device
+
+
+@router.get("/devices/me")
+async def device_me(d: tuple[Principal, dict] = Depends(require_device)):
+    _principal, device = d
+    return device
+
+
+@router.post("/devices/me/report")
+async def device_report(body: schemas.DeviceReport, d: tuple[Principal, dict] = Depends(require_device)):
+    principal, device = d
+    return await repo.record_report(principal, device, body.model_dump())
+
+
+@router.post("/devices/me/help", status_code=201)
+async def device_help(body: schemas.HelpRequest, d: tuple[Principal, dict] = Depends(require_device)):
+    """The Help button or the spoken word: opens an SOS alert at once."""
+    principal, device = d
+    return await repo.record_help_request(principal, device, body.model_dump())
+
+
+# ── Vitals and check-ins ─────────────────────────────────────────────────────
+
+@router.get("/people/{person_id}/vitals")
+async def get_vitals(
+    person_id: uuid.UUID,
+    kind: Optional[str] = Query(None),
+    since: Optional[dt.datetime] = Query(None),
+    until: Optional[dt.datetime] = Query(None),
+    limit: int = Query(200, ge=1, le=5000),
+    p: Principal = Depends(require_workspace_principal),
+):
+    ensure_can_read(p)
+    if kind is not None and kind not in schemas.VITAL_KINDS:
+        raise HTTPException(status_code=422, detail=f"kind must be one of {schemas.VITAL_KINDS}")
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+        rows = await repo.fetch_vitals(conn, person_id, kind=kind, since=since, until=until, limit=limit)
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="vitals",
+                                  detail={"kind": kind, "rows": len(rows)})
+    return {"vitals": rows, "count": len(rows)}
+
+
+@router.get("/people/{person_id}/checkins")
+async def get_checkins(person_id: uuid.UUID, limit: int = Query(50, ge=1, le=1000),
+                       p: Principal = Depends(require_workspace_principal)):
+    """Check-in history. Summaries always; the person's own words only under consent."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+        role = await repo.circle_role_of(conn, person_id, p.user_id)
+        if role is None and p.is_owner:
+            role = "carer"
+        consents = await repo.fetch_consents(conn, person_id)
+        with_answers = consent.may_read_transcripts(role, consents)
+        rows = await repo.fetch_checkins(conn, person_id, limit=limit, with_answers=with_answers)
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="checkins",
+                                  detail={"rows": len(rows), "answers_included": with_answers})
+    return {"checkins": rows, "count": len(rows), "answers_included": with_answers}
+
+
+# ── Alerts ───────────────────────────────────────────────────────────────────
+
+@router.get("/alerts")
+async def list_alerts(person_id: Optional[uuid.UUID] = None, open_only: bool = True,
+                      limit: int = Query(100, ge=1, le=1000),
+                      p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    alerts = await repo.list_alerts(p, person_id=person_id, open_only=open_only, limit=limit)
+    return {"alerts": alerts, "count": len(alerts)}
+
+
+@router.get("/alerts/{alert_id}")
+async def get_alert(alert_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    alert = await repo.get_alert(p, alert_id)
+    if alert is None:
+        raise _not_found("Alert not found.")
+    return alert
+
+
+@router.post("/alerts/{alert_id}/acknowledge")
+async def acknowledge_alert(alert_id: uuid.UUID, body: schemas.Acknowledge,
+                            p: Principal = Depends(require_workspace_principal)):
+    """"I'm on my way": stops the escalation and tells everyone who is going."""
+    ensure_can_act(p)
+    alert = await repo.acknowledge_alert(p, alert_id, body.model_dump())
+    if alert is None:
+        raise _not_found("Alert not found.")
+    return alert
+
+
+@router.post("/alerts/{alert_id}/resolve")
+async def resolve_alert(alert_id: uuid.UUID, body: schemas.Resolve,
+                        p: Principal = Depends(require_workspace_principal)):
+    ensure_can_act(p)
+    alert = await repo.resolve_alert(p, alert_id, body.resolution)
+    if alert is None:
+        raise _not_found("Alert not found or already resolved.")
+    return alert
+
+
+# ── Routines ─────────────────────────────────────────────────────────────────
+
+@router.get("/people/{person_id}/routines")
+async def list_routines(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    routines = await repo.list_routines(p, person_id)
+    return {"routines": routines, "count": len(routines)}
+
+
+@router.post("/people/{person_id}/routines", status_code=201)
+async def add_routine(person_id: uuid.UUID, body: schemas.RoutineCreate,
+                      p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    routine = await repo.add_routine(p, person_id, body.model_dump())
+    if routine is None:
+        raise _not_found("Person not found.")
+    return routine
+
+
+@router.patch("/routines/{routine_id}")
+async def update_routine(routine_id: uuid.UUID, body: schemas.RoutineUpdate,
+                         p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    routine = await repo.update_routine(p, routine_id, body.model_dump(exclude_unset=True))
+    if routine is None:
+        raise _not_found("Routine not found.")
+    return routine
+
+
+@router.delete("/routines/{routine_id}", status_code=204)
+async def delete_routine(routine_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    if not await repo.delete_routine(p, routine_id):
+        raise _not_found("Routine not found.")
+    return None
+
+
+# ── Medication ───────────────────────────────────────────────────────────────
+
+@router.get("/people/{person_id}/medications")
+async def list_medications(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+        meds = await repo.list_medications(conn, person_id)
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="medication",
+                                  detail={"rows": len(meds)})
+    return {"medications": meds, "count": len(meds)}
+
+
+@router.post("/people/{person_id}/medications", status_code=201)
+async def add_medication(person_id: uuid.UUID, body: schemas.MedicationCreate,
+                         p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    med = await repo.add_medication(p, person_id, body.model_dump())
+    if med is None:
+        raise _not_found("Person not found.")
+    return med
+
+
+@router.patch("/medications/{medication_id}")
+async def update_medication(medication_id: uuid.UUID, body: schemas.MedicationUpdate,
+                            p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    med = await repo.update_medication(p, medication_id, body.model_dump(exclude_unset=True))
+    if med is None:
+        raise _not_found("Medication not found.")
+    return med
+
+
+@router.delete("/medications/{medication_id}", status_code=204)
+async def delete_medication(medication_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    if not await repo.delete_medication(p, medication_id):
+        raise _not_found("Medication not found.")
+    return None
+
+
+@router.get("/people/{person_id}/medication-events")
+async def list_medication_events(person_id: uuid.UUID, limit: int = Query(100, ge=1, le=1000),
+                                 p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+        events = await repo.list_medication_events(conn, person_id, limit=limit)
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="medication",
+                                  detail={"view": "events", "rows": len(events)})
+    return {"events": events, "count": len(events)}
+
+
+@router.post("/people/{person_id}/medication-events", status_code=201)
+async def record_medication_event(person_id: uuid.UUID, body: schemas.MedicationEventRecord,
+                                  p: Principal = Depends(require_workspace_principal)):
+    """A family member or carer confirming a dose was taken (or missed)."""
+    ensure_can_act(p)
+    event = await repo.record_medication_event(p, person_id, body.model_dump())
+    if event is None:
+        raise _not_found("Medication not found for this person.")
+    return event
+
+
+# ── Transcripts and consents ─────────────────────────────────────────────────
+
+@router.get("/people/{person_id}/transcripts")
+async def get_transcripts(person_id: uuid.UUID, limit: int = Query(100, ge=1, le=1000),
+                          p: Principal = Depends(require_workspace_principal)):
+    """What the person said. Only with a recorded consent that covers the caller's
+    role in the care circle; refused otherwise, and every read is logged."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+        role = await repo.circle_role_of(conn, person_id, p.user_id)
+        if role is None and p.is_owner:
+            role = "carer"
+        consents = await repo.fetch_consents(conn, person_id)
+        if not consent.may_read_transcripts(role, consents):
+            raise HTTPException(
+                status_code=403,
+                detail="Transcripts are private. They can be read only with the person's "
+                       "recorded consent for your role in their care circle.")
+        rows = await repo.fetch_transcripts(conn, person_id, limit=limit)
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="transcript",
+                                  detail={"rows": len(rows), "circle_role": role})
+    return {"transcripts": rows, "count": len(rows)}
+
+
+@router.get("/people/{person_id}/consents")
+async def list_consents(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+        rows = await repo.fetch_consents(conn, person_id)
+    effective = consent.effective_consents(rows)
+    return {
+        "consents": rows,
+        "effective": {k: (bool(v["granted"]) and v["revoked_at"] is None) for k, v in effective.items()},
+        "retention_months": consent.retention_months(rows),
+    }
+
+
+@router.post("/people/{person_id}/consents", status_code=201)
+async def record_consent(person_id: uuid.UUID, body: schemas.ConsentRecord,
+                         p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    row = await repo.record_consent(p, person_id, body.model_dump())
+    if row is None:
+        raise _not_found("Person not found.")
+    return row
+
+
+@router.post("/consents/{consent_id}/revoke")
+async def revoke_consent(consent_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    row = await repo.revoke_consent(p, consent_id)
+    if row is None:
+        raise _not_found("Consent not found or already revoked.")
+    return row
+
+
+# ── Access log ───────────────────────────────────────────────────────────────
+
+@router.get("/people/{person_id}/access-log")
+async def get_access_log(person_id: uuid.UUID, limit: int = Query(200, ge=1, le=5000),
+                         p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    rows = await repo.fetch_access_log(p, person_id, limit=limit)
+    if rows is None:
+        raise _not_found("Person not found.")
+    return {"entries": rows, "count": len(rows)}
