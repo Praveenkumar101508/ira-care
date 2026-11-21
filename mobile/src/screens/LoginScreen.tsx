@@ -35,9 +35,9 @@ export function LoginScreen({ defaultBaseUrl, onLoggedIn, onJoin }: { defaultBas
     <Screen title="IRA CARE">
       <Card>
         <Muted>Sign in with the account your care circle gave you.</Muted>
-        <TextInput style={styles.input} placeholder="Server address" autoCapitalize="none" value={baseUrl} onChangeText={setBaseUrl} testID="server" />
-        <TextInput style={styles.input} placeholder="Username" autoCapitalize="none" value={username} onChangeText={setUsername} testID="username" />
-        <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} testID="password" />
+        <TextInput style={styles.input} placeholder="Server address" accessibilityLabel="Server address" autoCapitalize="none" value={baseUrl} onChangeText={setBaseUrl} testID="server" />
+        <TextInput style={styles.input} placeholder="Username" accessibilityLabel="Username" autoCapitalize="none" value={username} onChangeText={setUsername} testID="username" />
+        <TextInput style={styles.input} placeholder="Password" accessibilityLabel="Password" secureTextEntry value={password} onChangeText={setPassword} testID="password" />
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <BigButton label={busy ? 'Signing in…' : 'Sign in'} onPress={submit} disabled={busy || !username || !password} testID="sign-in" />
         {onJoin ? <BigButton label="I have an invitation link" color={colors.muted} onPress={onJoin} testID="open-join" /> : null}
