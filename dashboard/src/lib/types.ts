@@ -55,3 +55,12 @@ export interface AccessEntry { id: string; actor_user_id: string | null; actor_l
 export interface Report { id: string; kind: 'daily_carer' | 'weekly_family'; period_start: string; period_end: string; generated_at: string; title: string; body_text: string; delivered_channels: string[] }
 export interface SearchResult { kind: 'checkin' | 'alert' | 'transcript'; id: string; at: string; text: string }
 export interface SearchResponse { query: string; results: SearchResult[]; transcripts_included: boolean }
+
+export interface PlanSummary {
+  subscription: { plan_id: string; status: string; current_period_end: string | null; display_name: string } | null;
+  entitled: boolean; limits: Record<string, number | null>; usage: { care_people: number; care_circle_members: number };
+  plans: { plan_id: string; display_name: string; description: string; limits: Record<string, number | null> }[];
+  payment_provider: string; note: string;
+}
+export interface InvitationOut { invitation_id: string; member_id: string; email: string; role: string; expires_at: string; link: string; consents_recorded: string[]; mail: { delivered: boolean; transport: string } }
+export interface InvitationRow { member_id: string; display_name: string; role: string; invited_email: string; accepted: boolean; expires_at: string | null; accepted_at: string | null; revoked_at: string | null }

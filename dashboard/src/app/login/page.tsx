@@ -47,6 +47,7 @@ export default function LoginPage() {
   return (
     <form className="card" style={{ maxWidth: 480, margin: '40px auto' }} onSubmit={submit}>
       <h2>Sign in</h2>
+      <p className="muted"><a href="/signup">New care organisation? Start here.</a></p>
       <p className="muted">For carers and care organisations. Family use the phone app.</p>
       <label>Server<br /><input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} style={{ width: '100%' }} /></label><br /><br />
       <label>Username<br /><input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" style={{ width: '100%' }} /></label><br /><br />

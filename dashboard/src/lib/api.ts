@@ -1,6 +1,6 @@
 import type {
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, Person,
-  AccessNotes, HomeUpdate, Memory, OpsStatus, PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, WorkspaceList,
+  AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, WorkspaceList,
 } from './types';
 
 export class ApiError extends Error {
@@ -53,6 +53,11 @@ export class Api {
   generateReport(id: string, kind: string, date: string) { return this.req<Report>('POST', `/api/v1/care/people/${id}/reports/generate`, { kind, date }); }
   search(id: string, q: string) { return this.req<SearchResponse>('GET', `/api/v1/care/people/${id}/history/search?q=${encodeURIComponent(q)}&limit=100`); }
   opsStatus() { return this.req<OpsStatus>('GET', '/api/v1/care/ops/status'); }
+  plan() { return this.req<PlanSummary>('GET', '/api/v1/care/plan'); }
+  invite(personId: string, body: { email: string; display_name: string; relationship: string; role: string; tier: number; phone: string; consents: { kind: string; granted: boolean; granted_by: string; granted_by_name: string }[] }) {
+    return this.req<InvitationOut>('POST', `/api/v1/care/people/${personId}/invitations`, body);
+  }
+  invitations(personId: string) { return this.req<{ invitations: InvitationRow[] }>('GET', `/api/v1/care/people/${personId}/invitations`).then((o) => o.invitations); }
   memory(id: string) { return this.req<{ memory: Memory[] }>('GET', `/api/v1/care/people/${id}/memory`).then((o) => o.memory); }
   accessLog(id: string) { return this.req<{ entries: AccessEntry[] }>('GET', `/api/v1/care/people/${id}/access-log?limit=200`).then((o) => o.entries); }
 

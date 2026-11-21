@@ -209,6 +209,45 @@ class HelpRequest(BaseModel):
     location: Optional[LocationFix] = None
 
 
+class Signup(BaseModel):
+    """The founder of a care organisation, before verification."""
+    email: str = Field(..., min_length=5, max_length=254, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    password: str = Field(..., min_length=12, max_length=72)
+
+
+class OrganisationCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=80)
+    plan_id: str = Field("care_organisation", pattern=r"^(care_family|care_organisation)$")
+
+
+class ConsentAtInvitation(BaseModel):
+    kind: str
+    granted: bool = True
+    granted_by: str = Field("person", pattern=r"^(person|legal_representative)$")
+    granted_by_name: str = Field("", max_length=80)
+
+    @field_validator("kind")
+    @classmethod
+    def _kind(cls, v):
+        if v not in CONSENT_KINDS:
+            raise ValueError(f"kind must be one of {CONSENT_KINDS}")
+        return v
+
+
+class InvitationCreate(BaseModel):
+    email: str = Field(..., min_length=5, max_length=254, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    display_name: str = Field("", max_length=80)
+    relationship: str = Field("", max_length=40)
+    role: str = Field("family", pattern=r"^(family|carer|clinician|care_organisation)$")
+    tier: int = Field(1, ge=1, le=3)
+    phone: str = Field("", pattern=r"^$|^\+[1-9][0-9]{6,14}$")
+    consents: list[ConsentAtInvitation] = Field(default_factory=list, max_length=8)
+
+
+class InvitationAccept(BaseModel):
+    token: str = Field(..., min_length=16, max_length=200)
+
+
 class Talk(BaseModel):
     """Something the person said to IRA."""
     text: str = Field(..., min_length=1, max_length=2000)
