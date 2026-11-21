@@ -109,3 +109,13 @@ export interface ConsentList {
   effective: Record<string, boolean>;
   retention_months: number;
 }
+
+export interface Report {
+  id: string;
+  kind: 'daily_carer' | 'weekly_family';
+  period_start: string;
+  period_end: string;
+  generated_at: string;
+  title: string;
+  body_text: string;
+}

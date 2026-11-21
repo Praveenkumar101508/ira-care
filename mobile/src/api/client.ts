@@ -1,5 +1,5 @@
 import type {
-  Alert, Checkin, CircleMember, ConsentList, Device, LoginResponse, Person, PersonStatus, WorkspaceList,
+  Alert, Checkin, CircleMember, ConsentList, Device, LoginResponse, Person, PersonStatus, Report, WorkspaceList,
 } from './types';
 
 /** What went wrong, in a way a screen can show. */
@@ -94,6 +94,11 @@ export class CareClient {
 
   async newDevice(personId: string): Promise<Device> {
     return this.request<Device>('POST', `/api/v1/care/people/${personId}/devices`, { platform: 'wearos' });
+  }
+
+  async reports(personId: string): Promise<Report[]> {
+    const out = await this.request<{ reports: Report[] }>('GET', `/api/v1/care/people/${personId}/reports?kind=weekly_family&limit=12`);
+    return out.reports;
   }
 
   async registerPush(token: string, platform: string): Promise<void> {

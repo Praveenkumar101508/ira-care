@@ -134,6 +134,10 @@ SHREDDED: dict[str, str] = {
 #: Tables deliberately neither deleted nor redacted, with the reason. Each entry
 #: is a decision somebody made, not a table somebody missed.
 EXEMPT: dict[str, str] = {
+    "care_reports":
+        "IRA CARE (100): a person's daily and weekly reports, derived from the other care "
+        "tables. Belongs to the PERSON CARED FOR, not to an account; removed by the care "
+        "package's per-person erasure and, when the TENANT is deleted, by ON DELETE CASCADE.",
     "care_people":
         "IRA CARE (099): belongs to the PERSON CARED FOR, who is usually not an account holder. Erasing a family member's or carer's account must not take the person's record with it. Any user_id link in the row is ON DELETE SET NULL. The rows are removed by the care package's per-person erasure, and when the TENANT is deleted, by ON DELETE CASCADE (checked below).",
     "care_circle_members":
@@ -495,7 +499,7 @@ TENANT_LIFECYCLE_EXEMPT: frozenset[str] = frozenset({
     "care_people", "care_circle_members", "care_devices", "care_vitals",
     "care_safety_settings", "care_checkins", "care_alerts", "care_alert_attempts",
     "care_acknowledgements", "care_routines", "care_medications",
-    "care_medication_events", "care_transcripts", "care_consents",
+    "care_medication_events", "care_transcripts", "care_consents", "care_reports",
 })
 
 

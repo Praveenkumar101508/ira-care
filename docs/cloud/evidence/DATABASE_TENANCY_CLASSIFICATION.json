@@ -1,7 +1,7 @@
 {
   "phase": "3B batch 0/1",
   "schema_version": 1,
-  "table_count": 141,
+  "table_count": 142,
   "tables": {
     "access_audit_log": {
       "access": {
@@ -2294,6 +2294,82 @@
         "target_columns": {}
       },
       "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_people/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_reports": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/reports.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/reports.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/reports.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_reports:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 12,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "The daily carer report and the weekly family report for a person, generated from the other care tables and kept so they can be read back and delivered once per period (100). Summaries only, never the person's own words. Workspace-scoped with the person; removed with the person and with the tenant.",
+      "migration": {
+        "done_by": "099_care_foundation.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_reports/",
       "retention": "care_consents.retention_months per person, default 12 months",
       "rls": {
         "already_satisfied": true,

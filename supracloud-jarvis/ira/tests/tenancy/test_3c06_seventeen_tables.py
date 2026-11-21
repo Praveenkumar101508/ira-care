@@ -38,6 +38,7 @@ also pass against one that never matched anything for any reason.
 """
 from __future__ import annotations
 
+import datetime
 import os
 import uuid
 from dataclasses import dataclass, field
@@ -79,6 +80,7 @@ WORKSPACE_SCOPED = (
     "care_safety_settings", "care_checkins", "care_alerts", "care_alert_attempts",
     "care_acknowledgements", "care_routines", "care_medications",
     "care_medication_events", "care_transcripts", "care_consents", "care_access_log",
+    "care_reports",
 )
 
 
@@ -168,6 +170,9 @@ SPECS: dict[str, Spec] = {
                                    "granted_by": "literal:person"},
                           parents=(("care_people", "person_id"),)),
     "care_access_log": Spec(columns={"resource_kind": "literal:vitals"}),
+    "care_reports": Spec(columns={"kind": "literal:daily_carer", "period_start": "date", "period_end": "date",
+                                  "title": "text", "body_text": "text"},
+                         parents=(("care_people", "person_id"),)),
 }
 
 
@@ -199,6 +204,8 @@ def _value(kind: str, run: str, handle, actor):
         return "__now__"
     if kind == "bool":
         return True
+    if kind == "date":
+        return datetime.date(2026, 11, 21)
     if kind.startswith("literal:"):
         return kind.split(":", 1)[1]
     raise AssertionError(f"unknown column kind {kind!r}")

@@ -209,3 +209,23 @@ circle members, change the safety settings, record consents, issue pairing codes
 the access log. Conversation text is requested from the backend and the 403 it returns
 without consent is shown as such, so the dashboard never caches or infers what it may not
 show. Tests run with Vitest and Testing Library (no browser).
+
+## D-020 Reports are summaries, once per period, in the person's own clock (phase 8)
+
+The daily carer report and the weekly family report are generated from the care tables and
+stored in `care_reports` (migration 100) with a unique key per person, kind and period, so
+the hourly job generates and delivers each exactly once: the daily report after 07:00 in the
+person's own timezone, the weekly report on Monday after 08:00. Reports carry summaries
+only, never the person's own words, whatever the consents say, because a report travels
+(push, e-mail) in a way a screen does not. The same rule now applies to check-in summaries
+themselves: a summary says "answered about how they feel (mentioned pain)" and never quotes
+the answer, so what family see without consent, and what reports contain, cannot leak the
+person's words. Readings are reported against the carer's range or as "no range set"; a test
+pins that no report contains a diagnosis word. Delivery goes through the existing notifier.
+
+## D-021 History search is one query, audited (phase 8)
+
+`GET /care/people/{id}/history/search` searches check-in summaries and alerts, and the
+transcripts only when the caller's role has consent, exactly as the transcript endpoint
+does. Every search writes an access-log row with the words searched for and whether
+transcripts were included, because a search is a read of health data.

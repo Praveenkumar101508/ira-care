@@ -262,8 +262,11 @@ def summarise_answer(kind: str, text: str, *, subject: Optional[str] = None) -> 
     elif _GOOD.search(lowered) and not signals:
         base = "Said they were doing well."
     else:
-        snippet = raw if len(raw) <= 80 else raw[:77].rstrip() + "..."
-        base = f"Said: \"{snippet}\""
+        # Never the person's own words: a summary is what family see without
+        # consent and what travels in reports. The words stay in the transcript.
+        base = {"mood": "Answered about how they feel.", "pain": "Answered about aches and pain.",
+                "plans": "Answered about their plans.", "wellbeing": "Answered about how they are doing."
+                }.get(kind, "Gave an answer.")
     summary = base if not signals else f"{base} ({'; '.join(signals)})"
     return AnswerReading(summary=summary[:400], said=said, signals=tuple(signals),
                          asked_for_help=bool(_HELP.search(lowered)))
