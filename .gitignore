@@ -113,3 +113,7 @@ artifacts/acceptance/
 technical_library_data/
 *.techlib-report.json
 *.techlib-report.md
+
+# Local virtual environments
+.venv/
+supracloud-jarvis/.venv/
