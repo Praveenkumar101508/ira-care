@@ -4,13 +4,12 @@
 fall detection, a model-driven conversation, a hardware-free demo, onboarding and billing,
 deployment and store readiness, compliance drafts and a final readiness proof.
 
-**Open branch:** `feat/continuous-monitoring` (round 2, phase 1). Each round-2 phase starts
+**Open branch:** `feat/home-and-location` (round 2, phase 2). Phase 1 merged as pull request 10. Each round-2 phase starts
 from the latest `main` after the previous one has merged; no stacked branches.
 
-**Exact next step:** finish `feat/continuous-monitoring` (readings checked as they arrive,
-ask first then escalate, night rules, the morning check, the job heartbeat and the
-"monitoring paused" banner, simulator scenarios), open its pull request, merge when green,
-then start `feat/home-and-location`.
+**Exact next step:** finish `feat/home-and-location` (home record, sealed access notes, the
+one-off location with the alert, SOS messages with address and whereabouts, both apps' alert
+screens), open its pull request, merge when green, then start `feat/fall-detection`.
 
 To continue in a new session: read `docs/progress/STATUS.md`, this file, `docs/BUILD_RULES.md`
 and `docs/DECISIONS.md`, then carry on with the same rules.

@@ -31,7 +31,8 @@ export default function AlertsPage() {
       <p className="row"><label><input type="checkbox" checked={openOnly} onChange={(e) => setOpenOnly(e.target.checked)} /> open and escalating only</label></p>
       {error ? <p className="error">{error}</p> : null}
       {sortAlerts(alerts).map((a) => (
-        <AlertCard key={a.id} alert={a} personName={nameOf(a.person_id)} busy={busy}
+        <AlertCard key={a.id} alert={a} personName={nameOf(a.person_id)} person={people.find((p) => p.id === a.person_id)} busy={busy}
+          onAccessNotes={(x) => api!.accessNotes(x.id)}
           onAcknowledge={(x) => { void act(() => api!.acknowledge(x.id, 'from the dashboard')); }}
           onResolve={(x) => { const r = window.prompt('What happened?', 'Checked; all well.'); if (r) void act(() => api!.resolve(x.id, r)); }} />
       ))}

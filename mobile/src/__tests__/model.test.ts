@@ -1,5 +1,5 @@
 import type { Alert, Device } from '../api/types';
-import { alertTitle, needsSomeone, showCall999, sortAlerts } from '../model/alerts';
+import { alertTitle, needsSomeone, showCall999, sortAlerts, whereabouts } from '../model/alerts';
 import { deviceSummary, readingLabel, telLink, timeAgo } from '../model/format';
 
 const base: Alert = {
@@ -57,4 +57,17 @@ test('readings and the watch are described, never judged', () => {
 test('telephone links keep digits and plus only', () => {
   expect(telLink('+44 0000 000001')).toBe('tel:+440000000001');
   expect(telLink('')).toBe('');
+});
+
+test('whereabouts: at home, away, unknown, and unavailable are all said plainly', () => {
+  const person = { id: 'p', display_name: 'T', preferred_name: '', timezone: 'UTC', status: 'active' as const, home_address: '1 Example Street' };
+  const sos = { ...base, severity: 'sos' as const, kind: 'help_requested' };
+  expect(whereabouts(sos, person)).toEqual({ line: 'Location unavailable from the watch. Home address: 1 Example Street', mapLink: null });
+  const home = whereabouts({ ...sos, location_latitude: 51.5002, location_longitude: -0.1201, location_accuracy_m: 25, at_home: true }, person);
+  expect(home.line).toBe('At home: 1 Example Street (±25 m)');
+  expect(home.mapLink).toContain('openstreetmap.org/?mlat=51.50020&mlon=-0.12010');
+  const away = whereabouts({ ...sos, location_latitude: 51.518, location_longitude: -0.12, at_home: false }, person);
+  expect(away.line).toMatch(/^Away from home\. 51\.51800, -0\.12000\. Home: 1 Example Street$/);
+  const unknown = whereabouts({ ...sos, location_latitude: 51.5, location_longitude: -0.12, at_home: null }, undefined);
+  expect(unknown.line).toContain('whether this is home is unknown');
 });

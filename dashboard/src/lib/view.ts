@@ -1,4 +1,4 @@
-import type { Alert, Checkin, Reading } from './types';
+import type { Alert, Person, Checkin, Reading } from './types';
 
 export const ALERT_WORDS: Record<string, string> = {
   help_requested: 'Asked for help',
@@ -79,4 +79,18 @@ export function byDay<T>(items: T[], key: keyof T): { day: string; items: T[] }[
     map.set(day, [...(map.get(day) ?? []), item]);
   }
   return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0])).map(([day, list]) => ({ day, items: list }));
+}
+
+/** Where the person is, for whoever is going: at home, away, or honestly unknown. */
+export function whereabouts(alert: Alert, person?: Pick<Person, 'home_address'> | null): { line: string; mapLink: string | null } {
+  const address = person?.home_address?.trim() ?? '';
+  const lat = alert.location_latitude, lon = alert.location_longitude;
+  if (lat == null || lon == null) {
+    return { line: address ? `Location unavailable from the watch. Home address: ${address}` : 'Location unavailable from the watch.', mapLink: null };
+  }
+  const mapLink = `https://www.openstreetmap.org/?mlat=${lat.toFixed(5)}&mlon=${lon.toFixed(5)}#map=17/${lat.toFixed(5)}/${lon.toFixed(5)}`;
+  const acc = alert.location_accuracy_m != null ? ` (±${Math.round(alert.location_accuracy_m)} m)` : '';
+  if (alert.at_home === true) return { line: `At home${address ? `: ${address}` : ''}${acc}`, mapLink };
+  if (alert.at_home === false) return { line: `Away from home${acc}. ${lat.toFixed(5)}, ${lon.toFixed(5)}${address ? `. Home: ${address}` : ''}`, mapLink };
+  return { line: `At ${lat.toFixed(5)}, ${lon.toFixed(5)}${acc}; whether this is home is unknown${address ? `. Home: ${address}` : ''}`, mapLink };
 }

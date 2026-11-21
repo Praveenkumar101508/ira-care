@@ -96,7 +96,8 @@ export default function App() {
           onAcknowledge={async (a) => { await c.acknowledge(a.id); await refresh(); }}
           onResolve={async (a) => { await c.resolve(a.id, 'Resolved from the family app.'); await refresh(); }}
           onBack={() => setRoute({ name: 'home' })}
-          onCall999={() => { void Linking.openURL('tel:999'); }} />
+          onCall999={() => { void Linking.openURL('tel:999'); }}
+          onAccessNotes={(a) => c.accessNotes(a.id)} />
       )}
       {route.name === 'person' && (
         <PersonScreen client={c} person={route.person} canManage={canManage} onBack={() => setRoute({ name: 'home' })} />

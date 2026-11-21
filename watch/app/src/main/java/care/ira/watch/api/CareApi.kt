@@ -63,8 +63,17 @@ data class DueCheckin(
 @Serializable
 data class CheckinAnswer(val text: String = "", val via: String = "voice")
 
+/** Where the watch was when the SOS started. Sent once with the request, never streamed. */
 @Serializable
-data class HelpRequest(val via: String = "button", val note: String = "")
+data class LocationFix(
+    val latitude: Double,
+    val longitude: Double,
+    @SerialName("accuracy_m") val accuracyM: Double? = null,
+    @SerialName("recorded_at") val recordedAt: String? = null,
+)
+
+@Serializable
+data class HelpRequest(val via: String = "button", val note: String = "", val location: LocationFix? = null)
 
 /** What went wrong talking to the backend, in a way the caller can act on. */
 sealed class ApiOutcome<out T> {

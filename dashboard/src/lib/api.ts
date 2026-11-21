@@ -1,6 +1,6 @@
 import type {
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, Person,
-  OpsStatus, PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, WorkspaceList,
+  AccessNotes, HomeUpdate, OpsStatus, PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, WorkspaceList,
 } from './types';
 
 export class ApiError extends Error {
@@ -32,6 +32,8 @@ export class Api {
   }
   alert(id: string) { return this.req<Alert>('GET', `/api/v1/care/alerts/${id}`); }
   acknowledge(id: string, note: string) { return this.req<Alert>('POST', `/api/v1/care/alerts/${id}/acknowledge`, { kind: 'on_my_way', note }); }
+  updateHome(personId: string, body: HomeUpdate) { return this.req<Person>('PATCH', `/api/v1/care/people/${personId}`, body); }
+  accessNotes(alertId: string) { return this.req<AccessNotes>('GET', `/api/v1/care/alerts/${alertId}/access-notes`); }
   resolve(id: string, resolution: string) { return this.req<Alert>('POST', `/api/v1/care/alerts/${id}/resolve`, { resolution }); }
   vitals(id: string, kind?: string, limit = 500) { return this.req<{ vitals: Reading[] }>('GET', `/api/v1/care/people/${id}/vitals?limit=${limit}${kind ? `&kind=${kind}` : ''}`).then((o) => o.vitals); }
   checkins(id: string) { return this.req<{ checkins: Checkin[]; answers_included: boolean }>('GET', `/api/v1/care/people/${id}/checkins?limit=200`); }

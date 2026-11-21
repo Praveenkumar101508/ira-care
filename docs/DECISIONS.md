@@ -296,3 +296,46 @@ log-only without keys, at most once every fifteen minutes. The check is tested b
 both jobs and then advancing the clock with no further pass. The banner is the honest
 statement that check-ins and alerts are not being processed; it is not a substitute for
 running the worker under a supervisor, which deployment readiness covers later.
+
+## D-028 The home record: free text the carer controls, and sealed access notes (round 2, phase 2)
+
+The person record gains a home address, optional home coordinates with a radius (entered
+by the carer; there is no geocoding service), an emergency information summary and access
+notes (key safe, which door, pets). The summary and the notes are free text; IRA CARE has no
+fields of its own for conditions. The access notes are sealed at rest with the existing
+secrets mechanism: a per-row data key (AES-256-GCM) wrapped under the configured
+key-encryption key and bound to the tenant and the person's row, the same envelope the voice
+templates use. The architecture ratchet that confines key handling to `core/connectors/`
+caught the first draft, which opened the notes from the care package; the sealing now lives
+in `core/connectors/care_access_notes.py`, inside the one package the rule allows, and the
+care package keeps only the policy (who may view) and the column names. The ratchet itself
+was not changed. The test's own comments prefer a named exemption for a module that owns its
+secrets over placing non-connector secrets in that package; that is a decision for the owner
+(listed under "Needs the owner"), and either answer keeps the same cryptography. The notes
+never appear in a person record: clients see only `has_access_notes`.
+They open through one route, `GET /care/alerts/{id}/access-notes`, for tier 1 and tier 2
+recipients (a circle member linked to the caller's account, or the organisation's manager)
+while the alert is open, escalating or acknowledged, and every opening writes an access-log
+row naming the alert. Without the encryption key the server refuses to store notes rather
+than store them in the clear.
+
+## D-029 Location once, with the alert, never streamed (round 2, phase 2)
+
+The watch asks for one location fix when the Help button is pressed, help is spoken, or (in
+the next phase) a suspected fall is confirmed, and sends it with the help request. There is
+no route that accepts a location on its own and readings do not carry one, so nothing can be
+streamed. The fix is stored on the alert row, which means it lives exactly as long as the
+alert under the person's retention period. "At home" is decided server-side from the home
+coordinates and radius, widened by the fix's own accuracy, so a fix that might be at home
+is not reported as away; with no fix or no home coordinates the answer is "unknown" and the
+messages say so. The map link is a plain OpenStreetMap address with no key.
+
+## D-030 SOS messages tell responders where to go (round 2, phase 2)
+
+Every push, text and call script for an SOS now carries the whereabouts sentence (at home
+with the address, away with the distance and address, or "location unavailable" with the
+address), the coordinates and map link when there is a fix, and a link to the alert at
+`IRA_CARE_PUBLIC_URL` (default the dashboard's development address). Notices about the watch
+itself do not broadcast the address. The family app and the dashboard show the same
+sentence, the emergency information, a map link, and a button that opens the access notes
+and says that the view has been logged.

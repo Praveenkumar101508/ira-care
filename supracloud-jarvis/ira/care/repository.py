@@ -49,26 +49,51 @@ def _now() -> dt.datetime:
 
 # ── People ───────────────────────────────────────────────────────────────────
 
+#: Columns never returned to a client: the sealed access notes.
+_SEALED_COLUMNS = ("access_notes_ciphertext", "access_notes_nonce", "access_notes_wrapped_dek",
+                   "access_notes_wrap_nonce", "access_notes_kek_id", "access_notes_key_version")
+
+
+def _person(row) -> Optional[dict]:
+    """A person row for a client: the sealed notes are replaced by a flag."""
+    d = _d(row)
+    if d is None:
+        return None
+    d["has_access_notes"] = d.get("access_notes_ciphertext") is not None
+    for c in _SEALED_COLUMNS:
+        d.pop(c, None)
+    return d
+
+
 async def create_person(principal: Principal, body: dict) -> dict:
+    from . import accessnotes
     async with workspace_connection(principal) as conn:
         row = await conn.fetchrow(
             """
             INSERT INTO care_people
-                (display_name, preferred_name, date_of_birth, timezone, language, notes, created_by)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+                (display_name, preferred_name, date_of_birth, timezone, language, notes, created_by,
+                 home_address, home_latitude, home_longitude, home_radius_m, emergency_summary)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING *
             """,
             body["display_name"], body.get("preferred_name", ""), body.get("date_of_birth"),
             body.get("timezone", "Europe/London"), body.get("language", "en"),
             body.get("notes", ""), principal.user_id,
+            body.get("home_address") or "", body.get("home_latitude"), body.get("home_longitude"),
+            body.get("home_radius_m") or 150, body.get("emergency_summary") or "",
         )
+        if body.get("access_notes"):
+            cols = accessnotes.seal(body["access_notes"], tenant_id=principal.tenant_id, person_id=row["id"])
+            sets = ", ".join(f"{c} = ${i + 2}" for i, c in enumerate(accessnotes.COLUMNS))
+            row = await conn.fetchrow(f"UPDATE care_people SET {sets} WHERE id = $1 RETURNING *",
+                                      row["id"], *[cols[c] for c in accessnotes.COLUMNS])
         # Settings exist from the first moment, at the documented defaults, so a
         # person is never monitored against settings that do not exist.
         await conn.execute(
             "INSERT INTO care_safety_settings (person_id, set_by) VALUES ($1, $2)",
             row["id"], principal.user_id,
         )
-        return dict(row)
+        return _person(row)
 
 
 async def list_people(principal: Principal, *, include_archived: bool = False) -> list[dict]:
@@ -78,16 +103,17 @@ async def list_people(principal: Principal, *, include_archived: bool = False) -
         else:
             rows = await conn.fetch(
                 "SELECT * FROM care_people WHERE status <> 'archived' ORDER BY display_name")
-        return _ds(rows)
+        return [_person(r) for r in rows]
 
 
 async def get_person(principal: Principal, person_id: uuid.UUID) -> Optional[dict]:
     async with workspace_connection(principal) as conn:
-        return _d(await conn.fetchrow("SELECT * FROM care_people WHERE id = $1", person_id))
+        return _person(await conn.fetchrow("SELECT * FROM care_people WHERE id = $1", person_id))
 
 
 _PERSON_FIELDS = ("display_name", "preferred_name", "date_of_birth", "timezone",
-                  "language", "notes", "status")
+                  "language", "notes", "status", "home_address", "home_latitude", "home_longitude",
+                  "home_radius_m", "emergency_summary")
 
 
 async def update_person(principal: Principal, person_id: uuid.UUID, changes: dict) -> Optional[dict]:
@@ -96,13 +122,44 @@ async def update_person(principal: Principal, person_id: uuid.UUID, changes: dic
         if field in changes and changes[field] is not None:
             args.append(changes[field])
             sets.append(f"{field} = ${len(args)}")
+    notes = changes.get("access_notes")
+    if notes is not None:
+        from . import accessnotes
+        cols = accessnotes.seal(notes, tenant_id=principal.tenant_id, person_id=person_id)
+        for col in accessnotes.COLUMNS:
+            args.append(cols[col])
+            sets.append(f"{col} = ${len(args)}")
     if not sets:
         return await get_person(principal, person_id)
     args.append(person_id)
     async with workspace_connection(principal) as conn:
-        return _d(await conn.fetchrow(
+        return _person(await conn.fetchrow(
             f"UPDATE care_people SET {', '.join(sets)}, updated_at = NOW() "
             f"WHERE id = ${len(args)} RETURNING *", *args))
+
+
+async def open_access_notes(principal: Principal, alert_id: uuid.UUID) -> Optional[dict]:
+    """The access notes behind an alert, for a tier 1 or 2 recipient while it is
+    open; None when the alert does not exist; {"allowed": False} when the
+    caller may not see them. Every successful opening is written to the access
+    log with the alert it was for."""
+    from . import accessnotes, audit, authz
+    async with workspace_connection(principal) as conn:
+        alert = await conn.fetchrow("SELECT id, person_id, status FROM care_alerts WHERE id = $1", alert_id)
+        if alert is None:
+            return None
+        circle = _ds(await conn.fetch(
+            "SELECT user_id, tier, active FROM care_circle_members WHERE person_id = $1", alert["person_id"]))
+        if not accessnotes.can_view(alert["status"], viewer_user_id=principal.user_id, circle=circle,
+                                   is_manager=authz.can_manage(principal)):
+            return {"allowed": False, "alert_id": alert_id, "status": alert["status"]}
+        person = await conn.fetchrow("SELECT * FROM care_people WHERE id = $1", alert["person_id"])
+        text = accessnotes.use_notes(dict(person), lambda t: t, tenant_id=principal.tenant_id)
+        await audit.record_access(conn, principal, person_id=alert["person_id"], resource_kind="access_notes",
+                                  resource_id=alert_id, action="view",
+                                  detail={"alert_status": alert["status"], "characters": len(text)})
+        return {"allowed": True, "alert_id": alert_id, "status": alert["status"], "access_notes": text,
+                "emergency_summary": person["emergency_summary"], "home_address": person["home_address"]}
 
 
 async def erase_person(principal: Principal, person_id: uuid.UUID) -> bool:
@@ -431,15 +488,34 @@ async def open_alert(conn, person_id: uuid.UUID, *, kind: str, severity: str,
 
 
 async def record_help_request(principal: Principal, device: dict, body: dict) -> dict:
-    from . import askfirst
+    from . import askfirst, location
+    loc = location.from_body(body.get("location"))
     async with workspace_connection(principal) as conn:
         promoted = await askfirst.promote_on_help(conn, device["person_id"], _now())
         if promoted is not None:
-            return _alert(promoted)
-        return await open_alert(
+            return await attach_location(conn, promoted["id"], loc) or _alert(promoted)
+        alert = await open_alert(
             conn, device["person_id"], kind="help_requested", severity="sos",
             details={"via": body.get("via", "button"), "note": body.get("note", ""),
                      "device_id": str(device["id"])})
+        return await attach_location(conn, alert["id"], loc) or alert
+
+
+async def attach_location(conn, alert_id: uuid.UUID, loc) -> Optional[dict]:
+    """Store the watch's one-off location on the alert and decide at-home from
+    the person's home coordinates. None when there is no location to store."""
+    from . import location
+    if loc is None:
+        return None
+    person = await conn.fetchrow(
+        "SELECT p.* FROM care_people p JOIN care_alerts a ON a.person_id = p.id WHERE a.id = $1", alert_id)
+    home = location.at_home(loc, dict(person)) if person else None
+    return _alert(await conn.fetchrow(
+        """
+        UPDATE care_alerts SET location_latitude = $2, location_longitude = $3, location_accuracy_m = $4,
+               location_at = COALESCE($5, NOW()), at_home = $6
+         WHERE id = $1 RETURNING *
+        """, alert_id, loc.latitude, loc.longitude, loc.accuracy_m, loc.recorded_at, home))
 
 
 async def list_alerts(principal: Principal, *, person_id: Optional[uuid.UUID], open_only: bool,
@@ -674,7 +750,7 @@ async def person_status(conn, person_id: uuid.UUID) -> Optional[dict[str, Any]]:
         "SELECT id, scheduled_at, status, question_kind, answered_at, answer_summary "
         "FROM care_checkins WHERE person_id = $1 ORDER BY scheduled_at DESC LIMIT 1", person_id)
     return {
-        "person": dict(person),
+        "person": _person(person),
         "devices": _ds(devices),
         "latest_readings": await latest_vitals(conn, person_id),
         "open_alerts": _ds(open_alerts),

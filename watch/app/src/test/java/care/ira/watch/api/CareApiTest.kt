@@ -70,4 +70,16 @@ class CareApiTest {
         val out = api.answer("c9", CheckinAnswer("yes", "voice"))
         assertEquals(404, (out as ApiOutcome.Failed).status)
     }
+
+    @Test
+    fun `help carries the one-off location when there is one and nothing when there is not`() {
+        server.enqueue(MockResponse().setResponseCode(201).setBody("""{"id":"a1","kind":"help_requested","status":"open","at_home":false}"""))
+        api.help(HelpRequest(via = "button", location = LocationFix(51.518, -0.12, 12.0, "2026-11-21T10:00:00Z")))
+        val withFix = server.takeRequest().body.readUtf8()
+        assertTrue(withFix.contains("\"latitude\":51.518") && withFix.contains("\"accuracy_m\":12.0"))
+        server.enqueue(MockResponse().setResponseCode(201).setBody("""{"id":"a2","kind":"help_requested","status":"open","at_home":null}"""))
+        api.help(HelpRequest(via = "voice"))
+        val withoutFix = server.takeRequest().body.readUtf8()
+        assertTrue(!withoutFix.contains("latitude"))
+    }
 }

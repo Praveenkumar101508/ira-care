@@ -132,7 +132,8 @@ class MainActivity : ComponentActivity() {
             Spacer(Modifier.height(8.dp))
             Button(onClick = {
                 launcher.launch(arrayOf(Manifest.permission.BODY_SENSORS, Manifest.permission.ACTIVITY_RECOGNITION,
-                    Manifest.permission.RECORD_AUDIO, Manifest.permission.POST_NOTIFICATIONS))
+                    Manifest.permission.RECORD_AUDIO, Manifest.permission.POST_NOTIFICATIONS,
+                    Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
                 // Background body sensors can only be granted from system settings.
                 startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                     android.net.Uri.fromParts("package", packageName, null)))

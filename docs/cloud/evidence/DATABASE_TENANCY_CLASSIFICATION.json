@@ -1725,7 +1725,7 @@
       "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_alerts:{key}",
       "classification": "WORKSPACE_SCOPED",
       "current": {
-        "column_count": 15,
+        "column_count": 20,
         "has_tenant_id": true,
         "has_user_id": false,
         "has_workspace_id": true,
@@ -1752,7 +1752,7 @@
         "required": false,
         "specification": "not required: no secret or biometric material"
       },
-      "justification": "Safety alerts: what was observed (no answer and no movement, a reading outside the carer-set range, help requested, watch off the wrist, low battery, no sync), the tier reached and the outcome. Workspace-scoped with the person (099).",
+      "justification": "Safety alerts: what was observed (no answer and no movement, a reading outside the carer-set range, help requested, watch off the wrist, low battery, no sync), the tier reached and the outcome. Workspace-scoped with the person (099). Since 102 it also holds the watch's one-off location at the moment the SOS started and whether that was at home; the location lives and dies with the alert.",
       "migration": {
         "done_by": "099_care_foundation.sql",
         "requires_migration": false,
@@ -2257,7 +2257,7 @@
       "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_people:{key}",
       "classification": "WORKSPACE_SCOPED",
       "current": {
-        "column_count": 13,
+        "column_count": 24,
         "has_tenant_id": true,
         "has_user_id": false,
         "has_workspace_id": true,
@@ -2281,10 +2281,10 @@
         "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
       },
       "encryption": {
-        "required": false,
-        "specification": "not required: no secret or biometric material"
+        "required": true,
+        "specification": "access notes (key safe, door, pets) are sealed with AES-256-GCM under a per-row data key, itself wrapped under the configured key-encryption key and bound to the tenant and person id (102, the same envelope as voice templates); the other columns hold no secret or biometric material"
       },
-      "justification": "The person IRA CARE looks after: name, preferred name, timezone, language and status. Scoped to the family's or care organisation's workspace (099). Not personal data about an ACCOUNT holder, so account erasure leaves it; the care package's per-person erasure and tenant deletion (ON DELETE CASCADE) remove it.",
+      "justification": "The person IRA CARE looks after: name, preferred name, timezone, language and status. Scoped to the family's or care organisation's workspace (099). Not personal data about an ACCOUNT holder, so account erasure leaves it; the care package's per-person erasure and tenant deletion (ON DELETE CASCADE) remove it. Since 102 it also holds the home address and coordinates, the carer's emergency summary (free text) and the SEALED access notes.",
       "migration": {
         "done_by": "099_care_foundation.sql",
         "requires_migration": false,

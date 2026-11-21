@@ -7,7 +7,9 @@ import care.ira.watch.api.CareApi
 import care.ira.watch.core.Clock
 import care.ira.watch.pairing.PairingStore
 import care.ira.watch.queue.OfflineQueue
+import care.ira.watch.sensors.AndroidLocationSource
 import care.ira.watch.sensors.HealthServicesSensorSource
+import care.ira.watch.sensors.LocationSource
 import care.ira.watch.sensors.SensorSource
 import care.ira.watch.voice.AndroidListener
 import care.ira.watch.voice.AndroidSpeaker
@@ -41,6 +43,8 @@ class CareDependencies private constructor(context: Context) {
     val queue = OfflineQueue(File(context.filesDir, "readings.jsonl"))
     val api = CareApi(BuildConfig.CARE_API_BASE_URL, { pairing.token })
     val sensors: SensorSource = HealthServicesSensorSource(context, clock)
+    /** Asked once per SOS; never polled. */
+    val location: LocationSource = AndroidLocationSource(context)
     val speaker: Speaker = AndroidSpeaker(context)
     val listener: Listener = AndroidListener(context)
     val sync = Syncer(this)

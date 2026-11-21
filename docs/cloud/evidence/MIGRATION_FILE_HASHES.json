@@ -526,6 +526,11 @@
    "sha256": "c546f1e4f0a29c87f252dce884f75f8a26422c4a59d6f749a723e22df575ea4b",
    "status": "applied"
   },
+  "102_care_home_and_location.sql": {
+   "migration_number": 102,
+   "sha256": "6c78ad857cde05f265ec7d771067754a05b82d6c33733524a1941efbf4f188ff",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",

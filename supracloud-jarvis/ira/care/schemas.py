@@ -5,7 +5,7 @@ import datetime as dt
 import uuid
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 PERSON_STATUSES = ("active", "paused", "archived")
 CIRCLE_ROLES = ("family", "carer", "clinician", "care_organisation")
@@ -18,7 +18,25 @@ CONSENT_KINDS = ("transcripts_family", "transcripts_carer", "transcripts_organis
 PLATFORMS = ("wearos", "watchos", "other")
 
 
-class PersonCreate(BaseModel):
+class HomeFields(BaseModel):
+    """Where responders go, and what they need to know on arrival. Free text the
+    carer controls; no fields of our own for conditions. `access_notes` is
+    write-only here: it is sealed at rest and read through its own route."""
+    home_address: Optional[str] = Field(None, max_length=400)
+    home_latitude: Optional[float] = Field(None, ge=-90, le=90)
+    home_longitude: Optional[float] = Field(None, ge=-180, le=180)
+    home_radius_m: Optional[int] = Field(None, ge=20, le=5000)
+    emergency_summary: Optional[str] = Field(None, max_length=2000)
+    access_notes: Optional[str] = Field(None, max_length=2000)
+
+    @model_validator(mode="after")
+    def _coordinates_pair(self):
+        if (self.home_latitude is None) != (self.home_longitude is None):
+            raise ValueError("home_latitude and home_longitude go together")
+        return self
+
+
+class PersonCreate(HomeFields):
     display_name: str = Field(..., min_length=1, max_length=80)
     preferred_name: str = Field("", max_length=40)
     date_of_birth: Optional[dt.date] = None
@@ -27,7 +45,7 @@ class PersonCreate(BaseModel):
     notes: str = Field("", max_length=4000)
 
 
-class PersonUpdate(BaseModel):
+class PersonUpdate(HomeFields):
     display_name: Optional[str] = Field(None, min_length=1, max_length=80)
     preferred_name: Optional[str] = Field(None, max_length=40)
     date_of_birth: Optional[dt.date] = None
@@ -170,10 +188,19 @@ class DeviceReport(BaseModel):
     app_version: Optional[str] = Field(None, max_length=40)
 
 
+class LocationFix(BaseModel):
+    """Where the watch was when the alert started. Sent once, never streamed."""
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+    accuracy_m: Optional[float] = Field(None, ge=0, le=100_000)
+    recorded_at: Optional[dt.datetime] = None
+
+
 class HelpRequest(BaseModel):
-    """The Help button, or the spoken word."""
-    via: str = Field("button", pattern=r"^(button|voice)$")
+    """The Help button, or the spoken word, with the watch's location if it has one."""
+    via: str = Field("button", pattern=r"^(button|voice|fall)$")
     note: str = Field("", max_length=400)
+    location: Optional[LocationFix] = None
 
 
 class Acknowledge(BaseModel):
