@@ -45,6 +45,13 @@ export class CareClient {
     return (await response.json()) as LoginResponse;
   }
 
+  /** Redeem an invitation link as the signed-in, invited account. */
+  static async acceptInvitation(baseUrl: string, accessToken: string, token: string, fetchImpl: Fetch = (input, init) => fetch(input, init)): Promise<{ tenant_id: string; workspace_id: string | null; person_id: string | null }> {
+    const r = await fetchImpl(`${baseUrl}/api/v1/care/invitations/accept`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ token }) });
+    if (!r.ok) throw new ApiError(r.status, r.status === 400 ? 'This invitation link is not valid.' : await readDetail(r));
+    return (await r.json()) as { tenant_id: string; workspace_id: string | null; person_id: string | null };
+  }
+
   async workspaces(): Promise<WorkspaceList> {
     return this.request<WorkspaceList>('GET', '/api/v1/workspaces', undefined, false);
   }

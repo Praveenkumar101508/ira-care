@@ -40,6 +40,11 @@ EXPECTED = {
     "/api/v1/care/people/{person_id}/transcripts",
     "/api/v1/care/people/{person_id}/consents",
     "/api/v1/care/people/{person_id}/access-log",
+    "/api/v1/care/signup",
+    "/api/v1/care/organisations",
+    "/api/v1/care/people/{person_id}/invitations",
+    "/api/v1/care/invitations/accept",
+    "/api/v1/care/plan",
 }
 
 

@@ -446,3 +446,36 @@ rather than changed here: the full server's delegated-scope gate knows only the 
 edition's delegated accounts and answers 403 to every cloud account on `/api/*`, so the demo
 API does not install it. The family app's web build needed the web platform and three
 packages (`react-dom`, `react-native-web`, `expo-asset`).
+## D-039 Sign-up and the organisation reuse IRA's identity register (round 2, phase 6)
+
+A care organisation starts with `POST /care/signup`, which is IRA's own `register_account`
+behind a care-shaped route: the same password rule, the same confirmation link by mail, the
+same answer whether or not the address existed, and 404 unless `IRA_CLOUD_REGISTRATION_ENABLED`
+is on (it is off by default, so there are no sign-ups on a deployment nobody opened). Once
+the address is confirmed, `POST /care/organisations` is `provision_tenant`: tenant, a "Care
+team" workspace, the founder's memberships, plus a 30-day trial row on the chosen care plan so
+its limits apply from the first day. Mail goes through `core/notify/mail`, which prints to
+the log (console) or discards (null) unless an SMTP host is configured.
+
+## D-040 Family are invited by link, and consent is captured at the invitation (round 2, phase 6)
+
+`POST /care/people/{id}/invitations` creates a tenant invitation (`tenant_invitations`, the
+existing single-use, address-bound token), a pending circle member that carries the
+invitation id and address, and the consents the person or their legal representative gave
+for that member's role, recorded as `care_consents` rows at that moment with a note naming the
+invitation; the event is written to the access log. The link is mailed and also returned so
+it can be shared another way. `POST /care/invitations/accept` is the invitee's own, signed in
+with the invited address: the identity layer's `accept_invitation` creates the memberships
+and the pending member is linked to the account. Workspace managers invite; members and
+viewers may not; another organisation's person is not found.
+
+## D-041 Plans and billing reuse IRA's billing, and nothing can be paid for yet (round 2, phase 6)
+
+Two care plans (`care_family`, `care_organisation`) are rows in `billing_plans` with
+entitlements (`care_people_max`, `care_circle_members_max`) that the care routes enforce with
+a 402 when a trial or subscription exists. No price rows are inserted: IRA's billing routes
+answer `PRICE_NOT_CONFIGURED` for checkout, never a zero. The payment provider stays as IRA
+built it: off unless `IRA_PAYMENT_PROVIDER` names one; `test` works only with a test secret
+and is refused in production or staging; `stripe` needs its keys. No live keys exist anywhere
+in this repository. `GET /care/plan` shows the plan, limits and usage; the dashboard's Plan
+page shows the catalogue with "price not set".

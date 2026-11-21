@@ -1,0 +1,28 @@
+Sat 20:29:34  IRA asked (model): Hello Ada. Have you had the evening tablet yet?
+Sat 20:29:34  summary for the family: Answer about the evening tablet was unclear.
+Sat 20:29:34  IRA asked (model): Hello Ada. Have you had the evening tablet yet?
+Sat 20:29:34  summary for the family: Said they had taken the evening tablet.
+Sat 20:29:34  IRA asked (model): Hello Ada. Have you had the evening tablet yet?
+Sat 20:29:34  summary for the family: Answered about how they are doing.
+Sat 20:29:34  Talk: 'what's on today?' -> Today, Ada: breakfast at 08:00; lunch at 12:30; afternoon walk at 15:00; tea at 18:00; the evening tablet is due.
+Sat 20:29:34  Talk: 'did I take my tablets?' -> Today's tablets: the evening tablet at 20:00: taken.
+Sat 20:29:34  Talk: 'call my daughter' -> Here is Demo Family Member. Tap to call. [action: {'kind': 'call', 'name': 'Demo Family Member', 'phone': '+440000000001'}]
+Sat 20:29:34  heart rate 158, 161, 164 over two minutes: heart_rate_outside_range -> asking first
+Sat 20:29:34  watch vibrates: Ada, are you OK? Tap I'm OK, or say help.
+Sat 20:30:49  no answer within the wait: 1 question became an SOS; tier 1 told (12 attempts, log-only)
+Sat 20:35:51  tier 2: 8 attempts
+Sat 20:40:51  tier 3: 20 attempts ('call 999 now' shown to the family; nothing dials)
+Sat 20:30:49  text sent (log-only): IRA CARE alert for Demo Person A. Heart rate readings 158, 161, 164 over 120 seconds are outside the range set for this person (45 to 130). Location unavailable: the watch did not send one. Home address: 1 Example Street
+Sat 20:29:34  watch: hard impact 3.6 g then 20 s still -> asking first (alert asking), countdown on the wrist
+Sat 20:29:34  countdown ended: SOS suspected_fall (open), at home: False
+Sat 20:29:34  tier 1 told (3 attempts). IRA CARE alert for Demo Person B. The watch detected a hard impact (3.6 g) followed by 20 seconds without movement. The person is being asked if they are OK. The person appears to be AWAY FROM HOME, about 2.0 km from 2 Example Court, Testtown, TE5 7ST. Locatio
+Sun 07:00:00  carer report: Daily report for Demo Person A: Saturday 21 November 2026
+Sun 07:00:00    Daily report for Demo Person A: Saturday 21 November 2026
+Sun 07:00:00    Check-ins: 3 answered, 1 missed, of 4 asked; 0 skipped at night.
+Sun 07:00:00    Medication: 1 dose(s) confirmed taken, 0 said not taken, 0 not confirmed, of 1 recorded.
+Sun 07:00:00    Heart rate: 6 readings, 74 to 164 (average 118); range set for this person: 45 to 130; 3 reading(s) outside it.
+Sun 07:00:00    Movement: 120 steps or movement counts recorded.
+Sun 07:00:00    Watch now: battery 60 %, on the wrist, sensor permission on.
+Sun 07:00:00    Alerts (2):
+Sun 07:00:00    - 20:29 heart rate outside the set range (sos, reached tier 3, now escalating)
+Sun 07:00:00    - 20:30 heart rate outside the set range (sos, reached tier 3, now escalating)
