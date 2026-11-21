@@ -8,11 +8,11 @@ import { Sparkline } from '@/components/Sparkline';
 import { canManage, useApi } from '@/components/useApi';
 import { ApiError, type Reading } from '@/lib/api';
 import type {
-  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, PersonStatus, Routine, SafetySettings, Transcript,
+  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, PersonStatus, Report, Routine, SafetySettings, SearchResponse, Transcript,
 } from '@/lib/types';
 import { byDay, checkinCounts, series, sortAlerts, timeAgo } from '@/lib/view';
 
-const TABS = ['timeline', 'readings', 'routines', 'medication', 'circle', 'settings', 'consent', 'conversation', 'access'] as const;
+const TABS = ['timeline', 'readings', 'routines', 'medication', 'circle', 'settings', 'consent', 'conversation', 'reports', 'search', 'access'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function PersonPage() {
@@ -34,6 +34,9 @@ export default function PersonPage() {
   const [consents, setConsents] = useState<ConsentList | null>(null);
   const [transcripts, setTranscripts] = useState<Transcript[] | 'refused' | null>(null);
   const [access, setAccess] = useState<AccessEntry[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
+  const [query, setQuery] = useState('');
+  const [found, setFound] = useState<SearchResponse | null>(null);
   const [pairing, setPairing] = useState<Device | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -51,6 +54,7 @@ export default function PersonPage() {
         try { setTranscripts(await api.transcripts(id)); } catch (e) { setTranscripts(e instanceof ApiError && e.status === 403 ? 'refused' : null); }
       }
       if (tab === 'access' && manage) setAccess(await api.accessLog(id));
+      if (tab === 'reports') setReports(await api.reports(id));
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) window.location.href = '/login';
       else setError(e instanceof ApiError ? e.message : 'Could not load.');
@@ -181,6 +185,39 @@ export default function PersonPage() {
             </tbody></table>
           ) : null}
           {Array.isArray(transcripts) && transcripts.length === 0 ? <p className="muted">No conversation yet.</p> : null}
+        </div>
+      )}
+
+      {tab === 'reports' && (
+        <>
+          <div className="card row">
+            <button disabled={busy} onClick={() => { void act(() => api!.generateReport(id, 'daily_carer', new Date(Date.now() - 86_400_000).toISOString().slice(0, 10))); }}>Yesterday&apos;s daily report</button>
+            <button disabled={busy} className="grey" onClick={() => { void act(() => api!.generateReport(id, 'weekly_family', new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10))); }}>Last week&apos;s family report</button>
+            <span className="muted">Reports are generated every morning by the server; these buttons generate one now. Summaries only, never the person&apos;s words.</span>
+          </div>
+          {reports.map((r) => (
+            <div className="card" key={r.id}>
+              <strong>{r.title}</strong> <span className="muted">· {r.kind.replace('_', ' ')} · sent via {r.delivered_channels.join(', ') || 'not yet'}</span>
+              <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', marginTop: 8 }}>{r.body_text}</pre>
+            </div>
+          ))}
+          {reports.length === 0 ? <p className="muted">No reports yet.</p> : null}
+        </>
+      )}
+
+      {tab === 'search' && (
+        <div className="card">
+          <form className="row" onSubmit={(e) => { e.preventDefault(); void act(async () => setFound(await api!.search(id, query))); }}>
+            <input placeholder="Search check-ins, alerts and (with consent) conversation" value={query} onChange={(e) => setQuery(e.target.value)} style={{ minWidth: 320 }} />
+            <button type="submit" disabled={!query.trim() || busy}>Search</button>
+            <span className="muted">Every search is written to the access log.</span>
+          </form>
+          {found ? (
+            <>
+              <p className="muted">{found.results.length} result(s) for &quot;{found.query}&quot;{found.transcripts_included ? '' : ' · conversation not included without consent'}</p>
+              <table><tbody>{found.results.map((x) => <tr key={`${x.kind}-${x.id}`}><td className="muted">{x.at.slice(0, 16).replace('T', ' ')}</td><td><span className="pill grey">{x.kind}</span></td><td>{x.text}</td></tr>)}</tbody></table>
+            </>
+          ) : null}
         </div>
       )}
 

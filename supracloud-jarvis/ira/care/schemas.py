@@ -285,3 +285,15 @@ class AskNow(BaseModel):
         if v not in allowed:
             raise ValueError(f"kind must be one of {allowed}")
         return v
+
+
+class GenerateReport(BaseModel):
+    kind: str = "daily_carer"
+    date: dt.date
+
+    @field_validator("kind")
+    @classmethod
+    def _kind(cls, v):
+        if v not in ("daily_carer", "weekly_family"):
+            raise ValueError("kind must be daily_carer or weekly_family")
+        return v

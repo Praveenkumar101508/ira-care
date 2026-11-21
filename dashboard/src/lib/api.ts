@@ -1,6 +1,6 @@
 import type {
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, Person,
-  PersonStatus, Reading, Routine, SafetySettings, Transcript, WorkspaceList,
+  PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, WorkspaceList,
 } from './types';
 
 export class ApiError extends Error {
@@ -47,6 +47,9 @@ export class Api {
   settings(id: string) { return this.req<SafetySettings>('GET', `/api/v1/care/people/${id}/settings`); }
   putSettings(id: string, body: SafetySettings) { return this.req<SafetySettings>('PUT', `/api/v1/care/people/${id}/settings`, body); }
   newDevice(id: string) { return this.req<Device>('POST', `/api/v1/care/people/${id}/devices`, { platform: 'wearos' }); }
+  reports(id: string, kind?: string) { return this.req<{ reports: Report[] }>('GET', `/api/v1/care/people/${id}/reports?limit=60${kind ? `&kind=${kind}` : ''}`).then((o) => o.reports); }
+  generateReport(id: string, kind: string, date: string) { return this.req<Report>('POST', `/api/v1/care/people/${id}/reports/generate`, { kind, date }); }
+  search(id: string, q: string) { return this.req<SearchResponse>('GET', `/api/v1/care/people/${id}/history/search?q=${encodeURIComponent(q)}&limit=100`); }
   accessLog(id: string) { return this.req<{ entries: AccessEntry[] }>('GET', `/api/v1/care/people/${id}/access-log?limit=200`).then((o) => o.entries); }
 
   private async req<T>(method: string, path: string, body?: unknown, workspace = true): Promise<T> {

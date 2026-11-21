@@ -609,9 +609,16 @@ async def fetch_access_log(principal: Principal, person_id: uuid.UUID, *, limit:
     async with workspace_connection(principal) as conn:
         if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
             return None
-        return _ds(await conn.fetch(
+        rows = _ds(await conn.fetch(
             "SELECT * FROM care_access_log WHERE person_id = $1 ORDER BY at DESC LIMIT $2",
             person_id, limit))
+        for r in rows:
+            if isinstance(r.get("detail"), str):
+                try:
+                    r["detail"] = json.loads(r["detail"])
+                except ValueError:
+                    r["detail"] = {}
+        return rows
 
 
 # ── Status ───────────────────────────────────────────────────────────────────

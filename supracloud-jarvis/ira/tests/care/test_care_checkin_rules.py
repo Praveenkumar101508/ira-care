@@ -105,11 +105,11 @@ def test_a_meal_routine_near_now_is_asked_about_once():
 
 def test_pain_mentioned_earlier_today_is_followed_up():
     recent = [{"question_kind": "mood", "scheduled_at": _local(9, 0), "status": "answered",
-               "answer_summary": "Said: \"my knee hurts\" (mentioned pain or discomfort)"}]
+               "answer_summary": "Answered about how they feel. (mentioned pain or discomfort)"}]
     choice = rules.choose_question(_local(10, 0), recent=recent)
     assert choice.kind == "pain" and choice.reason == "follow_up"
     text = rules.question_text(choice, "Tess", rng=random.Random(0))
-    assert "knee" in text
+    assert "pain" in text and "Tess" in text
 
 
 def test_the_rotation_avoids_the_three_most_recent_kinds():
@@ -164,6 +164,15 @@ def test_a_good_answer_and_an_empty_answer():
     assert rules.summarise_answer("mood", "").summary == "No answer."
     long = "x" * 300
     assert len(rules.summarise_answer("plans", long).summary) <= 400
+
+
+def test_a_summary_never_carries_the_persons_own_words():
+    """Summaries are what family see without consent and what reports carry."""
+    reading = rules.summarise_answer("mood", "my knee hurts and my neighbour Mrs Example upset me")
+    assert "knee" not in reading.summary and "Example" not in reading.summary
+    assert "mentioned pain or discomfort" in reading.signals
+    plans = rules.summarise_answer("plans", "going to the bank at 2 to withdraw 500 pounds")
+    assert "bank" not in plans.summary and "500" not in plans.summary
 
 
 def test_missed_in_a_row_counts_until_an_answer():

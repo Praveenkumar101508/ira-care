@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { CareClient } from '../api/client';
 import { ApiError } from '../api/client';
-import type { Checkin, CircleMember, ConsentList, Device, Person, PersonStatus } from '../api/types';
+import type { Checkin, CircleMember, ConsentList, Device, Person, PersonStatus, Report } from '../api/types';
 import { alertTitle } from '../model/alerts';
 import { deviceSummary, readingLabel, telLink, timeAgo } from '../model/format';
 import { BigButton, Card, Muted, Screen, colors } from '../ui';
 
-type Tab = 'status' | 'history' | 'contacts' | 'consent';
+type Tab = 'status' | 'history' | 'reports' | 'contacts' | 'consent';
 
 export function PersonScreen({ client, person, canManage, onBack }: {
   client: CareClient; person: Person; canManage: boolean; onBack: () => void;
@@ -19,15 +19,16 @@ export function PersonScreen({ client, person, canManage, onBack }: {
   const [circle, setCircle] = useState<CircleMember[]>([]);
   const [consents, setConsents] = useState<ConsentList | null>(null);
   const [pairing, setPairing] = useState<Device | null>(null);
+  const [reports, setReports] = useState<Report[]>([]);
   const [error, setError] = useState('');
 
   const load = async () => {
     setError('');
     try {
-      const [s, c, m, k] = await Promise.all([
-        client.status(person.id), client.checkins(person.id), client.circle(person.id), client.consents(person.id),
+      const [s, c, m, k, rp] = await Promise.all([
+        client.status(person.id), client.checkins(person.id), client.circle(person.id), client.consents(person.id), client.reports(person.id),
       ]);
-      setStatus(s); setCheckins(c.checkins); setAnswersIncluded(c.answers_included); setCircle(m); setConsents(k);
+      setStatus(s); setCheckins(c.checkins); setAnswersIncluded(c.answers_included); setCircle(m); setConsents(k); setReports(rp);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Could not load.');
     }
@@ -41,7 +42,7 @@ export function PersonScreen({ client, person, canManage, onBack }: {
   return (
     <Screen title={name}>
       <View style={styles.tabs}>
-        {(['status', 'history', 'contacts', 'consent'] as Tab[]).map((t) => (
+        {(['status', 'history', 'reports', 'contacts', 'consent'] as Tab[]).map((t) => (
           <Text key={t} onPress={() => setTab(t)} style={[styles.tab, tab === t && styles.tabOn]} testID={`tab-${t}`}>
             {t[0].toUpperCase() + t.slice(1)}
           </Text>
@@ -100,6 +101,18 @@ export function PersonScreen({ client, person, canManage, onBack }: {
               </Card>
             ))}
             {checkins.length === 0 ? <Muted>No check-ins yet.</Muted> : null}
+          </>
+        )}
+        {tab === 'reports' && (
+          <>
+            <Muted>The weekly report: summaries only, never the person's own words.</Muted>
+            {reports.map((r) => (
+              <Card key={r.id}>
+                <Text style={styles.h}>{r.title}</Text>
+                <Text style={styles.line}>{r.body_text}</Text>
+              </Card>
+            ))}
+            {reports.length === 0 ? <Muted>No weekly report yet. The first one arrives on Monday morning.</Muted> : null}
           </>
         )}
         {tab === 'contacts' && (

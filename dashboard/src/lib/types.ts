@@ -36,3 +36,6 @@ export interface SafetySettings {
 }
 export interface PersonStatus { person: Person; devices: Device[]; latest_readings: Reading[]; open_alerts: Alert[]; last_checkin: Checkin | null }
 export interface AccessEntry { id: string; actor_user_id: string | null; actor_label: string; resource_kind: string; action: string; at: string; detail: Record<string, unknown> }
+export interface Report { id: string; kind: 'daily_carer' | 'weekly_family'; period_start: string; period_end: string; generated_at: string; title: string; body_text: string; delivered_channels: string[] }
+export interface SearchResult { kind: 'checkin' | 'alert' | 'transcript'; id: string; at: string; text: string }
+export interface SearchResponse { query: string; results: SearchResult[]; transcripts_included: boolean }

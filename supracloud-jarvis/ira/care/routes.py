@@ -24,7 +24,7 @@ from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
-from . import audit, checkin_cycle, consent, repository as repo, schemas
+from . import audit, checkin_cycle, consent, history, reports, repository as repo, schemas
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 router = APIRouter(prefix="/care", tags=["care"])
@@ -530,3 +530,61 @@ async def get_access_log(person_id: uuid.UUID, limit: int = Query(200, ge=1, le=
     if rows is None:
         raise _not_found("Person not found.")
     return {"entries": rows, "count": len(rows)}
+
+
+# ── Reports and history ──────────────────────────────────────────────────────
+
+@router.get("/people/{person_id}/reports")
+async def list_reports(person_id: uuid.UUID, kind: Optional[str] = Query(None), limit: int = Query(30, ge=1, le=200),
+                       p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    if kind is not None and kind not in (reports.DAILY, reports.WEEKLY):
+        raise HTTPException(status_code=422, detail=f"kind must be {reports.DAILY} or {reports.WEEKLY}")
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+        rows = await reports.list_reports(conn, person_id, kind=kind, limit=limit)
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="report", detail={"rows": len(rows), "kind": kind})
+    return {"reports": rows, "count": len(rows)}
+
+
+@router.post("/people/{person_id}/reports/generate", status_code=201)
+async def generate_report(person_id: uuid.UUID, body: schemas.GenerateReport, p: Principal = Depends(require_workspace_principal)):
+    """Generate (or fetch, if it exists) the report for a day or the week containing it."""
+    ensure_can_act(p)
+    async with workspace_connection(p) as conn:
+        person = await conn.fetchrow("SELECT * FROM care_people WHERE id = $1", person_id)
+        if person is None:
+            raise _not_found("Person not found.")
+        row = await reports.generate(conn, dict(person), body.kind, body.date)
+        if row is None:
+            start = body.date if body.kind == reports.DAILY else body.date - dt.timedelta(days=body.date.weekday())
+            row = (await conn.fetchrow("SELECT * FROM care_reports WHERE person_id = $1 AND kind = $2 AND period_start = $3",
+                                       person_id, body.kind, start))
+            row = reports._public(row) if row else None
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="report", resource_id=row["id"] if row else None,
+                                  action="view", detail={"generated": True, "kind": body.kind})
+    return row
+
+
+@router.get("/reports/{report_id}")
+async def get_report(report_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        row = await reports.get_report(conn, report_id)
+        if row is None:
+            raise _not_found("Report not found.")
+        await audit.record_access(conn, p, person_id=row["person_id"], resource_kind="report", resource_id=report_id)
+    return row
+
+
+@router.get("/people/{person_id}/history/search")
+async def search_history(person_id: uuid.UUID, q: str = Query(..., min_length=1, max_length=200),
+                         since: Optional[dt.datetime] = Query(None), until: Optional[dt.datetime] = Query(None),
+                         limit: int = Query(50, ge=1, le=500), p: Principal = Depends(require_workspace_principal)):
+    """One search across check-in summaries, alerts and (under consent) transcripts. Audited."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+        return await history.search(conn, p, person_id, q, since=since, until=until, limit=limit)

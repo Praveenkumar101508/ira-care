@@ -14,7 +14,7 @@ say where it stopped.
 | 5 | watch-app | `feat/watch-app` | Built; unit tests pass; stacked on phase 4; not yet run on a real watch |
 | 6 | family-app | `feat/family-app` | Built; type check and tests pass; stacked on phase 5; not yet run on a phone |
 | 7 | carer-dashboard | `feat/carer-dashboard` | Built; type check, tests and production build pass; stacked on phase 6 |
-| 8 | reports-and-history | | Not started |
+| 8 | reports-and-history | `feat/reports-and-history` | Built and tested locally; stacked on phase 7 |
 | 9 | hardening | | Not started |
 
 ## Measured locally (21 November 2026, Linux, Python 3.12)
@@ -106,6 +106,20 @@ Local measurements before the first phase, on the foundation as received:
 - `npm run typecheck`, `npm test` (12 Vitest tests: view helpers, API client, alert card)
   and `npm run build` pass locally. The CI `dashboard` job now activates.
 - Negative control: with the alert ordering rule broken, 1 test failed; restored, all pass.
+
+## Phase 8 (reports-and-history), measured locally
+
+- Migration `100_care_reports.sql` (one table, forced RLS, ratchets updated: manifest at
+  142 tables, hash record, erasure registry, workspace-table suite).
+- `care/reports.py` (gathering, summaries, the daily and weekly wording, generation,
+  delivery, the hourly `care_reports` job) and `care/history.py` (one audited search).
+  Four new routes. Dashboard: reports and search tabs. Family app: weekly report tab.
+- Check-in summaries no longer quote the person's words (found by the report test that
+  asserts a report never carries them; DECISIONS D-020).
+- Tests: 5 unit (summaries, wording, no diagnosis words) and 4 database-backed (idempotent
+  generation, family can read, other family cannot, weekly report, the hourly job in the
+  person's timezone, search with and without consent, audit rows).
+- Negative control: with the once-per-period rule broken, 1 test failed; restored, all pass.
 
 ## Deferred
 

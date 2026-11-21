@@ -171,6 +171,14 @@ def build_scheduler(jobs: frozenset[str] | None = None) -> AsyncIOScheduler:
         replace_existing=True,
     )
     add(
+        _care_reports,
+        trigger="cron",
+        minute=5,
+        id="care_reports",
+        name="IRA CARE daily and weekly reports",
+        replace_existing=True,
+    )
+    add(
         run_security_scan,
         trigger="interval",
         seconds=60,
@@ -428,6 +436,17 @@ async def _care_monitoring() -> None:
         logger.debug("care monitoring: %s", outcome)
     except Exception as e:
         logger.error(f"care monitoring pass failed: {e}", exc_info=True)
+
+
+async def _care_reports() -> None:
+    """Hourly: generate and deliver the reports that have fallen due in each
+    person's own timezone (care/reports.py). Idempotent per person and period."""
+    try:
+        from care.reports import run_once
+        outcome = await run_once()
+        logger.debug("care reports: %s", outcome)
+    except Exception as e:
+        logger.error(f"care reports pass failed: {e}", exc_info=True)
 
 
 async def _liveness_tick() -> None:

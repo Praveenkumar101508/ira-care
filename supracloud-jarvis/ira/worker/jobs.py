@@ -33,6 +33,8 @@ KNOWN_JOBS: frozenset[str] = frozenset({
     "care_checkins",
     # IRA CARE: the monitoring rules and the SOS chain (care/escalation.py).
     "care_monitoring",
+    # IRA CARE: the daily carer report and the weekly family report (care/reports.py).
+    "care_reports",
 })
 
 #: What runs when ``IRA_WORKER_JOBS`` is unset. None of these calls a model.
