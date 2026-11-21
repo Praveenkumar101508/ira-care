@@ -417,3 +417,40 @@ No local model runtime exists in the build environment (4 CPUs, 15 GB, no GPU, n
 server), so first-sentence latency of a real small model is **unmeasured**. The 4-second
 budget is a setting, not a measurement. CI uses the fake model. Measuring on the owner's
 machine with the configured model is listed under "Needs the owner".
+
+## D-042 The deployable care server is its own process, and the jobs are a worker (round 2, phase 7)
+
+`care/server.py` is the process a deployment runs: the care routes, login and the workspace
+picker on the full server's request pipeline (rate limiting, IP blocklist, request context),
+with two health routes (`/health`: process, database, Redis; `/health/jobs`: the care jobs
+have run in the last five minutes) and no documentation pages. It does not start the full
+server's chat, voice or agent graph, whose libraries and model server a care deployment does
+not have. The four care jobs run in `care/worker.py`, a separate container whose health check
+is the server's `/health/jobs`; `IRA_CARE_JOBS_IN_API=true` runs them in the server for a
+one-container setup. The full server's delegated-scope gate is not installed here, for the
+reason D-038 records.
+
+## D-043 One machine, every piece restarted and checked, HTTPS by the proxy (round 2, phase 7)
+
+`deploy/docker-compose.yml` runs PostgreSQL (pgvector), Redis, the server, the worker, the
+dashboard (standalone build), Caddy and the backup job, every one with a health check and
+`restart: unless-stopped`. Caddy obtains the certificate for `IRA_CARE_DOMAIN` itself and
+serves the dashboard and the API from one host name, so the browser makes same-origin calls
+and no CORS origin needs listing. The database roles the migration chain expects are created
+on the volume's first run; migrations apply when the server starts, as `ira_migrator`.
+Secrets come from `deploy/.env`, which git ignores; `deploy/.env.example` and `docs/DEPLOY.md`
+explain every variable. Nothing creates a cloud account or resource: the guide tells the
+owner what to rent and open.
+
+## D-044 Nightly encrypted backups, and the restore is proved in CI (round 2, phase 7)
+
+`deploy/backup.sh` is `pg_dump`, gzip, then AES-256-CBC with PBKDF2 under
+`BACKUP_PASSPHRASE`, with a sha256 beside the file; the backup container runs it at
+`BACKUP_HOUR_UTC` and keeps `BACKUP_KEEP_DAYS`. `deploy/restore.sh` checks the sha256, refuses
+a tampered file, decrypts and restores into an empty database. CI runs the pair on every pull
+request against the test database and compares the table count and the migration ledger.
+The accelerated soak (`scripts/soak_24h.py`, 200 people, a day in five-minute steps) ran
+locally: every silent person escalated to tier 3, none missing or late, and the pass timings
+are in `STATUS.md`. The soak taught one thing about simulation, not product: a watch sends a
+sensor snapshot right after a miss, and a simulation that forgets it sees no movement data
+in the window and no SOS.

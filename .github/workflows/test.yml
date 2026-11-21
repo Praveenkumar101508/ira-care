@@ -137,6 +137,28 @@ jobs:
           python -m pytest -q -ra -p no:cacheprovider \
             tests/tenancy tests/readiness tests/architecture \
             tests/callers tests/idempotency tests/runtime 2>&1 | tee database-tests.log
+      - name: Backup and restore round trip
+        # The nightly backup script and the restore script, exactly as the
+        # deployment runs them: dump the test database encrypted, restore it into
+        # an empty database, and compare the table count and the migration ledger.
+        working-directory: ${{ github.workspace }}
+        env:
+          BACKUP_PASSPHRASE: ci-only-passphrase-not-a-secret
+          BACKUP_DIR: ${{ runner.temp }}/backups
+          BACKUP_DSN: postgresql://postgres:postgres@localhost:5432/iratest
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y -q postgresql-client >/dev/null
+          sh deploy/backup.sh
+          f=$(ls -t "$BACKUP_DIR"/*.enc | head -1)
+          psql postgresql://postgres:postgres@localhost:5432/postgres -c "CREATE DATABASE iratest_restore"
+          sh deploy/restore.sh "$f" postgresql://postgres:postgres@localhost:5432/iratest_restore
+          a=$(psql -At postgresql://postgres:postgres@localhost:5432/iratest -c "select count(*) from information_schema.tables where table_schema='public'")
+          b=$(psql -At postgresql://postgres:postgres@localhost:5432/iratest_restore -c "select count(*) from information_schema.tables where table_schema='public'")
+          m1=$(psql -At postgresql://postgres:postgres@localhost:5432/iratest -c "select count(*) from schema_migrations")
+          m2=$(psql -At postgresql://postgres:postgres@localhost:5432/iratest_restore -c "select count(*) from schema_migrations")
+          echo "tables $a -> $b; migrations $m1 -> $m2"
+          test "$a" = "$b" && test "$m1" = "$m2"
       - name: Test summary
         if: always()
         run: |
