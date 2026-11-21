@@ -13,7 +13,7 @@ say where it stopped.
 | 4 | monitoring-and-escalation | `feat/monitoring-and-escalation` | Built and tested locally; stacked on phase 3 |
 | 5 | watch-app | `feat/watch-app` | Built; unit tests pass; stacked on phase 4; not yet run on a real watch |
 | 6 | family-app | `feat/family-app` | Built; type check and tests pass; stacked on phase 5; not yet run on a phone |
-| 7 | carer-dashboard | | Not started |
+| 7 | carer-dashboard | `feat/carer-dashboard` | Built; type check, tests and production build pass; stacked on phase 6 |
 | 8 | reports-and-history | | Not started |
 | 9 | hardening | | Not started |
 
@@ -96,6 +96,16 @@ Local measurements before the first phase, on the foundation as received:
   activates.
 - Negative control: with the "needs someone" rule broken, 1 test failed; restored, all pass.
 - Not done: nothing has run on a phone or in Expo Go in this environment.
+
+## Phase 7 (carer-dashboard), measured locally
+
+- `dashboard/`: Next.js 15 app (sign-in and organisation choice, overview with each
+  person's worst open alert, alerts with acknowledge and resolve, person page with timeline,
+  readings as SVG sparklines, routines, medication and doses, circle, safety settings form,
+  consents, conversation under consent, access log, pairing codes).
+- `npm run typecheck`, `npm test` (12 Vitest tests: view helpers, API client, alert card)
+  and `npm run build` pass locally. The CI `dashboard` job now activates.
+- Negative control: with the alert ordering rule broken, 1 test failed; restored, all pass.
 
 ## Deferred
 
