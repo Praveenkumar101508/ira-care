@@ -183,3 +183,17 @@ offline queue (bounded, oldest dropped) and are re-sent until acknowledged; the 
 de-duplicates. The device token lives in the app's private preferences; a revoked token is
 refused server-side at once. The backend address is a build setting. Nothing has run on a
 real watch yet.
+
+## D-018 The family app's shape (phase 6)
+
+Expo SDK 52 (React Native 0.76) in TypeScript, with no navigation library: three or four
+screens switched by state, so the app stays small and testable. Sign-in uses the existing
+`/auth/token` login and `/api/v1/workspaces`; one care circle is one workspace, chosen once
+when the account belongs to several. Every care call carries the bearer token and the
+`X-Workspace-ID` header, which the backend verifies. The session lives in the phone's secure
+store. Alerts are polled every 30 seconds while the app is open, and push registration goes
+through the existing `/mobile/devices` route (push itself stays off on the backend until its
+key is configured). The alert list orders the most serious unacknowledged first; "I'm on my
+way" is one tap; the "call 999 now" screen appears only when the backend set that flag at
+tier 3, and dialling is the person's own action through the phone's dialler, never the
+app's. The person's words are shown only when the backend says consent allows it.

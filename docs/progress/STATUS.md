@@ -12,7 +12,7 @@ say where it stopped.
 | 3 | checkin-engine | `feat/checkin-engine` | Built and tested locally; stacked on phase 2 |
 | 4 | monitoring-and-escalation | `feat/monitoring-and-escalation` | Built and tested locally; stacked on phase 3 |
 | 5 | watch-app | `feat/watch-app` | Built; unit tests pass; stacked on phase 4; not yet run on a real watch |
-| 6 | family-app | | Not started |
+| 6 | family-app | `feat/family-app` | Built; type check and tests pass; stacked on phase 5; not yet run on a phone |
 | 7 | carer-dashboard | | Not started |
 | 8 | reports-and-history | | Not started |
 | 9 | hardening | | Not started |
@@ -83,6 +83,19 @@ Local measurements before the first phase, on the foundation as received:
   against a mock server). The CI `watch` job now activates.
 - Negative control: with the repeat timing broken, 2 tests failed; restored, all pass.
 - Not done: nothing has run on a real watch or an emulator in this environment.
+
+## Phase 6 (family-app), measured locally
+
+- `mobile/`: the Expo app (sign-in and care-circle choice, home with people and an alert
+  banner, alerts with one-tap "I'm on my way" and resolve, the "call 999 now" screen when
+  the backend flags tier 3, a person screen with status, latest readings, check-in history
+  under consent rules, contacts with call buttons, consent recording, and watch pairing
+  codes for administrators; push registration).
+- `npm run typecheck` and `npm test` pass locally: 14 Jest tests (API client against a fake
+  fetch, alert ordering and wording, time and reading formatting). The CI `mobile` job now
+  activates.
+- Negative control: with the "needs someone" rule broken, 1 test failed; restored, all pass.
+- Not done: nothing has run on a phone or in Expo Go in this environment.
 
 ## Deferred
 
