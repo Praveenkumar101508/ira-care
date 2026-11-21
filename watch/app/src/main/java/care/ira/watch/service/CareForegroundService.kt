@@ -86,7 +86,7 @@ class CareForegroundService : LifecycleService() {
                 when (val due = deps.api.dueCheckin()) {
                     is ApiOutcome.Ok -> {
                         deps.status.value = deps.status.value.copy(online = true)
-                        due.value?.let { perform(controller.ask(it.id, it.questionText)) }
+                        due.value?.let { perform(controller.ask(it.id, it.questionText, it.safety)) }
                     }
                     is ApiOutcome.Unauthorised -> deps.onUnauthorised()
                     is ApiOutcome.Offline -> deps.status.value = deps.status.value.copy(online = false)

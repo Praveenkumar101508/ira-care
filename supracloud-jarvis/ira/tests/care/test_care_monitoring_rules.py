@@ -14,6 +14,8 @@ SETTINGS = {
     "no_movement_window_s": 180, "movement_floor_steps": 1, "heart_rate_min": None, "heart_rate_max": None,
     "missed_checkins_before_escalation": 3, "off_wrist_alert_minutes": 30, "battery_alert_percent": 15,
     "sync_alert_minutes": 30, "quiet_start": dt.time(22, 0), "quiet_end": dt.time(7, 0),
+    "night_off_wrist_minutes": 60, "ask_first_wait_s": 60, "heart_rate_confirm_readings": 2,
+    "heart_rate_confirm_seconds": 120,
 }
 CHECKIN = {"id": "c1", "status": "missed"}
 
@@ -74,10 +76,12 @@ def test_device_notices_in_the_day_and_silence_at_night():
     assert sorted(o.kind for o in obs) == ["low_battery", "no_sync", "off_wrist", "sensor_permission_off"]
     assert all(o.severity == "notice" for o in obs)
     night = dt.datetime(2026, 11, 21, 23, 30, tzinfo=UTC)
-    at_night = monitoring.evaluate_device(dict(device, last_sync_at=night, battery_percent=50,
-                                               background_sensor_permission=True), SETTINGS, "UTC", night,
-                                          off_wrist_since=night - dt.timedelta(hours=2))
-    assert not at_night, "off the wrist at night is normal (the watch is charging)"
+    quiet_device = dict(device, last_sync_at=night, battery_percent=50, background_sensor_permission=True)
+    short = monitoring.evaluate_device(quiet_device, SETTINGS, "UTC", night, off_wrist_since=night - dt.timedelta(minutes=40))
+    assert not short, "off the wrist at night for a while is normal (the watch is charging)"
+    long = monitoring.evaluate_device(quiet_device, SETTINGS, "UTC", night, off_wrist_since=night - dt.timedelta(hours=2))
+    assert [o.kind for o in long] == ["off_wrist_night"] and long[0].severity == "notice", \
+        "off the wrist all night is a notice for the carer, never an SOS"
     unpaired = monitoring.evaluate_device(dict(device, status="revoked"), SETTINGS, "UTC", NOW,
                                           off_wrist_since=NOW - dt.timedelta(hours=1))
     assert not unpaired

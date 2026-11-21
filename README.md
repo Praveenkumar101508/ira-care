@@ -22,7 +22,7 @@ is the hand-over.
 | `watch/` | The Wear OS app (Kotlin, Compose for Wear OS, Health Services) | Gradle build and unit tests |
 | `mobile/` | The family and patient phone app (Expo, TypeScript) | Type check and tests |
 | `dashboard/` | The carer dashboard (Next.js, TypeScript) | Type check, tests and build |
-| `scripts/simulate_patient.py` | The "person does not answer and stops moving" scenario, end to end, on a test database | Database job |
+| `scripts/simulate_patient.py` | Four end-to-end scenarios on a test database: the person stops answering and moving; abnormal heart rate at 02:00 with no answer; abnormal heart rate answered "I'm OK"; no movement by wake time | Database job |
 | `docs/` | Product specification, build rules, every decision, progress and the final report | |
 
 The foundation under `supracloud-jarvis/` (conversation, memory, scheduler, notifier,

@@ -48,6 +48,9 @@ class CareApiTest {
         server.enqueue(MockResponse().setBody("""{"checkin":{"id":"c1","status":"asked","question_kind":"meal","question_text":"Hi Tess. Have you eaten?","person_id":"p"}}"""))
         val due = (api.dueCheckin() as ApiOutcome.Ok).value!!
         assertEquals("c1", due.id); assertEquals("Hi Tess. Have you eaten?", due.questionText)
+        assertEquals(false, due.safety)
+        server.enqueue(MockResponse().setBody("""{"checkin":{"id":"s1","status":"asked","question_kind":"safety","question_text":"Tess, are you OK?","safety":true}}"""))
+        assertEquals(true, (api.dueCheckin() as ApiOutcome.Ok).value!!.safety)
     }
 
     @Test

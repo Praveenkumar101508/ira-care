@@ -36,6 +36,7 @@ CALL_999_FLAG = "show_call_999_screen"
 @dataclass
 class EscalationOutcome:
     alerts_opened: int = 0
+    promoted: int = 0
     tiers_run: int = 0
     attempts: int = 0
     notices: int = 0
@@ -161,6 +162,10 @@ async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
     outcome = outcome or EscalationOutcome()
     provider = provider or providers.provider_from_env()
     centre = centre or providers.monitoring_centre_from_env()
+    # "Are you OK?" went unanswered: the question's deadline is kept here, by
+    # the server, whatever the watch did (care/askfirst.py).
+    from . import askfirst
+    outcome.promoted = getattr(outcome, "promoted", 0) + await askfirst.promote_overdue(conn, now)
     due = await conn.fetch(
         "SELECT * FROM care_alerts WHERE status IN ('open', 'escalating') AND next_action_at IS NOT NULL "
         "AND next_action_at <= $1 ORDER BY opened_at", now)
@@ -304,9 +309,11 @@ async def run_once(now: Optional[dt.datetime] = None) -> EscalationOutcome:
                 logger.exception("care monitoring: workspace pass failed")
                 total.errors += 1
                 continue
-            for k in ("alerts_opened", "tiers_run", "attempts", "notices", "repeated_tier3", "errors"):
+            for k in ("alerts_opened", "promoted", "tiers_run", "attempts", "notices", "repeated_tier3", "errors"):
                 setattr(total, k, getattr(total, k) + getattr(out, k))
             total.opened.extend(out.opened)
+    from .checkin_cycle import _heartbeat
+    await _heartbeat("care_monitoring", total)
     return total
 
 

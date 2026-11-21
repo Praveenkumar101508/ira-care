@@ -521,6 +521,11 @@
    "sha256": "7ef0af6e379122c9e74f33e699f1248668c39517d8cedbfb63d97565ffa189f7",
    "status": "applied"
   },
+  "101_care_continuous_monitoring.sql": {
+   "migration_number": 101,
+   "sha256": "c546f1e4f0a29c87f252dce884f75f8a26422c4a59d6f749a723e22df575ea4b",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",

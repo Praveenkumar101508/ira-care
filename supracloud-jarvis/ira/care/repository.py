@@ -190,6 +190,8 @@ _SETTINGS_FIELDS = (
     "sensor_check_after_s", "heart_rate_min", "heart_rate_max", "no_movement_window_s",
     "movement_floor_steps", "off_wrist_alert_minutes", "battery_alert_percent",
     "sync_alert_minutes", "missed_checkins_before_escalation", "ack_wait_minutes",
+    "ask_first_wait_s", "heart_rate_confirm_readings", "heart_rate_confirm_seconds",
+    "night_off_wrist_minutes", "usual_wake_time", "wake_grace_minutes",
 )
 
 
@@ -343,7 +345,36 @@ async def record_report(principal: Principal, device: dict, report: dict) -> dic
             """,
             device["id"], report.get("battery_percent"), report.get("on_wrist"),
             report.get("background_sensor_permission"), report.get("app_version"))
-    return {"accepted": len(readings), "stored": inserted}
+        # Every batch is checked as it arrives, day and night (care/continuous.py).
+        asked = await evaluate_arrivals(conn, device["person_id"], now=report.get("now"))
+    out = {"accepted": len(readings), "stored": inserted}
+    if asked is not None:
+        out["safety_check"] = {"alert_id": str(asked["id"]), "kind": asked["kind"]}
+    return out
+
+
+async def evaluate_arrivals(conn, person_id, *, now: Optional[dt.datetime] = None) -> Optional[dict]:
+    """Run the arrival-time rules for one person on the readings just stored.
+    Opens an `asking` alert (ask first) when a heart rate is confirmed outside
+    the carer's range. Returns the alert opened, or None."""
+    from . import askfirst, continuous
+    from .monitoring import Observation
+    now = now or _now()
+    person = await conn.fetchrow("SELECT * FROM care_people WHERE id = $1 AND status = 'active'", person_id)
+    settings = await conn.fetchrow("SELECT * FROM care_safety_settings WHERE person_id = $1", person_id)
+    if person is None or settings is None:
+        return None
+    window = max(int(settings["heart_rate_confirm_seconds"]) * 3, 600)
+    readings = [dict(r) for r in await conn.fetch(
+        "SELECT kind, value, recorded_at FROM care_vitals WHERE person_id = $1 AND kind = 'heart_rate' "
+        "AND recorded_at >= $2 ORDER BY recorded_at", person_id, now - dt.timedelta(seconds=window))]
+    breach = continuous.confirmed_outside_range(readings, dict(settings))
+    if breach is None:
+        return None
+    obs = Observation("heart_rate_outside_range", "sos", breach.summary,
+                      {"values": list(breach.values), "range": [breach.low, breach.high],
+                       "first_at": breach.first_at.isoformat(), "last_at": breach.last_at.isoformat()})
+    return await askfirst.start(conn, dict(person), dict(settings), obs, now)
 
 
 # ── Vitals ───────────────────────────────────────────────────────────────────
@@ -400,7 +431,11 @@ async def open_alert(conn, person_id: uuid.UUID, *, kind: str, severity: str,
 
 
 async def record_help_request(principal: Principal, device: dict, body: dict) -> dict:
+    from . import askfirst
     async with workspace_connection(principal) as conn:
+        promoted = await askfirst.promote_on_help(conn, device["person_id"], _now())
+        if promoted is not None:
+            return _alert(promoted)
         return await open_alert(
             conn, device["person_id"], kind="help_requested", severity="sos",
             details={"via": body.get("via", "button"), "note": body.get("note", ""),

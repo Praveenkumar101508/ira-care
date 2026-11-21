@@ -249,3 +249,50 @@ next morning's report; and honest final documents. It did not add: a real device
 watch), a running model (the templates are what is tested), push or text delivery (the
 providers are log-only without keys), or regulatory review. Those are listed in
 `progress/FINAL_REPORT.md` as needing the owner.
+
+## D-024 Readings are checked as they arrive, and a breach must be confirmed (round 2, phase 1)
+
+Before this phase the heart-rate rule ran only in the minute-by-minute monitoring pass and
+looked at the latest reading. Now every watch sync is evaluated on arrival
+(`care/continuous.py`, called from `record_report`). A reading outside the carer's range
+counts only when the trailing run of readings outside the range is at least
+`heart_rate_confirm_readings` long (2) and spans at least `heart_rate_confirm_seconds`
+(120); one reading back inside the range ends the run. A single spike is noise and raises
+nothing. The range itself stays the carer's: with no range set there is no rule.
+
+## D-025 Ask first, then escalate; the server keeps the deadline (round 2, phase 1)
+
+A confirmed breach does not open an SOS at once. It opens an alert in a new state,
+`asking`, and a `safety` check-in with fixed words ("{name}, are you OK? Tap I'm OK, or say
+help.") that the watch collects at any hour, vibrates for, speaks loud and repeats sooner
+than an ordinary question. "I'm OK" (the button, or any answer that is not a call for help)
+resolves the alert with the outcome recorded; "help" (spoken, or the Help button) opens the
+same alert rather than a second one. If nobody answers within `ask_first_wait_s` (60), the
+escalation pass promotes the alert to `open` and runs tier 1: the deadline is the server's,
+so a watch that dies mid-question still escalates. One unresolved alert per kind: a second
+breach while the first is open adds nothing.
+
+## D-026 Night rules: what the watch does at 02:00 (round 2, phase 1)
+
+At night (the person's quiet hours) a confirmed heart-rate breach asks first exactly as in
+the day. The watch off the wrist is usually charging: a notice for the carer after
+`night_off_wrist_minutes` (60), never an SOS. No movement at night raises nothing: sleep is
+not an emergency. The morning check closes the gap: once the usual wake time
+(`usual_wake_time`, 07:30) plus `wake_grace_minutes` (60) has passed, the watch has reported
+since waking but counted no steps, and no check-in has been asked since waking, a `morning`
+check-in is asked at once (within three hours of the deadline, and never in quiet hours) ("Good morning {name}.
+Are you up and about?"), once a day; no answer follows the normal missed-check-in path to
+an SOS. A watch that has not reported at all since waking is the no-sync rule's business.
+The settings are the carer's, on the safety settings page.
+
+## D-027 The system watches itself (round 2, phase 1)
+
+Each pass of `care_checkins` and `care_monitoring` writes a heartbeat to the existing
+`job_runs` table. `GET /care/ops/status` reports both jobs' last run and whether either is
+older than five minutes; the dashboard polls it every minute and shows a red "monitoring
+paused" banner across every page when it is. The same check tells the operations contact
+(`IRA_CARE_OPS_PHONE`, a placeholder number by default) through the configured provider,
+log-only without keys, at most once every fifteen minutes. The check is tested by running
+both jobs and then advancing the clock with no further pass. The banner is the honest
+statement that check-ins and alerts are not being processed; it is not a substitute for
+running the worker under a supervisor, which deployment readiness covers later.

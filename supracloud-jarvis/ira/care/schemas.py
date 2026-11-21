@@ -104,6 +104,12 @@ class SafetySettings(BaseModel):
     sync_alert_minutes: int = Field(30, ge=1, le=1440)
     missed_checkins_before_escalation: int = Field(3, ge=1, le=20)
     ack_wait_minutes: int = Field(5, ge=1, le=60)
+    ask_first_wait_s: int = Field(60, ge=15, le=600)
+    heart_rate_confirm_readings: int = Field(2, ge=1, le=10)
+    heart_rate_confirm_seconds: int = Field(120, ge=0, le=3600)
+    night_off_wrist_minutes: int = Field(60, ge=5, le=720)
+    usual_wake_time: dt.time = dt.time(7, 30)
+    wake_grace_minutes: int = Field(60, ge=10, le=240)
 
     @field_validator("checkin_max_minutes")
     @classmethod
@@ -155,7 +161,8 @@ class Reading(BaseModel):
 
 
 class DeviceReport(BaseModel):
-    """What the watch sends on every sync: readings and its own state."""
+    """What the watch sends on every sync: readings and its own state. The
+    server may answer with `safety_check` when the readings opened a question."""
     readings: list[Reading] = Field(default_factory=list, max_length=2000)
     battery_percent: Optional[int] = Field(None, ge=0, le=100)
     on_wrist: Optional[bool] = None
