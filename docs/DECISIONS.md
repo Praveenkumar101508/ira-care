@@ -548,3 +548,13 @@ code does (what is collected, where it goes, how long it is kept, who may see wh
 consent, what IRA CARE is not) and are marked DRAFT FOR LEGAL REVIEW, with the operator's
 names, bases, liability and governing law left for a lawyer. They make no claim of
 compliance.
+## D-048 The compliance drafts describe the code and name their own limits (round 2, phase 9)
+
+`docs/compliance/` holds the intended purpose statement, a clinical safety case with a
+hazard log in the DCB0129 structure (every hazard tied to the module that mitigates it and
+the test that proves the mitigation), a data protection impact assessment, DTAC answers, the
+questions an MHRA adviser must answer, and an incident, complaints and safety-issue process.
+Every document is marked DRAFT FOR REVIEW BY A QUALIFIED PERSON, claims no compliance, and
+answers "not yet" or "unmeasured" where that is the truth (no Clinical Safety Officer, no
+DPO review, no penetration test, no pilot, no ICO registration). Their worth is accuracy:
+a reviewer can open the file and the test named beside each claim.

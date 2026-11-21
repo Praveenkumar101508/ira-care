@@ -36,6 +36,7 @@ Round 1 is merged to `main`. Round 2:
 | R2-8 | store-readiness | `feat/store-readiness` | Not started |
 | R2-8 | store-readiness | `feat/store-readiness` | Built and checked locally; pull request pending |
 | R2-9 | compliance-drafts | `docs/compliance-drafts` | Not started |
+| R2-9 | compliance-drafts | `docs/compliance-drafts` | Written; pull request pending |
 | R2-10 | final-readiness | `feat/final-readiness` | Not started |
 
 ## Measured locally (21 November 2026, Linux, Python 3.12)
@@ -340,6 +341,12 @@ Local measurements before the first phase, on the foundation as received:
 - `docs/legal/PRIVACY_POLICY.md` and `TERMS_OF_USE.md`, both marked DRAFT FOR LEGAL REVIEW.
 - Not done here, listed under "Needs the owner": a screen-reader pass on a real watch and
   phone; store accounts and submissions; the signing key.
+## Round 2, phase 9 (compliance-drafts)
+
+- `docs/compliance/`: `INTENDED_PURPOSE.md`, `CLINICAL_SAFETY_CASE.md` (13 hazards, each tied
+  to code and tests), `DPIA.md`, `DTAC_ANSWERS.md`, `MHRA_ADVISER_QUESTIONS.md` (13 questions),
+  `INCIDENT_PROCESS.md`. All marked DRAFT FOR REVIEW BY A QUALIFIED PERSON; no compliance
+  claimed. Documents only: no code or test changed in this phase.
 
 ## Deferred
 
@@ -367,6 +374,9 @@ Local measurements before the first phase, on the foundation as received:
 - Store accounts, the signing key for the watch app, the build-service project for the family
   app, and the submissions themselves; the listing text and the policy drafts are ready for
   legal review first.
+- Regulatory advice before sale: the questions are written (`docs/compliance/MHRA_ADVISER_QUESTIONS.md`).
+- A Clinical Safety Officer to review the hazard log, a data protection officer to review the
+  DPIA, and a security test; none has happened.
 - Measuring the conversation model's first-sentence latency on the owner's machine with the
   configured small local model, and recording machine and model in STATUS.md.
 - A decision on where the access-notes sealing module lives: inside `core/connectors/` (as
