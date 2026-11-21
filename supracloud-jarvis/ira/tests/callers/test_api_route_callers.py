@@ -1,4 +1,7 @@
-"""Five API routes, driven over the real HTTP stack.
+"""Two API routes, driven over the real HTTP stack.
+
+Four more (agents, files, technical library, self knowledge) were retired with
+the parts of the source project they tested; see docs/DECISIONS.md D-007.
 
 These go through `create_app()` over ASGI rather than by calling the handler
 functions directly, because the question P12-01 asks about a route is
@@ -22,7 +25,6 @@ Said plainly here so the coverage number is not read as more than it is.
 """
 from __future__ import annotations
 
-import io
 
 import pytest
 
@@ -93,30 +95,6 @@ def _ran(response) -> None:
     )
 
 
-async def test_agents_route_binds(client, audit_probe):
-    """`api/routes/agents.py`."""
-    _ran(await client.get("/api/v1/agents"))
-
-    counts = assert_touched(audit_probe, "api/routes/agents.py")
-    assert counts["unbound"] == 0, (
-        f"api/routes/agents.py ran {counts['unbound']} unbound query(ies) "
-        f"against `agents`, whose predicate is live — the list would be empty."
-    )
-
-
-async def test_files_route_binds(client, audit_probe):
-    """`api/routes/files.py` — list and upload."""
-    _ran(await client.get("/api/v1/files"))
-    await client.post("/api/v1/files/upload",
-                      files={"file": ("p1201.txt", io.BytesIO(b"probe"), "text/plain")})
-
-    counts = assert_touched(audit_probe, "api/routes/files.py")
-    assert counts["unbound"] == 0, (
-        f"api/routes/files.py ran {counts['unbound']} unbound query(ies) "
-        f"against `files`, whose predicate is live."
-    )
-
-
 async def test_memory_route_binds(client, audit_probe):
     """`api/routes/memory.py` — the one route with a bare `acquire()` in it."""
     _ran(await client.get("/api/v1/memory"))
@@ -146,30 +124,3 @@ async def test_notifications_route_binds(client, audit_probe):
     assert_touched(audit_probe, "api/routes/notifications.py")
 
 
-async def test_technical_library_route_binds(client, audit_probe, monkeypatch):
-    """`api/routes/technical_library.py` — reaches the table through
-    `memory/technical_library.py`, so that is where the query is observed."""
-    from config import get_settings
-
-    monkeypatch.setattr(get_settings(), "technical_library_enabled", True, raising=False)
-    monkeypatch.setattr(get_settings(), "reranker_enabled", False, raising=False)
-    _ran(await client.get("/api/v1/technical-library/status"))
-    await client.post("/api/v1/technical-library/ask", json={"question": "what is HNSW"})
-
-    counts = assert_touched(audit_probe, "memory/technical_library.py")
-    assert counts["unbound"] == 0, (
-        f"the technical-library route ran {counts['unbound']} unbound "
-        f"query(ies) against `memory_embeddings`, whose predicate is live."
-    )
-
-
-async def test_self_knowledge_route_binds(client, audit_probe):
-    """`api/routes/self_knowledge.py`."""
-    _ran(await client.get("/api/v1/self-knowledge/status"))
-    await client.post("/api/v1/self-knowledge/ask", json={"question": "what is IRA"})
-
-    counts = assert_touched(audit_probe, "api/routes/self_knowledge.py")
-    assert counts["unbound"] == 0, (
-        f"api/routes/self_knowledge.py ran {counts['unbound']} unbound "
-        f"query(ies) against `memory_embeddings`, whose predicate is live."
-    )

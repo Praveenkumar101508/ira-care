@@ -7,7 +7,7 @@ say where it stopped.
 
 | # | Phase | Branch | State |
 | --- | --- | --- | --- |
-| 1 | ci-and-build-rules | `feat/ci-and-build-rules` | Pull request open; database job red on 8 inherited tests awaiting the owner (D-007) |
+| 1 | ci-and-build-rules | `feat/ci-and-build-rules` | Pull request 1 open; inherited tests retired (D-007) |
 | 2 | care-data-model | `feat/care-data-model` | Built and tested locally; pull request stacked on phase 1 until phase 1 merges |
 | 3 | checkin-engine | `feat/checkin-engine` | Built and tested locally; stacked on phase 2 |
 | 4 | monitoring-and-escalation | | Not started |
@@ -31,7 +31,8 @@ Local measurements before the first phase, on the foundation as received:
   `architecture`, `callers`, `idempotency`, `runtime`): **3,145 passed, 8 failed,
   34 errors**. The 34 errors were a local artefact and pass with the `postgres` role
   (DECISIONS D-007). One further failure was fixed by writing the missing
-  `scripts/staging/run_scheduler.py`. The 8 remaining failures test removed parts (below).
+  `scripts/staging/run_scheduler.py`. The 8 remaining failures tested removed parts and were
+  retired on the owner's decision (D-007).
 
 ## Phase 2 (care-data-model), measured locally
 
@@ -62,18 +63,7 @@ Local measurements before the first phase, on the foundation as received:
 
 ## Deferred
 
-- **8 inherited database tests of removed parts fail in CI** (DECISIONS D-007). They are
-  unchanged and still run; the `Backend database tests` job is red on exactly these until
-  the owner decides to retire them or restore what they test:
-
-  - `tests/readiness/test_phase_4_acceptance.py::test_the_closure_report_exists`
-  - `tests/readiness/test_phase_4_acceptance.py::test_no_control_document_still_says_the_secrets_are_plaintext`
-  - `tests/readiness/test_concurrency_and_failover.py::test_the_untestable_items_are_still_recorded_as_untestable`
-  - `tests/callers/test_api_route_callers.py::test_technical_library_route_binds`
-  - `tests/callers/test_api_route_callers.py::test_self_knowledge_route_binds`
-  - `tests/callers/test_api_route_callers.py::test_files_route_binds`
-  - `tests/callers/test_api_route_callers.py::test_agents_route_binds`
-
+- **8 inherited tests of removed parts** were retired on the owner's decision (DECISIONS D-007).
 - **One inherited test** fails only on a full local clone (DECISIONS D-004).
 
 ## Needs the owner
