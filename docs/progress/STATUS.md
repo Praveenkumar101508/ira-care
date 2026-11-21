@@ -30,7 +30,7 @@ Round 1 is merged to `main`. Round 2:
 | R2-7 | deployment-ready | `feat/deployment-ready` | Built and checked locally; pull request 16 open |
 | R2-8 | store-readiness | `feat/store-readiness` | Built and checked locally; pull request 17 open |
 | R2-9 | compliance-drafts | `docs/compliance-drafts` | Written; pull request 18 open |
-| R2-10 | final-readiness | `feat/final-readiness` | In progress: integrates 14 to 18, proves from a clean clone |
+| R2-10 | final-readiness | `feat/final-readiness` | Integrates 14 to 18; proved from a clean clone; pull request 19 open |
 
 ## Measured locally (21 November 2026, Linux, Python 3.12)
 
@@ -340,6 +340,18 @@ Local measurements before the first phase, on the foundation as received:
   to code and tests), `DPIA.md`, `DTAC_ANSWERS.md`, `MHRA_ADVISER_QUESTIONS.md` (13 questions),
   `INCIDENT_PROCESS.md`. All marked DRAFT FOR REVIEW BY A QUALIFIED PERSON; no compliance
   claimed. Documents only: no code or test changed in this phase.
+
+## Round 2, phase 10 (final-readiness)
+
+- `feat/final-readiness` merges pull requests 14 to 18 in order (D-049); the only conflicts
+  were the progress pages and the family app's manifest and package file.
+- From a clean clone of the integrated branch: lint clean; backend unit 3,768 passed;
+  database suites 3,491 passed and one test that depended on the time of day (fixed to be
+  independent of the clock); watch 35 tests and the unsigned release build; family app 20
+  tests, type check and web export; dashboard 21 tests, type check and build; the demo
+  seeded, the scenarios and the simulator ran, the soak escalated 20 of 20, and the recording
+  produced its 12 screenshots and video. Details in `FINAL_REPORT.md`.
+- `docs/READINESS.md` written; README, STATUS, FINAL_REPORT and NEXT updated.
 
 ## Deferred
 

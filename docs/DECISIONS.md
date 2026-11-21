@@ -558,3 +558,15 @@ Every document is marked DRAFT FOR REVIEW BY A QUALIFIED PERSON, claims no compl
 answers "not yet" or "unmeasured" where that is the truth (no Clinical Safety Officer, no
 DPO review, no penetration test, no pilot, no ICO registration). Their worth is accuracy:
 a reviewer can open the file and the test named beside each claim.
+
+## D-049 The final branch integrates the unmerged phases, because CI stopped starting (round 2, phase 10)
+
+Each phase of round 2 began from `main`, as the rules require. From phase 5 on, GitHub
+Actions reported `startup_failure` for every run on an unchanged, valid workflow with no
+GitHub incident open, which matches the private repository's monthly Actions allowance
+running out; the rules allow a merge only on green CI, so pull requests 14 to 18 stayed
+open. Rather than stop, `feat/final-readiness` merges those five branches in order (the only
+conflicts were the progress pages and the family app's manifest and package file, resolved
+by keeping both sides and rebuilding the pages), and the proof in `docs/READINESS.md` and
+`FINAL_REPORT.md` is of that integrated tree, from a clean clone. The owner may merge 14 to
+18 and then 19, or 19 alone. Nothing was pushed to `main` and no history was rewritten.
