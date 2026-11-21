@@ -56,6 +56,17 @@ class CheckinControllerTest {
     }
 
     @Test
+    fun `a safety question vibrates first, speaks loud, and gives up within the server's minute`() {
+        val actions = c.ask("s1", "Tess, are you OK?", safety = true)
+        assertEquals(listOf(Action.Vibrate, Action.Speak("Tess, are you OK?", louder = true), Action.Listen), actions)
+        clock.advance(20_000)
+        val repeat = c.tick()
+        assertTrue(repeat.contains(Action.ReportRepeated("s1")))
+        clock.advance(25_000)
+        assertEquals(listOf(Action.ReportMissed("s1")), c.tick())
+    }
+
+    @Test
     fun `the OK button answers with empty text`() {
         c.ask("c1", "Q")
         clock.advance(60_000); c.tick()

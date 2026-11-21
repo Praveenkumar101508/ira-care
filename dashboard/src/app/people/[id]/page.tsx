@@ -288,6 +288,10 @@ function SettingsForm({ settings, manage, onSave }: { settings: SafetySettings; 
         <tr><td>No movement window (s) / movement floor</td><td>{num('no_movement_window_s')} / {num('movement_floor_steps')}</td></tr>
         <tr><td>Off wrist alert (min) / battery alert (%) / no sync alert (min)</td><td>{num('off_wrist_alert_minutes')} / {num('battery_alert_percent')} / {num('sync_alert_minutes')}</td></tr>
         <tr><td>Missed check-ins before escalation / wait for acknowledgement (min)</td><td>{num('missed_checkins_before_escalation')} / {num('ack_wait_minutes')}</td></tr>
+        <tr><td>&quot;Are you OK?&quot; waits (s) before an SOS</td><td>{num('ask_first_wait_s')}</td></tr>
+        <tr><td>Heart rate counts as outside the range after (readings in a row) over at least (s)</td><td>{num('heart_rate_confirm_readings')} / {num('heart_rate_confirm_seconds')}</td></tr>
+        <tr><td>Watch off the wrist at night: notice after (min)</td><td>{num('night_off_wrist_minutes')}</td></tr>
+        <tr><td>Usual wake time / morning check after (min)</td><td><input type="time" value={s.usual_wake_time.slice(0, 5)} disabled={!manage} onChange={(e) => setS({ ...s, usual_wake_time: e.target.value })} /> / {num('wake_grace_minutes')}</td></tr>
       </tbody></table>
       {manage ? <button type="submit">Save settings</button> : <p className="muted">Only an administrator may change these.</p>}
     </form>

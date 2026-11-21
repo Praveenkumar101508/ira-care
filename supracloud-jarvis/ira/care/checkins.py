@@ -178,6 +178,8 @@ _TEMPLATES = {
     "plans": ("What are you up to this afternoon?", "Anything planned for today?"),
     "wellbeing": ("How are you doing?", "Everything all right with you?"),
     "custom": ("{custom}",),
+    "morning": ("Good morning {name}. Are you up and about?",),
+    "safety": ("{name}, are you OK? Tap I'm OK, or say help.",),
 }
 
 
@@ -200,6 +202,8 @@ def question_text(choice: QuestionChoice, preferred_name: str, *, time_of_day: O
         q = options[0] if 12 <= time_of_day.hour < 17 else options[1]
     else:
         q = options[0]
+    if choice.kind in ("morning", "safety"):
+        return q.format(name=name)
     q = q.format(subject=(choice.subject or "").lower(), follow_up_short=_short(choice.follow_up),
                  custom=custom or "How are you?", name=name)
     return f"{greeting} {q}".strip()

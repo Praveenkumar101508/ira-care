@@ -17,6 +17,21 @@ say where it stopped.
 | 8 | reports-and-history | `feat/reports-and-history` | Built and tested locally; stacked on phase 7 |
 | 9 | hardening | `feat/hardening` | Built and tested locally; stacked on phase 8 |
 
+Round 1 is merged to `main`. Round 2:
+
+| # | Phase | Branch | State |
+| --- | --- | --- | --- |
+| R2-1 | continuous-monitoring | `feat/continuous-monitoring` | Built and tested locally; pull request pending |
+| R2-2 | home-and-location | `feat/home-and-location` | Not started |
+| R2-3 | fall-detection | `feat/fall-detection` | Not started |
+| R2-4 | ira-conversation | `feat/ira-conversation` | Not started |
+| R2-5 | demo-mode | `feat/demo-mode` | Not started |
+| R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Not started |
+| R2-7 | deployment-ready | `feat/deployment-ready` | Not started |
+| R2-8 | store-readiness | `feat/store-readiness` | Not started |
+| R2-9 | compliance-drafts | `docs/compliance-drafts` | Not started |
+| R2-10 | final-readiness | `feat/final-readiness` | Not started |
+
 ## Measured locally (21 November 2026, Linux, Python 3.12)
 
 Local measurements before the first phase, on the foundation as received:
@@ -130,6 +145,31 @@ Local measurements before the first phase, on the foundation as received:
   log; a shorter consented period removes more; the load test).
 - Negative control: with the retention cutoff broken, 2 tests failed; restored, all pass.
 - Final `README.md`, `STATUS.md` and `docs/progress/FINAL_REPORT.md` written.
+
+## Round 2, phase 1 (continuous-monitoring), measured locally
+
+- Migration `101_care_continuous_monitoring.sql`: six new safety settings (ask-first wait,
+  heart-rate confirmation count and span, night off-wrist minutes, usual wake time, wake
+  grace), the `asking` alert state, the `off_wrist_night` alert kind, `safety` and `morning`
+  check-in kinds. Rollback file, hash recorded, manifest updated.
+- `care/continuous.py` (the arrival-time range rule and movement sum), `care/askfirst.py`
+  (ask first, answered, no answer, promotion by the server), `care/ops.py` (job heartbeats
+  in `job_runs`, the status check, the operations alert through the provider). Readings are
+  evaluated in `record_report`; the escalation pass promotes overdue questions; the check-in
+  pass asks the morning check; both passes write a heartbeat. `GET /care/ops/status`.
+- Watch: a `safety` question vibrates first, is spoken loud, repeats after 20 s and gives
+  up after 25 s more (the server's deadline is the one that counts). 23 JVM tests (was 22).
+- Dashboard: the "monitoring paused" banner on every page, polled each minute; the six new
+  settings on the safety settings page. 14 tests (was 12); type check and build pass.
+- Tests: 9 unit (range rule, movement, the status check), 6 database-backed (confirmed
+  breach at night asks first and silence becomes an SOS; "I'm OK" resolves and "help"
+  opens; the Help button during a question; night off-wrist notice and nothing for no
+  movement; the morning check once a day and not for a person who moved; the operations
+  check notices when the jobs stop and tells the operations contact once).
+- `scripts/simulate_patient.py` now runs four scenarios (the original, abnormal heart rate
+  at 02:00 with no answer, abnormal heart rate answered "I'm OK", no movement by wake
+  time); all four ran locally.
+- Negative control: see the pull request description and D-024 to D-027.
 
 ## Deferred
 

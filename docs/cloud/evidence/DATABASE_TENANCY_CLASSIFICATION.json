@@ -2485,7 +2485,7 @@
       "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_safety_settings:{key}",
       "classification": "WORKSPACE_SCOPED",
       "current": {
-        "column_count": 20,
+        "column_count": 26,
         "has_tenant_id": true,
         "has_user_id": false,
         "has_workspace_id": true,
@@ -2514,7 +2514,7 @@
       },
       "justification": "One row per person: quiet hours, check-in interval, and the safe ranges a carer or clinician set. The heart-rate range is NULL until set; there is no built-in medical threshold. Workspace-scoped with the person (099).",
       "migration": {
-        "done_by": "099_care_foundation.sql",
+        "done_by": "099_care_foundation.sql, 101_care_continuous_monitoring.sql",
         "requires_migration": false,
         "requires_tenant_id": false,
         "requires_user_ownership_conversion": false,

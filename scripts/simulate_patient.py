@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime as dt
+import json
 import os
 import random
 import sys
@@ -242,6 +243,117 @@ async def run_scenario(fam: Family, timeline: Timeline, *, start: dt.datetime | 
     return final
 
 
+# ── Round 2: continuous monitoring scenarios ─────────────────────────────────
+
+async def _hr_run(fam: Family, start: dt.datetime, values: list[float]) -> dict:
+    """Heart-rate readings one minute apart, as the watch would send them."""
+    from care import repository as repo
+    readings = [{"kind": "heart_rate", "value": v, "unit": "bpm", "recorded_at": start + dt.timedelta(minutes=i)}
+                for i, v in enumerate(values)]
+    return await repo.record_report(_device_principal(fam), fam.device, {
+        "readings": readings, "battery_percent": 70, "on_wrist": True, "background_sensor_permission": True,
+        "now": readings[-1]["recorded_at"]})
+
+
+async def scenario_night_heart_rate_no_answer(fam: Family, timeline: Timeline, *, provider=None) -> dict:
+    """02:00: heart rate outside the range, confirmed over two minutes. IRA asks
+    "are you OK?"; nobody answers within the wait; the alert becomes an SOS."""
+    from care import checkin_cycle as cycle
+    from care import escalation, repository as repo
+    from care.providers import LogOnlyProvider
+    provider = provider or LogOnlyProvider()
+    jp = _device_principal(fam)
+    now = dt.datetime(2026, 11, 22, 2, 0, tzinfo=UTC)
+    out = await _hr_run(fam, now, [72, 158])
+    timeline.add(now + dt.timedelta(minutes=1), "heart rate 158 once: nothing (a single reading is noise)")
+    assert "safety_check" not in out
+    out = await _hr_run(fam, now + dt.timedelta(minutes=2), [161, 164, 166])
+    now += dt.timedelta(minutes=4)
+    assert "safety_check" in out, "three readings over two minutes should ask first"
+    timeline.add(now, f"heart rate 161, 164, 166 over two minutes: asking first ({out['safety_check']['kind']})")
+    now += dt.timedelta(seconds=5)
+    due = await cycle.due_checkin(jp, fam.device, now)
+    assert due and due["safety"], "the watch collects the safety question at any hour"
+    timeline.add(now, f"watch vibrates and asks: {due['question_text']}")
+    now += dt.timedelta(seconds=20)
+    await cycle.mark_repeated(jp, fam.device, due["id"], now)
+    timeline.add(now, "repeated, louder")
+    now += dt.timedelta(seconds=40)
+    out = await escalation.run_workspace(jp, now, provider=provider)
+    timeline.add(now, f"no answer within the wait: {out.promoted} question became an SOS, tier 1 told ({out.attempts} attempts)")
+    assert out.promoted == 1 and out.tiers_run == 1
+    alerts = await repo.list_alerts(admin_principal(fam), person_id=None, open_only=True, limit=10)
+    final = next(a for a in alerts if a["kind"] == "heart_rate_outside_range")
+    details = final["details"] if isinstance(final["details"], dict) else json.loads(final["details"] or "{}")
+    timeline.add(now, f"final: {final['kind']} {final['status']} (outcome {details.get('outcome')})")
+    return final
+
+
+async def scenario_heart_rate_answered_ok(fam: Family, timeline: Timeline, *, provider=None) -> dict:
+    """Heart rate outside the range in the afternoon; the person taps I'm OK."""
+    from care import checkin_cycle as cycle
+    from care import repository as repo
+    jp = _device_principal(fam)
+    now = dt.datetime(2026, 11, 22, 15, 0, tzinfo=UTC)
+    out = await _hr_run(fam, now, [38, 37, 39])
+    now += dt.timedelta(minutes=2)
+    assert "safety_check" in out
+    timeline.add(now, "heart rate 38, 37, 39 over two minutes: asking first")
+    now += dt.timedelta(seconds=5)
+    due = await cycle.due_checkin(jp, fam.device, now)
+    timeline.add(now, f"watch asks: {due['question_text']}")
+    now += dt.timedelta(seconds=12)
+    answered = await cycle.record_answer(jp, fam.device, due["id"], "", via="button", now=now)
+    timeline.add(now, f"answered: {answered['answer_summary']}")
+    alerts = await repo.list_alerts(admin_principal(fam), person_id=None, open_only=False, limit=10)
+    final = next(a for a in alerts if a["kind"] == "heart_rate_outside_range")
+    timeline.add(now, f"final: {final['status']} ({final['resolution']})")
+    assert final["status"] == "resolved"
+    return final
+
+
+async def scenario_no_movement_by_wake_time(fam: Family, timeline: Timeline, *, provider=None) -> dict:
+    """Nothing moved by the usual wake time plus the grace: a morning check-in
+    is asked; no answer follows the normal missed-check-in path to an SOS."""
+    from care import checkin_cycle as cycle
+    from care import escalation
+    from care.providers import LogOnlyProvider
+    provider = provider or LogOnlyProvider()
+    jp = _device_principal(fam)
+    rng = random.Random(3)
+    now = dt.datetime(2026, 11, 23, 8, 0, tzinfo=UTC)
+    await watch_reports(fam, now - dt.timedelta(minutes=10), steps=0, heart_rate=66)
+    timeline.add(now - dt.timedelta(minutes=10), "watch reports: on the wrist, no steps since waking")
+    out = await cycle.run_workspace(jp, now, rng=rng)
+    timeline.add(now, f"08:00, nothing moved since 07:30: morning checks {out.morning_checks} (still within the grace)")
+    now = now.replace(hour=8, minute=31)
+    out = await cycle.run_workspace(jp, now, rng=rng)
+    assert out.morning_checks == 1
+    timeline.add(now, "08:31, still nothing: morning check asked now")
+    now += dt.timedelta(seconds=5)
+    due = await cycle.due_checkin(jp, fam.device, now, rng=rng)
+    timeline.add(now, f"watch asks: {due['question_text']}")
+    now += dt.timedelta(seconds=60)
+    await cycle.mark_repeated(jp, fam.device, due["id"], now)
+    now += dt.timedelta(seconds=120)
+    await watch_reports(fam, now, steps=0, heart_rate=68)
+    missed = await cycle.mark_missed(jp, fam.device, due["id"], now)
+    timeline.add(now, f"missed: {missed['status']}")
+    out = await escalation.run_workspace(jp, now, provider=provider)
+    for a in out.opened:
+        timeline.add(now, f"alert opened: {a['kind']} ({a['severity']})")
+    assert out.opened, "a missed morning check with no movement opens an SOS"
+    return {"opened": out.opened, "attempts": out.attempts}
+
+
+SCENARIOS = {
+    "stops-answering": None,  # the original scenario, run_scenario
+    "night-heart-rate-no-answer": scenario_night_heart_rate_no_answer,
+    "heart-rate-answered-ok": scenario_heart_rate_answered_ok,
+    "no-movement-by-wake-time": scenario_no_movement_by_wake_time,
+}
+
+
 async def main() -> int:
     import asyncpg
     dsn, admin_dsn = os.getenv("IRA_TEST_DATABASE_DSN", ""), os.getenv("IRA_TEST_ADMIN_DSN", "")
@@ -252,18 +364,34 @@ async def main() -> int:
     import utils.db as db_module
     pool = await asyncpg.create_pool(dsn=dsn, min_size=1, max_size=4)
     db_module._pool = pool
-    fam = await create_family(admin_dsn, pool)
-    timeline = Timeline()
+    wanted = sys.argv[1:] or list(SCENARIOS)
+    unknown = [w for w in wanted if w not in SCENARIOS]
+    if unknown:
+        print("unknown scenario(s):", ", ".join(unknown), "\nknown:", ", ".join(SCENARIOS), file=sys.stderr)
+        return 2
+    rc = 0
     try:
-        await setup_person(fam)
-        final = await run_scenario(fam, timeline)
-        print(timeline.render())
-        ok = final["status"] == "acknowledged" and final["current_tier"] == 3
-        print("\nRESULT:", "the chain ran to tier 3 and stopped at the acknowledgement" if ok else "UNEXPECTED")
-        return 0 if ok else 1
+        for name in wanted:
+            fam = await create_family(admin_dsn, pool, label=f"sim-{name}")
+            timeline = Timeline()
+            try:
+                await setup_person(fam)
+                print(f"=== {name} ===")
+                if name == "stops-answering":
+                    final = await run_scenario(fam, timeline)
+                    ok = final["status"] == "acknowledged" and final["current_tier"] == 3
+                    verdict = "the chain ran to tier 3 and stopped at the acknowledgement"
+                else:
+                    await SCENARIOS[name](fam, timeline)
+                    ok, verdict = True, "the scenario ran as described"
+                print(timeline.render())
+                print("RESULT:", verdict if ok else "UNEXPECTED", "\n")
+                rc = rc or (0 if ok else 1)
+            finally:
+                await remove_family(admin_dsn, fam)
     finally:
-        await remove_family(admin_dsn, fam)
         await pool.close()
+    return rc
 
 
 if __name__ == "__main__":

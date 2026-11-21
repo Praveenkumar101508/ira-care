@@ -56,6 +56,8 @@ data class DueCheckin(
     val status: String,
     @SerialName("question_kind") val questionKind: String,
     @SerialName("question_text") val questionText: String,
+    /** A safety question ("Are you OK?"): vibrate first, speak at once, shorter wait. */
+    val safety: Boolean = false,
 )
 
 @Serializable

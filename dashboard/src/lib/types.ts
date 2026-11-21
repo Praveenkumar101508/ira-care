@@ -33,7 +33,10 @@ export interface SafetySettings {
   repeat_after_s: number; sensor_check_after_s: number; heart_rate_min: number | null; heart_rate_max: number | null;
   no_movement_window_s: number; movement_floor_steps: number; off_wrist_alert_minutes: number;
   battery_alert_percent: number; sync_alert_minutes: number; missed_checkins_before_escalation: number; ack_wait_minutes: number;
+  ask_first_wait_s: number; heart_rate_confirm_readings: number; heart_rate_confirm_seconds: number;
+  night_off_wrist_minutes: number; usual_wake_time: string; wake_grace_minutes: number;
 }
+export interface OpsStatus { monitoring_paused: boolean; stale_after_s: number; checked_at: string; jobs: Record<string, { last_run_at: string | null; age_s: number | null; stale: boolean }> }
 export interface PersonStatus { person: Person; devices: Device[]; latest_readings: Reading[]; open_alerts: Alert[]; last_checkin: Checkin | null }
 export interface AccessEntry { id: string; actor_user_id: string | null; actor_label: string; resource_kind: string; action: string; at: string; detail: Record<string, unknown> }
 export interface Report { id: string; kind: 'daily_carer' | 'weekly_family'; period_start: string; period_end: string; generated_at: string; title: string; body_text: string; delivered_channels: string[] }

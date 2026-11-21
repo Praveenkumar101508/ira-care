@@ -24,7 +24,7 @@ from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
-from . import audit, checkin_cycle, consent, history, reports, repository as repo, schemas
+from . import audit, checkin_cycle, consent, history, ops, reports, repository as repo, schemas
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 router = APIRouter(prefix="/care", tags=["care"])
@@ -588,3 +588,13 @@ async def search_history(person_id: uuid.UUID, q: str = Query(..., min_length=1,
         if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
             raise _not_found("Person not found.")
         return await history.search(conn, p, person_id, q, since=since, until=until, limit=limit)
+
+
+# ── Operations ───────────────────────────────────────────────────────────────
+
+@router.get("/ops/status")
+async def ops_status(p: Principal = Depends(require_workspace_principal)):
+    """Whether the care jobs are alive. The dashboard shows "monitoring paused" when not."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        return await ops.status(conn)

@@ -58,6 +58,7 @@ def job_principal(tenant_id: uuid.UUID, workspace_id: uuid.UUID) -> Principal:
 @dataclass
 class CycleOutcome:
     tenants: int = 0
+    morning_checks: int = 0
     workspaces: int = 0
     people: int = 0
     scheduled: int = 0
@@ -94,7 +95,21 @@ async def run_cycle_once(now: Optional[dt.datetime] = None, *, rng: Optional[ran
             except Exception:  # noqa: BLE001
                 logger.exception("care check-ins: workspace pass failed")
                 outcome.errors += 1
+    await _heartbeat("care_checkins", outcome)
     return outcome
+
+
+async def _heartbeat(job: str, outcome) -> None:
+    """Record that this pass ran (care/ops.py). Never raises: the pass's work
+    is done, and a failed heartbeat is itself what the operations check sees."""
+    try:
+        from utils.db import get_pool
+
+        from . import ops
+        async with get_pool().acquire() as conn:
+            await ops.heartbeat(conn, job, outcome.__dict__ if hasattr(outcome, "__dict__") else None)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("care %s: heartbeat not recorded (%s)", job, exc)
 
 
 async def run_workspace(principal: Principal, now: dt.datetime, outcome: Optional[CycleOutcome] = None,
@@ -150,6 +165,7 @@ async def _advance_person(conn, person, settings, now, outcome: CycleOutcome, rn
                 outcome.missed += 1
             else:
                 continue
+    await _morning_check(conn, person, settings, now, outcome)
     still_open = await conn.fetchval(
         "SELECT count(*) FROM care_checkins WHERE person_id = $1 AND status IN ('scheduled', 'asked', 'repeated')",
         person["id"])
@@ -159,6 +175,47 @@ async def _advance_person(conn, person, settings, now, outcome: CycleOutcome, rn
             "INSERT INTO care_checkins (person_id, scheduled_at, status, question_kind) "
             "VALUES ($1, $2, 'scheduled', 'wellbeing')", person["id"], when)
         outcome.scheduled += 1
+
+
+#: How long after the wake deadline the morning check can still be asked.
+MORNING_WINDOW = dt.timedelta(hours=3)
+
+
+async def _morning_check(conn, person, settings, now, outcome: CycleOutcome) -> None:
+    """No movement by the usual wake time plus the grace: ask a morning check-in
+    now, once per day. No answer then follows the normal missed-check-in path."""
+    from . import continuous
+    tz = person["timezone"]
+    local = rules.local_now(now, tz)
+    wake = settings.get("usual_wake_time")
+    if wake is None:
+        return
+    wake_at = local.replace(hour=wake.hour, minute=wake.minute, second=0, microsecond=0)
+    deadline = wake_at + dt.timedelta(minutes=int(settings.get("wake_grace_minutes", 60)))
+    if local < deadline or local >= deadline + MORNING_WINDOW:
+        return
+    if rules.in_quiet_hours(local.time(), settings["quiet_start"], settings["quiet_end"]):
+        return
+    wake_utc = wake_at.astimezone(dt.timezone.utc)
+    asked_today = await conn.fetchval(
+        "SELECT count(*) FROM care_checkins WHERE person_id = $1 AND scheduled_at >= $2 "
+        "AND status NOT IN ('scheduled', 'skipped_quiet', 'cancelled')", person["id"], wake_utc)
+    if asked_today:
+        return
+    readings = [dict(r) for r in await conn.fetch(
+        "SELECT kind, value, recorded_at FROM care_vitals WHERE person_id = $1 AND kind IN ('steps', 'movement') "
+        "AND recorded_at >= $2", person["id"], wake_utc)]
+    moved = continuous.movement_since(readings, wake_utc)
+    if moved is None:
+        return  # no report since waking: the watch is silent, and the no-sync rule covers that
+    if moved > int(settings["movement_floor_steps"]):
+        return
+    await conn.execute(
+        "UPDATE care_checkins SET status = 'cancelled' WHERE person_id = $1 AND status = 'scheduled'", person["id"])
+    await conn.execute(
+        "INSERT INTO care_checkins (person_id, scheduled_at, status, question_kind) VALUES ($1, $2, 'scheduled', 'morning')",
+        person["id"], now)
+    outcome.morning_checks += 1
 
 
 # ── The watch's side ─────────────────────────────────────────────────────────
@@ -177,14 +234,34 @@ async def due_checkin(principal: Principal, device: dict, now: Optional[dt.datet
         settings = await conn.fetchrow("SELECT * FROM care_safety_settings WHERE person_id = $1", person_id)
         row = await conn.fetchrow(
             "SELECT * FROM care_checkins WHERE person_id = $1 AND status IN ('scheduled', 'asked', 'repeated') "
-            "AND scheduled_at <= $2 ORDER BY scheduled_at LIMIT 1", person_id, now)
+            "AND scheduled_at <= $2 ORDER BY (question_kind = 'safety') DESC, scheduled_at LIMIT 1", person_id, now)
         if row is None:
             return None
         if row["status"] != "scheduled":
             return _public_checkin(dict(row))
         local = rules.local_now(now, person["timezone"])
+        if row["question_kind"] == "safety":
+            # "Are you OK?": the words are set, it is asked at any hour, and the
+            # watch is told to vibrate and speak at once.
+            row = await conn.fetchrow(
+                "UPDATE care_checkins SET status = 'asked', asked_at = $2 WHERE id = $1 RETURNING *", row["id"], now)
+            await conn.execute(
+                "INSERT INTO care_transcripts (person_id, checkin_id, speaker, text) VALUES ($1, $2, 'companion', $3)",
+                person_id, row["id"], row["question_text"])
+            return _public_checkin(dict(row))
         if settings and rules.in_quiet_hours(local.time(), settings["quiet_start"], settings["quiet_end"]):
             return None
+        if row["question_kind"] == "morning":
+            # The morning check keeps its own words and is not re-chosen.
+            text = rules.question_text(rules.QuestionChoice("morning", "morning check"), person["preferred_name"] or person["display_name"],
+                                       time_of_day=local.time(), rng=rng)
+            row = await conn.fetchrow(
+                "UPDATE care_checkins SET status = 'asked', asked_at = $2, question_text = $3 WHERE id = $1 RETURNING *",
+                row["id"], now, text)
+            await conn.execute(
+                "INSERT INTO care_transcripts (person_id, checkin_id, speaker, text) VALUES ($1, $2, 'companion', $3)",
+                person_id, row["id"], row["question_text"])
+            return _public_checkin(dict(row))
         routines = await conn.fetch(
             "SELECT * FROM care_routines WHERE person_id = $1 AND active", person_id)
         medications = await conn.fetch(
@@ -212,8 +289,10 @@ async def due_checkin(principal: Principal, device: dict, now: Optional[dt.datet
 
 
 def _public_checkin(row: dict) -> dict:
-    return {k: row[k] for k in ("id", "person_id", "scheduled_at", "asked_at", "repeated_at", "status",
-                                "question_kind", "question_text")}
+    out = {k: row[k] for k in ("id", "person_id", "scheduled_at", "asked_at", "repeated_at", "status",
+                               "question_kind", "question_text")}
+    out["safety"] = row["question_kind"] == "safety"
+    return out
 
 
 async def _maybe_rephrase(text: str, choice: rules.QuestionChoice, person) -> str:
@@ -274,6 +353,8 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
             med = await _medication_asked_about(conn, person_id, row["question_text"])
             subject = med["name"] if med else None
         reading = rules.summarise_answer(row["question_kind"], text, subject=subject)
+        if row["question_kind"] == "safety" and not (text or "").strip():
+            reading = rules.AnswerReading(summary="Pressed I'm OK.", said="yes", signals=(), asked_for_help=False)
         row = await conn.fetchrow(
             "UPDATE care_checkins SET status = 'answered', answered_at = $2, answer_text = $3, "
             "answer_summary = $4, answered_via = $5 WHERE id = $1 RETURNING *",
@@ -295,6 +376,10 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
                            recorded_at = NOW()
                     """, med["id"], person_id, checkin_id, due,
                     "taken" if reading.said == "yes" else "missed")
+    if row["question_kind"] == "safety":
+        from . import askfirst
+        async with workspace_connection(principal) as conn:
+            await askfirst.answered(conn, dict(row), ok=not reading.asked_for_help, now=now, words=text or "")
     await _remember(principal, row, reading)
     out = _public_checkin(dict(row))
     out.update({"answer_summary": reading.summary, "said": reading.said, "signals": list(reading.signals),
@@ -342,11 +427,15 @@ async def mark_missed(principal: Principal, device: dict, checkin_id: uuid.UUID,
     """The watch says nobody answered after the repeat. Recorded as missed;
     what that means is decided by the monitoring rules (phase 4)."""
     now = now or _now()
+    from . import askfirst
     async with workspace_connection(principal) as conn:
         row = await conn.fetchrow(
-            "UPDATE care_checkins SET status = 'missed', answer_summary = 'No answer.' "
+            "UPDATE care_checkins SET status = 'missed', answer_summary = "
+            "CASE WHEN question_kind = 'safety' THEN 'No answer to the safety check.' ELSE 'No answer.' END "
             "WHERE id = $1 AND person_id = $2 AND status IN ('asked', 'repeated') RETURNING *",
             checkin_id, device["person_id"])
+        if row is not None and row["question_kind"] == "safety":
+            await askfirst.no_answer(conn, dict(row), now)
     return _public_checkin(dict(row)) if row else None
 
 

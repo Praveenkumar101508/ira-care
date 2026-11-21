@@ -128,14 +128,24 @@ def evaluate_device(
     quiet = rules.in_quiet_hours(local.time(), settings["quiet_start"], settings["quiet_end"])
     if device.get("status") != "paired":
         return out
-    if not quiet and device.get("on_wrist") is False and off_wrist_since is not None:
+    if device.get("on_wrist") is False and off_wrist_since is not None:
         minutes = (now - off_wrist_since).total_seconds() / 60
-        limit = int(settings["off_wrist_alert_minutes"])
-        if minutes >= limit:
-            out.append(Observation("off_wrist", NOTICE,
-                                   f"The watch has been off the wrist for {int(minutes)} minutes "
-                                   f"(alert after {limit}).",
-                                   {"minutes": int(minutes), "limit": limit}))
+        if quiet:
+            # At night the watch is often charging: a longer limit, and a notice
+            # for the carer in the morning, never an SOS.
+            limit = int(settings.get("night_off_wrist_minutes", 60))
+            if minutes >= limit:
+                out.append(Observation("off_wrist_night", NOTICE,
+                                       f"The watch has been off the wrist for {int(minutes)} minutes during "
+                                       f"quiet hours (notice after {limit}).",
+                                       {"minutes": int(minutes), "limit": limit, "quiet_hours": True}))
+        else:
+            limit = int(settings["off_wrist_alert_minutes"])
+            if minutes >= limit:
+                out.append(Observation("off_wrist", NOTICE,
+                                       f"The watch has been off the wrist for {int(minutes)} minutes "
+                                       f"(alert after {limit}).",
+                                       {"minutes": int(minutes), "limit": limit}))
     battery = device.get("battery_percent")
     if battery is not None and battery < int(settings["battery_alert_percent"]):
         out.append(Observation("low_battery", NOTICE,
