@@ -15,7 +15,7 @@ say where it stopped.
 | 6 | family-app | `feat/family-app` | Built; type check and tests pass; stacked on phase 5; not yet run on a phone |
 | 7 | carer-dashboard | `feat/carer-dashboard` | Built; type check, tests and production build pass; stacked on phase 6 |
 | 8 | reports-and-history | `feat/reports-and-history` | Built and tested locally; stacked on phase 7 |
-| 9 | hardening | | Not started |
+| 9 | hardening | `feat/hardening` | Built and tested locally; stacked on phase 8 |
 
 ## Measured locally (21 November 2026, Linux, Python 3.12)
 
@@ -120,6 +120,16 @@ Local measurements before the first phase, on the foundation as received:
   generation, family can read, other family cannot, weekly report, the hourly job in the
   person's timezone, search with and without consent, audit rows).
 - Negative control: with the once-per-period rule broken, 1 test failed; restored, all pass.
+
+## Phase 9 (hardening), measured locally
+
+- `care/retention.py` and the daily `care_retention` job; a static audit-coverage test over
+  the care routes; the 1,000-person load test (schedule pass 1.1 s, due pass 1.9 s,
+  monitoring pass 0.65 s locally); the simulation now ends with the next morning's report.
+- Tests: 2 static, 3 database-backed (retention keeps newer rows, open alerts and the access
+  log; a shorter consented period removes more; the load test).
+- Negative control: with the retention cutoff broken, 2 tests failed; restored, all pass.
+- Final `README.md`, `STATUS.md` and `docs/progress/FINAL_REPORT.md` written.
 
 ## Deferred
 

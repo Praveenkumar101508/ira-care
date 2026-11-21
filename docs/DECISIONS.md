@@ -229,3 +229,23 @@ pins that no report contains a diagnosis word. Delivery goes through the existin
 transcripts only when the caller's role has consent, exactly as the transcript endpoint
 does. Every search writes an access-log row with the words searched for and whether
 transcripts were included, because a search is a read of health data.
+
+## D-022 Retention is enforced per person, and never touches the record of looking (phase 9)
+
+A daily job removes each person's readings, check-ins, transcripts, medication events and
+reports older than their retention period (the `data_retention` consent, 12 months by
+default), and alerts older than that only when they were resolved or cancelled. An alert
+that is still open, acknowledged or escalating is never purged, and neither is the access
+log: that is audit evidence with its own retention, removable only by the schema owner.
+Each purge that removed anything writes one access-log row with the counts, so a deletion
+is itself on the record. The purge runs under row-level security, one workspace at a time.
+
+## D-023 What "hardened" means here, and what it does not (phase 9)
+
+Hardening added: retention enforcement; a static check that every route reading health
+data or transcripts writes the access log; a 1,000-person load test of the check-in and
+monitoring passes (about a second each locally); the end-to-end simulation extended to the
+next morning's report; and honest final documents. It did not add: a real device test (no
+watch), a running model (the templates are what is tested), push or text delivery (the
+providers are log-only without keys), or regulatory review. Those are listed in
+`progress/FINAL_REPORT.md` as needing the owner.
