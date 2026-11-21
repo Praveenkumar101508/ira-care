@@ -323,6 +323,11 @@ function SettingsForm({ settings, manage, onSave }: { settings: SafetySettings; 
         <tr><td>&quot;Are you OK?&quot; waits (s) before an SOS</td><td>{num('ask_first_wait_s')}</td></tr>
         <tr><td>Heart rate counts as outside the range after (readings in a row) over at least (s)</td><td>{num('heart_rate_confirm_readings')} / {num('heart_rate_confirm_seconds')}</td></tr>
         <tr><td>Watch off the wrist at night: notice after (min)</td><td>{num('night_off_wrist_minutes')}</td></tr>
+        <tr><td>Fall detection (the watch asks first, then an SOS with location)</td><td>
+          <label><input type="checkbox" checked={s.fall_detection_enabled} disabled={!manage} onChange={(e) => setS({ ...s, fall_detection_enabled: e.target.checked })} /> on for this person</label>
+          {' '}· countdown (s) {num('fall_countdown_s')}
+        </td></tr>
+        <tr><td>Fall thresholds: impact (g) / still for (s) / movement above (g)</td><td>{num('fall_impact_g')} / {num('fall_still_seconds')} / {num('fall_still_threshold_g')}<span className="muted"> · settings, not medical claims; accuracy on real devices is unmeasured</span></td></tr>
         <tr><td>Usual wake time / morning check after (min)</td><td><input type="time" value={s.usual_wake_time.slice(0, 5)} disabled={!manage} onChange={(e) => setS({ ...s, usual_wake_time: e.target.value })} /> / {num('wake_grace_minutes')}</td></tr>
       </tbody></table>
       {manage ? <button type="submit">Save settings</button> : <p className="muted">Only an administrator may change these.</p>}

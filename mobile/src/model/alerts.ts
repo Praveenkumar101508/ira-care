@@ -3,6 +3,7 @@ import type { Alert, Person } from '../api/types';
 /** Plain words for an alert kind: what was observed, never a diagnosis. */
 export const ALERT_WORDS: Record<string, string> = {
   help_requested: 'Asked for help',
+  suspected_fall: 'Suspected fall',
   no_answer_no_movement: 'No answer and no movement',
   heart_rate_outside_range: 'Heart rate outside the set range',
   off_wrist_during_check: 'No answer and watch off the wrist',

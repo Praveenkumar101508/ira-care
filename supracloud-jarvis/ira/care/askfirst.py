@@ -32,20 +32,25 @@ QUESTION = "{name}, are you OK? Tap I'm OK, or say help."
 
 
 async def start(conn, person: dict, settings: dict, obs: Observation, now: dt.datetime,
-                severity: str = "sos") -> Optional[dict]:
+                severity: str = "sos", *, with_checkin: bool = True) -> Optional[dict]:
     """Open an `asking` alert and the safety check-in that carries the question.
-    None if an alert of this kind is already unresolved for the person."""
+    None if an alert of this kind is already unresolved for the person. With
+    `with_checkin=False` the watch asks the question itself (a fall countdown)
+    and only the alert and its deadline are kept here."""
     exists = await conn.fetchval(
         "SELECT id FROM care_alerts WHERE person_id = $1 AND kind = $2 "
         "AND status IN ('asking', 'open', 'escalating', 'acknowledged')", person["id"], obs.kind)
     if exists is not None:
         return None
     name = person.get("preferred_name") or person["display_name"]
-    checkin = await conn.fetchrow(
-        """
-        INSERT INTO care_checkins (person_id, scheduled_at, status, question_kind, question_text)
-        VALUES ($1, $2, 'scheduled', 'safety', $3) RETURNING *
-        """, person["id"], now, QUESTION.format(name=name))
+    checkin_id = None
+    if with_checkin:
+        checkin = await conn.fetchrow(
+            """
+            INSERT INTO care_checkins (person_id, scheduled_at, status, question_kind, question_text)
+            VALUES ($1, $2, 'scheduled', 'safety', $3) RETURNING *
+            """, person["id"], now, QUESTION.format(name=name))
+        checkin_id = checkin["id"]
     wait = int(settings.get("ask_first_wait_s", 60))
     details = dict(obs.details)
     details.update({"summary": obs.summary, "ask_first": True, "ask_first_wait_s": wait})
@@ -53,7 +58,7 @@ async def start(conn, person: dict, settings: dict, obs: Observation, now: dt.da
         """
         INSERT INTO care_alerts (person_id, checkin_id, kind, severity, status, details, opened_at, next_action_at)
         VALUES ($1, $2, $3, $4, 'asking', $5::jsonb, $6, $7) RETURNING *
-        """, person["id"], checkin["id"], obs.kind, severity, json.dumps(details), now,
+        """, person["id"], checkin_id, obs.kind, severity, json.dumps(details), now,
         now + dt.timedelta(seconds=wait))
     out = dict(alert)
     out["details"] = details

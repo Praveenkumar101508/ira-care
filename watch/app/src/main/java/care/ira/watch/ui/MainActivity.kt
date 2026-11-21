@@ -66,6 +66,7 @@ class MainActivity : ComponentActivity() {
                     else -> HomeScreen(
                         question = status.question, listening = status.listening,
                         lastAnswer = status.lastAnswer, helpSent = status.helpSent, online = status.online,
+                        fallCountdown = status.fallCountdown,
                         onOk = { CareForegroundService.send(this, CareForegroundService.ACTION_OK) },
                         onHelp = { CareForegroundService.send(this, CareForegroundService.ACTION_HELP) },
                     )
@@ -145,7 +146,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun HomeScreen(
     question: String?, listening: Boolean, lastAnswer: String?, helpSent: Boolean, online: Boolean,
-    onOk: () -> Unit, onHelp: () -> Unit,
+    onOk: () -> Unit, onHelp: () -> Unit, fallCountdown: Int? = null,
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(10.dp),
@@ -153,6 +154,7 @@ fun HomeScreen(
     ) {
         Text(
             text = when {
+                fallCountdown != null -> "Did you fall? Are you OK?\nHelp in $fallCountdown s"
                 helpSent -> "Help is on its way."
                 question != null -> question
                 lastAnswer != null -> "Thank you."

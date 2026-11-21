@@ -1,6 +1,7 @@
 import type { Alert, Person, Checkin, Reading } from './types';
 
 export const ALERT_WORDS: Record<string, string> = {
+  suspected_fall: 'Suspected fall',
   help_requested: 'Asked for help',
   no_answer_no_movement: 'No answer and no movement',
   heart_rate_outside_range: 'Heart rate outside the set range',

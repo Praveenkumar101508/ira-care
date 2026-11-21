@@ -75,6 +75,22 @@ data class LocationFix(
 @Serializable
 data class HelpRequest(val via: String = "button", val note: String = "", val location: LocationFix? = null)
 
+/** The carer's fall settings, as `GET /devices/me` returns them. Thresholds, not medical claims. */
+@Serializable
+data class FallSettingsDto(
+    @SerialName("fall_detection_enabled") val enabled: Boolean = true,
+    @SerialName("fall_countdown_s") val countdownS: Int = 30,
+    @SerialName("fall_impact_g") val impactG: Double = 2.5,
+    @SerialName("fall_still_seconds") val stillSeconds: Int = 20,
+    @SerialName("fall_still_threshold_g") val stillThresholdG: Double = 0.3,
+)
+
+@Serializable
+data class DeviceMe(val id: String, val status: String, val fall: FallSettingsDto = FallSettingsDto())
+
+@Serializable
+data class FallStart(@SerialName("peak_g") val peakG: Double, @SerialName("still_seconds") val stillSeconds: Int)
+
 /** What went wrong talking to the backend, in a way the caller can act on. */
 sealed class ApiOutcome<out T> {
     data class Ok<T>(val value: T) : ApiOutcome<T>()
@@ -108,6 +124,18 @@ class CareApi(
     fun report(report: DeviceReport): ApiOutcome<ReportAck> =
         post("/api/v1/care/devices/me/report", json.encodeToString(report))
             .map { json.decodeFromString<ReportAck>(it) }
+
+    /** The watch's own record and the carer's fall settings; asked after each sync. */
+    fun me(): ApiOutcome<DeviceMe> =
+        get("/api/v1/care/devices/me").map { json.decodeFromString<DeviceMe>(it) }
+
+    /** The fall countdown has started: the server opens an asking alert and keeps its own deadline. */
+    fun fallStarted(start: FallStart): ApiOutcome<JsonObject> =
+        post("/api/v1/care/devices/me/fall", json.encodeToString(start)).map { json.parseToJsonElement(it).jsonObject }
+
+    /** The person tapped I'm OK during the countdown. */
+    fun fallOk(): ApiOutcome<JsonObject> =
+        post("/api/v1/care/devices/me/fall/ok", "{}").map { json.parseToJsonElement(it).jsonObject }
 
     fun help(request: HelpRequest): ApiOutcome<JsonObject> =
         post("/api/v1/care/devices/me/help", json.encodeToString(request)).map { json.parseToJsonElement(it).jsonObject }

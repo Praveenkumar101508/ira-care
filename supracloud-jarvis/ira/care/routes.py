@@ -218,8 +218,41 @@ async def pair_device(body: schemas.PairRequest):
 
 @router.get("/devices/me")
 async def device_me(d: tuple[Principal, dict] = Depends(require_device)):
-    _principal, device = d
-    return device
+    """The watch's own record, with the carer's fall settings so the detector
+    runs with the person's thresholds (or not at all)."""
+    principal, device = d
+    from . import falls
+    async with workspace_connection(principal) as conn:
+        settings = await conn.fetchrow("SELECT * FROM care_safety_settings WHERE person_id = $1", device["person_id"])
+    out = dict(device)
+    out["fall"] = falls.watch_settings(dict(settings) if settings else {})
+    return out
+
+
+@router.post("/devices/me/fall", status_code=201)
+async def device_fall_started(body: schemas.FallStart, d: tuple[Principal, dict] = Depends(require_device)):
+    """The watch suspects a fall and has started its countdown: the server opens
+    an asking alert and keeps its own deadline. 409 when fall detection is off."""
+    from . import falls
+    principal, device = d
+    try:
+        alert = await falls.start(principal, device, body.model_dump())
+    except falls.FallDetectionOff as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+    if alert is None:
+        raise HTTPException(status_code=409, detail="A fall alert is already asking or open for this person.")
+    return alert
+
+
+@router.post("/devices/me/fall/ok")
+async def device_fall_ok(d: tuple[Principal, dict] = Depends(require_device)):
+    """The person tapped I'm OK during the fall countdown."""
+    from . import falls
+    principal, device = d
+    alert = await falls.answered_ok(principal, device)
+    if alert is None:
+        raise _not_found("No fall alert is asking for this person.")
+    return alert
 
 
 @router.post("/devices/me/report")

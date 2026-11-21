@@ -7,6 +7,9 @@ import care.ira.watch.api.CareApi
 import care.ira.watch.core.Clock
 import care.ira.watch.pairing.PairingStore
 import care.ira.watch.queue.OfflineQueue
+import care.ira.watch.api.FallSettingsDto
+import care.ira.watch.sensors.AccelerometerSource
+import care.ira.watch.sensors.AndroidAccelerometerSource
 import care.ira.watch.sensors.AndroidLocationSource
 import care.ira.watch.sensors.HealthServicesSensorSource
 import care.ira.watch.sensors.LocationSource
@@ -31,6 +34,8 @@ data class WatchStatus(
     val helpSent: Boolean = false,
     val queued: Int = 0,
     val online: Boolean = true,
+    /** Seconds left in a fall countdown, or null when none is running. */
+    val fallCountdown: Int? = null,
 )
 
 /**
@@ -45,6 +50,9 @@ class CareDependencies private constructor(context: Context) {
     val sensors: SensorSource = HealthServicesSensorSource(context, clock)
     /** Asked once per SOS; never polled. */
     val location: LocationSource = AndroidLocationSource(context)
+    val accelerometer: AccelerometerSource = AndroidAccelerometerSource(context)
+    /** The carer's fall settings, refreshed from the server after each sync. */
+    @Volatile var fallSettings: FallSettingsDto = FallSettingsDto()
     val speaker: Speaker = AndroidSpeaker(context)
     val listener: Listener = AndroidListener(context)
     val sync = Syncer(this)

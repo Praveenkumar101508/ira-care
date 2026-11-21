@@ -22,8 +22,8 @@ Round 1 is merged to `main`. Round 2:
 | # | Phase | Branch | State |
 | --- | --- | --- | --- |
 | R2-1 | continuous-monitoring | `feat/continuous-monitoring` | Merged (pull request 10) |
-| R2-2 | home-and-location | `feat/home-and-location` | Built and tested locally; pull request pending |
-| R2-3 | fall-detection | `feat/fall-detection` | Not started |
+| R2-2 | home-and-location | `feat/home-and-location` | Merged (pull request 11) |
+| R2-3 | fall-detection | `feat/fall-detection` | In progress |
 | R2-4 | ira-conversation | `feat/ira-conversation` | Not started |
 | R2-5 | demo-mode | `feat/demo-mode` | Not started |
 | R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Not started |
@@ -194,6 +194,33 @@ Local measurements before the first phase, on the foundation as received:
   allowed to the manager, refused once resolved, three views logged, other family 404; no
   route accepts a location outside an SOS).
 - `scripts/simulate_patient.py`: a fifth scenario, the Help button away from home.
+- Negative control: see the pull request description.
+
+## Round 2, phase 3 (fall-detection), measured locally
+
+- Migration `103_care_fall_detection.sql`: five per-person fall settings (on by default,
+  countdown, impact, still window, movement threshold) and the `suspected_fall` alert kind.
+  Rollback file, hash recorded, manifest updated.
+- Watch: `FallDetector` (pure Kotlin, accelerometer only), `FallCountdown` (vibrate, ask,
+  big buttons, help at zero), the accelerometer source, settings refreshed from
+  `GET /devices/me` after each sync, the countdown on the screen. `care/falls.py` on the
+  server: start, I'm OK, confirm with location, refuse when off. Two new device routes.
+- **Synthetic-signal results (50 Hz, made-up signals, fixed seed):** on 20 synthetic falls,
+  **0 false negatives**; on 20 hard sit-downs, 20 arm-swing walks and 10 table drops with the
+  watch known to be off the wrist, **0 false positives**; on 10 table drops with the wrist
+  state unknown, **10 of 10 read as a fall** (an impact followed by stillness is a fall to
+  the accelerometer alone; the off-wrist signal is what tells them apart). **These numbers
+  say nothing about real falls. Real-world accuracy is unmeasured until the app has run on
+  real watches worn by real people**, and the maker's own fall detection should be on as a
+  second layer (`docs/DEVICE_SETUP.md`).
+- Tests: 8 watch JVM tests added (32 in all); 2 backend unit tests; 4 database-backed tests
+  (the watch learns the settings and a carer can turn detection off, which refuses a start;
+  a countdown asks first and I'm OK resolves it; Help or silence opens the SOS with location
+  and the server's own deadline promotes it; a watch offline at the countdown still opens a
+  fall alert). Dashboard: fall settings on the Settings tab; both apps name the alert
+  "Suspected fall".
+- `docs/DEVICE_SETUP.md`: pairing, permissions, IRA CARE's detector, and how to turn on the
+  watch maker's own fall detection on Galaxy Watch, Pixel Watch and Apple Watch.
 - Negative control: see the pull request description.
 
 ## Deferred

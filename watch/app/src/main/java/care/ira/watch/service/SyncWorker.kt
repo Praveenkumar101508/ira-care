@@ -44,7 +44,16 @@ enum class SyncResult { Done, NothingToSend, Offline, Unauthorised }
 
 /** Drains the queue into `/devices/me/report`, batch by batch. */
 class Syncer(private val deps: CareDependencies) {
+    /** The carer may have changed the fall settings (or turned detection off). */
+    private fun refreshSettings() {
+        when (val me = deps.api.me()) {
+            is ApiOutcome.Ok -> deps.fallSettings = me.value.fall
+            else -> {}   // keep the last known settings; the defaults until the first answer
+        }
+    }
+
     fun syncOnce(): SyncResult {
+        refreshSettings()
         var sentAnything = false
         while (true) {
             val batch = deps.queue.peek(500)

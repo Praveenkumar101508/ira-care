@@ -4,12 +4,13 @@
 fall detection, a model-driven conversation, a hardware-free demo, onboarding and billing,
 deployment and store readiness, compliance drafts and a final readiness proof.
 
-**Open branch:** `feat/home-and-location` (round 2, phase 2). Phase 1 merged as pull request 10. Each round-2 phase starts
+**Open branch:** `feat/fall-detection` (round 2, phase 3). Phases 1 and 2 merged as pull requests 10 and 11. Each round-2 phase starts
 from the latest `main` after the previous one has merged; no stacked branches.
 
-**Exact next step:** finish `feat/home-and-location` (home record, sealed access notes, the
-one-off location with the alert, SOS messages with address and whereabouts, both apps' alert
-screens), open its pull request, merge when green, then start `feat/fall-detection`.
+**Exact next step:** finish `feat/fall-detection` (the watch's accelerometer detector with
+synthetic-signal tests, the countdown that asks first, the server's `suspected_fall` alert
+with location, per-person settings with an off switch, `docs/DEVICE_SETUP.md`), open its
+pull request, merge when green, then start `feat/ira-conversation`.
 
 To continue in a new session: read `docs/progress/STATUS.md`, this file, `docs/BUILD_RULES.md`
 and `docs/DECISIONS.md`, then carry on with the same rules.
