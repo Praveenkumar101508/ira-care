@@ -249,6 +249,7 @@ _SETTINGS_FIELDS = (
     "sync_alert_minutes", "missed_checkins_before_escalation", "ack_wait_minutes",
     "ask_first_wait_s", "heart_rate_confirm_readings", "heart_rate_confirm_seconds",
     "night_off_wrist_minutes", "usual_wake_time", "wake_grace_minutes",
+    "fall_detection_enabled", "fall_countdown_s", "fall_impact_g", "fall_still_seconds", "fall_still_threshold_g",
 )
 
 
@@ -488,16 +489,29 @@ async def open_alert(conn, person_id: uuid.UUID, *, kind: str, severity: str,
 
 
 async def record_help_request(principal: Principal, device: dict, body: dict) -> dict:
-    from . import askfirst, location
+    from . import askfirst, falls, location
     loc = location.from_body(body.get("location"))
+    now = _now()
     async with workspace_connection(principal) as conn:
-        promoted = await askfirst.promote_on_help(conn, device["person_id"], _now())
+        # A fall countdown that ended, or Help during one, opens the fall alert itself.
+        fall = await falls.confirmed(conn, device, body, now)
+        if fall is not None:
+            return fall
+        promoted = await askfirst.promote_on_help(conn, device["person_id"], now)
         if promoted is not None:
             return await attach_location(conn, promoted["id"], loc) or _alert(promoted)
-        alert = await open_alert(
-            conn, device["person_id"], kind="help_requested", severity="sos",
-            details={"via": body.get("via", "button"), "note": body.get("note", ""),
-                     "device_id": str(device["id"])})
+        if body.get("via") == "fall":
+            # The watch could not reach us when its countdown started: the SOS still says what it was.
+            alert = await open_alert(
+                conn, device["person_id"], kind=falls.KIND, severity="sos",
+                details={"via": "fall", "summary": falls.summary(None, None).replace(
+                    " The person is being asked if they are OK.", " Nobody answered the watch's question."),
+                         "outcome": "no_answer", "device_id": str(device["id"])})
+        else:
+            alert = await open_alert(
+                conn, device["person_id"], kind="help_requested", severity="sos",
+                details={"via": body.get("via", "button"), "note": body.get("note", ""),
+                         "device_id": str(device["id"])})
         return await attach_location(conn, alert["id"], loc) or alert
 
 

@@ -339,3 +339,32 @@ address), the coordinates and map link when there is a fix, and a link to the al
 itself do not broadcast the address. The family app and the dashboard show the same
 sentence, the emergency information, a map link, and a button that opens the access notes
 and says that the view has been logged.
+
+## D-031 A suspected fall is a heuristic on the wrist, and the server keeps the deadline (round 2, phase 3)
+
+The watch runs a fall detector on its accelerometer: a sample at or above the impact
+threshold, then no movement above the stillness threshold for the still window (defaults
+2.5 g, 0.3 g, 20 seconds). A twitch is tolerated; getting up clears it; when the watch knows
+it is off the wrist nothing is detected. The thresholds, the countdown and the on/off switch
+are the carer's per-person settings, fetched by the watch after every sync, and none of them
+is a medical claim. The detector has been tested on synthetic signals only; `STATUS.md`
+records the counts and states plainly that accuracy on real people is unmeasured until real
+devices are used. The watch makers' own fall detection should be turned on as well
+(`docs/DEVICE_SETUP.md`).
+
+A suspected fall asks first: the watch vibrates, says "It looks like you may have fallen.
+Are you OK?", shows the two big buttons and counts down (30 seconds by default), and tells
+the server at once. The server opens an `asking` alert of kind `suspected_fall` with no
+check-in (the watch is asking) and a deadline of the countdown plus ten seconds, so a watch
+that dies mid-countdown still escalates. "I'm OK" resolves it; Help, or the countdown
+ending, sends a help request marked `fall` with the one-off location, which opens the same
+alert. A watch that could not reach the server when its countdown started still opens a
+suspected-fall SOS at the end. With detection turned off the server refuses a start, so a
+watch with stale settings cannot open fall alerts.
+
+## D-032 The accelerometer signal never leaves the watch (round 2, phase 3)
+
+Only the detector reads the accelerometer, and nothing from it is stored or sent. When a
+fall is suspected the server learns one peak value in g and the still duration, which appear
+in the alert's summary ("a hard impact (3.4 g) followed by 20 seconds without movement")
+so responders know what was observed, and nothing else.

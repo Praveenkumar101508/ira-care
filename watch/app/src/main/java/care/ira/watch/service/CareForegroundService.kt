@@ -16,8 +16,13 @@ import care.ira.watch.CareApplication
 import care.ira.watch.R
 import care.ira.watch.api.ApiOutcome
 import care.ira.watch.api.CheckinAnswer
+import care.ira.watch.api.FallStart
 import care.ira.watch.api.HelpRequest
 import care.ira.watch.checkin.CheckinController
+import care.ira.watch.checkin.FallCountdown
+import care.ira.watch.sensors.FallDetector
+import care.ira.watch.sensors.FallEvent
+import care.ira.watch.sensors.FallSettings
 import care.ira.watch.sensors.ReadingKinds
 import care.ira.watch.ui.MainActivity
 import kotlinx.coroutines.Dispatchers
@@ -45,6 +50,7 @@ import kotlinx.coroutines.withContext
 class CareForegroundService : LifecycleService() {
     private lateinit var deps: CareDependencies
     private lateinit var controller: CheckinController
+    private lateinit var fallCountdown: FallCountdown
     private var loop: Job? = null
     private var listening: Job? = null
 
@@ -52,16 +58,24 @@ class CareForegroundService : LifecycleService() {
         super.onCreate()
         deps = CareDependencies.get(this)
         controller = CheckinController(deps.clock)
+        fallCountdown = FallCountdown(deps.clock)
         startForeground(NOTIFICATION_ID, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
         lifecycleScope.launch(Dispatchers.IO) { collectReadings() }
+        lifecycleScope.launch(Dispatchers.IO) { watchForFalls() }
         loop = lifecycleScope.launch(Dispatchers.IO) { mainLoop() }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         when (intent?.action) {
-            ACTION_OK -> lifecycleScope.launch(Dispatchers.IO) { perform(controller.answered("", "button")) }
-            ACTION_HELP -> lifecycleScope.launch(Dispatchers.IO) { perform(controller.helpPressed()) }
+            ACTION_OK -> lifecycleScope.launch(Dispatchers.IO) {
+                if (fallCountdown.state is FallCountdown.State.Counting) performFall(fallCountdown.okPressed())
+                else perform(controller.answered("", "button"))
+            }
+            ACTION_HELP -> lifecycleScope.launch(Dispatchers.IO) {
+                if (fallCountdown.state is FallCountdown.State.Counting) performFall(fallCountdown.helpPressed())
+                else perform(controller.helpPressed())
+            }
             ACTION_SYNC -> lifecycleScope.launch(Dispatchers.IO) { syncNow() }
         }
         return START_STICKY
@@ -75,11 +89,55 @@ class CareForegroundService : LifecycleService() {
         }.collect()
     }
 
+    /**
+     * The fall detector runs on the accelerometer with the carer's thresholds.
+     * Off when the carer turned it off. A suspected fall starts the countdown:
+     * vibrate, ask, big buttons; the server is told at once and keeps its own
+     * deadline.
+     */
+    private suspend fun watchForFalls() {
+        var detector = FallDetector(fallSettings())
+        var configured = fallSettings()
+        deps.accelerometer.samples().onEach { sample ->
+            val wanted = fallSettings()
+            if (wanted != configured) { configured = wanted; detector = FallDetector(wanted) }
+            if (!deps.fallSettings.enabled) return@onEach
+            detector.onWrist = deps.lastOnWrist
+            when (val event = detector.feed(sample)) {
+                is FallEvent.SuspectedFall ->
+                    performFall(fallCountdown.suspectedFall(event.peakG, event.stillForSeconds, deps.fallSettings.countdownS))
+                else -> {}
+            }
+        }.collect()
+    }
+
+    private fun fallSettings(): FallSettings = deps.fallSettings.let {
+        FallSettings(impactG = it.impactG, stillSeconds = it.stillSeconds, stillThresholdG = it.stillThresholdG)
+    }
+
+    private suspend fun performFall(actions: List<FallCountdown.Action>) {
+        for (action in actions) {
+            when (action) {
+                FallCountdown.Action.Vibrate -> vibrate()
+                is FallCountdown.Action.Speak -> deps.speaker.speak(action.text, louder = true)
+                is FallCountdown.Action.ReportFallStarted ->
+                    deps.api.fallStarted(FallStart(action.peakG, action.stillSeconds))
+                FallCountdown.Action.ReportFallOk -> {
+                    deps.api.fallOk()
+                    deps.speaker.speak("Good. I will leave you be.", louder = false)
+                }
+                FallCountdown.Action.RequestHelp -> perform(listOf(CheckinController.Action.RequestHelp("fall")))
+            }
+        }
+        deps.status.value = deps.status.value.copy(fallCountdown = fallCountdown.secondsLeft)
+    }
+
     private suspend fun mainLoop() {
         var lastPoll = 0L
         while (currentCoroutineIsActive()) {
             if (!deps.pairing.isPaired) { delay(POLL_MS); continue }
             val now = deps.clock.nowMillis()
+            if (fallCountdown.state is FallCountdown.State.Counting) performFall(fallCountdown.tick())
             perform(controller.tick())
             if (controller.openCheckinId() == null && now - lastPoll >= POLL_MS) {
                 lastPoll = now

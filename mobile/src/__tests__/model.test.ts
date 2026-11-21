@@ -18,7 +18,8 @@ test('alerts are sorted most serious and unacknowledged first', () => {
 test('alert words describe what was observed', () => {
   expect(alertTitle({ ...base, kind: 'no_answer_no_movement' })).toBe('No answer and no movement');
   expect(alertTitle({ ...base, kind: 'something_new' })).toBe('something new');
-  for (const kind of ['help_requested', 'heart_rate_outside_range', 'missed_checkins']) {
+  expect(alertTitle({ ...base, kind: 'suspected_fall' })).toBe('Suspected fall');
+  for (const kind of ['help_requested', 'heart_rate_outside_range', 'missed_checkins', 'suspected_fall']) {
     expect(alertTitle({ ...base, kind }).toLowerCase()).not.toMatch(/diagnos|cardiac|stroke/);
   }
 });

@@ -531,6 +531,11 @@
    "sha256": "6c78ad857cde05f265ec7d771067754a05b82d6c33733524a1941efbf4f188ff",
    "status": "applied"
   },
+  "103_care_fall_detection.sql": {
+   "migration_number": 103,
+   "sha256": "c0f906406114bc315ce4a1b9369fb8eb451d5fb741fa1bbf70ee2c1c03b1ccfe",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",

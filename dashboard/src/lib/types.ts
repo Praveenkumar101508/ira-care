@@ -46,6 +46,7 @@ export interface SafetySettings {
   battery_alert_percent: number; sync_alert_minutes: number; missed_checkins_before_escalation: number; ack_wait_minutes: number;
   ask_first_wait_s: number; heart_rate_confirm_readings: number; heart_rate_confirm_seconds: number;
   night_off_wrist_minutes: number; usual_wake_time: string; wake_grace_minutes: number;
+  fall_detection_enabled: boolean; fall_countdown_s: number; fall_impact_g: number; fall_still_seconds: number; fall_still_threshold_g: number;
 }
 export interface OpsStatus { monitoring_paused: boolean; stale_after_s: number; checked_at: string; jobs: Record<string, { last_run_at: string | null; age_s: number | null; stale: boolean }> }
 export interface PersonStatus { person: Person; devices: Device[]; latest_readings: Reading[]; open_alerts: Alert[]; last_checkin: Checkin | null }

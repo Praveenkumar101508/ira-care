@@ -115,6 +115,12 @@ class SafetySettings(BaseModel):
     sensor_check_after_s: int = Field(120, ge=10, le=900)
     heart_rate_min: Optional[int] = Field(None, ge=20, le=250)
     heart_rate_max: Optional[int] = Field(None, ge=20, le=250)
+    # Suspected falls: on by default, a carer can turn it off; thresholds, not medical claims.
+    fall_detection_enabled: bool = True
+    fall_countdown_s: int = Field(30, ge=10, le=120)
+    fall_impact_g: float = Field(2.5, ge=1.5, le=8.0)
+    fall_still_seconds: int = Field(20, ge=5, le=120)
+    fall_still_threshold_g: float = Field(0.3, ge=0.05, le=1.0)
     no_movement_window_s: int = Field(180, ge=30, le=3600)
     movement_floor_steps: int = Field(1, ge=0, le=10000)
     off_wrist_alert_minutes: int = Field(30, ge=1, le=1440)
@@ -201,6 +207,12 @@ class HelpRequest(BaseModel):
     via: str = Field("button", pattern=r"^(button|voice|fall)$")
     note: str = Field("", max_length=400)
     location: Optional[LocationFix] = None
+
+
+class FallStart(BaseModel):
+    """The watch's fall detector fired and its countdown has started."""
+    peak_g: Optional[float] = Field(None, ge=0, le=50)
+    still_seconds: Optional[int] = Field(None, ge=0, le=600)
 
 
 class Acknowledge(BaseModel):
