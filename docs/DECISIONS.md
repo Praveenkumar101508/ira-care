@@ -138,3 +138,33 @@ Answers are read by rules too (yes/no for meals and medication; "mentioned pain"
 "sounded low", "asked for help" as plain signals), and a yes/no about a dose records a
 medication event for the nearest due time. A short note of each summary is written to the
 memory store, best effort.
+
+## D-014 Alerts describe, the carer's settings decide (phase 4)
+
+Every rule in `care/monitoring.py` compares a reading or a miss with the person's own
+settings and writes what it saw: "no answer and no movement for 3 minutes (movement count
+0, floor 1)", "last heart-rate reading 150 is outside the range set for this person (45 to
+130)". No reading is judged without a setting: an unset heart-rate range is no rule, and a
+missing movement reading is unknown, never zero. A test pins that no alert text contains
+a diagnosis word.
+
+## D-015 Tiers, waits and the tier-3 fallback (phase 4)
+
+`sos` and `urgent` alerts escalate every `ack_wait_minutes` (5 by default): tier 1 is the
+circle's tier-1 members (family, carer, clinician) by push, text and call; tier 2 the
+care organisation, plus a dashboard banner; tier 3 a monitoring-centre adapter when one
+is configured, otherwise the alert is marked "show call 999 now" for the family app and
+tiers 1 and 2 are told again, and again every wait, until somebody acknowledges or
+resolves. `notice` alerts (watch off the wrist by day, low battery, permission off, no
+sync) are told to tier 1 once, by push and text only, and wait to be resolved. One
+unresolved alert per kind per person. **The system never dials the emergency services**:
+`care/providers.py` refuses the well-known numbers before any provider is reached.
+
+## D-016 Providers: log-only by default, a paid adapter only with keys (phase 4)
+
+Text messages and calls go through `care/providers.py`. The default provider records every
+attempt as `logged` and sends nothing, so the whole chain is proved in CI at no cost. A
+Twilio adapter exists and is constructed only when its three settings
+(`IRA_CARE_TWILIO_ACCOUNT_SID`, `IRA_CARE_TWILIO_AUTH_TOKEN`, `IRA_CARE_TWILIO_FROM`) are all
+present; nothing in the repository signs up for or buys a service. No monitoring-centre
+adapter exists yet: a contract comes first. Push goes through the existing notifier.

@@ -28,6 +28,17 @@ def _d(row) -> Optional[dict]:
     return dict(row) if row is not None else None
 
 
+def _alert(row) -> Optional[dict]:
+    """An alert row with its JSON details decoded (asyncpg hands jsonb back as text)."""
+    d = _d(row)
+    if d is not None and isinstance(d.get("details"), str):
+        try:
+            d["details"] = json.loads(d["details"])
+        except ValueError:
+            d["details"] = {}
+    return d
+
+
 def _ds(rows) -> list[dict]:
     return [dict(r) for r in rows]
 
@@ -380,7 +391,7 @@ async def fetch_checkins(conn, person_id: uuid.UUID, *, limit: int, with_answers
 
 async def open_alert(conn, person_id: uuid.UUID, *, kind: str, severity: str,
                      details: Optional[dict] = None, checkin_id: Optional[uuid.UUID] = None) -> dict:
-    return dict(await conn.fetchrow(
+    return _alert(await conn.fetchrow(
         """
         INSERT INTO care_alerts (person_id, checkin_id, kind, severity, status, details, next_action_at)
         VALUES ($1, $2, $3, $4, 'open', $5::jsonb, NOW())
@@ -399,18 +410,18 @@ async def record_help_request(principal: Principal, device: dict, body: dict) ->
 async def list_alerts(principal: Principal, *, person_id: Optional[uuid.UUID], open_only: bool,
                       limit: int) -> list[dict]:
     async with workspace_connection(principal) as conn:
-        return _ds(await conn.fetch(
+        return [_alert(r) for r in await conn.fetch(
             """
             SELECT * FROM care_alerts
              WHERE ($1::uuid IS NULL OR person_id = $1)
                AND (NOT $2 OR status IN ('open', 'escalating'))
              ORDER BY opened_at DESC LIMIT $3
-            """, person_id, open_only, limit))
+            """, person_id, open_only, limit)]
 
 
 async def get_alert(principal: Principal, alert_id: uuid.UUID) -> Optional[dict]:
     async with workspace_connection(principal) as conn:
-        alert = _d(await conn.fetchrow("SELECT * FROM care_alerts WHERE id = $1", alert_id))
+        alert = _alert(await conn.fetchrow("SELECT * FROM care_alerts WHERE id = $1", alert_id))
         if alert is None:
             return None
         alert["attempts"] = _ds(await conn.fetch(
