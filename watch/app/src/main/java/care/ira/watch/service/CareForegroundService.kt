@@ -125,9 +125,11 @@ class CareForegroundService : LifecycleService() {
                     syncNow()   // the server's sensor check needs the latest readings
                 }
                 is CheckinController.Action.RequestHelp -> {
-                    deps.api.help(HelpRequest(via = action.via))
-                    deps.status.value = deps.status.value.copy(helpSent = true)
+                    // Tell the person first; the fix can take a few seconds and must not delay that.
                     deps.speaker.speak("I am getting help for you now. Stay where you are.", louder = true)
+                    val fix = deps.location.currentFix()   // null when unavailable: the server says so, never guesses
+                    deps.api.help(HelpRequest(via = action.via, location = fix))
+                    deps.status.value = deps.status.value.copy(helpSent = true)
                 }
                 CheckinController.Action.Nothing -> {}
             }

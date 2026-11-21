@@ -12,7 +12,7 @@ from typing import Optional
 from core.identity.principal import Principal
 
 RESOURCE_KINDS = frozenset({
-    "vitals", "transcript", "checkins", "alerts", "medication", "report", "person", "consent",
+    "vitals", "transcript", "checkins", "alerts", "medication", "report", "person", "consent", "access_notes",
 })
 
 

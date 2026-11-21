@@ -8,11 +8,11 @@ import { Sparkline } from '@/components/Sparkline';
 import { canManage, useApi } from '@/components/useApi';
 import { ApiError, type Reading } from '@/lib/api';
 import type {
-  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, PersonStatus, Report, Routine, SafetySettings, SearchResponse, Transcript,
+  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, Medication, MedicationEvent, Person, PersonStatus, Report, Routine, SafetySettings, SearchResponse, Transcript,
 } from '@/lib/types';
 import { byDay, checkinCounts, series, sortAlerts, timeAgo } from '@/lib/view';
 
-const TABS = ['timeline', 'readings', 'routines', 'medication', 'circle', 'settings', 'consent', 'conversation', 'reports', 'search', 'access'] as const;
+const TABS = ['timeline', 'readings', 'routines', 'medication', 'circle', 'home', 'settings', 'consent', 'conversation', 'reports', 'search', 'access'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function PersonPage() {
@@ -85,7 +85,8 @@ export default function PersonPage() {
       {tab === 'timeline' && (
         <>
           {sortAlerts(alerts).filter((a) => a.status !== 'resolved').map((a) => (
-            <AlertCard key={a.id} alert={a} personName={name} busy={busy}
+            <AlertCard key={a.id} alert={a} personName={name} person={person} busy={busy}
+              onAccessNotes={(x) => api!.accessNotes(x.id)}
               onAcknowledge={(x) => { void act(() => api!.acknowledge(x.id, 'from the dashboard')); }}
               onResolve={(x) => { const r = window.prompt('What happened?', 'Checked; all well.'); if (r) void act(() => api!.resolve(x.id, r)); }} />
           ))}
@@ -157,6 +158,8 @@ export default function PersonPage() {
           ) : null}
         </div>
       )}
+
+      {tab === 'home' ? <HomeForm person={person} manage={manage} onSave={(b) => act(() => api!.updateHome(id, b))} /> : null}
 
       {tab === 'settings' && settings ? <SettingsForm settings={settings} manage={manage} onSave={(s) => act(() => api!.putSettings(id, s))} /> : null}
 
@@ -267,6 +270,35 @@ function AddMember({ onAdd }: { onAdd: (b: { display_name: string; role: string;
       <select value={role} onChange={(e) => setRole(e.target.value)}>{['family', 'carer', 'clinician', 'care_organisation'].map((k) => <option key={k} value={k}>{k.replace('_', ' ')}</option>)}</select>
       <input placeholder="+44..." value={phone} onChange={(e) => setPhone(e.target.value)} />
       <button type="submit">Add to circle (tier {tier})</button>
+    </form>
+  );
+}
+
+function HomeForm({ person, manage, onSave }: { person: Person; manage: boolean; onSave: (b: HomeUpdate) => Promise<void> }) {
+  const [b, setB] = useState<HomeUpdate>({
+    home_address: person.home_address, home_latitude: person.home_latitude, home_longitude: person.home_longitude,
+    home_radius_m: person.home_radius_m, emergency_summary: person.emergency_summary,
+  });
+  const [notes, setNotes] = useState('');
+  const num = (v: string) => (v.trim() === '' ? null : Number(v));
+  return (
+    <form className="card" onSubmit={(e) => { e.preventDefault(); void onSave(notes ? { ...b, access_notes: notes } : b).then(() => setNotes('')); }}>
+      <p className="muted">Where responders go, and what they need to know on arrival. Free text you control; IRA CARE records no conditions of its own.</p>
+      <table><tbody>
+        <tr><td>Home address</td><td><input value={b.home_address ?? ''} disabled={!manage} onChange={(e) => setB({ ...b, home_address: e.target.value })} style={{ width: 360 }} /></td></tr>
+        <tr><td>Home coordinates (latitude, longitude) and radius (m)</td><td>
+          <input value={b.home_latitude ?? ''} disabled={!manage} placeholder="51.50000" onChange={(e) => setB({ ...b, home_latitude: num(e.target.value) })} style={{ width: 110 }} />{' '}
+          <input value={b.home_longitude ?? ''} disabled={!manage} placeholder="-0.12000" onChange={(e) => setB({ ...b, home_longitude: num(e.target.value) })} style={{ width: 110 }} />{' '}
+          <input type="number" value={b.home_radius_m ?? 150} disabled={!manage} min={20} max={5000} onChange={(e) => setB({ ...b, home_radius_m: Number(e.target.value) })} style={{ width: 80 }} />
+          <span className="muted"> · used only to say &quot;at home&quot; or &quot;away&quot; on an SOS</span>
+        </td></tr>
+        <tr><td>Emergency information (shown with every SOS)</td><td><textarea value={b.emergency_summary ?? ''} disabled={!manage} rows={3} onChange={(e) => setB({ ...b, emergency_summary: e.target.value })} style={{ width: 360 }} /></td></tr>
+        <tr><td>Access notes (key safe, which door, pets)</td><td>
+          <textarea value={notes} disabled={!manage} rows={3} placeholder={person.has_access_notes ? 'Notes are stored (encrypted). Type here to replace them.' : 'None stored yet.'} onChange={(e) => setNotes(e.target.value)} style={{ width: 360 }} />
+          <div className="muted">Encrypted at rest. Shown only to tier 1 and 2 recipients while an alert is open; every view is logged.</div>
+        </td></tr>
+      </tbody></table>
+      {manage ? <button type="submit">Save</button> : null}
     </form>
   );
 }

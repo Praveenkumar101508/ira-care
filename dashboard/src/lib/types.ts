@@ -1,6 +1,15 @@
 export interface Workspace { id: string; name: string; slug: string; role: string; is_default: boolean; status: string }
 export interface WorkspaceList { workspaces: Workspace[]; count: number; tenant_id: string; single: boolean; edition: string }
-export interface Person { id: string; display_name: string; preferred_name: string; timezone: string; status: string; notes: string }
+export interface Person {
+  id: string; display_name: string; preferred_name: string; timezone: string; status: string; notes: string;
+  home_address: string; home_latitude: number | null; home_longitude: number | null; home_radius_m: number;
+  emergency_summary: string; has_access_notes: boolean;
+}
+export interface HomeUpdate {
+  home_address?: string; home_latitude?: number | null; home_longitude?: number | null; home_radius_m?: number;
+  emergency_summary?: string; access_notes?: string;
+}
+export interface AccessNotes { allowed: boolean; access_notes: string; emergency_summary: string; home_address: string }
 export interface Reading { kind: string; value: number; unit: string; recorded_at: string }
 export interface Device {
   id: string; platform: string; status: string; battery_percent: number | null; on_wrist: boolean | null;
@@ -11,6 +20,8 @@ export interface Alert {
   status: 'open' | 'escalating' | 'acknowledged' | 'resolved' | 'cancelled'; opened_at: string;
   current_tier: number; acknowledged_at: string | null; resolved_at: string | null; details: Record<string, unknown>;
   attempts?: Attempt[]; acknowledgements?: Acknowledgement[];
+  location_latitude?: number | null; location_longitude?: number | null; location_accuracy_m?: number | null;
+  location_at?: string | null; at_home?: boolean | null;
 }
 export interface Attempt { id: string; tier: number; channel: string; outcome: string; detail: string; attempted_at: string }
 export interface Acknowledgement { id: string; kind: string; note: string; acknowledged_at: string }

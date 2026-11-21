@@ -20,6 +20,8 @@ ADMIN_DSN = os.getenv("IRA_TEST_ADMIN_DSN", "")
 
 for _k in ("IRA_SECRET_KEY", "IRA_ADMIN_PASSWORD", "POSTGRES_PASSWORD", "REDIS_PASSWORD", "VLLM_API_KEY"):
     os.environ.setdefault(_k, "test-placeholder")
+# Access notes are sealed under the connector encryption key: a fixed TEST key, 32 bytes.
+os.environ.setdefault("IRA_CONNECTOR_ENCRYPTION_KEY", "dGVzdC1rZXktZm9yLWlyYS1jYXJlLXRlc3RzLTAwMDE=")
 
 _NAMESPACE = uuid.UUID("6f3a1c2e-0b4d-5e8a-9c17-2d4b8e6f0a35")
 

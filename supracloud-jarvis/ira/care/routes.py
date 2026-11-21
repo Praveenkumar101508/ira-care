@@ -52,7 +52,17 @@ async def require_device(
 @router.post("/people", status_code=201)
 async def create_person(body: schemas.PersonCreate, p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
+    _notes_need_a_key(body.access_notes)
     return await repo.create_person(p, body.model_dump())
+
+
+def _notes_need_a_key(access_notes) -> None:
+    """Access notes are sealed at rest; without the key they cannot be stored, and
+    we say so rather than store them in the clear."""
+    from . import accessnotes
+    if access_notes and not accessnotes.configured():
+        raise HTTPException(status_code=503, detail="Access notes cannot be stored: the encryption key "
+                            "(IRA_CONNECTOR_ENCRYPTION_KEY) is not configured on the server.")
 
 
 @router.get("/people")
@@ -75,6 +85,7 @@ async def get_person(person_id: uuid.UUID, p: Principal = Depends(require_worksp
 async def update_person(person_id: uuid.UUID, body: schemas.PersonUpdate,
                         p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
+    _notes_need_a_key(body.access_notes)
     person = await repo.update_person(p, person_id, body.model_dump(exclude_unset=True))
     if person is None:
         raise _not_found("Person not found.")
@@ -334,6 +345,20 @@ async def get_alert(alert_id: uuid.UUID, p: Principal = Depends(require_workspac
     if alert is None:
         raise _not_found("Alert not found.")
     return alert
+
+
+@router.get("/alerts/{alert_id}/access-notes")
+async def alert_access_notes(alert_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    """Key safe, door, pets: for tier 1 and 2 recipients while the alert is open.
+    Every opening is written to the access log."""
+    ensure_can_read(p)
+    out = await repo.open_access_notes(p, alert_id)
+    if out is None:
+        raise _not_found("Alert not found.")
+    if not out["allowed"]:
+        raise HTTPException(status_code=403, detail="Access notes are shown only to tier 1 and tier 2 "
+                            "recipients while an alert is open.")
+    return out
 
 
 @router.post("/alerts/{alert_id}/acknowledge")

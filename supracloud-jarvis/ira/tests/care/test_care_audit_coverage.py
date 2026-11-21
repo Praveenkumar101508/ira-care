@@ -17,7 +17,7 @@ AUDITED_FRAGMENTS = ("/vitals", "/checkins", "/transcripts", "/medications", "/m
                      "/reports", "/status", "/history/search")
 
 #: Handlers whose audit row is written by the module they call.
-DELEGATED = {"search_history": "history.search"}
+DELEGATED = {"search_history": "history.search", "alert_access_notes": "repo.open_access_notes"}
 
 
 def _routes():

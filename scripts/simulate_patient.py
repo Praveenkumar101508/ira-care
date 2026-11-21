@@ -41,6 +41,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "supracloud-jarvis"
 
 for _k in ("IRA_SECRET_KEY", "IRA_ADMIN_PASSWORD", "POSTGRES_PASSWORD", "REDIS_PASSWORD", "VLLM_API_KEY"):
     os.environ.setdefault(_k, "simulator-placeholder")
+# Access notes are sealed at rest; the simulator uses a throwaway key unless one is configured.
+os.environ.setdefault("IRA_CONNECTOR_ENCRYPTION_KEY", "c2ltdWxhdG9yLW9ubHkta2V5LW5vdC1mb3ItcHJvZDE=")
 
 UTC = dt.timezone.utc
 _NAMESPACE = uuid.UUID("6f3a1c2e-0b4d-5e8a-9c17-2d4b8e6f0a35")
@@ -128,7 +130,7 @@ async def setup_person(fam: Family, *, heart_rate_range=(45, 130)) -> None:
     from care import repository as repo
     p = admin_principal(fam)
     person = await repo.create_person(p, {"display_name": "Simulated Person", "preferred_name": "Sim",
-                                          "timezone": "UTC"})
+                                          "timezone": "UTC", "home_address": "1 Example Street, Testtown, TE5 7ST", "home_latitude": 51.5, "home_longitude": -0.12, "emergency_summary": "Hard of hearing: speak clearly and face them.", "access_notes": "Key safe left of the front door. Small friendly dog called Biscuit."})
     fam.person_id = person["id"]
     member = await repo.add_member(p, person["id"], {
         "display_name": "Family Member (simulated)", "role": "family", "tier": 1, "priority": 1,
@@ -346,11 +348,32 @@ async def scenario_no_movement_by_wake_time(fam: Family, timeline: Timeline, *, 
     return {"opened": out.opened, "attempts": out.attempts}
 
 
+async def scenario_help_away_from_home(fam: Family, timeline: Timeline, *, provider=None) -> dict:
+    """The Help button pressed 2 km from home: the watch sends its location
+    once, the SOS says AWAY FROM HOME with the address and a map link, and the
+    family member on the way can open the access notes (logged)."""
+    from care import escalation, repository as repo
+    from care.providers import LogOnlyProvider
+    provider = provider or LogOnlyProvider()
+    jp = _device_principal(fam)
+    now = dt.datetime(2026, 11, 24, 11, 0, tzinfo=UTC)
+    alert = await repo.record_help_request(jp, fam.device, {"via": "button", "location": {
+        "latitude": 51.518, "longitude": -0.12, "accuracy_m": 12}})
+    timeline.add(now, f"help pressed; watch sent one location fix; at_home={alert['at_home']}")
+    out = await escalation.run_workspace(jp, now, provider=provider)
+    texts = [t for ch, _to, t in provider.log if ch == "sms"]
+    timeline.add(now, f"tier 1 told ({out.attempts} attempts). Text: {texts[0] if texts else '(no text: no phone)'}")
+    notes = await repo.open_access_notes(member_principal(fam), alert["id"])
+    timeline.add(now + dt.timedelta(minutes=1), f"family member opened the access notes (allowed={notes['allowed']}): {notes.get('access_notes', '')}")
+    return alert
+
+
 SCENARIOS = {
     "stops-answering": None,  # the original scenario, run_scenario
     "night-heart-rate-no-answer": scenario_night_heart_rate_no_answer,
     "heart-rate-answered-ok": scenario_heart_rate_answered_ok,
     "no-movement-by-wake-time": scenario_no_movement_by_wake_time,
+    "help-away-from-home": scenario_help_away_from_home,
 }
 
 

@@ -21,8 +21,8 @@ Round 1 is merged to `main`. Round 2:
 
 | # | Phase | Branch | State |
 | --- | --- | --- | --- |
-| R2-1 | continuous-monitoring | `feat/continuous-monitoring` | Built and tested locally; pull request pending |
-| R2-2 | home-and-location | `feat/home-and-location` | Not started |
+| R2-1 | continuous-monitoring | `feat/continuous-monitoring` | Merged (pull request 10) |
+| R2-2 | home-and-location | `feat/home-and-location` | Built and tested locally; pull request pending |
 | R2-3 | fall-detection | `feat/fall-detection` | Not started |
 | R2-4 | ira-conversation | `feat/ira-conversation` | Not started |
 | R2-5 | demo-mode | `feat/demo-mode` | Not started |
@@ -171,6 +171,31 @@ Local measurements before the first phase, on the foundation as received:
   time); all four ran locally.
 - Negative control: see the pull request description and D-024 to D-027.
 
+## Round 2, phase 2 (home-and-location), measured locally
+
+- Migration `102_care_home_and_location.sql`: home address, coordinates and radius,
+  emergency summary and sealed access notes on `care_people`; the one-off location and
+  `at_home` on `care_alerts`; `access_notes` as an access-log resource kind. Rollback file,
+  hash recorded, manifest updated (encryption now required for `care_people`).
+- `care/location.py` (distance, at home, map link, the whereabouts sentence, the alert
+  link), `care/accessnotes.py` (seal and open through `core/connectors/secrets`, who may
+  view). The help route accepts an optional location; the escalation text carries address,
+  whereabouts and alert link. `GET /care/alerts/{id}/access-notes`.
+- Watch: one location fix asked for when help starts (never in the background), sent with
+  the request; location permissions added. 24 JVM tests (was 23).
+- Family app: whereabouts, emergency information, map link and the access-notes button on
+  every SOS. 15 tests (was 14). Dashboard: the same on alert cards, plus a Home tab on the
+  person page. 16 tests (was 14); type check and build pass.
+- Tests: 7 unit (distance, at home with accuracy, unknown never guessed, map link, message
+  wording with and without a fix, who may view, sealing bound to the row), 5 database-backed
+  (the record never returns notes in clear and stores ciphertext; help with a location is
+  told to the circle with address and map link; at home, no location and no home
+  coordinates all stated honestly; access notes for tier 1 while open, refused to a viewer,
+  allowed to the manager, refused once resolved, three views logged, other family 404; no
+  route accepts a location outside an SOS).
+- `scripts/simulate_patient.py`: a fifth scenario, the Help button away from home.
+- Negative control: see the pull request description.
+
 ## Deferred
 
 - **8 inherited tests of removed parts** were retired on the owner's decision (DECISIONS D-007).
@@ -184,3 +209,7 @@ Local measurements before the first phase, on the foundation as received:
 - SMS and call provider keys (the adapter stays off without them).
 - A monitoring-centre contract for tier 3.
 - Regulatory advice before sale.
+- A decision on where the access-notes sealing module lives: inside `core/connectors/` (as
+  built, which the architecture ratchet allows) or as a third named exemption of that ratchet
+  for a module that owns its own secrets (which the ratchet's comments prefer). Same
+  cryptography either way; the test was not changed by the build.

@@ -7,7 +7,7 @@
     <string name="pair_hint">Type the pairing code from the family app.</string>
     <string name="pair_button">Pair</string>
     <string name="permission_title">Background sensors</string>
-    <string name="permission_hint">IRA needs to read your heart rate and movement in the background. Allow it in the next screen.</string>
+    <string name="permission_hint">IRA needs to read your heart rate and movement in the background, and your location only when you ask for help. Allow them in the next screen.</string>
     <string name="permission_button">Allow</string>
     <string name="status_listening">Listening…</string>
     <string name="status_quiet">Quiet hours</string>

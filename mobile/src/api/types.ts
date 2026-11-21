@@ -30,6 +30,11 @@ export interface Person {
   preferred_name: string;
   timezone: string;
   status: 'active' | 'paused' | 'archived';
+  home_address?: string;
+  home_latitude?: number | null;
+  home_longitude?: number | null;
+  emergency_summary?: string;
+  has_access_notes?: boolean;
 }
 
 export interface Reading {
@@ -62,7 +67,15 @@ export interface Alert {
   acknowledged_at: string | null;
   resolved_at: string | null;
   details: Record<string, unknown>;
+  location_latitude?: number | null;
+  location_longitude?: number | null;
+  location_accuracy_m?: number | null;
+  location_at?: string | null;
+  at_home?: boolean | null;
 }
+
+/** What tier 1 and 2 recipients may open while an alert is open. */
+export interface AccessNotes { allowed: boolean; access_notes: string; emergency_summary: string; home_address: string }
 
 export interface Checkin {
   id: string;

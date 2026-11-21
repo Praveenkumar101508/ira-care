@@ -1,4 +1,4 @@
-import type {
+import type { AccessNotes,
   Alert, Checkin, CircleMember, ConsentList, Device, LoginResponse, Person, PersonStatus, Report, WorkspaceList,
 } from './types';
 
@@ -59,6 +59,11 @@ export class CareClient {
 
   async acknowledge(alertId: string, note = ''): Promise<Alert> {
     return this.request<Alert>('POST', `/api/v1/care/alerts/${alertId}/acknowledge`, { kind: 'on_my_way', note });
+  }
+
+  /** Key safe, door, pets: only for tier 1 and 2 while the alert is open; the server logs every view. */
+  async accessNotes(alertId: string): Promise<AccessNotes> {
+    return this.request<AccessNotes>('GET', `/api/v1/care/alerts/${alertId}/access-notes`);
   }
 
   async resolve(alertId: string, resolution: string): Promise<Alert> {

@@ -94,8 +94,10 @@ def alert_text(person: dict, alert: dict, tier: int) -> tuple[str, str]:
         return f"IRA CARE: {name}'s watch needs attention", f"{summary} Please check the watch when you can."
     if alert["kind"] == "help_requested":
         summary = f"{name} asked for help from the watch."
-    body = (f"{summary} Please check on {name} now, and tap 'I'm on my way' in the IRA CARE app "
-            f"so everyone knows who is going.")
+    from . import location
+    body = (f"{summary} {location.whereabouts(alert, person)} Please check on {name} now, and tap "
+            f"'I'm on my way' in the IRA CARE app so everyone knows who is going. "
+            f"Alert: {location.alert_link(alert['id'])}")
     if tier >= 3:
         body += " Nobody has acknowledged this alert. If you cannot reach anyone, call 999 now."
     return f"IRA CARE alert for {name}", body

@@ -24,3 +24,24 @@ test('a notice has no acknowledge button, an acknowledged alert can only be reso
   render(<AlertCard alert={{ ...alert, status: 'acknowledged', details: {} }} personName="P" busy={false} onAcknowledge={() => {}} onResolve={() => {}} />);
   expect(screen.queryByText("I'm on my way")).toBeNull();
 });
+
+test('an SOS says where the person is and offers the access notes; a notice does neither', async () => {
+  const person = { id: 'p', display_name: 'Test Person', preferred_name: '', timezone: 'UTC', status: 'active', notes: '', home_address: '1 Example Street',
+    home_latitude: 51.5, home_longitude: -0.12, home_radius_m: 150, emergency_summary: 'Hard of hearing.', has_access_notes: true };
+  const away = { ...alert, location_latitude: 51.518, location_longitude: -0.12, location_accuracy_m: 12, at_home: false };
+  const notes = vi.fn(async () => ({ allowed: true, access_notes: 'Key safe left of the door.', emergency_summary: '', home_address: '' }));
+  render(<AlertCard alert={away} personName="Test Person" person={person} busy={false} onAcknowledge={() => {}} onResolve={() => {}} onAccessNotes={notes} />);
+  expect(screen.getByTestId('whereabouts').textContent).toContain('Away from home (±12 m). 51.51800, -0.12000. Home: 1 Example Street');
+  expect(screen.getByText('open map').getAttribute('href')).toContain('openstreetmap.org');
+  expect(screen.getByText(/Hard of hearing/)).toBeInTheDocument();
+  fireEvent.click(screen.getByText(/Show access notes/));
+  await screen.findByTestId('access-notes');
+  expect(screen.getByTestId('access-notes').textContent).toContain('Key safe left of the door.');
+  render(<AlertCard alert={{ ...alert, severity: 'notice', kind: 'low_battery', details: {} }} personName="P" person={person} busy={false} onAcknowledge={() => {}} onResolve={() => {}} onAccessNotes={notes} />);
+  expect(screen.queryAllByTestId('whereabouts')).toHaveLength(1);
+});
+
+test('no location is said plainly, never guessed', () => {
+  render(<AlertCard alert={alert} personName="P" person={null} busy={false} onAcknowledge={() => {}} onResolve={() => {}} />);
+  expect(screen.getByTestId('whereabouts').textContent).toContain('Location unavailable from the watch.');
+});
