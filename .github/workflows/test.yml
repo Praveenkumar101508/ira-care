@@ -1,0 +1,202 @@
+# IRA CARE continuous integration.
+#
+# Every pull request and every push to main runs here, on Linux runners only.
+# A pull request merges only when every job below is green.
+#
+# Jobs:
+#   backend-unit      the whole backend suite without a database (DB tests skip)
+#   backend-database  the database suites against PostgreSQL 16 + pgvector,
+#                     with the migration chain applied the sanctioned way
+#                     (provisioned roles, scripts.migrate as ira_migrator)
+#   backend-lint      ruff with the repository's own rule set (zero findings)
+#   watch             Wear OS app: Gradle build and unit tests (when watch/ exists)
+#   mobile            family app: type check and tests (when mobile/ exists)
+#   dashboard         carer dashboard: build and tests (when dashboard/ exists)
+#
+# The three client jobs are gated on a "detect" job so the workflow stays green
+# while a client has not been built yet, and starts enforcing the moment its
+# directory appears. Nothing here uses a paid runner or a paid service.
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "22"
+  HF_HUB_OFFLINE: "1"
+
+jobs:
+  detect:
+    name: Detect components
+    runs-on: ubuntu-latest
+    outputs:
+      watch: ${{ steps.probe.outputs.watch }}
+      mobile: ${{ steps.probe.outputs.mobile }}
+      dashboard: ${{ steps.probe.outputs.dashboard }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: probe
+        run: |
+          echo "watch=$([ -f watch/gradlew ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "mobile=$([ -f mobile/package.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "dashboard=$([ -f dashboard/package.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+  backend-unit:
+    name: Backend unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: supracloud-jarvis/ira
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: supracloud-jarvis/ira/requirements-test.txt
+      - name: Install test dependencies
+        run: pip install -r requirements-test.txt
+      - name: Run the suite (database tests skip here; they run in backend-database)
+        run: python -m pytest -q -p no:cacheprovider tests
+
+  backend-database:
+    name: Backend database tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: supracloud-jarvis/ira
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: iratest
+          POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iratest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      PGPASSWORD: postgres
+      # The application role: everything that asserts "the other tenant cannot
+      # see this" connects as ira_app, never as a superuser.
+      IRA_TEST_DATABASE_DSN: postgresql://ira_app:ira_app@localhost:5432/iratest
+      # The privileged role that seeds fixtures.
+      IRA_TEST_ADMIN_DSN: postgresql://postgres:postgres@localhost:5432/iratest
+      # Declares that this job must reach a database: a missing DSN is a
+      # failure here, not a skip (tests/tenancy/test_harness_is_configured.py).
+      IRA_REQUIRE_DB_HARNESS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: supracloud-jarvis/ira/requirements-test.txt
+      - name: Install test dependencies
+        run: pip install -r requirements-test.txt psycopg2-binary
+      - name: Provision database roles
+        run: |
+          psql -h localhost -U postgres -d iratest -v ON_ERROR_STOP=1 \
+            -f ../postgres/provisioning/001_database_roles.sql
+          psql -h localhost -U postgres -d iratest -v ON_ERROR_STOP=1 -c \
+            "ALTER ROLE ira_migrator PASSWORD 'ira_migrator'; ALTER ROLE ira_app PASSWORD 'ira_app'; ALTER ROLE ira_worker PASSWORD 'ira_worker';"
+      - name: Apply the migration chain as ira_migrator
+        run: python -m scripts.migrate apply --dsn postgresql://ira_migrator:ira_migrator@localhost:5432/iratest
+      - name: Applied migrations are unchanged
+        run: python -m scripts.check_migration_integrity
+      - name: Run the database suites
+        run: >
+          python -m pytest -q -ra -p no:cacheprovider
+          tests/tenancy tests/readiness tests/architecture
+          tests/callers tests/idempotency tests/runtime
+
+  backend-lint:
+    name: Backend lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: supracloud-jarvis/ira
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: pip install ruff
+      - run: ruff check .
+
+  watch:
+    name: Watch app (Wear OS)
+    needs: detect
+    if: needs.detect.outputs.watch == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: watch
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build and unit test
+        run: ./gradlew --no-daemon --console=plain assembleDebug testDebugUnitTest
+
+  mobile:
+    name: Family app (Expo)
+    needs: detect
+    if: needs.detect.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  dashboard:
+    name: Carer dashboard (Next.js)
+    needs: detect
+    if: needs.detect.outputs.dashboard == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
