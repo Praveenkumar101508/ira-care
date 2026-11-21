@@ -42,6 +42,6 @@ text-to-speech.
 
 ## Verification (last full local run, 21 November 2026)
 
-Backend unit suite: 4,780 passed, 530 skipped, 1 inherited failure that skips in CI.
-Backend database suites: 3,444 passed. Watch: 22 tests. Family app: 14 tests. Dashboard:
+Backend unit suite: 4,783 passed, 531 skipped, 1 inherited failure that skips in CI.
+Backend database suites: 3,448 passed. Watch: 22 tests. Family app: 14 tests. Dashboard:
 12 tests and a production build. CI runs all of these on every pull request.

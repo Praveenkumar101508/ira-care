@@ -21,8 +21,8 @@ runs; the CI runs of the merged pull requests show the same suites passing.
 
 | Suite | Result |
 | --- | --- |
-| Backend unit (`pytest tests`) | 4,780 passed, 530 skipped, 1 inherited failure that skips in CI (D-004) |
-| Backend database (`tests/tenancy`, `readiness`, `architecture`, `callers`, `idempotency`, `runtime`) | 3,444 passed |
+| Backend unit (`pytest tests`) | 4,783 passed, 531 skipped, 1 inherited failure that skips in CI (D-004) |
+| Backend database (`tests/tenancy`, `readiness`, `architecture`, `callers`, `idempotency`, `runtime`) | 3,448 passed |
 | Care-specific tests within those | 34 unit (rules, credentials, consent, wording, providers, reports), 70 adversarial RLS, 33 database-backed API and scenario tests, 2 static audit checks, 3 retention and load tests |
 | Watch (`./gradlew testDebugUnitTest`) | 22 passed |
 | Family app (`npm test`) | 14 passed |
