@@ -24,7 +24,7 @@ from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
-from . import audit, consent, repository as repo, schemas
+from . import audit, checkin_cycle, consent, repository as repo, schemas
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 router = APIRouter(prefix="/care", tags=["care"])
@@ -222,6 +222,56 @@ async def device_help(body: schemas.HelpRequest, d: tuple[Principal, dict] = Dep
     """The Help button or the spoken word: opens an SOS alert at once."""
     principal, device = d
     return await repo.record_help_request(principal, device, body.model_dump())
+
+
+# ── Check-ins (the watch's side) ─────────────────────────────────────────────
+
+@router.get("/devices/me/checkins/due")
+async def device_due_checkin(d: tuple[Principal, dict] = Depends(require_device)):
+    """The check-in to ask now, with its words, or `null`. Asking marks it asked."""
+    principal, device = d
+    return {"checkin": await checkin_cycle.due_checkin(principal, device)}
+
+
+@router.post("/devices/me/checkins/{checkin_id}/repeated")
+async def device_checkin_repeated(checkin_id: uuid.UUID, d: tuple[Principal, dict] = Depends(require_device)):
+    """The watch repeated the question, louder and with vibration."""
+    principal, device = d
+    row = await checkin_cycle.mark_repeated(principal, device, checkin_id)
+    if row is None:
+        raise _not_found("No open check-in with that id.")
+    return row
+
+
+@router.post("/devices/me/checkins/{checkin_id}/answer")
+async def device_checkin_answer(checkin_id: uuid.UUID, body: schemas.CheckinAnswer,
+                                d: tuple[Principal, dict] = Depends(require_device)):
+    """What the person said, or which button they pressed."""
+    principal, device = d
+    row = await checkin_cycle.record_answer(principal, device, checkin_id, body.text, via=body.via)
+    if row is None:
+        raise _not_found("No open check-in with that id.")
+    return row
+
+
+@router.post("/devices/me/checkins/{checkin_id}/missed")
+async def device_checkin_missed(checkin_id: uuid.UUID, d: tuple[Principal, dict] = Depends(require_device)):
+    """Nobody answered, after the repeat."""
+    principal, device = d
+    row = await checkin_cycle.mark_missed(principal, device, checkin_id)
+    if row is None:
+        raise _not_found("No open check-in with that id.")
+    return row
+
+
+@router.post("/people/{person_id}/checkins/ask-now", status_code=201)
+async def ask_now(person_id: uuid.UUID, body: schemas.AskNow, p: Principal = Depends(require_workspace_principal)):
+    """A family member or carer asks IRA to check in straight away."""
+    ensure_can_act(p)
+    row = await checkin_cycle.ask_now(p, person_id, kind=body.kind, custom_text=body.text)
+    if row is None:
+        raise _not_found("Person not found.")
+    return row
 
 
 # ── Vitals and check-ins ─────────────────────────────────────────────────────

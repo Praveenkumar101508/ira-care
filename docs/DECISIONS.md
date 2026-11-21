@@ -115,3 +115,27 @@ A pairing code and a device token both encode the tenant and workspace they belo
 a random secret; only the SHA-256 of the whole string is stored. A request carrying one is
 bound to that scope first, and the hash is looked up inside it, so a token can never be
 matched against another family's devices. Pairing codes live 15 minutes and are single use.
+
+## D-012 The watch drives the conversation; the server keeps the clock honest (phase 3)
+
+The server schedules every check-in (15 to 20 minutes on, randomised per the person's
+settings, pushed past quiet hours) and composes the question when the watch collects it.
+The watch does the talking: it asks for what is due, repeats louder with vibration after
+the repeat interval, and posts the answer or that nobody answered. The server's one-minute
+cycle marks a check-in `missed` on its own when the watch asked and no answer came within
+the repeat and sensor-check windows plus a minute's grace, and when a scheduled check-in
+was never collected for a whole window (the watch was offline, flat or not worn), with the
+reason written in the summary. What a miss means (sensor check, escalation) is phase 4.
+
+## D-013 Questions come from templates; a model may only rephrase them (phase 3)
+
+The question kinds and words are templates in `care/checkins.py`: one greeting, one
+question, the person's preferred name, no medical terms. Which kind comes next is a rule:
+a medication due within the hour with no dose recorded, then a meal routine due within the
+hour, then a follow-up on pain mentioned earlier today, then a rotation. A language model
+may rephrase the composed question when `IRA_CARE_MODEL_PHRASING` is on (off by default);
+on any failure the template is used, so the cycle never depends on a model being up.
+Answers are read by rules too (yes/no for meals and medication; "mentioned pain",
+"sounded low", "asked for help" as plain signals), and a yes/no about a dose records a
+medication event for the nearest due time. A short note of each summary is written to the
+memory store, best effort.
