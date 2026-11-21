@@ -25,8 +25,9 @@ export interface Alert {
 }
 export interface Attempt { id: string; tier: number; channel: string; outcome: string; detail: string; attempted_at: string }
 export interface Acknowledgement { id: string; kind: string; note: string; acknowledged_at: string }
+export interface Memory { day: string; summary: string; exchanges: number; updated_at: string }
 export interface Checkin {
-  id: string; scheduled_at: string; asked_at: string | null; status: string; question_kind: string;
+  id: string; scheduled_at: string; asked_at: string | null; status: string; question_kind: string; question_source?: 'template' | 'model';
   question_text: string; answered_at: string | null; answer_summary: string; answer_text: string; answered_via: string;
 }
 export interface Routine { id: string; name: string; kind: string; time_of_day: string | null; days_of_week: number[]; active: boolean }

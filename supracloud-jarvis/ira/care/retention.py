@@ -38,6 +38,7 @@ PURGED: tuple[tuple[str, str], ...] = (
     ("care_medication_events", "due_at"),
     ("care_checkins", "scheduled_at"),
     ("care_reports", "generated_at"),
+    ("care_conversation_memory", "updated_at"),
 )
 
 

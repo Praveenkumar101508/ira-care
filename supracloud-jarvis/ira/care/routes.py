@@ -229,6 +229,17 @@ async def device_me(d: tuple[Principal, dict] = Depends(require_device)):
     return out
 
 
+@router.post("/devices/me/talk")
+async def device_talk(body: schemas.Talk, d: tuple[Principal, dict] = Depends(require_device)):
+    """Talk to IRA from the watch. Streams one JSON object per line: each
+    sentence as it is ready, then `done` with any action for the watch."""
+    from fastapi.responses import StreamingResponse
+    from . import talk
+    principal, device = d
+    return StreamingResponse(talk.ndjson(talk.exchange(principal, device["person_id"], body.text, source="watch")),
+                             media_type="application/x-ndjson")
+
+
 @router.post("/devices/me/fall", status_code=201)
 async def device_fall_started(body: schemas.FallStart, d: tuple[Principal, dict] = Depends(require_device)):
     """The watch suspects a fall and has started its countdown: the server opens
@@ -519,6 +530,34 @@ async def record_medication_event(person_id: uuid.UUID, body: schemas.Medication
 
 
 # ── Transcripts and consents ─────────────────────────────────────────────────
+
+@router.post("/people/{person_id}/talk")
+async def person_talk(person_id: uuid.UUID, body: schemas.Talk, p: Principal = Depends(require_workspace_principal)):
+    """Talk to IRA from the person's own phone (the family app, signed in as a
+    member). The same stream as the watch; a call action shows the contact and
+    the phone dials as the person's own action."""
+    from fastapi.responses import StreamingResponse
+    from . import talk
+    ensure_can_act(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+    return StreamingResponse(talk.ndjson(talk.exchange(p, person_id, body.text, source="phone")),
+                             media_type="application/x-ndjson")
+
+
+@router.get("/people/{person_id}/memory")
+async def person_memory(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    """What IRA remembers: the rolling summaries of the last week. Summaries,
+    never the person's words; still health-adjacent, so the read is logged."""
+    from . import talk
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="checkins", detail={"memory": True})
+    return {"memory": await talk.memory_for(p, person_id)}
+
 
 @router.get("/people/{person_id}/transcripts")
 async def get_transcripts(person_id: uuid.UUID, limit: int = Query(100, ge=1, le=1000),

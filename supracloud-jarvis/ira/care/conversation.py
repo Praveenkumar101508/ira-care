@@ -1,0 +1,555 @@
+"""IRA talks: the care conversation service.
+
+One place that composes check-in questions, reads answers into a fixed
+structure, and holds a free conversation ("Talk to IRA"), all through a
+`Model` adapter. The default model is IRA's own model layer (`utils/llm.py`,
+the fast tier, a small local model); `IRA_CARE_MODEL=fake` is the
+deterministic model CI and the tests use; `off` means templates only.
+
+Every model reply passes `guard()`: no diagnosis words, no advice, bounded
+length, one question at most for a check-in. A reply that fails gets a safe
+fallback line. The template path takes over whenever the model fails or its
+first sentence is slower than `IRA_CARE_MODEL_FIRST_SENTENCE_S` (default 4).
+
+Safety signals are never the model's alone: the keyword rules in
+`care/checkins.py` run on every answer and the stricter reading wins.
+"""
+from __future__ import annotations
+
+import asyncio
+import json
+import logging
+import os
+import re
+import time
+from dataclasses import dataclass, field
+from typing import AsyncIterator, Callable, Mapping, Optional, Protocol, Sequence
+
+from pydantic import BaseModel, Field, ValidationError, field_validator
+
+from . import checkins as rules
+from .monitoring import no_diagnosis_words
+
+logger = logging.getLogger("ira.care.conversation")
+
+DEFAULT_LANGUAGE = "en-GB"
+FIRST_SENTENCE_S = 4.0
+
+
+# ── The model adapter ────────────────────────────────────────────────────────
+
+class Model(Protocol):
+    name: str
+
+    def stream(self, messages: list[dict], *, max_tokens: int, temperature: float) -> AsyncIterator[str]: ...
+
+    async def complete_json(self, messages: list[dict], *, max_tokens: int) -> str: ...
+
+
+class FakeModel:
+    """Deterministic, instant, and shaped like a small model would be. CI and
+    the tests use it; `slow_s` and `broken` simulate a slow or failing model."""
+    name = "fake"
+
+    def __init__(self, *, slow_s: float = 0.0, broken: bool = False, reply: Optional[str] = None,
+                 json_reply: Optional[dict] = None):
+        self.slow_s, self.broken, self.reply, self.json_reply = slow_s, broken, reply, json_reply
+        self.calls: list[list[dict]] = []
+
+    async def stream(self, messages, *, max_tokens, temperature):
+        self.calls.append(messages)
+        if self.broken:
+            raise RuntimeError("fake model is broken")
+        if self.slow_s:
+            await asyncio.sleep(self.slow_s)
+        text = self.reply if self.reply is not None else self._compose(messages)
+        for word in text.split(" "):
+            yield word + " "
+
+    async def complete_json(self, messages, *, max_tokens):
+        self.calls.append(messages)
+        if self.broken:
+            raise RuntimeError("fake model is broken")
+        if self.json_reply is not None:
+            return json.dumps(self.json_reply)
+        user = messages[-1]["content"]
+        answer = user.rsplit("Answer:", 1)[-1].strip().lower() if "Answer:" in user else ""
+        return json.dumps({
+            "wellbeing": "poor" if re.search(r"\b(awful|terrible|unwell|poorly|bad)\b", answer) else
+                         "good" if re.search(r"\b(fine|good|well|great|ok|okay)\b", answer) else "unknown",
+            "pain_mentioned": bool(re.search(r"\b(pain|hurt|ache|sore)\b", answer)),
+            "medication_taken": "yes" if re.search(r"\b(yes|taken|took|did)\b", answer) else
+                                "no" if re.search(r"\b(no|not yet|forgot|haven't)\b", answer) else "unknown",
+            "needs_help": bool(re.search(r"\b(help|can't get up|cant get up)\b", answer)),
+            "mood_words": [w for w in ("cheerful", "tired", "lonely", "worried", "content") if w in answer],
+            "summary": "Answered the question.",
+        })
+
+    @staticmethod
+    def _compose(messages) -> str:
+        user = messages[-1]["content"]
+        everything = "\n".join(m.get("content", "") for m in messages)
+        name = re.search(r"Name: (.+)", everything)
+        n = name.group(1).strip() if name else "there"
+        if "Talk:" in user:
+            return f"I'm here, {n}. Tell me more about that."
+        due = re.search(r"Medication due now: ([^\n;]+)", everything)
+        if due:
+            return f"Hello {n}. Have you had {due.group(1).strip()} yet?"
+        return f"Good to hear from you, {n}. How are you feeling today?"
+
+
+class LayerModel:
+    """IRA's own model layer: the fast tier, a small local model by default."""
+    name = "layer"
+
+    async def stream(self, messages, *, max_tokens, temperature):
+        from utils.llm import stream_tokens
+        async for tok in stream_tokens(messages, max_tokens=max_tokens, temperature=temperature):
+            yield tok
+
+    async def complete_json(self, messages, *, max_tokens):
+        from utils.llm import chat_complete
+        out = await chat_complete(messages, max_tokens=max_tokens, temperature=0.0,
+                                  response_format={"type": "json_object"})
+        return out if isinstance(out, str) else ""
+
+
+_override: Optional[Model] = None
+
+
+def configured_model() -> Optional[Model]:
+    """The model to use, or None for templates only. Tests inject one with `use_model`."""
+    if _override is not None:
+        return _override
+    choice = (os.getenv("IRA_CARE_MODEL") or "local").strip().lower()
+    if choice in ("off", "none", "0", "false"):
+        return None
+    if choice == "fake":
+        return FakeModel()
+    return LayerModel()
+
+
+def use_model(model: Optional[Model]) -> None:
+    """Test hook: pin the model for the process."""
+    global _override
+    _override = model
+
+
+def first_sentence_budget_s() -> float:
+    try:
+        return float(os.getenv("IRA_CARE_MODEL_FIRST_SENTENCE_S") or FIRST_SENTENCE_S)
+    except ValueError:
+        return FIRST_SENTENCE_S
+
+
+# ── Guardrails ───────────────────────────────────────────────────────────────
+
+_ADVICE = re.compile(
+    r"\b(you should (take|stop|increase|reduce|double)|take (one|two|three|another|an extra|more)\b.*\b(tablet|pill|dose)|"
+    r"increase your|reduce your|double your|stop taking|it is safe to|it's safe to|you need to see|see a doctor|"
+    r"call (999|911|112)|dial (999|911|112)|i (would )?recommend|i advise|symptoms? of|you (probably )?have\b)", re.I)
+_ADVICE_ASK = re.compile(
+    r"\b(should i (take|stop|have)|is it (safe|normal|ok|okay) to|can i take|how (much|many) (should|can) i|"
+    r"what('s| is) wrong with me|do i (have|need)|what should i do about|is this (normal|serious)|dose|dosage|"
+    r"what (tablet|pill|medicine) (should|can))\b", re.I)
+_URL = re.compile(r"https?://|www\.", re.I)
+
+FALLBACK_LINE = "I'm here with you, {name}. Shall I let {carer} know you'd like a word?"
+ADVICE_LINE = "I can't advise on that, {name}. Shall I let {carer} know?"
+
+
+@dataclass
+class GuardResult:
+    ok: bool
+    text: str
+    reason: str = ""
+
+
+def guard(text: str, *, max_chars: int = 400, one_question: bool = False) -> GuardResult:
+    """Is this reply fit to be spoken to the person? Describes, never diagnoses
+    or advises; short; plain text."""
+    t = re.sub(r"\s+", " ", (text or "")).strip().strip('"').strip()
+    t = re.sub(r"<[^>]{1,40}>", "", t).strip()        # a stray tag or "thinking" marker
+    if not t:
+        return GuardResult(False, "", "empty")
+    if len(t) > max_chars:
+        return GuardResult(False, "", "too long")
+    if not no_diagnosis_words(t):
+        return GuardResult(False, "", "diagnosis word")
+    if _ADVICE.search(t):
+        return GuardResult(False, "", "advice")
+    if _URL.search(t):
+        return GuardResult(False, "", "link")
+    if one_question and t.count("?") > 1:
+        return GuardResult(False, "", "more than one question")
+    return GuardResult(True, t)
+
+
+def asks_for_advice(text: str) -> bool:
+    return bool(_ADVICE_ASK.search(text or ""))
+
+
+# ── Sentences, for speaking as they arrive ───────────────────────────────────
+
+_SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
+
+
+class SentenceSplitter:
+    """Feed tokens; get whole sentences back as soon as they are complete."""
+
+    def __init__(self) -> None:
+        self.buffer = ""
+
+    def feed(self, token: str) -> list[str]:
+        self.buffer += token
+        parts = _SENTENCE_END.split(self.buffer)
+        if len(parts) <= 1:
+            return []
+        self.buffer = parts[-1]
+        return [p.strip() for p in parts[:-1] if p.strip()]
+
+    def flush(self) -> list[str]:
+        out = [self.buffer.strip()] if self.buffer.strip() else []
+        self.buffer = ""
+        return out
+
+
+async def stream_sentences(model: Model, messages: list[dict], *, max_tokens: int, temperature: float,
+                           first_sentence_s: Optional[float] = None) -> AsyncIterator[str]:
+    """Sentences from the model as they complete. Raises TimeoutError if the
+    first sentence is not ready within the budget, so the caller can fall back."""
+    budget = first_sentence_s if first_sentence_s is not None else first_sentence_budget_s()
+    splitter = SentenceSplitter()
+    it = model.stream(messages, max_tokens=max_tokens, temperature=temperature).__aiter__()
+    started = time.monotonic()
+    first = True
+    while True:
+        try:
+            if first:
+                remaining = budget - (time.monotonic() - started)
+                if remaining <= 0:
+                    raise TimeoutError("first sentence too slow")
+                token = await asyncio.wait_for(it.__anext__(), timeout=remaining)
+            else:
+                token = await it.__anext__()
+        except StopAsyncIteration:
+            for s in splitter.flush():
+                yield s
+            return
+        except asyncio.TimeoutError as exc:
+            raise TimeoutError("first sentence too slow") from exc
+        for s in splitter.feed(token):
+            first = False
+            yield s
+
+
+# ── Composing a check-in ─────────────────────────────────────────────────────
+
+@dataclass
+class Context:
+    name: str
+    language: str = DEFAULT_LANGUAGE
+    time_of_day: str = "day"
+    routines: Sequence[str] = ()
+    medication_due: Sequence[str] = ()
+    earlier_today: Sequence[str] = ()
+    summary: str = ""
+    carer_name: str = "your carer"
+
+
+SYSTEM = (
+    "You are IRA, a kind, patient companion speaking aloud to an older person who lives alone. "
+    "Plain everyday words, warm and unhurried. Never give medical advice, never name a condition, never "
+    "suggest a dose. Never mention being a program. Speak in {language}."
+)
+
+
+def _context_lines(ctx: Context) -> str:
+    lines = [f"Name: {ctx.name}", f"Time of day: {ctx.time_of_day}"]
+    if ctx.routines:
+        lines.append("Routines today: " + "; ".join(ctx.routines))
+    if ctx.medication_due:
+        lines.append("Medication due now: " + "; ".join(ctx.medication_due))
+    if ctx.earlier_today:
+        lines.append("Earlier today they said: " + "; ".join(ctx.earlier_today))
+    if ctx.summary:
+        lines.append("What IRA remembers: " + ctx.summary)
+    return "\n".join(lines)
+
+
+def checkin_messages(ctx: Context, kind: str, subject: Optional[str] = None) -> list[dict]:
+    about = f" It must mention {subject} by that name." if subject else ""
+    return [
+        {"role": "system", "content": SYSTEM.format(language=ctx.language)},
+        {"role": "user", "content": (
+            f"Compose the next check-in. Topic: {kind}.{about} One short warm question only, at most two sentences, "
+            f"using the name. Reply with the words only.\n{_context_lines(ctx)}")},
+    ]
+
+
+async def compose_checkin(ctx: Context, kind: str, template: str, *, model: Optional[Model] = None,
+                          subject: Optional[str] = None) -> tuple[str, str]:
+    """The question to ask, and where it came from ("model" or "template").
+    `subject` is the medication or routine the question is about: a composed
+    question that does not name it is not used, because the answer is read
+    against that name."""
+    model = model if model is not None else configured_model()
+    if model is None:
+        return template, "template"
+    try:
+        parts: list[str] = []
+        async for sentence in stream_sentences(model, checkin_messages(ctx, kind, subject), max_tokens=80, temperature=0.5):
+            parts.append(sentence)
+            if len(parts) >= 2:
+                break
+        verdict = guard(" ".join(parts), max_chars=220, one_question=True)
+        names_subject = not subject or subject.lower() in verdict.text.lower()
+        if verdict.ok and "?" in verdict.text and 5 <= len(verdict.text) and names_subject:
+            return verdict.text, "model"
+        logger.info("care conversation: model question rejected (%s); template used", verdict.reason or "no question")
+    except Exception as exc:  # noqa: BLE001 - the template is the fallback, always
+        logger.info("care conversation: model unavailable (%s); template used", exc)
+    return template, "template"
+
+
+# ── Reading an answer into a fixed structure ─────────────────────────────────
+
+class StructuredAnswer(BaseModel):
+    wellbeing: str = Field("unknown", pattern=r"^(good|ok|poor|unknown)$")
+    pain_mentioned: bool = False
+    medication_taken: str = Field("unknown", pattern=r"^(yes|no|unknown)$")
+    needs_help: bool = False
+    mood_words: list[str] = Field(default_factory=list, max_length=6)
+    summary: str = Field("", max_length=300)
+
+    @field_validator("mood_words")
+    @classmethod
+    def _short_words(cls, v):
+        return [w.strip().lower()[:24] for w in v if isinstance(w, str) and w.strip()][:6]
+
+
+#: Phrases that go straight to "ask first" and then the escalation chain.
+RED_FLAGS = re.compile(
+    r"\b(i (have )?fell|i('ve| have)? fallen|i fall|can'?t breathe|cannot breathe|chest pain|pains? in my chest|"
+    r"can'?t get up|cannot get up|i'?m bleeding|bleeding (a lot|badly)|can'?t move|cannot move|"
+    r"can'?t feel my|i'?m stuck|passed out|blacked out)\b", re.I)
+
+
+def red_flag(text: str) -> bool:
+    return bool(RED_FLAGS.search(text or ""))
+
+
+def answer_messages(kind: str, question: str, text: str, language: str = DEFAULT_LANGUAGE) -> list[dict]:
+    return [
+        {"role": "system", "content": "You read an older person's spoken answer to a companion's question and fill "
+                                      "in a form. Reply with JSON only, with exactly these keys: wellbeing (good|ok|poor|unknown), "
+                                      "pain_mentioned (true|false), medication_taken (yes|no|unknown), needs_help (true|false), "
+                                      "mood_words (list of up to 6 single words), summary (one short sentence that does not "
+                                      "quote their words). Never diagnose."},
+        {"role": "user", "content": f"Question kind: {kind}\nQuestion: {question}\nAnswer: {text}"},
+    ]
+
+
+def _quotes_the_person(summary: str, text: str) -> bool:
+    """A summary must not carry the person's own words (DECISIONS D-020)."""
+    words = re.findall(r"[a-z']+", (text or "").lower())
+    s = (summary or "").lower()
+    for i in range(0, max(0, len(words) - 3)):
+        if " ".join(words[i:i + 4]) in s:
+            return True
+    return False
+
+
+@dataclass
+class Reading:
+    """The merged reading: the keyword rules' AnswerReading plus the structure."""
+    reading: rules.AnswerReading
+    structured: StructuredAnswer
+    source: str  # "model+rules" or "rules"
+    red_flag: bool = False
+
+
+def merge(keyword: rules.AnswerReading, structured: Optional[StructuredAnswer], text: str, kind: str) -> Reading:
+    """The stricter of the two always wins: the model can never downgrade a
+    safety signal, and a red-flag phrase overrides everything."""
+    flag = red_flag(text)
+    s = structured or StructuredAnswer()
+    needs_help = keyword.asked_for_help or s.needs_help or flag
+    pain_kw = any("pain" in sig for sig in keyword.signals)
+    pain = pain_kw or s.pain_mentioned or flag
+    said = keyword.said
+    if kind in ("meal", "medication"):
+        if "no" in (keyword.said, s.medication_taken if kind == "medication" else "unknown"):
+            said = "no"
+        elif keyword.said == "yes" or (kind == "medication" and s.medication_taken == "yes"):
+            said = "yes"
+        else:
+            said = keyword.said or "unclear"
+    signals = list(keyword.signals)
+    if pain and not pain_kw:
+        signals.append("mentioned pain or discomfort")
+    if needs_help and not keyword.asked_for_help:
+        signals.append("asked for help")
+    if flag:
+        signals.append("said something that needs a check right now")
+    if s.wellbeing == "poor" and "sounded low" not in signals:
+        signals.append("sounded low")
+    summary = keyword.summary
+    # The keyword summary already says yes or no about a meal or a dose; the
+    # model's sentence is used for the open questions, when it adds something.
+    informative = len(s.summary.split()) >= 3 and s.summary.strip().lower().rstrip(".") not in ("answered the question", "gave an answer")
+    if (structured is not None and s.summary and kind not in ("meal", "medication") and informative
+            and not _quotes_the_person(s.summary, text) and no_diagnosis_words(s.summary)):
+        base = s.summary.strip().rstrip(".") + "."
+        summary = base if not signals else f"{base} ({'; '.join(signals)})"
+    merged = rules.AnswerReading(summary=summary[:400], said=said, signals=tuple(dict.fromkeys(signals)),
+                                 asked_for_help=needs_help)
+    return Reading(merged, StructuredAnswer(wellbeing=s.wellbeing, pain_mentioned=pain,
+                                            medication_taken="yes" if said == "yes" else "no" if said == "no" else s.medication_taken,
+                                            needs_help=needs_help, mood_words=s.mood_words, summary=merged.summary),
+                   "model+rules" if structured is not None else "rules", red_flag=flag)
+
+
+async def read_answer(kind: str, question: str, text: str, *, subject: Optional[str] = None,
+                      model: Optional[Model] = None, language: str = DEFAULT_LANGUAGE) -> Reading:
+    keyword = rules.summarise_answer(kind, text, subject=subject)
+    model = model if model is not None else configured_model()
+    structured: Optional[StructuredAnswer] = None
+    if model is not None and (text or "").strip():
+        try:
+            raw = await asyncio.wait_for(model.complete_json(answer_messages(kind, question, text, language), max_tokens=200),
+                                         timeout=first_sentence_budget_s() * 2)
+            structured = StructuredAnswer.model_validate(json.loads(raw))
+        except (ValidationError, ValueError, TypeError) as exc:
+            logger.info("care conversation: model answer did not fit the schema (%s); keyword reading used", exc)
+        except Exception as exc:  # noqa: BLE001
+            logger.info("care conversation: model unavailable for the answer (%s)", exc)
+    return merge(keyword, structured, text, kind)
+
+
+# ── Talk to IRA ──────────────────────────────────────────────────────────────
+
+@dataclass
+class Turn:
+    """One reply: sentences to speak, and an optional action for the client."""
+    sentences: list[str]
+    action: Optional[dict] = None
+    source: str = "model"
+    red_flag: bool = False
+    needs_help: bool = False
+
+
+_CALL = re.compile(r"\b(call|ring|phone|dial)\s+(my\s+)?([a-z][a-z' -]{1,40})$", re.I)
+_TODAY = re.compile(r"\b(what('s| is) (on|happening) today|what (do i have|am i doing) today|my day|today'?s plan)", re.I)
+_TABLETS = re.compile(r"\b(did i (take|have) my (tablets?|pills?|medication|medicine)|have i (taken|had) my "
+                      r"(tablets?|pills?|medication|medicine))\b", re.I)
+_REMIND = re.compile(r"\b(remind me|don'?t let me forget)\b(.*)", re.I)
+
+
+@dataclass
+class TalkContext(Context):
+    contacts: Sequence[Mapping] = ()        # circle members: display_name, phone, relationship
+    doses_today: Sequence[str] = ()         # "Metformin at 08:00: taken"
+
+
+def rule_reply(text: str, ctx: TalkContext) -> Optional[Turn]:
+    """The things IRA answers from the record, before any model: a call, the
+    day's plan, the tablets, a reminder, and advice requests."""
+    t = (text or "").strip()
+    if red_flag(t) or rules._HELP.search(t.lower()):
+        return Turn([f"I'm getting help for you now, {ctx.name}. Stay where you are."], source="rules",
+                    red_flag=red_flag(t), needs_help=True)
+    m = _CALL.search(t)
+    if m:
+        who = m.group(3).strip().lower().rstrip(".!?")
+        for c in ctx.contacts:
+            names = {str(c.get("display_name", "")).lower(), str(c.get("relationship", "")).lower()}
+            first = str(c.get("display_name", "")).split(" ")[0].lower()
+            if who in names or who == first or (c.get("relationship") and who in str(c["relationship"]).lower()):
+                if c.get("phone"):
+                    return Turn([f"Here is {c['display_name']}. Tap to call."],
+                                action={"kind": "call", "name": c["display_name"], "phone": c["phone"]}, source="rules")
+                return Turn([f"I have {c['display_name']} but no phone number for them. Shall I let {ctx.carer_name} know?"],
+                            source="rules")
+        return Turn([f"I don't have anyone called {who} in your circle. Shall I let {ctx.carer_name} know?"], source="rules")
+    if _TODAY.search(t):
+        if ctx.routines or ctx.medication_due:
+            parts = list(ctx.routines) + [f"{m} is due" for m in ctx.medication_due]
+            return Turn([f"Today, {ctx.name}: " + "; ".join(parts) + "."], source="rules")
+        return Turn([f"Nothing is written down for today, {ctx.name}. A quiet day."], source="rules")
+    if _TABLETS.search(t):
+        if ctx.doses_today:
+            return Turn(["Today's tablets: " + "; ".join(ctx.doses_today) + "."], source="rules")
+        return Turn([f"I have no tablets written down for today, {ctx.name}."], source="rules")
+    m = _REMIND.search(t)
+    if m:
+        what = m.group(2).strip().strip(".") or "that"
+        return Turn([f"I'll remind you about {what} at your next check-in, {ctx.name}."],
+                    action={"kind": "reminder", "text": what[:200]}, source="rules")
+    if asks_for_advice(t):
+        return Turn([ADVICE_LINE.format(name=ctx.name, carer=ctx.carer_name)], source="rules")
+    return None
+
+
+def talk_messages(ctx: TalkContext, text: str, recent: Sequence[tuple[str, str]] = ()) -> list[dict]:
+    msgs = [{"role": "system", "content": SYSTEM.format(language=ctx.language) +
+             " Keep replies to two or three short sentences. If asked for advice, say you cannot advise and offer to "
+             "tell the carer. Here is what you know:\n" + _context_lines(ctx)}]
+    for speaker, words in recent[-6:]:
+        msgs.append({"role": "assistant" if speaker == "companion" else "user", "content": words})
+    msgs.append({"role": "user", "content": f"Talk: {text}"})
+    return msgs
+
+
+async def talk(text: str, ctx: TalkContext, *, recent: Sequence[tuple[str, str]] = (), model: Optional[Model] = None,
+               on_sentence: Optional[Callable[[str], None]] = None) -> Turn:
+    """A reply to the person. Rules first, then the model behind the guard, then the fallback line."""
+    ruled = rule_reply(text, ctx)
+    if ruled is not None:
+        for s in ruled.sentences:
+            if on_sentence:
+                on_sentence(s)
+        return ruled
+    model = model if model is not None else configured_model()
+    fallback = FALLBACK_LINE.format(name=ctx.name, carer=ctx.carer_name)
+    if model is None:
+        if on_sentence:
+            on_sentence(fallback)
+        return Turn([fallback], source="template")
+    spoken: list[str] = []
+    try:
+        async for sentence in stream_sentences(model, talk_messages(ctx, text, recent), max_tokens=120, temperature=0.6):
+            verdict = guard(sentence, max_chars=240)
+            if not verdict.ok:
+                raise ValueError(f"reply failed the guard: {verdict.reason}")
+            spoken.append(verdict.text)
+            if on_sentence:
+                on_sentence(verdict.text)
+            if len(spoken) >= 3:
+                break
+    except Exception as exc:  # noqa: BLE001
+        logger.info("care conversation: talk fell back (%s)", exc)
+        if not spoken:
+            if on_sentence:
+                on_sentence(fallback)
+            return Turn([fallback], source="template")
+    return Turn(spoken, source=model.name)
+
+
+# ── Memory: the rolling summary ──────────────────────────────────────────────
+
+def roll_summary(previous: str, additions: Sequence[str], *, max_chars: int = 1200) -> str:
+    """Append today's notes to the rolling summary, oldest dropped first. Rule
+    based on purpose: the memory never depends on a model being available."""
+    lines = [ln for ln in (previous or "").split("\n") if ln.strip()]
+    for a in additions:
+        a = re.sub(r"\s+", " ", a).strip()
+        if a and a not in lines:
+            lines.append(a)
+    out = "\n".join(lines)
+    while len(out) > max_chars and len(lines) > 1:
+        lines.pop(0)
+        out = "\n".join(lines)
+    return out[:max_chars]
+

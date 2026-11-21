@@ -65,7 +65,15 @@ async def status(conn, now: Optional[dt.datetime] = None, *, provider: Optional[
     report = assess(await last_runs(conn), now)
     if report["monitoring_paused"] and alert:
         report["ops_alert"] = await maybe_alert(report, now, provider=provider)
+    report["model"] = model_name()
     return report
+
+
+def model_name() -> str:
+    """Which conversation model is configured: "layer" (IRA's model layer), "fake" or "off"."""
+    from . import conversation
+    m = conversation.configured_model()
+    return m.name if m is not None else "off"
 
 
 async def maybe_alert(report: dict, now: dt.datetime, *, provider: Optional[providers.MessageProvider] = None) -> Optional[dict]:

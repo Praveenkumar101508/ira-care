@@ -1,6 +1,6 @@
 import type {
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, Person,
-  AccessNotes, HomeUpdate, OpsStatus, PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, WorkspaceList,
+  AccessNotes, HomeUpdate, Memory, OpsStatus, PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, WorkspaceList,
 } from './types';
 
 export class ApiError extends Error {
@@ -53,6 +53,7 @@ export class Api {
   generateReport(id: string, kind: string, date: string) { return this.req<Report>('POST', `/api/v1/care/people/${id}/reports/generate`, { kind, date }); }
   search(id: string, q: string) { return this.req<SearchResponse>('GET', `/api/v1/care/people/${id}/history/search?q=${encodeURIComponent(q)}&limit=100`); }
   opsStatus() { return this.req<OpsStatus>('GET', '/api/v1/care/ops/status'); }
+  memory(id: string) { return this.req<{ memory: Memory[] }>('GET', `/api/v1/care/people/${id}/memory`).then((o) => o.memory); }
   accessLog(id: string) { return this.req<{ entries: AccessEntry[] }>('GET', `/api/v1/care/people/${id}/access-log?limit=200`).then((o) => o.entries); }
 
   private async req<T>(method: string, path: string, body?: unknown, workspace = true): Promise<T> {

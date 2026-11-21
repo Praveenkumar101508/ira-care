@@ -368,3 +368,52 @@ Only the detector reads the accelerometer, and nothing from it is stored or sent
 fall is suspected the server learns one peak value in g and the still duration, which appear
 in the alert's summary ("a hard impact (3.4 g) followed by 20 seconds without movement")
 so responders know what was observed, and nothing else.
+
+## D-033 IRA talks through one conversation service, and the template is always there (round 2, phase 4)
+
+`care/conversation.py` composes check-in questions, reads answers into a fixed structure
+and holds free conversation, all through one model adapter. The default model is IRA's own
+model layer (`utils/llm.py`, the fast tier: a small local model); `IRA_CARE_MODEL=fake` is
+the deterministic model the tests and CI use, and `off` means templates only. A question is
+composed from the person's context (name, routines, medication due, earlier answers today,
+the rolling summary) in the person's language setting (default en-GB), one short warm
+question at a time. The template takes over whenever the model fails, its first sentence is
+slower than `IRA_CARE_MODEL_FIRST_SENTENCE_S` (default 4 seconds), or the reply fails the
+guard; a composed medication question that does not name the medication is not used, because
+the answer is read against that name. `care_checkins.question_source` records which path
+asked. Model output is streamed and cut into sentences as they complete, so the watch speaks
+the first one while the rest is still coming.
+
+## D-034 Answers: the model reads, the rules keep the floor, and some phrases ask first (round 2, phase 4)
+
+Each answer is read by the model into a validated structure (wellbeing, pain mentioned,
+medication taken yes/no/unknown, needs help, mood words, a one-sentence summary). The
+keyword rules in `care/checkins.py` still run on every answer, and the stricter reading
+always wins: help from either side is help, pain from either side is pain, "no" about a dose
+beats "yes", so the model can never downgrade a safety signal. A model summary that quotes
+the person's words or fails the diagnosis filter is dropped for the keyword summary (D-020),
+and for meal and dose questions the keyword summary is kept because it already says yes or
+no. Phrases such as "I fell", "I can't breathe", "chest pain" or "I can't get up", in an
+answer or in free conversation, go straight to "ask first": a `concerning_phrase` alert in
+the asking state with the safety question, then the escalation chain if nobody answers.
+
+## D-035 Talk to IRA answers from the record first, and never advises (round 2, phase 4)
+
+"Talk to IRA" is a button on the watch and a screen in the family app for the person's own
+phone. A call ("call my daughter") shows the contact from the care circle and the phone dials
+only when the person taps: their own action, never the system's. "What's on today" and "did
+I take my tablets" are answered from routines and medication events, reminders are noted for
+the next check-in, and a request for advice gets "I can't advise on that, shall I let
+[carer] know?". Only after those does the model reply, each sentence through the guard (no
+diagnosis words, no advice, no links, bounded length); a sentence that fails stops the reply
+and a safe fallback line is spoken instead. Both sides of every exchange go into
+`care_transcripts` under the existing consent rules; the rolling summary per day
+(`care_conversation_memory`, summaries only, purged by retention and erased with the person)
+is what IRA remembers of earlier today and this week.
+
+## D-036 Latency is unmeasured here (round 2, phase 4)
+
+No local model runtime exists in the build environment (4 CPUs, 15 GB, no GPU, no model
+server), so first-sentence latency of a real small model is **unmeasured**. The 4-second
+budget is a setting, not a measurement. CI uses the fake model. Measuring on the owner's
+machine with the configured model is listed under "Needs the owner".

@@ -8,7 +8,7 @@ import { Sparkline } from '@/components/Sparkline';
 import { canManage, useApi } from '@/components/useApi';
 import { ApiError, type Reading } from '@/lib/api';
 import type {
-  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, Medication, MedicationEvent, Person, PersonStatus, Report, Routine, SafetySettings, SearchResponse, Transcript,
+  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, Medication, Memory, MedicationEvent, Person, PersonStatus, Report, Routine, SafetySettings, SearchResponse, Transcript,
 } from '@/lib/types';
 import { byDay, checkinCounts, series, sortAlerts, timeAgo } from '@/lib/view';
 
@@ -32,6 +32,7 @@ export default function PersonPage() {
   const [circle, setCircle] = useState<CircleMember[]>([]);
   const [settings, setSettings] = useState<SafetySettings | null>(null);
   const [consents, setConsents] = useState<ConsentList | null>(null);
+  const [memory, setMemory] = useState<Memory[]>([]);
   const [transcripts, setTranscripts] = useState<Transcript[] | 'refused' | null>(null);
   const [access, setAccess] = useState<AccessEntry[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
@@ -51,6 +52,7 @@ export default function PersonPage() {
       setStatus(s); setAlerts(a); setCheckins(c); setVitals(v); setRoutines(r); setMeds(m); setMedEvents(me); setCircle(ci); setSettings(se); setConsents(co);
       setError('');
       if (tab === 'conversation') {
+        setMemory(await api.memory(id));
         try { setTranscripts(await api.transcripts(id)); } catch (e) { setTranscripts(e instanceof ApiError && e.status === 403 ? 'refused' : null); }
       }
       if (tab === 'access' && manage) setAccess(await api.accessLog(id));
@@ -97,7 +99,7 @@ export default function PersonPage() {
                 {items.map((c) => (
                   <tr key={c.id}>
                     <td className="muted">{c.scheduled_at.slice(11, 16)}</td>
-                    <td>{c.question_kind}</td>
+                    <td>{c.question_kind}{c.question_source === 'model' ? <span className="muted"> · composed</span> : null}</td>
                     <td><span className={`pill ${c.status === 'answered' ? 'ok' : c.status === 'missed' ? 'urgent' : 'grey'}`}>{c.status}</span></td>
                     <td>{c.answer_summary}{checkins.answers_included && c.answer_text ? <em className="muted"> “{c.answer_text}”</em> : null}</td>
                   </tr>
@@ -179,6 +181,14 @@ export default function PersonPage() {
         </div>
       ) : null}
 
+      {tab === 'conversation' && (
+        <div className="card">
+          <strong>What IRA remembers (summaries, never the person&apos;s words)</strong>
+          {memory.length === 0 ? <p className="muted">Nothing yet.</p> : (
+            <table><tbody>{memory.map((m) => <tr key={m.day}><td className="muted">{m.day}</td><td style={{ whiteSpace: 'pre-line' }}>{m.summary}</td><td className="muted">{m.exchanges} exchanges</td></tr>)}</tbody></table>
+          )}
+        </div>
+      )}
       {tab === 'conversation' && (
         <div className="card">
           {transcripts === 'refused' ? <p>Transcripts are private. They can be read only with the person&apos;s recorded consent for your role in their care circle. This attempt was written to the access log.</p> : null}

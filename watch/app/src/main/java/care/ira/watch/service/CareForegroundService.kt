@@ -77,6 +77,7 @@ class CareForegroundService : LifecycleService() {
                 else perform(controller.helpPressed())
             }
             ACTION_SYNC -> lifecycleScope.launch(Dispatchers.IO) { syncNow() }
+            ACTION_TALK -> lifecycleScope.launch(Dispatchers.IO) { talk() }
         }
         return START_STICKY
     }
@@ -194,6 +195,42 @@ class CareForegroundService : LifecycleService() {
         }
     }
 
+    /**
+     * Talk to IRA: listen, send the words, speak each sentence as the server
+     * streams it. A call action is spoken (the phone dials; the watch does not).
+     * A safety-check action means IRA wants to ask "are you OK?" right now.
+     */
+    private suspend fun talk() {
+        if (controller.openCheckinId() != null || fallCountdown.state is FallCountdown.State.Counting) return
+        deps.speaker.speak("I'm listening.", louder = false)
+        deps.status.value = deps.status.value.copy(listening = true, talking = true)
+        val heard = deps.listener.listen(LISTEN_MS)
+        deps.status.value = deps.status.value.copy(listening = false)
+        if (heard.isNullOrBlank()) {
+            deps.speaker.speak("I didn't catch that. Press Talk and try again.", louder = false)
+            deps.status.value = deps.status.value.copy(talking = false)
+            return
+        }
+        when (val out = deps.api.talk(heard) { sentence ->
+            deps.status.value = deps.status.value.copy(question = sentence)
+            kotlinx.coroutines.runBlocking { deps.speaker.speak(sentence, louder = false) }
+        }) {
+            is ApiOutcome.Ok -> {
+                val kind = (out.value.action?.get("kind") as? kotlinx.serialization.json.JsonPrimitive)?.content
+                if (kind == "safety_check") {
+                    when (val due = deps.api.dueCheckin()) {
+                        is ApiOutcome.Ok -> due.value?.let { perform(controller.ask(it.id, it.questionText, it.safety)) }
+                        else -> {}
+                    }
+                }
+            }
+            is ApiOutcome.Offline -> deps.speaker.speak("I can't reach anyone right now. I'll keep trying.", louder = false)
+            is ApiOutcome.Unauthorised -> deps.onUnauthorised()
+            is ApiOutcome.Failed -> deps.speaker.speak("Something went wrong. Let's try again later.", louder = false)
+        }
+        deps.status.value = deps.status.value.copy(talking = false, question = null)
+    }
+
     private fun startListening() {
         listening?.cancel()
         listening = lifecycleScope.launch(Dispatchers.IO) {
@@ -243,6 +280,7 @@ class CareForegroundService : LifecycleService() {
         const val ACTION_OK = "care.ira.watch.OK"
         const val ACTION_HELP = "care.ira.watch.HELP"
         const val ACTION_SYNC = "care.ira.watch.SYNC"
+        const val ACTION_TALK = "care.ira.watch.TALK"
         const val POLL_MS = 60_000L
         const val TICK_MS = 5_000L
         const val LISTEN_MS = 20_000L

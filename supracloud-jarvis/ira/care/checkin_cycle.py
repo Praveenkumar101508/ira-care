@@ -276,10 +276,10 @@ async def due_checkin(principal: Principal, device: dict, now: Optional[dt.datet
                                        medication_events=events, recent=recent, rng=rng)
         text = rules.question_text(choice, person["preferred_name"] or person["display_name"],
                                    time_of_day=local.time(), rng=rng)
-        text = await _maybe_rephrase(text, choice, person)
+        text, source = await _compose(conn, dict(person), choice, text, now)
         row = await conn.fetchrow(
-            "UPDATE care_checkins SET status = 'asked', asked_at = $2, question_kind = $3, question_text = $4 "
-            "WHERE id = $1 RETURNING *", row["id"], now, choice.kind, text)
+            "UPDATE care_checkins SET status = 'asked', asked_at = $2, question_kind = $3, question_text = $4, "
+            "question_source = $5 WHERE id = $1 RETURNING *", row["id"], now, choice.kind, text, source)
         await conn.execute(
             "INSERT INTO care_transcripts (person_id, checkin_id, speaker, text) VALUES ($1, $2, 'companion', $3)",
             person_id, row["id"], text)
@@ -291,36 +291,21 @@ async def due_checkin(principal: Principal, device: dict, now: Optional[dt.datet
 def _public_checkin(row: dict) -> dict:
     out = {k: row[k] for k in ("id", "person_id", "scheduled_at", "asked_at", "repeated_at", "status",
                                "question_kind", "question_text")}
+    out["question_source"] = row.get("question_source", "template")
     out["safety"] = row["question_kind"] == "safety"
     return out
 
 
-async def _maybe_rephrase(text: str, choice: rules.QuestionChoice, person) -> str:
-    """Let a language model make the question more personal, when switched on.
-
-    Off by default (`IRA_CARE_MODEL_PHRASING`), and on failure the template is
-    used unchanged, so the cycle never depends on a model being available.
-    """
-    import os
-    if (os.getenv("IRA_CARE_MODEL_PHRASING") or "").strip().lower() not in ("1", "true", "yes", "on"):
-        return text
+async def _compose(conn, person: dict, choice: rules.QuestionChoice, template: str, now) -> tuple[str, str]:
+    """The model composes the question from the person's context (D-033); the
+    template is what is asked when the model fails, is slow, or fails the guard."""
     try:
-        from utils.llm import chat_complete
-        name = person["preferred_name"] or person["display_name"]
-        prompt = (
-            "You help an older person who lives alone. Rephrase the check-in question below "
-            "so it sounds like a kind, patient companion speaking aloud. Rules: at most two "
-            "short sentences, one question only, use the name given, plain everyday words, "
-            "no medical terms, no advice, no diagnosis, nothing new that was not in the "
-            "original. Reply with the words only.\n\n"
-            f"Name: {name}\nQuestion: {text}")
-        out = await chat_complete([{"role": "user", "content": prompt}], max_tokens=60, temperature=0.4)
-        out = (out or "").strip().strip('"')
-        if 5 <= len(out) <= 200 and out.count("?") <= 1:
-            return out
-    except Exception as exc:  # noqa: BLE001
-        logger.info("care check-ins: model phrasing unavailable (%s); using the template", exc)
-    return text
+        from . import conversation, talk
+        ctx = await talk.build_context(conn, person, now)
+        return await conversation.compose_checkin(ctx, choice.kind, template, subject=choice.subject)
+    except Exception as exc:  # noqa: BLE001 - the template is always there
+        logger.info("care check-ins: composing with the model failed (%s); template used", exc)
+        return template, "template"
 
 
 async def mark_repeated(principal: Principal, device: dict, checkin_id: uuid.UUID,
@@ -352,7 +337,11 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
         if row["question_kind"] == "medication":
             med = await _medication_asked_about(conn, person_id, row["question_text"])
             subject = med["name"] if med else None
-        reading = rules.summarise_answer(row["question_kind"], text, subject=subject)
+        from . import conversation
+        merged = await conversation.read_answer(row["question_kind"], row["question_text"] or "", text, subject=subject,
+                                                language=(await conn.fetchval(
+                                                    "SELECT language FROM care_people WHERE id = $1", person_id)) or "en-GB")
+        reading = merged.reading
         if row["question_kind"] == "safety" and not (text or "").strip():
             reading = rules.AnswerReading(summary="Pressed I'm OK.", said="yes", signals=(), asked_for_help=False)
         row = await conn.fetchrow(
@@ -380,10 +369,26 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
         from . import askfirst
         async with workspace_connection(principal) as conn:
             await askfirst.answered(conn, dict(row), ok=not reading.asked_for_help, now=now, words=text or "")
+    elif merged.red_flag:
+        # "I fell", "I can't breathe", "chest pain": ask first, then the chain (D-034).
+        from . import talk
+        async with workspace_connection(principal) as conn:
+            person = dict(await conn.fetchrow("SELECT * FROM care_people WHERE id = $1", person_id))
+            settings = dict(await conn.fetchrow("SELECT * FROM care_safety_settings WHERE person_id = $1", person_id) or {})
+            await talk.concern(conn, person, settings, "checkin", now)
     await _remember(principal, row, reading)
+    try:
+        from . import talk
+        async with workspace_connection(principal) as conn:
+            tz = await conn.fetchval("SELECT timezone FROM care_people WHERE id = $1", person_id)
+            await talk.remember(conn, person_id, rules.local_now(now, tz).date(),
+                                [f"Check-in ({row['question_kind']}): {reading.summary}"])
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("care check-ins: conversation memory skipped (%s)", exc)
     out = _public_checkin(dict(row))
     out.update({"answer_summary": reading.summary, "said": reading.said, "signals": list(reading.signals),
-                "asked_for_help": reading.asked_for_help})
+                "asked_for_help": reading.asked_for_help, "structured": merged.structured.model_dump(),
+                "reading_source": merged.source, "safety_check": bool(merged.red_flag and row["question_kind"] != "safety")})
     return out
 
 

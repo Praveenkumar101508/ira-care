@@ -209,6 +209,11 @@ class HelpRequest(BaseModel):
     location: Optional[LocationFix] = None
 
 
+class Talk(BaseModel):
+    """Something the person said to IRA."""
+    text: str = Field(..., min_length=1, max_length=2000)
+
+
 class FallStart(BaseModel):
     """The watch's fall detector fired and its countdown has started."""
     peak_g: Optional[float] = Field(None, ge=0, le=50)

@@ -1,4 +1,4 @@
-import { ApiError, CareClient } from '../api/client';
+import { ApiError, CareClient, parseTalk } from '../api/client';
 
 function fakeFetch(handler: (url: string, init?: RequestInit) => { status: number; body?: unknown }) {
   const calls: { url: string; init?: RequestInit }[] = [];
@@ -62,4 +62,13 @@ test('a dead network becomes an offline message', async () => {
 test('server detail text is passed through for other errors', async () => {
   const { f } = fakeFetch(() => ({ status: 404, body: { detail: 'Person not found.' } }));
   await expect(new CareClient(session, f).status('x')).rejects.toThrow('Person not found.');
+});
+
+test('a streamed talk reply is read line by line: sentences, then the action', () => {
+  const raw = '{"sentence": "Here is Family Member."}\n{"sentence": "Tap to call."}\n{"done": true, "action": {"kind": "call", "name": "Family Member", "phone": "+440000000001"}, "source": "rules", "needs_help": false}\n';
+  const r = parseTalk(raw);
+  expect(r.sentences).toEqual(['Here is Family Member.', 'Tap to call.']);
+  expect(r.action).toEqual({ kind: 'call', name: 'Family Member', phone: '+440000000001' });
+  expect(r.needsHelp).toBe(false);
+  expect(parseTalk('garbage\n{"done": true, "action": {"kind": "safety_check"}, "needs_help": true}').needsHelp).toBe(true);
 });

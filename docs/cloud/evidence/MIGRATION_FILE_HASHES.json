@@ -536,6 +536,11 @@
    "sha256": "c0f906406114bc315ce4a1b9369fb8eb451d5fb741fa1bbf70ee2c1c03b1ccfe",
    "status": "applied"
   },
+  "104_care_conversation.sql": {
+   "migration_number": 104,
+   "sha256": "baf1e3121403dc4e24630872ae4c4713581916274fbed08171e6e3c23e787c6f",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",
