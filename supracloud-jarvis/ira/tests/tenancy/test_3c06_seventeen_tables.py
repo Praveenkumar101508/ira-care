@@ -74,6 +74,11 @@ WORKSPACE_SCOPED = (
     "commitments", "companions", "conversations", "decisions", "edges",
     "entities", "files", "lifeos_events", "memory_embeddings", "messages",
     "people", "projects", "reminders", "tasks",
+    # IRA CARE (099): fifteen more, every one tenant AND workspace scoped.
+    "care_people", "care_circle_members", "care_devices", "care_vitals",
+    "care_safety_settings", "care_checkins", "care_alerts", "care_alert_attempts",
+    "care_acknowledgements", "care_routines", "care_medications",
+    "care_medication_events", "care_transcripts", "care_consents", "care_access_log",
 )
 
 
@@ -131,6 +136,38 @@ SPECS: dict[str, Spec] = {
     "projects": Spec(columns={"name": "text", "slug": "text"}),
     "reminders": Spec(columns={"title": "text", "remind_at": "now"}),
     "tasks": Spec(columns={"title": "text"}),
+    # IRA CARE (099). `literal:` names an enumerated value a CHECK constraint
+    # requires; parents are resolved recursively (an attempt needs an alert,
+    # which needs a person).
+    "care_people": Spec(columns={"display_name": "text"}),
+    "care_circle_members": Spec(columns={"display_name": "text", "role": "literal:family"},
+                                parents=(("care_people", "person_id"),)),
+    "care_devices": Spec(parents=(("care_people", "person_id"),)),
+    "care_vitals": Spec(columns={"kind": "literal:steps", "value": "int", "recorded_at": "now"},
+                        parents=(("care_people", "person_id"),)),
+    "care_safety_settings": Spec(handle="person_id", parents=(("care_people", "person_id"),)),
+    "care_checkins": Spec(columns={"scheduled_at": "now", "question_kind": "literal:meal"},
+                          parents=(("care_people", "person_id"),)),
+    "care_alerts": Spec(columns={"kind": "literal:manual", "severity": "literal:notice"},
+                        parents=(("care_people", "person_id"),)),
+    "care_alert_attempts": Spec(columns={"tier": "int", "channel": "literal:push",
+                                         "outcome": "literal:logged"},
+                                parents=(("care_alerts", "alert_id"),)),
+    "care_acknowledgements": Spec(columns={"kind": "literal:on_my_way"},
+                                  parents=(("care_alerts", "alert_id"),)),
+    "care_routines": Spec(columns={"name": "text", "kind": "literal:meal"},
+                          parents=(("care_people", "person_id"),)),
+    "care_medications": Spec(columns={"name": "text"},
+                             parents=(("care_people", "person_id"),)),
+    "care_medication_events": Spec(columns={"due_at": "now"},
+                                   parents=(("care_medications", "medication_id"),
+                                            ("care_people", "person_id"))),
+    "care_transcripts": Spec(columns={"speaker": "literal:person", "text": "text"},
+                             parents=(("care_people", "person_id"),)),
+    "care_consents": Spec(columns={"kind": "literal:data_retention", "granted": "bool",
+                                   "granted_by": "literal:person"},
+                          parents=(("care_people", "person_id"),)),
+    "care_access_log": Spec(columns={"resource_kind": "literal:vitals"}),
 }
 
 
@@ -160,6 +197,10 @@ def _value(kind: str, run: str, handle, actor):
         return "{}"
     if kind == "now":
         return "__now__"
+    if kind == "bool":
+        return True
+    if kind.startswith("literal:"):
+        return kind.split(":", 1)[1]
     raise AssertionError(f"unknown column kind {kind!r}")
 
 
@@ -205,18 +246,27 @@ async def _insert(conn, table: str, run: str, actor, *, handle=None, extra=None)
     await conn.execute(  # noqa: S608 - table names come from a module constant
         f"INSERT INTO {table} ({', '.join(cols)}) VALUES ({', '.join(vals)})",
         *params)
+    if spec.handle != "id" and extra and spec.handle in extra:
+        # The row is keyed by its parent (care_safety_settings: one per person).
+        return extra[spec.handle]
     return handle
+
+
+async def _insert_with_parents(conn, table: str, run: str, actor, *, extra=None):
+    """`_insert`, with the row's parents created first, recursively."""
+    spec = SPECS[table]
+    extra = dict(extra or {})
+    for parent_table, column in spec.parents:
+        if column not in extra:
+            extra[column] = await _insert_with_parents(conn, parent_table, run, actor)
+    return await _insert(conn, table, run, actor, extra=extra)
 
 
 async def _row_in(actor, table: str, run: str):
     """Create whatever `table` needs, in `actor`'s workspace, and return the
     handle of the row under test."""
-    spec = SPECS[table]
     async with workspace_connection(actor.principal()) as conn:
-        extra = {}
-        for parent_table, column in spec.parents:
-            extra[column] = await _insert(conn, parent_table, run, actor)
-        return await _insert(conn, table, run, actor, extra=extra)
+        return await _insert_with_parents(conn, table, run, actor)
 
 
 async def _visible(actor, table: str, handle) -> list:
@@ -323,7 +373,7 @@ async def test_a_workspace_cannot_insert_into_another(matrix, app_pool, table, r
     async with workspace_connection(matrix.a.principal()) as conn:
         extra = {"workspace_id": matrix.b.workspace_id}
         for parent_table, column in spec.parents:
-            extra[column] = await _insert(conn, parent_table, run, matrix.a)
+            extra[column] = await _insert_with_parents(conn, parent_table, run, matrix.a)
 
         with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):
             await _insert(conn, table, run, matrix.a, extra=extra)
@@ -376,7 +426,10 @@ async def test_a_workspace_cannot_delete_another_workspaces_row(
     handle = await _row_in(matrix.a, table, run)
 
     async with workspace_connection(matrix.b.principal()) as conn:
-        await conn.execute(f"DELETE FROM {table}")  # noqa: S608
+        try:
+            await conn.execute(f"DELETE FROM {table}")  # noqa: S608
+        except asyncpg.exceptions.InsufficientPrivilegeError:
+            pass  # refused loudly is a fine answer (no DELETE grant at all)
 
     assert await _visible(matrix.a, table, handle), (
         f"{table}: workspace B deleted a row belonging to workspace A")
@@ -393,7 +446,10 @@ async def test_the_other_tenant_cannot_delete_it_either(matrix, app_pool, table,
     handle = await _row_in(matrix.a, table, run)
 
     async with workspace_connection(matrix.c.principal()) as conn:
-        await conn.execute(f"DELETE FROM {table}")  # noqa: S608
+        try:
+            await conn.execute(f"DELETE FROM {table}")  # noqa: S608
+        except asyncpg.exceptions.InsufficientPrivilegeError:
+            pass  # refused loudly is a fine answer (no DELETE grant at all)
 
     assert await _visible(matrix.a, table, handle), (
         f"{table}: another tenant deleted the row")

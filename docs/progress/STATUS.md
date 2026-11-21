@@ -8,7 +8,7 @@ say where it stopped.
 | # | Phase | Branch | State |
 | --- | --- | --- | --- |
 | 1 | ci-and-build-rules | `feat/ci-and-build-rules` | Pull request open; database job red on 8 inherited tests awaiting the owner (D-007) |
-| 2 | care-data-model | | Not started |
+| 2 | care-data-model | `feat/care-data-model` | Built and tested locally; pull request stacked on phase 1 until phase 1 merges |
 | 3 | checkin-engine | | Not started |
 | 4 | monitoring-and-escalation | | Not started |
 | 5 | watch-app | | Not started |
@@ -32,6 +32,19 @@ Local measurements before the first phase, on the foundation as received:
   34 errors**. The 34 errors were a local artefact and pass with the `postgres` role
   (DECISIONS D-007). One further failure was fixed by writing the missing
   `scripts/staging/run_scheduler.py`. The 8 remaining failures test removed parts (below).
+
+## Phase 2 (care-data-model), measured locally
+
+- Migration `099_care_foundation.sql`: fifteen `care_*` tables, forced RLS, append-only
+  access log, rollback file, hash recorded, tenancy manifest at 141 tables.
+- `supracloud-jarvis/ira/care/`: authorisation, consent rules, device credentials, audit,
+  repository and 40 routes under `/api/v1/care`.
+- New tests: 29 unit (authorisation, credentials, consent, route registration), 70
+  adversarial RLS tests on the care tables, 11 database-backed API tests (two families, a
+  watch pairing and reporting, help button, acknowledgement, consent gating, erasure).
+  The workspace-table ratchet (`test_3c06`) now covers the fifteen care tables too.
+- Negative control: with the manage rule and the consent rule deliberately broken, 10 unit
+  tests failed; restored, all pass.
 
 ## Deferred
 

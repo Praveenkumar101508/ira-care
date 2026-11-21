@@ -116,15 +116,28 @@ jobs:
             -f ../postgres/provisioning/001_database_roles.sql
           psql -h localhost -U postgres -d iratest -v ON_ERROR_STOP=1 -c \
             "ALTER ROLE ira_migrator PASSWORD 'ira_migrator'; ALTER ROLE ira_app PASSWORD 'ira_app'; ALTER ROLE ira_worker PASSWORD 'ira_worker';"
+      # The adversarial suites provoke thousands of refused statements on
+      # purpose. Without this the service container's log of them (printed at
+      # the end of the job) buries the test summary thousands of lines deep.
+      - name: Quiet the database's log of refused statements
+        run: |
+          psql -h localhost -U postgres -d iratest -v ON_ERROR_STOP=1 -c \
+            "ALTER SYSTEM SET log_min_messages = 'fatal'; ALTER SYSTEM SET log_min_error_statement = 'panic'; SELECT pg_reload_conf();"
       - name: Apply the migration chain as ira_migrator
         run: python -m scripts.migrate apply --dsn postgresql://ira_migrator:ira_migrator@localhost:5432/iratest
       - name: Applied migrations are unchanged
         run: python -m scripts.check_migration_integrity
       - name: Run the database suites
-        run: >
-          python -m pytest -q -ra -p no:cacheprovider
-          tests/tenancy tests/readiness tests/architecture
-          tests/callers tests/idempotency tests/runtime
+        run: |
+          set -o pipefail
+          python -m pytest -q -ra -p no:cacheprovider \
+            tests/tenancy tests/readiness tests/architecture \
+            tests/callers tests/idempotency tests/runtime 2>&1 | tee database-tests.log
+      - name: Test summary
+        if: always()
+        run: |
+          echo "## Backend database tests" >> "$GITHUB_STEP_SUMMARY"
+          grep -E "^(FAILED|ERROR) |[0-9]+ (passed|failed)" database-tests.log | tail -80 | tee -a "$GITHUB_STEP_SUMMARY" || true
 
   backend-lint:
     name: Backend lint
