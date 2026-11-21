@@ -58,23 +58,23 @@ Default: family and carer, then the care organisation. A paid 24-hour monitoring
 an adapter that stays unconfigured until the owner signs a contract. Reason: no paid
 service may be added, and UK emergency services do not accept automated alerts.
 
-## D-007 Inherited database tests that fail in this repository (phase 1)
+## D-007 Inherited database tests of removed parts: retired (phase 1)
 
 Running the database suites for the first time found 9 tests that could not pass here.
 One, in `tests/tenancy/test_p4_scheduler.py`, wanted a dedicated worker entry point
 (`scripts/staging/run_scheduler.py`) that was not carried over; IRA CARE needs one, so it
-was written and the test passes. The other 8, in `tests/readiness` and `tests/callers`,
-check parts of the source project that were not carried over: two release documents under
-`docs/cloud`, the "untestable items" record, and four removed routes (files, agents,
-technical library, self knowledge). They cannot pass without re-adding what was removed.
+was written and the test passes. The other 8 checked parts of the source project that
+were not carried over: two release documents under `docs/cloud`, the "untestable items"
+record, and four removed routes (files, agents, technical library, self knowledge). They
+could not pass without re-adding what was removed.
 
-Decision: the CI database job runs every database suite unchanged, so these 8 show as
-failures in the `Backend database tests` job. No test is edited, skipped or deleted, and
-the job is not narrowed around them: hiding them would be the one thing the build rules
-forbid. The 8 are listed in `progress/STATUS.md`. **The owner decides** whether to retire
-them (as the split already did for 165 test files of the same kind) or to restore what
-they test; until then the database job stays red on exactly these 8 and nothing else.
+**Owner's decision (21 November 2026): retire them**, consistent with the 165 test files
+of the same kind the split already dropped. The eight functions were deleted from
+`tests/readiness/test_phase_4_acceptance.py`, `tests/readiness/test_concurrency_and_failover.py`
+and `tests/callers/test_api_route_callers.py`; the rest of each file stands. This is the one
+deliberate exception to "never delete a test", made by the owner, and recorded here.
 
 The 34 billing-test errors seen locally were a local artefact: the payment-event guard
 accepts the privileged role only when it is literally named `postgres`, which CI uses.
 With that role the 41 billing tests pass.
+
