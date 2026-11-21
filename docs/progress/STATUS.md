@@ -11,7 +11,7 @@ say where it stopped.
 | 2 | care-data-model | `feat/care-data-model` | Built and tested locally; pull request stacked on phase 1 until phase 1 merges |
 | 3 | checkin-engine | `feat/checkin-engine` | Built and tested locally; stacked on phase 2 |
 | 4 | monitoring-and-escalation | `feat/monitoring-and-escalation` | Built and tested locally; stacked on phase 3 |
-| 5 | watch-app | | Not started |
+| 5 | watch-app | `feat/watch-app` | Built; unit tests pass; stacked on phase 4; not yet run on a real watch |
 | 6 | family-app | | Not started |
 | 7 | carer-dashboard | | Not started |
 | 8 | reports-and-history | | Not started |
@@ -73,6 +73,17 @@ Local measurements before the first phase, on the foundation as received:
   scenario to tier 3 and the acknowledgement that stops it; a notice told once; one open
   alert per kind and help escalating at once; three misses with normal readings).
 
+## Phase 5 (watch-app), measured locally
+
+- `watch/`: the Wear OS app (API client, check-in state machine, Health Services sensor
+  source behind an interface, reading batcher, offline queue, pairing store, speaker and
+  listener, foreground service, sync worker, boot receiver, three Compose screens).
+- `./gradlew assembleDebug testDebugUnitTest` passes locally with an Android SDK (platform
+  35): 22 JVM unit tests (state machine, offline queue, batcher, pairing code, API client
+  against a mock server). The CI `watch` job now activates.
+- Negative control: with the repeat timing broken, 2 tests failed; restored, all pass.
+- Not done: nothing has run on a real watch or an emulator in this environment.
+
 ## Deferred
 
 - **8 inherited tests of removed parts** were retired on the owner's decision (DECISIONS D-007).
@@ -80,7 +91,8 @@ Local measurements before the first phase, on the foundation as received:
 
 ## Needs the owner
 
-- A Galaxy Watch with LTE for on-device testing.
+- A Galaxy Watch with LTE for on-device testing (the watch app has only been unit tested).
+- Deleting merged branches on GitHub: the session's access cannot delete branches; `feat/ci-and-build-rules` and `feat/care-data-model` can be removed from the GitHub branches page.
 - The vendor sensor SDK partner request before release.
 - SMS and call provider keys (the adapter stays off without them).
 - A monitoring-centre contract for tier 3.
