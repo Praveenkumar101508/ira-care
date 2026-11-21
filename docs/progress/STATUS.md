@@ -25,19 +25,12 @@ Round 1 is merged to `main`. Round 2:
 | R2-2 | home-and-location | `feat/home-and-location` | Merged (pull request 11) |
 | R2-3 | fall-detection | `feat/fall-detection` | Merged (pull request 12) |
 | R2-4 | ira-conversation | `feat/ira-conversation` | Merged (pull request 13) |
-| R2-5 | demo-mode | `feat/demo-mode` | Built and recorded locally; pull request 14 open, CI did not start (see below) |
-| R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Not started |
-| R2-4 | ira-conversation | `feat/ira-conversation` | Built and tested locally; pull request pending |
-| R2-5 | demo-mode | `feat/demo-mode` | Not started |
-| R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Built and tested locally; pull request pending |
-| R2-7 | deployment-ready | `feat/deployment-ready` | Not started |
-| R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Not started |
-| R2-7 | deployment-ready | `feat/deployment-ready` | Built and checked locally; pull request pending |
-| R2-8 | store-readiness | `feat/store-readiness` | Not started |
-| R2-8 | store-readiness | `feat/store-readiness` | Built and checked locally; pull request pending |
-| R2-9 | compliance-drafts | `docs/compliance-drafts` | Not started |
-| R2-9 | compliance-drafts | `docs/compliance-drafts` | Written; pull request pending |
-| R2-10 | final-readiness | `feat/final-readiness` | Not started |
+| R2-5 | demo-mode | `feat/demo-mode` | Built and recorded locally; pull request 14 open (CI could not start, see below) |
+| R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Built and tested locally; pull request 15 open |
+| R2-7 | deployment-ready | `feat/deployment-ready` | Built and checked locally; pull request 16 open |
+| R2-8 | store-readiness | `feat/store-readiness` | Built and checked locally; pull request 17 open |
+| R2-9 | compliance-drafts | `docs/compliance-drafts` | Written; pull request 18 open |
+| R2-10 | final-readiness | `feat/final-readiness` | In progress: integrates 14 to 18, proves from a clean clone |
 
 ## Measured locally (21 November 2026, Linux, Python 3.12)
 
