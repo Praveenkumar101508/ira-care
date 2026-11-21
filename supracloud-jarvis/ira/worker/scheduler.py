@@ -155,6 +155,14 @@ def build_scheduler(jobs: frozenset[str] | None = None) -> AsyncIOScheduler:
 
     # Security scan — every 60 seconds
     add(
+        _care_checkins,
+        trigger="interval",
+        seconds=60,
+        id="care_checkins",
+        name="IRA CARE check-in cycle",
+        replace_existing=True,
+    )
+    add(
         run_security_scan,
         trigger="interval",
         seconds=60,
@@ -390,6 +398,17 @@ async def _sync_calendar() -> None:
         await sync_calcom_bookings(principal)
     except Exception as e:
         logger.error(f"Calendar sync failed: {e}", exc_info=True)
+
+
+async def _care_checkins() -> None:
+    """One pass of the IRA CARE check-in cycle. Guarded: a failing pass is
+    logged and the next minute's pass still runs."""
+    try:
+        from care.checkin_cycle import run_cycle_once
+        outcome = await run_cycle_once()
+        logger.debug("care check-ins: %s", outcome)
+    except Exception as e:
+        logger.error(f"care check-in cycle failed: {e}", exc_info=True)
 
 
 async def _liveness_tick() -> None:

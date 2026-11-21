@@ -266,3 +266,22 @@ class ConsentRecord(BaseModel):
         if v not in CONSENT_KINDS:
             raise ValueError(f"kind must be one of {CONSENT_KINDS}")
         return v
+
+
+class CheckinAnswer(BaseModel):
+    """The person's answer. `text` is empty for a bare "I'm OK" button press."""
+    text: str = Field("", max_length=4000)
+    via: str = Field("voice", pattern=r"^(voice|button|phone)$")
+
+
+class AskNow(BaseModel):
+    kind: str = "wellbeing"
+    text: str = Field("", max_length=400)
+
+    @field_validator("kind")
+    @classmethod
+    def _kind(cls, v):
+        allowed = ("meal", "medication", "mood", "pain", "plans", "wellbeing", "custom")
+        if v not in allowed:
+            raise ValueError(f"kind must be one of {allowed}")
+        return v

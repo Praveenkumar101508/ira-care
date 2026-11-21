@@ -9,7 +9,7 @@ say where it stopped.
 | --- | --- | --- | --- |
 | 1 | ci-and-build-rules | `feat/ci-and-build-rules` | Pull request 1 open; inherited tests retired (D-007) |
 | 2 | care-data-model | `feat/care-data-model` | Built and tested locally; pull request stacked on phase 1 until phase 1 merges |
-| 3 | checkin-engine | | Not started |
+| 3 | checkin-engine | `feat/checkin-engine` | Built and tested locally; stacked on phase 2 |
 | 4 | monitoring-and-escalation | | Not started |
 | 5 | watch-app | | Not started |
 | 6 | family-app | | Not started |
@@ -46,6 +46,20 @@ Local measurements before the first phase, on the foundation as received:
   The workspace-table ratchet (`test_3c06`) now covers the fifteen care tables too.
 - Negative control: with the manage rule and the consent rule deliberately broken, 10 unit
   tests failed; restored, all pass.
+
+## Phase 3 (checkin-engine), measured locally
+
+- `care/checkins.py` (rules: quiet hours, next check-in, question choice, wording,
+  answer reading) and `care/checkin_cycle.py` (the one-minute worker job `care_checkins`
+  and the watch's side: due, repeated, answer, missed; `ask-now` for family and carers).
+- Five new routes; the job is registered in `worker/jobs.py` and `worker/scheduler.py`
+  (on when `IRA_WORKER_JOBS` names it).
+- Tests: 29 unit tests on the rules; 7 database-backed tests driving a full day with an
+  explicit clock (scheduling window, watch collects the question once, repeat, answer with
+  a dose confirmed, consent gating of answers, quiet hours and the morning question, two
+  kinds of miss, the whole cycle over two tenants, the watch-side routes).
+- Negative control: with quiet hours disabled and the miss deadline stretched, 9 tests
+  failed; restored, all pass.
 
 ## Deferred
 
