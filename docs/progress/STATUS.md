@@ -10,7 +10,7 @@ say where it stopped.
 | 1 | ci-and-build-rules | `feat/ci-and-build-rules` | Pull request 1 open; inherited tests retired (D-007) |
 | 2 | care-data-model | `feat/care-data-model` | Built and tested locally; pull request stacked on phase 1 until phase 1 merges |
 | 3 | checkin-engine | `feat/checkin-engine` | Built and tested locally; stacked on phase 2 |
-| 4 | monitoring-and-escalation | | Not started |
+| 4 | monitoring-and-escalation | `feat/monitoring-and-escalation` | Built and tested locally; stacked on phase 3 |
 | 5 | watch-app | | Not started |
 | 6 | family-app | | Not started |
 | 7 | carer-dashboard | | Not started |
@@ -60,6 +60,18 @@ Local measurements before the first phase, on the foundation as received:
   kinds of miss, the whole cycle over two tenants, the watch-side routes).
 - Negative control: with quiet hours disabled and the miss deadline stretched, 9 tests
   failed; restored, all pass.
+
+## Phase 4 (monitoring-and-escalation), measured locally
+
+- `care/monitoring.py` (the rules), `care/providers.py` (log-only default, Twilio adapter
+  off without keys, emergency numbers refused), `care/escalation.py` (tiers, waits, the
+  tier-3 fallback, one-minute worker job `care_monitoring`).
+- `scripts/simulate_patient.py`: the "person does not answer and stops moving" scenario
+  end to end against a test database, printed as a timeline; the same code is what the
+  database test asserts on.
+- Tests: 11 unit tests (rules, wording, providers) and 4 database-backed tests (the full
+  scenario to tier 3 and the acknowledgement that stops it; a notice told once; one open
+  alert per kind and help escalating at once; three misses with normal readings).
 
 ## Deferred
 

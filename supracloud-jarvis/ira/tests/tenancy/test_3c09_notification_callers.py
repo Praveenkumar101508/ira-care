@@ -78,6 +78,7 @@ NOTIFY_CALLERS = {
     "worker/scheduler.py": "private",
     "worker/security_monitor.py": "private",  # this deployment's security events
     "worker/self_healing.py": "private",
+    "care/escalation.py": "tenant",           # IRA CARE alerts: always passes the workspace's principal
 }
 
 

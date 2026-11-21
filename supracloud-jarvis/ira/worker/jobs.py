@@ -31,6 +31,8 @@ KNOWN_JOBS: frozenset[str] = frozenset({
     # IRA CARE: the check-in cycle (care/checkin_cycle.py). Every minute,
     # schedules the next check-in per person, skips quiet hours, marks misses.
     "care_checkins",
+    # IRA CARE: the monitoring rules and the SOS chain (care/escalation.py).
+    "care_monitoring",
 })
 
 #: What runs when ``IRA_WORKER_JOBS`` is unset. None of these calls a model.

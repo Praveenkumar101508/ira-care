@@ -163,6 +163,14 @@ def build_scheduler(jobs: frozenset[str] | None = None) -> AsyncIOScheduler:
         replace_existing=True,
     )
     add(
+        _care_monitoring,
+        trigger="interval",
+        seconds=60,
+        id="care_monitoring",
+        name="IRA CARE monitoring and escalation",
+        replace_existing=True,
+    )
+    add(
         run_security_scan,
         trigger="interval",
         seconds=60,
@@ -409,6 +417,17 @@ async def _care_checkins() -> None:
         logger.debug("care check-ins: %s", outcome)
     except Exception as e:
         logger.error(f"care check-in cycle failed: {e}", exc_info=True)
+
+
+async def _care_monitoring() -> None:
+    """One pass of the IRA CARE rules and escalation chain. Guarded like the
+    check-in cycle: a failing pass is logged and the next minute's still runs."""
+    try:
+        from care.escalation import run_once
+        outcome = await run_once()
+        logger.debug("care monitoring: %s", outcome)
+    except Exception as e:
+        logger.error(f"care monitoring pass failed: {e}", exc_info=True)
 
 
 async def _liveness_tick() -> None:
