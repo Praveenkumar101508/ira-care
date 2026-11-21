@@ -28,7 +28,7 @@ Round 1 is merged to `main`. Round 2:
 | R2-5 | demo-mode | `feat/demo-mode` | Not started |
 | R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Not started |
 | R2-7 | deployment-ready | `feat/deployment-ready` | Not started |
-| R2-8 | store-readiness | `feat/store-readiness` | Not started |
+| R2-8 | store-readiness | `feat/store-readiness` | Built and checked locally; pull request pending |
 | R2-9 | compliance-drafts | `docs/compliance-drafts` | Not started |
 | R2-10 | final-readiness | `feat/final-readiness` | Not started |
 
@@ -249,6 +249,22 @@ Local measurements before the first phase, on the foundation as received:
   (4 CPUs, 15 GB, no GPU); the 4-second budget is a setting. CI uses the fake model.
 - Negative control: see the pull request description.
 
+## Round 2, phase 8 (store-readiness), measured locally
+
+- Watch: release build configuration (minify, shrink, keep rules, signing from the owner's
+  environment, server and version code at build time); the unsigned release package and
+  shrinker mapping were produced locally; launcher icons; content descriptions, a live
+  status region and 48 dp buttons. 35 JVM tests (was 33). `docs/store/WEAR_OS_LISTING.md`.
+- Family app: icons, splash, identifiers, build numbers, notification usage text,
+  `eas.json` with build profiles (no submission); accessibility labels, hints, states,
+  headers, scalable text, 56-point buttons. 19 tests (was 16). `docs/store/FAMILY_APP_LISTING.md`.
+- Dashboard: skip link, focus ring, larger text and targets, field labels, named alert
+  cards, live region on the simulator, reduced-motion and high-contrast support; `jest-axe`
+  and a contrast test. 18 tests (was 16); type check and build pass.
+- `docs/legal/PRIVACY_POLICY.md` and `TERMS_OF_USE.md`, both marked DRAFT FOR LEGAL REVIEW.
+- Not done here, listed under "Needs the owner": a screen-reader pass on a real watch and
+  phone; store accounts and submissions; the signing key.
+
 ## Deferred
 
 - **8 inherited tests of removed parts** were retired on the owner's decision (DECISIONS D-007).
@@ -262,6 +278,11 @@ Local measurements before the first phase, on the foundation as received:
 - SMS and call provider keys (the adapter stays off without them).
 - A monitoring-centre contract for tier 3.
 - Regulatory advice before sale.
+- A screen-reader and large-text pass on a real watch and a real phone (the automated checks
+  cover labels, roles, contrast and sizes only).
+- Store accounts, the signing key for the watch app, the build-service project for the family
+  app, and the submissions themselves; the listing text and the policy drafts are ready for
+  legal review first.
 - Measuring the conversation model's first-sentence latency on the owner's machine with the
   configured small local model, and recording machine and model in STATUS.md.
 - A decision on where the access-notes sealing module lives: inside `core/connectors/` (as

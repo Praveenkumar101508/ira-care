@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -13,16 +15,44 @@ android {
         applicationId = "care.ira.watch"
         minSdk = 30          // Wear OS 3: Galaxy Watch 4 and later
         targetSdk = 35
-        versionCode = 1
+        // versionCode counts up per store upload; set IRA_WATCH_VERSION_CODE in the release build.
+        versionCode = (System.getenv("IRA_WATCH_VERSION_CODE") ?: "1").toInt()
         versionName = "0.1.0"
         // The backend the watch talks to. Set per build; the default is a
         // local development server reached from the emulator.
         buildConfigField("String", "CARE_API_BASE_URL", "\"http://10.0.2.2:8000\"")
     }
 
+    // Release signing: a keystore the owner holds, named by environment variables
+    // or a keystore.properties file next to this module. Neither is committed.
+    // Without them the release build is unsigned (fine for CI; not installable).
+    val keystoreProps = Properties().apply {
+        val f = rootProject.file("keystore.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
+    fun secret(name: String): String? = System.getenv(name) ?: keystoreProps.getProperty(name)
+    signingConfigs {
+        create("release") {
+            val path = secret("IRA_WATCH_KEYSTORE")
+            if (path != null) {
+                storeFile = file(path)
+                storePassword = secret("IRA_WATCH_KEYSTORE_PASSWORD")
+                keyAlias = secret("IRA_WATCH_KEY_ALIAS")
+                keyPassword = secret("IRA_WATCH_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (secret("IRA_WATCH_KEYSTORE") != null) signingConfig = signingConfigs.getByName("release")
+            // The production backend, set at build time; never a default that points at a developer's machine.
+            buildConfigField("String", "CARE_API_BASE_URL", "\"${secret("IRA_CARE_API_BASE_URL") ?: "https://care.example.invalid"}\"")
+        }
+        debug {
+            applicationIdSuffix = ".debug"
         }
     }
     compileOptions {

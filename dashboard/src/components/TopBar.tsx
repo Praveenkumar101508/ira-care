@@ -25,11 +25,11 @@ export function TopBar() {
         Monitoring paused: the care jobs have not run for over {Math.round(ops.stale_after_s / 60)} minutes. Check-ins and alerts are not being processed. The operations contact has been told.
       </div>
     ) : null}
-    <header className="top">
+    <header className="top" role="banner">
       <h1>IRA CARE</h1>
       {session ? (
         <>
-          <nav>
+          <nav aria-label="Main">
             <Link href="/">People</Link>
             <Link href="/alerts">Alerts</Link>
           </nav>

@@ -9,7 +9,7 @@ export const colors = {
 export function Screen({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.screen}>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title} accessibilityRole="header" maxFontSizeMultiplier={2}>{title}</Text>
       {children}
     </View>
   );
@@ -19,31 +19,34 @@ export function Card({ children }: { children: React.ReactNode }) {
   return <View style={styles.card}>{children}</View>;
 }
 
-export function BigButton({ label, onPress, color = colors.ok, disabled = false, testID }: {
-  label: string; onPress: () => void; color?: string; disabled?: boolean; testID?: string;
+export function BigButton({ label, onPress, color = colors.ok, disabled = false, testID, hint }: {
+  label: string; onPress: () => void; color?: string; disabled?: boolean; testID?: string; hint?: string;
 }) {
   return (
     <Pressable
       testID={testID}
       accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={hint}
+      accessibilityState={{ disabled }}
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [styles.button, { backgroundColor: color, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 }]}
     >
-      <Text style={styles.buttonText}>{label}</Text>
+      <Text style={styles.buttonText} maxFontSizeMultiplier={2}>{label}</Text>
     </Pressable>
   );
 }
 
 export function Muted({ children }: { children: React.ReactNode }) {
-  return <Text style={styles.muted}>{children}</Text>;
+  return <Text style={styles.muted} maxFontSizeMultiplier={2.5}>{children}</Text>;
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg, padding: 16, paddingTop: 48 },
   title: { fontSize: 24, fontWeight: '700', color: colors.text, marginBottom: 12 },
   card: { backgroundColor: colors.card, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: colors.border },
-  button: { borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+  button: { minHeight: 56, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
   buttonText: { color: '#fff', fontSize: 18, fontWeight: '700' },
   muted: { color: colors.muted, fontSize: 14 },
 });
