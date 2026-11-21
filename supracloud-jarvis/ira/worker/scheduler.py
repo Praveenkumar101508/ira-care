@@ -179,6 +179,15 @@ def build_scheduler(jobs: frozenset[str] | None = None) -> AsyncIOScheduler:
         replace_existing=True,
     )
     add(
+        _care_retention,
+        trigger="cron",
+        hour=3,
+        minute=20,
+        id="care_retention",
+        name="IRA CARE retention purge",
+        replace_existing=True,
+    )
+    add(
         run_security_scan,
         trigger="interval",
         seconds=60,
@@ -447,6 +456,17 @@ async def _care_reports() -> None:
         logger.debug("care reports: %s", outcome)
     except Exception as e:
         logger.error(f"care reports pass failed: {e}", exc_info=True)
+
+
+async def _care_retention() -> None:
+    """Daily: remove care data older than each person's retention period
+    (care/retention.py). Open alerts and the access log are never touched."""
+    try:
+        from care.retention import run_once
+        outcome = await run_once()
+        logger.info("care retention: %s people, %s rows removed", outcome.people, outcome.total)
+    except Exception as e:
+        logger.error(f"care retention pass failed: {e}", exc_info=True)
 
 
 async def _liveness_tick() -> None:

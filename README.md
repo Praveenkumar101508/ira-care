@@ -1,57 +1,68 @@
 # IRA CARE
 
-IRA CARE is a proactive AI companion for older people who live independently. It starts
-the conversation itself, checks in about meals and medication, follows up when something
-seems wrong, and alerts carers and family. Family members see alerts and summaries, not
-private conversations.
+IRA CARE is a proactive companion for older people who live independently. A watch worn
+all day runs IRA, which starts short, warm conversations itself (meals, medication, mood,
+pain, plans), notices when the person does not answer, reads the watch's own sensors, and
+raises an alarm that reaches a human who goes to check. Family use a phone app; carers and
+care organisations use a web dashboard. Conversations stay private unless the person
+agrees to share them.
 
-**Stage: foundation only.** This repository holds the backend foundation IRA CARE is built
-on. The care-specific features (the watch app, care conversations, the medication
-confidence score, fall and no-response alerts, the carer dashboard and the reports) are
-planned, not built. [STATUS.md](STATUS.md) lists exactly what exists and what does not.
+**Stage: built and tested in software; not yet run on a real watch or phone.** Every part
+below has automated tests that run in CI. Nothing has been tried on a Galaxy Watch, in an
+emulator, or with a real text-message or call provider. [STATUS.md](STATUS.md) says exactly
+what is proved and what is not; [docs/progress/FINAL_REPORT.md](docs/progress/FINAL_REPORT.md)
+is the hand-over.
 
-## Where the foundation comes from
+## What is here
 
-The foundation is taken from **IRA by SupraCloud**, a private, local-first AI assistant
-built by Praveen Kamineti. Only the parts IRA CARE needs were kept:
+| Path | What it holds | Checked in CI by |
+| --- | --- | --- |
+| `supracloud-jarvis/ira/care/` | The care backend: data model API, check-in engine, monitoring rules, escalation chain, providers, reports, history, retention | Backend unit and database jobs |
+| `supracloud-jarvis/postgres/099_*.sql`, `100_*.sql` | Sixteen care tables, all tenant and workspace scoped with forced row-level security | Database job (adversarial RLS suites) |
+| `watch/` | The Wear OS app (Kotlin, Compose for Wear OS, Health Services) | Gradle build and unit tests |
+| `mobile/` | The family and patient phone app (Expo, TypeScript) | Type check and tests |
+| `dashboard/` | The carer dashboard (Next.js, TypeScript) | Type check, tests and build |
+| `scripts/simulate_patient.py` | The "person does not answer and stops moving" scenario, end to end, on a test database | Database job |
+| `docs/` | Product specification, build rules, every decision, progress and the final report | |
 
-- **Conversation:** IRA's chat engine, with local language models and model routing
-- **Proactive behaviour:** the scheduler, the heartbeat (the assistant speaks first),
-  reminders and briefings
-- **Alerts:** notifications through the app, phone push, Telegram and email
-- **Memory:** remembering the person, their routines and past conversations
-- **Voice:** speech-to-text on the server (spoken replies are not active yet; see STATUS)
-- **People and permissions:** separate logins for the person, carers and family, with
-  roles (viewer, trusted user, family admin) and an audit log
-- **Safety and privacy:** approval before any outbound or destructive action, a privacy
-  centre with erasure, audio never stored, multi-user isolation
+The foundation under `supracloud-jarvis/` (conversation, memory, scheduler, notifier,
+logins and roles, approval and privacy, multi-tenant isolation) is taken from **IRA by
+SupraCloud**; see [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md) for how the care features
+sit on it.
 
-Parts of IRA that IRA CARE does not need (coding agents, interview preparation, meeting
-capture, the desktop overlay, IRA's web interface and its build and release tooling)
-were removed.
+## How it works, in one paragraph
 
-## Layout
+Every 15 to 20 minutes while the person is awake, the backend schedules a check-in; the
+watch collects it, speaks it, listens, repeats louder with vibration after a minute, and
+posts the answer or that nobody answered. A missed check-in triggers a sensor check: no
+movement, a heart rate outside the range the carer set, or the watch off the wrist opens an
+SOS; the escalation chain tells family and carer (push, text, call), then the care
+organisation, then shows the family "call 999 now" (there is no monitoring-centre contract
+yet, and the system never dials 999 itself) until somebody acknowledges with "I'm on my
+way". Readings, check-ins, alerts and medication confirmations feed a daily carer report and
+a weekly family report, in summaries only.
 
-| Path | What it holds |
-| --- | --- |
-| `supracloud-jarvis/ira/` | The backend (FastAPI, Python 3.11 or 3.12) and its tests |
-| `supracloud-jarvis/postgres/` | Database migrations (PostgreSQL 16 with pgvector) |
-| `supracloud-jarvis/scripts/` | Setup and operations scripts carried over from IRA |
-
-The folder name `supracloud-jarvis` is kept from IRA so that existing paths, imports and
-tests keep working. It may be renamed later in a dedicated change.
-
-## Running the tests
+## Running the backend tests
 
 ```bash
 cd supracloud-jarvis/ira
 python3.12 -m venv ../.venv
-../.venv/bin/pip install -r requirements.txt -r requirements-test.txt
+../.venv/bin/pip install -r requirements-test.txt
 ../.venv/bin/python -m pytest -q
 ```
 
-Tests that need a database run only when `IRA_TEST_DATABASE_DSN` points at a UTF-8
-PostgreSQL 16 database with pgvector; without it they are skipped or refuse to run.
+The database suites need PostgreSQL 16 with pgvector, the roles from
+`supracloud-jarvis/postgres/provisioning/001_database_roles.sql`, the chain applied with
+`python -m scripts.migrate apply` as `ira_migrator`, and `IRA_TEST_DATABASE_DSN` (as
+`ira_app`) and `IRA_TEST_ADMIN_DSN` (as `postgres`) set. `.github/workflows/test.yml` shows
+the exact steps. The watch, phone and dashboard each have their own README.
+
+## Things only the owner can do
+
+A Galaxy Watch with LTE for device testing; the vendor sensor-SDK partner request before
+release; text and call provider keys (the adapter stays off without them); a
+monitoring-centre contract for tier 3; regulatory advice before sale. See
+[docs/progress/FINAL_REPORT.md](docs/progress/FINAL_REPORT.md).
 
 ## Licence
 

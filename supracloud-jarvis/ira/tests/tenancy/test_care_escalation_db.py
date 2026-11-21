@@ -69,6 +69,13 @@ async def test_the_full_scenario_runs_to_tier_three_and_stops_at_the_acknowledge
     assert numbers == {"+440000000001", "+440000000002", "+440000000003"}
     assert final["acknowledgements"][0]["kind"] == "on_my_way"
     assert final["acknowledgements"][0]["member_id"] == family.member_id
+    # And the next morning's report records the day: the answers, the miss,
+    # the alert and who went, in summaries, without the person's words.
+    report = final["daily_report"]
+    text = report["body_text"]
+    assert "2 answered, 1 missed, of 3 asked" in text
+    assert "no answer and no movement (sos, reached tier 3, now acknowledged acknowledged by Family Member (simulated))" in text
+    assert "fine, thank you" not in text
 
 
 async def test_a_notice_is_told_once_and_does_not_escalate(family, pool):

@@ -229,6 +229,16 @@ async def run_scenario(fam: Family, timeline: Timeline, *, start: dt.datetime | 
     final = await repo.get_alert(admin_principal(fam), alert_id)
     timeline.add(now, f"final: status {final['status']}, tier {final['current_tier']}, "
                       f"{len(final['attempts'])} attempts, {len(final['acknowledgements'])} acknowledgement(s)")
+
+    # ── The next morning: the carer's daily report records the day ──────────
+    from care import reports
+    from core.identity.db_context import workspace_connection
+    async with workspace_connection(jp) as conn:
+        person = dict(await conn.fetchrow("SELECT * FROM care_people WHERE id = $1", fam.person_id))
+        report = await reports.generate(conn, person, reports.DAILY, now.date())
+    if report is not None:
+        timeline.add(now + dt.timedelta(hours=21), f"daily report: {report['title']}")
+        final["daily_report"] = report
     return final
 
 
