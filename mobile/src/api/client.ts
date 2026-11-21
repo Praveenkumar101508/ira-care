@@ -1,4 +1,4 @@
-import type { AccessNotes,
+import type { AccessNotes, TalkLine, TalkReply,
   Alert, Checkin, CircleMember, ConsentList, Device, LoginResponse, Person, PersonStatus, Report, WorkspaceList,
 } from './types';
 
@@ -93,6 +93,12 @@ export class CareClient {
     await this.request('POST', `/api/v1/care/consents/${consentId}/revoke`);
   }
 
+  /** Talk to IRA from the person's own phone. The server streams one JSON object per line. */
+  async talk(personId: string, text: string): Promise<TalkReply> {
+    const raw = await this.requestText('POST', `/api/v1/care/people/${personId}/talk`, { text });
+    return parseTalk(raw);
+  }
+
   async askNow(personId: string): Promise<void> {
     await this.request('POST', `/api/v1/care/people/${personId}/checkins/ask-now`, { kind: 'wellbeing' });
   }
@@ -108,6 +114,22 @@ export class CareClient {
 
   async registerPush(token: string, platform: string): Promise<void> {
     await this.request('POST', '/mobile/devices', { token, platform }, false);
+  }
+
+  private async requestText(method: string, path: string, body?: unknown): Promise<string> {
+    const headers: Record<string, string> = { Authorization: `Bearer ${this.session.accessToken}`, Accept: 'application/x-ndjson' };
+    if (!this.session.workspaceId) throw new ApiError(0, 'No care circle selected.');
+    headers['X-Workspace-ID'] = this.session.workspaceId;
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    let response: Response;
+    try {
+      response = await this.fetchImpl(this.session.baseUrl + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+    } catch (e) {
+      throw new ApiError(0, 'No connection. Check the network and try again.');
+    }
+    if (response.status === 401) throw new ApiError(401, 'Please sign in again.');
+    if (!response.ok) throw new ApiError(response.status, await readDetail(response));
+    return response.text();
   }
 
   private async request<T>(method: string, path: string, body?: unknown, workspace = true): Promise<T> {
@@ -143,4 +165,17 @@ async function readDetail(response: Response): Promise<string> {
   } catch {
     return `The server answered ${response.status}.`;
   }
+}
+
+/** The streamed reply, line by line: sentences first, then the closing object. */
+export function parseTalk(raw: string): TalkReply {
+  const out: TalkReply = { sentences: [], action: null, needsHelp: false };
+  for (const line of raw.split('\n')) {
+    if (!line.trim()) continue;
+    let obj: TalkLine;
+    try { obj = JSON.parse(line) as TalkLine; } catch { continue; }
+    if (typeof obj.sentence === 'string') out.sentences.push(obj.sentence);
+    if (obj.done) { out.action = obj.action ?? null; out.needsHelp = obj.needs_help === true; }
+  }
+  return out;
 }

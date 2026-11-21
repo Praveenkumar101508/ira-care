@@ -36,6 +36,8 @@ data class WatchStatus(
     val online: Boolean = true,
     /** Seconds left in a fall countdown, or null when none is running. */
     val fallCountdown: Int? = null,
+    /** A "Talk to IRA" exchange is in progress. */
+    val talking: Boolean = false,
 )
 
 /**

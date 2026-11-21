@@ -82,4 +82,27 @@ class CareApiTest {
         val withoutFix = server.takeRequest().body.readUtf8()
         assertTrue(!withoutFix.contains("latitude"))
     }
+
+    @Test
+    fun `talk speaks each streamed sentence as it arrives and reads the final action`() {
+        server.enqueue(MockResponse().setBody(
+            """{"sentence": "Here is Family Member."}
+{"sentence": "Tap to call."}
+{"done": true, "action": {"kind": "call", "name": "Family Member", "phone": "+440000000001"}, "source": "rules", "needs_help": false}
+"""))
+        val spoken = mutableListOf<String>()
+        val out = api.talk("call my daughter") { spoken += it } as ApiOutcome.Ok
+        assertEquals(listOf("Here is Family Member.", "Tap to call."), spoken)
+        assertEquals(spoken, out.value.sentences)
+        assertEquals("call", (out.value.action!!["kind"] as kotlinx.serialization.json.JsonPrimitive).content)
+        assertTrue(!out.value.needsHelp)
+        val req = server.takeRequest()
+        assertEquals("/api/v1/care/devices/me/talk", req.path)
+        assertTrue(req.body.readUtf8().contains("\"text\":\"call my daughter\""))
+        server.enqueue(MockResponse().setBody("""{"sentence": "I'm getting help for you now."}
+{"done": true, "action": {"kind": "safety_check"}, "needs_help": true}
+"""))
+        val help = api.talk("I've fallen") { } as ApiOutcome.Ok
+        assertTrue(help.value.needsHelp)
+    }
 }

@@ -132,3 +132,7 @@ export interface Report {
   title: string;
   body_text: string;
 }
+
+/** One streamed line from "Talk to IRA". */
+export interface TalkLine { sentence?: string; done?: boolean; action?: { kind: string; name?: string; phone?: string; text?: string } | null; source?: string; needs_help?: boolean }
+export interface TalkReply { sentences: string[]; action: TalkLine['action']; needsHelp: boolean }

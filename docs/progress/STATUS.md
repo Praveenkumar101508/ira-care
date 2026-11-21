@@ -23,8 +23,8 @@ Round 1 is merged to `main`. Round 2:
 | --- | --- | --- | --- |
 | R2-1 | continuous-monitoring | `feat/continuous-monitoring` | Merged (pull request 10) |
 | R2-2 | home-and-location | `feat/home-and-location` | Merged (pull request 11) |
-| R2-3 | fall-detection | `feat/fall-detection` | In progress |
-| R2-4 | ira-conversation | `feat/ira-conversation` | Not started |
+| R2-3 | fall-detection | `feat/fall-detection` | Merged (pull request 12) |
+| R2-4 | ira-conversation | `feat/ira-conversation` | Built and tested locally; pull request pending |
 | R2-5 | demo-mode | `feat/demo-mode` | Not started |
 | R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Not started |
 | R2-7 | deployment-ready | `feat/deployment-ready` | Not started |
@@ -223,6 +223,32 @@ Local measurements before the first phase, on the foundation as received:
   watch maker's own fall detection on Galaxy Watch, Pixel Watch and Apple Watch.
 - Negative control: see the pull request description.
 
+## Round 2, phase 4 (ira-conversation), measured locally
+
+- Migration `104_care_conversation.sql`: `care_conversation_memory` (RLS, grants, manifest,
+  erasure registry, adversarial suite, retention purge), `care_checkins.question_source`,
+  the `concerning_phrase` alert kind. Rollback file, hash recorded, manifest at 143 tables.
+- `care/conversation.py` (model adapter with the fake, guardrails, sentence streaming with
+  the first-sentence budget, composing, structured reading with stricter-wins merging, red
+  flags, talk intents, the rolling summary) and `care/talk.py` (context from the record,
+  the exchange, transcripts, memory, ask-first on a concerning phrase). Check-ins are
+  composed by the model by default (`IRA_CARE_MODEL=local`), templates remain the fallback.
+  Routes: `POST /devices/me/talk` and `POST /people/{id}/talk` (one JSON object per line),
+  `GET /people/{id}/memory`. The operations status reports which model is configured.
+- Watch: a "Talk to IRA" button; the reply is spoken sentence by sentence as it streams; a
+  safety-check action makes the watch ask "are you OK?" at once. 33 JVM tests (was 32).
+- Family app: the "Talk to IRA (on this phone)" screen with the contact card for a call.
+  16 tests (was 15). Dashboard: what IRA remembers, and a "composed" marker on check-ins.
+- Tests: 10 unit (fake model, guard, sentences, stricter wins, red flags, structure with bad
+  JSON, intents, streamed talk with fallback, rolling summary, the setting), 6
+  database-backed (composed then template, structure and stricter wins with the person's
+  words kept out of summaries, red flag asks first then escalates, talk streams and keeps
+  transcripts under consent and rolls the memory, phone talk shows a contact and asks first
+  on a concerning phrase, memory purged and erased).
+- **First-sentence latency: unmeasured.** No local model runtime exists in this environment
+  (4 CPUs, 15 GB, no GPU); the 4-second budget is a setting. CI uses the fake model.
+- Negative control: see the pull request description.
+
 ## Deferred
 
 - **8 inherited tests of removed parts** were retired on the owner's decision (DECISIONS D-007).
@@ -236,6 +262,8 @@ Local measurements before the first phase, on the foundation as received:
 - SMS and call provider keys (the adapter stays off without them).
 - A monitoring-centre contract for tier 3.
 - Regulatory advice before sale.
+- Measuring the conversation model's first-sentence latency on the owner's machine with the
+  configured small local model, and recording machine and model in STATUS.md.
 - A decision on where the access-notes sealing module lives: inside `core/connectors/` (as
   built, which the architecture ratchet allows) or as a third named exemption of that ratchet
   for a module that owns its own secrets (which the ratchet's comments prefer). Same

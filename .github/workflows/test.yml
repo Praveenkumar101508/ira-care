@@ -34,6 +34,8 @@ env:
   PYTHON_VERSION: "3.12"
   NODE_VERSION: "22"
   HF_HUB_OFFLINE: "1"
+  # IRA CARE's conversation service: CI uses the deterministic fake model, never a real one.
+  IRA_CARE_MODEL: fake
 
 jobs:
   detect:

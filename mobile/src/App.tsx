@@ -9,10 +9,11 @@ import { AlertsScreen } from './screens/AlertsScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { LoginScreen, type LoginResult } from './screens/LoginScreen';
 import { PersonScreen } from './screens/PersonScreen';
+import { TalkScreen } from './screens/TalkScreen';
 import { WorkspaceScreen } from './screens/WorkspaceScreen';
 import { loadSession, saveSession, type StoredSession } from './storage';
 
-type Route = { name: 'home' } | { name: 'alerts' } | { name: 'person'; person: Person };
+type Route = { name: 'home' } | { name: 'alerts' } | { name: 'person'; person: Person } | { name: 'talk'; person: Person };
 
 const DEFAULT_BASE_URL: string =
   (Constants.expoConfig?.extra as { careApiBaseUrl?: string } | undefined)?.careApiBaseUrl ?? 'http://10.0.2.2:8000';
@@ -100,7 +101,11 @@ export default function App() {
           onAccessNotes={(a) => c.accessNotes(a.id)} />
       )}
       {route.name === 'person' && (
-        <PersonScreen client={c} person={route.person} canManage={canManage} onBack={() => setRoute({ name: 'home' })} />
+        <PersonScreen client={c} person={route.person} canManage={canManage} onBack={() => setRoute({ name: 'home' })}
+          onTalk={() => setRoute({ name: 'talk', person: route.person })} />
+      )}
+      {route.name === 'talk' && (
+        <TalkScreen person={route.person} onSend={(t) => c.talk(route.person.id, t)} onBack={() => setRoute({ name: 'person', person: route.person })} />
       )}
     </>
   );

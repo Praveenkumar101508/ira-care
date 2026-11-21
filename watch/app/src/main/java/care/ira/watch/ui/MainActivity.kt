@@ -69,6 +69,8 @@ class MainActivity : ComponentActivity() {
                         fallCountdown = status.fallCountdown,
                         onOk = { CareForegroundService.send(this, CareForegroundService.ACTION_OK) },
                         onHelp = { CareForegroundService.send(this, CareForegroundService.ACTION_HELP) },
+                        onTalk = { CareForegroundService.send(this, CareForegroundService.ACTION_TALK) },
+                        talking = status.talking,
                     )
                 }
             }
@@ -147,6 +149,7 @@ class MainActivity : ComponentActivity() {
 fun HomeScreen(
     question: String?, listening: Boolean, lastAnswer: String?, helpSent: Boolean, online: Boolean,
     onOk: () -> Unit, onHelp: () -> Unit, fallCountdown: Int? = null,
+    onTalk: () -> Unit = {}, talking: Boolean = false,
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(10.dp),
@@ -174,5 +177,12 @@ fun HomeScreen(
             onClick = onHelp, modifier = Modifier.fillMaxWidth().height(44.dp),
             colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFC62828)),
         ) { Text("Help", fontSize = 16.sp) }
+        if (question == null && fallCountdown == null) {
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onTalk, enabled = !talking, modifier = Modifier.fillMaxWidth().height(36.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF37474F)),
+            ) { Text(if (talking) "Talking…" else "Talk to IRA", fontSize = 13.sp) }
+        }
     }
 }

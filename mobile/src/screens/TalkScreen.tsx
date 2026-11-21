@@ -1,0 +1,65 @@
+import React, { useState } from 'react';
+import { Linking, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import type { Person, TalkReply } from '../api/types';
+import { telLink } from '../model/format';
+import { BigButton, Card, Muted, Screen, colors } from '../ui';
+
+/**
+ * Talk to IRA from the person's own phone: company, reminders, "what's on
+ * today", "did I take my tablets", "call my daughter". A call shows the
+ * contact and the phone dials only when the person taps: their own action.
+ */
+export function TalkScreen({ person, onSend, onBack }: {
+  person: Person; onSend: (text: string) => Promise<TalkReply>; onBack: () => void;
+}) {
+  const [text, setText] = useState('');
+  const [log, setLog] = useState<{ who: 'you' | 'ira'; text: string }[]>([]);
+  const [action, setAction] = useState<TalkReply['action']>(null);
+  const [busy, setBusy] = useState(false);
+  const name = person.preferred_name || person.display_name;
+  const send = async () => {
+    const t = text.trim();
+    if (!t || busy) return;
+    setBusy(true); setText(''); setAction(null);
+    setLog((l) => [...l, { who: 'you', text: t }]);
+    try {
+      const reply = await onSend(t);
+      setLog((l) => [...l, ...reply.sentences.map((s) => ({ who: 'ira' as const, text: s }))]);
+      setAction(reply.action);
+    } catch {
+      setLog((l) => [...l, { who: 'ira', text: "I can't reach IRA right now. Please try again in a moment." }]);
+    } finally { setBusy(false); }
+  };
+  return (
+    <Screen title={`Talk to IRA, ${name}`}>
+      <ScrollView style={{ flex: 1 }}>
+        {log.length === 0 ? <Muted>Say anything: how your day is going, what is on today, whether you took your tablets, or ask to call someone.</Muted> : null}
+        {log.map((l, i) => (
+          <Card key={i}><Text style={[styles.line, l.who === 'ira' && styles.ira]} testID={`talk-${l.who}-${i}`}>{l.who === 'ira' ? 'IRA: ' : 'You: '}{l.text}</Text></Card>
+        ))}
+        {action?.kind === 'call' && action.phone ? (
+          <Card>
+            <Text style={styles.line}>{action.name}</Text>
+            <BigButton label={`Call ${action.name}`} testID="talk-call" onPress={() => { void Linking.openURL(telLink(action.phone!)); }} />
+          </Card>
+        ) : null}
+        {action?.kind === 'safety_check' ? (
+          <Card><Text style={[styles.line, { color: colors.sos }]}>IRA is checking you are OK. If you need help now, use the Help button on your watch or call someone.</Text></Card>
+        ) : null}
+      </ScrollView>
+      <View style={styles.row}>
+        <TextInput value={text} onChangeText={setText} placeholder="Type here…" style={styles.input} testID="talk-input"
+          onSubmitEditing={() => { void send(); }} editable={!busy} />
+        <BigButton label={busy ? '…' : 'Send'} disabled={busy} testID="talk-send" onPress={() => { void send(); }} />
+      </View>
+      <BigButton label="Back" color={colors.muted} onPress={onBack} />
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  line: { fontSize: 18 },
+  ira: { color: '#1b4d3e' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 8 },
+  input: { flex: 1, borderWidth: 1, borderColor: '#bbb', borderRadius: 10, padding: 12, fontSize: 18, backgroundColor: '#fff' },
+});

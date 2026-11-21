@@ -20,6 +20,8 @@ ADMIN_DSN = os.getenv("IRA_TEST_ADMIN_DSN", "")
 
 for _k in ("IRA_SECRET_KEY", "IRA_ADMIN_PASSWORD", "POSTGRES_PASSWORD", "REDIS_PASSWORD", "VLLM_API_KEY"):
     os.environ.setdefault(_k, "test-placeholder")
+# The conversation service uses the deterministic fake model in tests (CI has no model).
+os.environ.setdefault("IRA_CARE_MODEL", "fake")
 # Access notes are sealed under the connector encryption key: a fixed TEST key, 32 bytes.
 os.environ.setdefault("IRA_CONNECTOR_ENCRYPTION_KEY", "dGVzdC1rZXktZm9yLWlyYS1jYXJlLXRlc3RzLTAwMDE=")
 

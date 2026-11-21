@@ -7,6 +7,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -89,6 +90,12 @@ data class FallSettingsDto(
 data class DeviceMe(val id: String, val status: String, val fall: FallSettingsDto = FallSettingsDto())
 
 @Serializable
+data class TalkRequest(val text: String)
+
+/** What the server said back, sentence by sentence, and what to do at the end. */
+data class TalkOutcome(val sentences: List<String>, val action: JsonObject?, val needsHelp: Boolean)
+
+@Serializable
 data class FallStart(@SerialName("peak_g") val peakG: Double, @SerialName("still_seconds") val stillSeconds: Int)
 
 /** What went wrong talking to the backend, in a way the caller can act on. */
@@ -136,6 +143,42 @@ class CareApi(
     /** The person tapped I'm OK during the countdown. */
     fun fallOk(): ApiOutcome<JsonObject> =
         post("/api/v1/care/devices/me/fall/ok", "{}").map { json.parseToJsonElement(it).jsonObject }
+
+    /**
+     * Talk to IRA. The server streams one JSON object per line; `onSentence` is
+     * called for each sentence as it arrives so the watch can speak it at once.
+     */
+    fun talk(text: String, onSentence: (String) -> Unit): ApiOutcome<TalkOutcome> {
+        val token = tokenProvider() ?: return ApiOutcome.Unauthorised
+        val request = Request.Builder().url("$baseUrl/api/v1/care/devices/me/talk")
+            .header(TOKEN_HEADER, token).post(json.encodeToString(TalkRequest(text)).toRequestBody(mediaType)).build()
+        return try {
+            client.newCall(request).execute().use { response ->
+                if (response.code == 401) return ApiOutcome.Unauthorised
+                if (!response.isSuccessful) return ApiOutcome.Failed(response.code, response.body?.string()?.take(300) ?: "")
+                val sentences = mutableListOf<String>()
+                var action: JsonObject? = null
+                var needsHelp = false
+                val source = response.body?.source() ?: return ApiOutcome.Failed(response.code, "empty")
+                while (true) {
+                    val line = source.readUtf8Line() ?: break
+                    if (line.isBlank()) continue
+                    val obj = json.parseToJsonElement(line).jsonObject
+                    obj["sentence"]?.let { el ->
+                        val s = (el as? JsonPrimitive)?.content ?: return@let
+                        sentences += s; onSentence(s)
+                    }
+                    if ((obj["done"] as? JsonPrimitive)?.content == "true") {
+                        action = obj["action"] as? JsonObject
+                        needsHelp = (obj["needs_help"] as? JsonPrimitive)?.content == "true"
+                    }
+                }
+                ApiOutcome.Ok(TalkOutcome(sentences, action, needsHelp))
+            }
+        } catch (e: IOException) {
+            ApiOutcome.Offline(e.javaClass.simpleName)
+        }
+    }
 
     fun help(request: HelpRequest): ApiOutcome<JsonObject> =
         post("/api/v1/care/devices/me/help", json.encodeToString(request)).map { json.parseToJsonElement(it).jsonObject }
