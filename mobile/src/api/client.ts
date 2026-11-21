@@ -24,15 +24,21 @@ type Fetch = typeof fetch;
  * alone.
  */
 export class CareClient {
-  constructor(private readonly session: Session, private readonly fetchImpl: Fetch = fetch) {}
+  // `fetch` is wrapped rather than passed bare: on the web, calling it with another `this` throws.
+  constructor(private readonly session: Session, private readonly fetchImpl: Fetch = (input, init) => fetch(input, init)) {}
 
-  static async login(baseUrl: string, username: string, password: string, fetchImpl: Fetch = fetch): Promise<LoginResponse> {
-    const body = new URLSearchParams({ username, password, grant_type: 'password' });
-    const response = await fetchImpl(`${baseUrl}/auth/token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
+  /** Sign in. A cloud deployment signs in by email (/auth/cloud/login); a private
+   *  one has no such route (404) and uses the owner account at /auth/token. */
+  static async login(baseUrl: string, username: string, password: string, fetchImpl: Fetch = (input, init) => fetch(input, init)): Promise<LoginResponse> {
+    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    let response = await fetchImpl(`${baseUrl}/auth/cloud/login`, {
+      method: 'POST', headers, body: new URLSearchParams({ email: username, password }).toString(),
     });
+    if (response.status === 404) {
+      response = await fetchImpl(`${baseUrl}/auth/token`, {
+        method: 'POST', headers, body: new URLSearchParams({ username, password, grant_type: 'password' }).toString(),
+      });
+    }
     if (!response.ok) {
       throw new ApiError(response.status, response.status === 401 ? 'Wrong username or password.' : await readDetail(response));
     }

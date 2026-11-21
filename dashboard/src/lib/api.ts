@@ -13,11 +13,17 @@ type Fetch = typeof fetch;
 
 /** The dashboard's view of the backend. Browser-side; the token stays in session storage. */
 export class Api {
-  constructor(private readonly s: Session, private readonly f: Fetch = fetch) {}
+  // `fetch` is wrapped rather than passed bare: calling the browser's fetch with another `this` throws.
+  constructor(private readonly s: Session, private readonly f: Fetch = (input, init) => fetch(input, init)) {}
 
-  static async login(baseUrl: string, username: string, password: string, f: Fetch = fetch) {
-    const body = new URLSearchParams({ username, password, grant_type: 'password' });
-    const r = await f(`${baseUrl}/auth/token`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
+  /** Sign in. A cloud deployment signs in by email (/auth/cloud/login); a private
+   *  one has no such route (404) and uses the owner account at /auth/token. */
+  static async login(baseUrl: string, username: string, password: string, f: Fetch = (input, init) => fetch(input, init)) {
+    const form = { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' } };
+    let r = await f(`${baseUrl}/auth/cloud/login`, { ...form, body: new URLSearchParams({ email: username, password }).toString() });
+    if (r.status === 404) {
+      r = await f(`${baseUrl}/auth/token`, { ...form, body: new URLSearchParams({ username, password, grant_type: 'password' }).toString() });
+    }
     if (!r.ok) throw new ApiError(r.status, r.status === 401 ? 'Wrong username or password.' : await detail(r));
     return (await r.json()) as { access_token: string; refresh_token: string };
   }
