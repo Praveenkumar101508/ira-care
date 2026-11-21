@@ -31,6 +31,8 @@ Round 1 is merged to `main`. Round 2:
 | R2-5 | demo-mode | `feat/demo-mode` | Not started |
 | R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Built and tested locally; pull request pending |
 | R2-7 | deployment-ready | `feat/deployment-ready` | Not started |
+| R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Not started |
+| R2-7 | deployment-ready | `feat/deployment-ready` | Built and checked locally; pull request pending |
 | R2-8 | store-readiness | `feat/store-readiness` | Not started |
 | R2-9 | compliance-drafts | `docs/compliance-drafts` | Not started |
 | R2-10 | final-readiness | `feat/final-readiness` | Not started |
@@ -298,6 +300,30 @@ Local measurements before the first phase, on the foundation as received:
   consistent with the private repository's Actions allowance being exhausted and is listed
   under "Needs the owner". Pull requests from this point are opened but cannot be merged
   until CI runs again; each phase still starts from `main`.
+## Round 2, phase 7 (deployment-ready), measured locally
+
+- `care/server.py` (the deployable server with `/health` and `/health/jobs`) and
+  `care/worker.py` (the care jobs). Both booted locally against the test database and Redis;
+  the health routes answered; the browser preflight answered for a listed origin.
+- `deploy/`: `docker-compose.yml` (postgres, redis, api, worker, dashboard, caddy, backup;
+  health checks and restart policies on every service), `Dockerfile.api`,
+  `Dockerfile.dashboard`, `Caddyfile` (HTTPS by Caddy), `postgres-init/01-roles.sh`,
+  `backup.sh`, `restore.sh`, `entrypoint.sh`, `.env.example`. The compose and workflow files
+  parse; **the images have not been built here** (no container runtime in this
+  environment), so the first `docker compose up` on a machine is the proof that remains.
+- Backup and restore: run locally against the test database (151 tables and 104 migrations
+  before and after); a wrong passphrase and a tampered file are both refused. The same round
+  trip is a CI step on every pull request.
+- `docs/DEPLOY.md`: a single UK-region machine, step by step, every variable explained.
+- **Soak test** (`scripts/soak_24h.py`, 200 people, 24 simulated hours in 5-minute steps,
+  289 passes each of check-ins and monitoring, 6873 check-ins answered and
+  385 missed by 20 people who went silent): **20 of 20 silent people escalated,
+  0 missing, 0 late, every one reached tier 3**. Check-in pass:
+  mean 0.094 s, p95 0.131 s, max 0.163 s. Monitoring pass: mean
+  0.202 s, p95 0.309 s, max 0.349 s. Measured on this build machine
+  (4 CPUs, local PostgreSQL 16), not on a rented one.
+- Tests: 2 unit tests on the server; the care suites unchanged and green.
+- Negative control: see the pull request description.
 
 ## Deferred
 
