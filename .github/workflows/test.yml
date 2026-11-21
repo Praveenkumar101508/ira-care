@@ -121,8 +121,10 @@ jobs:
       # the end of the job) buries the test summary thousands of lines deep.
       - name: Quiet the database's log of refused statements
         run: |
-          psql -h localhost -U postgres -d iratest -v ON_ERROR_STOP=1 -c \
-            "ALTER SYSTEM SET log_min_messages = 'fatal'; ALTER SYSTEM SET log_min_error_statement = 'panic'; SELECT pg_reload_conf();"
+          psql -h localhost -U postgres -d iratest -v ON_ERROR_STOP=1 \
+            -c "ALTER SYSTEM SET log_min_messages = 'fatal'" \
+            -c "ALTER SYSTEM SET log_min_error_statement = 'panic'" \
+            -c "SELECT pg_reload_conf()"
       - name: Apply the migration chain as ira_migrator
         run: python -m scripts.migrate apply --dsn postgresql://ira_migrator:ira_migrator@localhost:5432/iratest
       - name: Applied migrations are unchanged
