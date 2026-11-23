@@ -689,7 +689,10 @@ calls). The nine tests that proved the old gate now prove the closed path. The c
 conversation runs on a chain of two free open-weight models served by Ollama on the same
 machine (`IRA_CARE_MODEL=ollama`, the default; `IRA_CARE_MODEL_PRIMARY` then
 `IRA_CARE_MODEL_SECONDARY`, then the set questions), chosen in `docs/MODEL_CHOICE.md` by
-quality on the 150-turn evaluation set first and first-sentence latency on CPU second. The
+quality on the 150-turn evaluation set first and first-sentence latency on CPU second:
+`gemma4:12b` (quality 0.86, 10 s to the first sentence on 4 cores) then `gemma4:e4b` (0.78,
+4.6 s). `gemma4:26b-a4b` did not fit in 16 GB. The rules alone score 0.97 on the same set,
+because the set measures what the rules guarantee; the model adds the reading of free text. The
 keyword red-flag rules run on every answer whatever the model says, and the evaluation set
 found three phrasings they missed ("had a fall", "chest hurts", "heart attack"), which they
 now catch; it also found that "remind me to ring Sravani" was read as a call, which is fixed.

@@ -37,7 +37,7 @@ from .monitoring import no_diagnosis_words
 logger = logging.getLogger("ira.care.conversation")
 
 DEFAULT_LANGUAGE = "en-GB"
-FIRST_SENTENCE_S = 4.0
+FIRST_SENTENCE_S = 12.0
 
 
 # ── The model adapter ────────────────────────────────────────────────────────
@@ -216,8 +216,8 @@ class ChainModel:
 
 
 #: The free open-weight models the chain uses by default (docs/MODEL_CHOICE.md).
-DEFAULT_PRIMARY = "gemma4:e4b"
-DEFAULT_SECONDARY = "qwen3.5:4b"
+DEFAULT_PRIMARY = "gemma4:12b"
+DEFAULT_SECONDARY = "gemma4:e4b"
 FIRST_TOKEN_S = 3.0
 
 _override: Optional[Model] = None

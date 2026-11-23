@@ -22,8 +22,8 @@ x-care-env: &care-env
   # machine (docs/MODEL_CHOICE.md). No hosted model API exists in this product.
   IRA_CARE_MODEL: ${IRA_CARE_MODEL:-ollama}
   IRA_CARE_OLLAMA_URL: http://ollama:11434
-  IRA_CARE_MODEL_PRIMARY: ${IRA_CARE_MODEL_PRIMARY:-gemma4:e4b}
-  IRA_CARE_MODEL_SECONDARY: ${IRA_CARE_MODEL_SECONDARY:-qwen3.5:4b}
+  IRA_CARE_MODEL_PRIMARY: ${IRA_CARE_MODEL_PRIMARY:-gemma4:12b}
+  IRA_CARE_MODEL_SECONDARY: ${IRA_CARE_MODEL_SECONDARY:-gemma4:e4b}
   IRA_CARE_OPS_PHONE: ${IRA_CARE_OPS_PHONE:-}
   IRA_CLOUD_REGISTRATION_ENABLED: ${IRA_CLOUD_REGISTRATION_ENABLED:-false}
   IRA_MAIL_TRANSPORT: ${IRA_MAIL_TRANSPORT:-null}
@@ -90,7 +90,7 @@ services:
     environment:
       OLLAMA_HOST: http://ollama:11434
     entrypoint: ["/bin/sh", "-c"]
-    command: ["ollama pull ${IRA_CARE_MODEL_PRIMARY:-gemma4:e4b} && ollama pull ${IRA_CARE_MODEL_SECONDARY:-qwen3.5:4b}"]
+    command: ["ollama pull ${IRA_CARE_MODEL_PRIMARY:-gemma4:12b} && ollama pull ${IRA_CARE_MODEL_SECONDARY:-gemma4:e4b}"]
     depends_on:
       ollama: { condition: service_healthy }
 
