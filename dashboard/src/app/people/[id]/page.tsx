@@ -8,11 +8,11 @@ import { Sparkline } from '@/components/Sparkline';
 import { canManage, useApi } from '@/components/useApi';
 import { ApiError, type Reading } from '@/lib/api';
 import type {
-  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, Medication, Memory, MedicationEvent, Person, PersonStatus, Report, Routine, SafetySettings, SearchResponse, Transcript,
+  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, InvitationOut, Medication, Memory, MedicationEvent, Person, PersonStatus, Report, Routine, SafetySettings, SearchResponse, Transcript,
 } from '@/lib/types';
 import { byDay, checkinCounts, series, sortAlerts, timeAgo } from '@/lib/view';
 
-const TABS = ['timeline', 'readings', 'routines', 'medication', 'circle', 'home', 'settings', 'consent', 'conversation', 'reports', 'search', 'access'] as const;
+const TABS = ['timeline', 'readings', 'routines', 'medication', 'circle', 'home', 'watch', 'settings', 'consent', 'conversation', 'reports', 'search', 'access'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function PersonPage() {
@@ -152,6 +152,7 @@ export default function PersonPage() {
             {circle.map((m) => <tr key={m.id}><td>{m.display_name}{m.relationship ? ` (${m.relationship})` : ''}</td><td>{m.role.replace('_', ' ')}</td><td>{m.tier}</td><td>{m.phone}</td><td>{m.active ? 'yes' : 'no'}</td></tr>)}
           </tbody></table>
           {manage ? <AddMember onAdd={(b) => act(() => api!.addMember(id, b))} /> : null}
+          {manage ? <InviteForm onInvite={(b) => api!.invite(id, b)} /> : null}
           {manage ? (
             <div style={{ marginTop: 12 }}>
               <button disabled={busy || !!pairing} onClick={() => { void act(async () => setPairing(await api!.newDevice(id))); }}>Pair a new watch</button>
@@ -160,6 +161,21 @@ export default function PersonPage() {
           ) : null}
         </div>
       )}
+
+      {tab === 'watch' ? (
+        <div className="card">
+          <strong>Pair a watch, step by step</strong>
+          <ol>
+            <li>{device ? `A watch is ${device.status} (battery ${device.battery_percent ?? '?'} %, synced ${timeAgo(device.last_sync_at)}).` : 'No watch is paired yet.'} {manage ? <button disabled={busy || !!pairing} onClick={() => { void act(async () => setPairing(await api!.newDevice(id))); }}>Create a pairing code</button> : null}</li>
+            {pairing?.pairing_code ? <li>Type this code on the watch within 15 minutes: <code style={{ fontSize: 18 }}>{pairing.pairing_code}</code> (it works once).</li> : <li>The code appears here; it works once and expires after 15 minutes.</li>}
+            <li>On the watch: install the IRA CARE app, open it, and type the code.</li>
+            <li>Allow body sensors, physical activity, the microphone, notifications and location when asked, then allow <em>body sensors in the background</em> on the settings page the app opens.</li>
+            <li>Keep the app&apos;s ongoing notification: it is what collects readings and asks the questions.</li>
+            <li>Within a few minutes the Readings tab shows the first readings and the watch line above says &quot;synced just now&quot;. Then ask IRA to check in now and answer on the watch.</li>
+          </ol>
+          <p className="muted">No watch to hand? The <a href="/simulator">watch simulator</a> pairs with the same code. The full guide is docs/DEVICE_SETUP.md.</p>
+        </div>
+      ) : null}
 
       {tab === 'home' ? <HomeForm person={person} manage={manage} onSave={(b) => act(() => api!.updateHome(id, b))} /> : null}
 
@@ -309,6 +325,46 @@ function HomeForm({ person, manage, onSave }: { person: Person; manage: boolean;
         </td></tr>
       </tbody></table>
       {manage ? <button type="submit">Save</button> : null}
+    </form>
+  );
+}
+
+const CONSENT_CHOICES: { kind: string; label: string }[] = [
+  { kind: 'transcripts_family', label: 'Family may read what the person says to IRA' },
+  { kind: 'health_data_family', label: 'Family may see readings' },
+  { kind: 'transcripts_carer', label: 'Carers may read what the person says to IRA' },
+  { kind: 'transcripts_organisation', label: 'The organisation may read what the person says to IRA' },
+];
+
+function InviteForm({ onInvite }: { onInvite: (b: { email: string; display_name: string; relationship: string; role: string; tier: number; phone: string; consents: { kind: string; granted: boolean; granted_by: string; granted_by_name: string }[] }) => Promise<InvitationOut> }) {
+  const [email, setEmail] = useState(''); const [name, setName] = useState(''); const [rel, setRel] = useState('');
+  const [role, setRole] = useState('family'); const [phone, setPhone] = useState('');
+  const [given, setGiven] = useState<Record<string, boolean>>({});
+  const [by, setBy] = useState<'person' | 'legal_representative'>('person'); const [byName, setByName] = useState('');
+  const [out, setOut] = useState<InvitationOut | null>(null); const [err, setErr] = useState('');
+  return (
+    <form className="card" style={{ marginTop: 10 }} onSubmit={(e) => {
+      e.preventDefault(); setErr('');
+      const consents = CONSENT_CHOICES.filter((c) => given[c.kind]).map((c) => ({ kind: c.kind, granted: true, granted_by: by, granted_by_name: byName }));
+      onInvite({ email, display_name: name, relationship: rel, role, tier: 1, phone, consents }).then((o) => { setOut(o); setEmail(''); }).catch((x) => setErr(x instanceof Error ? x.message : 'Could not invite.'));
+    }}>
+      <strong>Invite by link</strong>
+      <div className="row" style={{ gap: 8, marginTop: 6 }}>
+        <input placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: 220 }} data-testid="invite-email" />
+        <input placeholder="name" value={name} onChange={(e) => setName(e.target.value)} style={{ width: 140 }} />
+        <input placeholder="relationship" value={rel} onChange={(e) => setRel(e.target.value)} style={{ width: 120 }} />
+        <select value={role} onChange={(e) => setRole(e.target.value)}><option value="family">family</option><option value="carer">carer</option><option value="clinician">clinician</option><option value="care_organisation">care organisation</option></select>
+        <input placeholder="+44…" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ width: 130 }} />
+      </div>
+      <div style={{ marginTop: 8 }}>
+        <span className="muted">Consent given now, for this person&apos;s role:</span>
+        {CONSENT_CHOICES.map((c) => <label key={c.kind} style={{ display: 'block' }}><input type="checkbox" checked={!!given[c.kind]} onChange={(e) => setGiven({ ...given, [c.kind]: e.target.checked })} /> {c.label}</label>)}
+        <label>Given by <select value={by} onChange={(e) => setBy(e.target.value as 'person' | 'legal_representative')}><option value="person">the person</option><option value="legal_representative">their legal representative</option></select></label>{' '}
+        <input placeholder="their name" value={byName} onChange={(e) => setByName(e.target.value)} style={{ width: 160 }} />
+      </div>
+      <button type="submit" disabled={!email} style={{ marginTop: 8 }}>Send the invitation</button>
+      {err ? <p className="error">{err}</p> : null}
+      {out ? <p className="ok" data-testid="invite-link">Invitation sent to {out.email} ({out.mail.delivered ? `by ${out.mail.transport}` : 'mail not delivered'}). Link to share another way: <code>{out.link}</code></p> : null}
     </form>
   );
 }

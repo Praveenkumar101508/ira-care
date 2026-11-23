@@ -9,7 +9,7 @@ export interface LoginResult {
   workspaces: Workspace[];
 }
 
-export function LoginScreen({ defaultBaseUrl, onLoggedIn }: { defaultBaseUrl: string; onLoggedIn: (r: LoginResult) => void }) {
+export function LoginScreen({ defaultBaseUrl, onLoggedIn, onJoin }: { defaultBaseUrl: string; onLoggedIn: (r: LoginResult) => void; onJoin?: () => void }) {
   const [baseUrl, setBaseUrl] = useState(defaultBaseUrl);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -40,6 +40,7 @@ export function LoginScreen({ defaultBaseUrl, onLoggedIn }: { defaultBaseUrl: st
         <TextInput style={styles.input} placeholder="Password" accessibilityLabel="Password" secureTextEntry value={password} onChangeText={setPassword} testID="password" />
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <BigButton label={busy ? 'Signing in…' : 'Sign in'} onPress={submit} disabled={busy || !username || !password} testID="sign-in" />
+        {onJoin ? <BigButton label="I have an invitation link" color={colors.muted} onPress={onJoin} testID="open-join" /> : null}
       </Card>
       <View style={{ height: 8 }} />
       <Muted>Family see alerts and summaries. Conversations stay private unless the person agrees.</Muted>

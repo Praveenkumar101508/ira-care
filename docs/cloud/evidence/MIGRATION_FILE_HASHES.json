@@ -541,6 +541,11 @@
    "sha256": "baf1e3121403dc4e24630872ae4c4713581916274fbed08171e6e3c23e787c6f",
    "status": "applied"
   },
+  "105_care_onboarding.sql": {
+   "migration_number": 105,
+   "sha256": "f90e7ec57193ff82385a5b9155900d7e3ad1941727cc75e4fab5a84344fa05f1",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",

@@ -7,8 +7,15 @@
     "userInterfaceStyle": "automatic",
     "platforms": [
       "ios",
-      "android"
+      "android",
+      "web"
     ],
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FAF8F4"
+    },
     "ios": {
       "bundleIdentifier": "care.ira.family",
       "supportsTablet": false,
@@ -30,6 +37,11 @@
         "CALL_PHONE"
       ]
     },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
     "plugins": [
       "expo-secure-store",
       [
@@ -44,17 +56,6 @@
       "eas": {
         "projectId": "set-when-the-owner-creates-the-project"
       }
-    },
-    "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FAF8F4"
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "single",
-      "favicon": "./assets/favicon.png"
     },
     "privacy": "unlisted"
   }

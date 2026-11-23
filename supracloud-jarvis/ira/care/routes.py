@@ -20,11 +20,12 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 
+from api.middleware.auth import require_auth
 from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
-from . import audit, checkin_cycle, consent, history, ops, reports, repository as repo, schemas
+from . import audit, checkin_cycle, consent, history, onboarding, ops, reports, repository as repo, schemas
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 router = APIRouter(prefix="/care", tags=["care"])
@@ -49,10 +50,100 @@ async def require_device(
 
 # ── People ───────────────────────────────────────────────────────────────────
 
+def _refused(exc: onboarding.OnboardingRefused) -> HTTPException:
+    return HTTPException(status_code=exc.status, detail=str(exc))
+
+
+# ── Onboarding: sign-up, the organisation, invitations, the plan ─────────────
+
+@router.post("/signup", status_code=202)
+async def care_signup(body: schemas.Signup):
+    """A care organisation's founder creates an account. Unauthenticated; the
+    answer never says whether the address existed; a confirmation link goes by
+    mail (log-only unless SMTP is configured). 404 when sign-up is not enabled."""
+    try:
+        return await onboarding.signup(body.email, body.password)
+    except onboarding.OnboardingRefused as exc:
+        raise _refused(exc)
+
+
+@router.post("/organisations", status_code=201)
+async def care_create_organisation(body: schemas.OrganisationCreate, subject: str = Depends(require_auth)):
+    """The verified founder creates the organisation: tenant, care team workspace,
+    memberships, and a 30-day trial of the chosen care plan so its limits apply."""
+    try:
+        made = await onboarding.create_organisation(subject, body.name)
+    except onboarding.OnboardingRefused as exc:
+        raise _refused(exc)
+    from core.editions import EDITION_CLOUD
+    principal = Principal(user_id=uuid.UUID(int=0), tenant_id=uuid.UUID(made["tenant_id"]), session_id=uuid.uuid4(),
+                          edition=EDITION_CLOUD, workspace_id=uuid.UUID(made["workspace_id"]), workspace_role="workspace_admin")
+    try:
+        trial = await onboarding.seed_trial(principal, body.plan_id)
+        made["trial"] = {"plan_id": trial["plan_id"], "status": trial["status"], "ends": trial["current_period_end"]}
+    except Exception as exc:  # noqa: BLE001 - a missing plan row never blocks the organisation
+        made["trial"] = None
+        made["trial_note"] = f"no trial recorded ({type(exc).__name__})"
+    return made
+
+
+@router.post("/people/{person_id}/invitations", status_code=201)
+async def invite_to_circle(person_id: uuid.UUID, body: schemas.InvitationCreate,
+                           p: Principal = Depends(require_workspace_principal)):
+    """Invite family or a carer by link, recording the consents given for their
+    role at the same time. The link is mailed (log-only by default) and returned
+    so it can be shared another way."""
+    ensure_can_manage(p)
+    try:
+        out = await onboarding.invite(p, person_id, body.model_dump())
+    except onboarding.OnboardingRefused as exc:
+        raise _refused(exc)
+    if out is None:
+        raise _not_found("Person not found.")
+    async with workspace_connection(p) as conn:
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="consent", resource_id=uuid.UUID(out["invitation_id"]),
+                                  action="export", detail={"event": "invitation", "consents": out["consents_recorded"]})
+    return out
+
+
+@router.get("/people/{person_id}/invitations")
+async def list_circle_invitations(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_manage(p)
+    rows = await onboarding.list_invitations(p, person_id)
+    if rows is None:
+        raise _not_found("Person not found.")
+    return {"invitations": rows, "count": len(rows)}
+
+
+@router.post("/invitations/accept")
+async def accept_circle_invitation(body: schemas.InvitationAccept, subject: str = Depends(require_auth)):
+    """The invitee, signed in as themselves (same email as the invitation),
+    redeems the link and joins the circle. No tenant or workspace is named."""
+    user_id = await onboarding.user_id_for_subject(subject)
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Sign in with the invited email address first.")
+    try:
+        return await onboarding.accept(body.token, user_id)
+    except onboarding.OnboardingRefused as exc:
+        raise _refused(exc)
+
+
+@router.get("/plan")
+async def care_plan(p: Principal = Depends(require_workspace_principal)):
+    """The organisation's plan, limits and usage. Prices and payment are the
+    billing routes' business (/api/v1/billing)."""
+    ensure_can_manage(p)
+    return await onboarding.plan_summary(p)
+
+
 @router.post("/people", status_code=201)
 async def create_person(body: schemas.PersonCreate, p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
     _notes_need_a_key(body.access_notes)
+    try:
+        await onboarding.enforce_person_limit(p)
+    except onboarding.OnboardingRefused as exc:
+        raise _refused(exc)
     return await repo.create_person(p, body.model_dump())
 
 

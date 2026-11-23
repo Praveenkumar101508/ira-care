@@ -1,0 +1,21 @@
+# The carer dashboard (Next.js, standalone output).
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY dashboard/package.json dashboard/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY dashboard ./
+# The browser calls the API on the same host name, through the reverse proxy.
+ARG NEXT_PUBLIC_CARE_API_BASE_URL=""
+ENV NEXT_PUBLIC_CARE_API_BASE_URL=$NEXT_PUBLIC_CARE_API_BASE_URL
+RUN npm run build
+
+FROM node:22-alpine
+ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
+RUN apk add --no-cache curl && adduser -D -u 10001 ira
+WORKDIR /app
+COPY --from=build --chown=ira:ira /app/.next/standalone ./
+COPY --from=build --chown=ira:ira /app/.next/static ./.next/static
+USER ira
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD curl -fsS http://127.0.0.1:3000/login >/dev/null || exit 1
+CMD ["node", "server.js"]
