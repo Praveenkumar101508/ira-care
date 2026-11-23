@@ -141,6 +141,9 @@ class SafetySettings(BaseModel):
     # responder is asked, and after the grace the chain restarts.
     follow_up_minutes: int = Field(30, ge=5, le=180)
     follow_up_grace_minutes: int = Field(10, ge=2, le=60)
+    # A planned visit with no arrival this long after its start is late (a notice
+    # to the coordinator and an extra check-in); none by its end is missed (urgent).
+    visit_late_minutes: int = Field(15, ge=5, le=120)
 
     @field_validator("checkin_max_minutes")
     @classmethod
@@ -303,6 +306,71 @@ class Resolve(BaseModel):
         if v not in ALERT_OUTCOMES:
             raise ValueError(f"outcome must be one of {ALERT_OUTCOMES}")
         return v
+
+
+VISIT_OUTCOMES = ("all_well", "concern_noted", "needed_help", "not_at_home", "declined", "other")
+
+
+class VisitCreate(BaseModel):
+    """A planned visit: who comes, when, what for, and the tasks planned."""
+    planned_start: dt.datetime
+    planned_end: dt.datetime
+    carer_member_id: Optional[uuid.UUID] = None
+    carer_name: str = Field("", max_length=80)
+    purpose: str = Field("", max_length=200)
+    tasks: list[str] = Field(default_factory=list, max_length=20)
+
+    @field_validator("planned_end")
+    @classmethod
+    def _window(cls, v, info):
+        start = info.data.get("planned_start")
+        if start is not None and v <= start:
+            raise ValueError("planned_end must be after planned_start")
+        if start is not None and v - start > dt.timedelta(hours=24):
+            raise ValueError("a visit window is at most 24 hours")
+        return v
+
+    @field_validator("tasks")
+    @classmethod
+    def _tasks(cls, v):
+        out = [t.strip()[:120] for t in v if t and t.strip()]
+        return out
+
+
+class VisitUpdate(BaseModel):
+    planned_start: Optional[dt.datetime] = None
+    planned_end: Optional[dt.datetime] = None
+    carer_member_id: Optional[uuid.UUID] = None
+    carer_name: Optional[str] = Field(None, max_length=80)
+    purpose: Optional[str] = Field(None, max_length=200)
+
+
+class VisitDepart(BaseModel):
+    """What happened on the visit: the record of care given."""
+    outcome: str
+    notes: str = Field("", max_length=4000)
+    handover: str = Field("", max_length=4000)
+    tasks_done: list[uuid.UUID] = Field(default_factory=list, max_length=50)
+
+    @field_validator("outcome")
+    @classmethod
+    def _outcome(cls, v):
+        if v not in VISIT_OUTCOMES:
+            raise ValueError(f"outcome must be one of {VISIT_OUTCOMES}")
+        return v
+
+
+class VisitCancel(BaseModel):
+    note: str = Field("", max_length=4000)
+
+
+class VisitTaskCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=120)
+
+
+class VisitTaskUpdate(BaseModel):
+    done: bool
+    note: str = Field("", max_length=400)
 
 
 class RoutineCreate(BaseModel):

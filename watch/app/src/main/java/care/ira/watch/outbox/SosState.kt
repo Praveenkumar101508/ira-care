@@ -48,3 +48,39 @@ sealed class SosState {
         }
     }
 }
+
+
+/**
+ * What the wrist says about a carer's visit, from the server only (109):
+ * "Sravani is coming at 10:00", "Sravani is here". A late visit reads the
+ * same as an expected one to the person: the lateness is the coordinator's
+ * problem, not theirs to worry about.
+ */
+sealed class VisitState {
+    object None : VisitState()
+    data class Expected(val name: String, val time: String?) : VisitState()
+    data class Here(val name: String) : VisitState()
+
+    fun text(): String? = when (this) {
+        None -> null
+        is Expected -> if (time != null) "$name is coming at $time." else "$name is coming today."
+        is Here -> "$name is here."
+    }
+
+    companion object {
+        /** From the server's `{state, carer_name, planned_start}`; unknown states read as nothing. */
+        fun fromServer(state: String?, carerName: String?, plannedStart: String?): VisitState = when (state) {
+            "expected", "late" -> Expected(carerName ?: "Your carer", localTime(plannedStart))
+            "here" -> Here(carerName ?: "Your carer")
+            else -> None
+        }
+
+        /** "2026-11-23T10:00:00+00:00" -> "10:00" in the watch's own zone; null when unreadable. */
+        fun localTime(iso: String?): String? = iso?.let {
+            runCatching {
+                val t = java.time.OffsetDateTime.parse(it).atZoneSameInstant(java.time.ZoneId.systemDefault())
+                "%02d:%02d".format(t.hour, t.minute)
+            }.getOrNull()
+        }
+    }
+}

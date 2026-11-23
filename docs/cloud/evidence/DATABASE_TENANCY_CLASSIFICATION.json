@@ -1,7 +1,7 @@
 {
   "phase": "3B batch 0/1",
   "schema_version": 1,
-  "table_count": 146,
+  "table_count": 148,
   "tables": {
     "access_audit_log": {
       "access": {
@@ -2911,6 +2911,153 @@
         ],
         "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
         "update": "DENIED (no UPDATE policy)"
+      }
+    },
+    "care_visit_tasks": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/visits.py"
+        ],
+        "delete_call_sites": [],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/visits.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/visits.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_visit_tasks:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 9,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "The tasks planned for one visit and whether each was done (109). Belongs to the visit, so to the person cared for; removed with the visit and with the tenant.",
+      "migration": {
+        "done_by": "109_care_visits.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_visit_tasks/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_visits": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/visits.py"
+        ],
+        "delete_call_sites": [],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/visits.py",
+          "supracloud-jarvis/ira/care/sos.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/visits.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_visits:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 21,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "One planned visit by a carer to a person cared for (109): the window, the carer, what was planned, then the arrival, departure, outcome, notes and handover. The record of care given. Belongs to the person cared for; removed with the person and with the tenant.",
+      "migration": {
+        "done_by": "109_care_visits.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_visits/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
       }
     },
     "care_vitals": {

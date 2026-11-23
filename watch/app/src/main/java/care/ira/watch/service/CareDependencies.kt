@@ -13,6 +13,7 @@ import care.ira.watch.api.ReadingSettingsDto
 import care.ira.watch.api.SosStateDto
 import care.ira.watch.outbox.Outbox
 import care.ira.watch.outbox.SosState
+import care.ira.watch.outbox.VisitState
 import care.ira.watch.outbox.UrgentEvent
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
@@ -42,6 +43,8 @@ data class WatchStatus(
     val lastAnswer: String? = null,
     /** The true state of a Help request or a fall, as the server reports it (never guessed). */
     val sos: SosState = SosState.Idle,
+    /** A carer's visit, as the server reports it (109). */
+    val visit: VisitState = VisitState.None,
     val queued: Int = 0,
     /** Urgent events still waiting for the server's answer. */
     val urgentPending: Int = 0,
@@ -101,8 +104,14 @@ class CareDependencies private constructor(context: Context) {
             current is SosState.Sending || current is SosState.WaitingForConnection -> current
             else -> SosState.Idle
         }
-        if (next != current) status.value = status.value.copy(sos = next)
+        val visit = dto.visit?.let { VisitState.fromServer(it.state, it.carerName, it.plannedStart) } ?: status.value.visit
+        val arrivedNow = visit is VisitState.Here && status.value.visit !is VisitState.Here
+        if (next != current || visit != status.value.visit) status.value = status.value.copy(sos = next, visit = visit)
+        if (arrivedNow) onCarerArrived(dto.visit?.visitId)
     }
+
+    /** A carer has just arrived: the service vibrates the wrist, then the server is told the person saw it. */
+    var onCarerArrived: (visitId: String?) -> Unit = { id -> if (id != null) api.acknowledgeVisit(id) }
 
     /** An urgent event reached the server. A Help or fall answer carries the SOS state. */
     fun onUrgentDelivered(event: UrgentEvent, responseBody: String) {

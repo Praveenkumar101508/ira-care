@@ -696,3 +696,25 @@ because the set measures what the rules guarantee; the model adds the reading of
 keyword red-flag rules run on every answer whatever the model says, and the evaluation set
 found three phrasings they missed ("had a fall", "chest hurts", "heart attack"), which they
 now catch; it also found that "remind me to ring Sravani" was read as a call, which is fixed.
+
+## D-057 A visit is a promise with a window, and the record of it is kept (round 3, phase 6)
+
+A scheduled visit (`care_visits`, 109) names the carer, the window and the tasks. The
+server, on its own clock on every monitoring pass, marks a visit with no recorded arrival
+*late* `visit_late_minutes` after the window opened (15 by default: a notice to the
+coordinator, never an SOS) and *missed* at the window's end (urgent: it escalates through
+the care plan like any other alert). Each transition also asks the person an extra check-in
+in plain words ("Your carer has not arrived yet. How are you doing?"), so nobody waits
+unnoticed; no answer then follows the ordinary missed-check-in path. An arrival, recorded by
+the carer on the phone or the dashboard, closes those alerts with the arrival as the
+outcome, tells the watch "[Name] is here", and pauses scheduled check-ins ten minutes at a
+time while the carer is in the room: IRA does not interrupt a visit with a question. A
+departure records the outcome, notes, which tasks were done and a handover for the next
+carer. That is the record of care given, so the rollback refuses to drop a table holding
+an arrival or an outcome, and a visit that has started cannot be moved or re-described.
+The watch is told nothing about lateness: "coming" reads the same whether the carer is on
+time or late, because the lateness is the coordinator's problem, not the person's worry.
+The timeline on the dashboard names the source of every line (the watch, a carer, IRA,
+the server) so a reader can tell the person's own word from a carer's note from the
+system's inference. Rows belong to the person cared for and go with the person and the
+tenant; `care_visit_tasks` go with the visit.

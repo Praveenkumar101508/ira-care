@@ -1,4 +1,4 @@
-import type { Alert, Person, Checkin, Reading } from './types';
+import { VISIT_OUTCOME_WORDS, type Alert, type Person, type Checkin, type Reading, type Visit, type VisitOutcome } from './types';
 
 export const ALERT_WORDS: Record<string, string> = {
   suspected_fall: 'Suspected fall',
@@ -12,6 +12,10 @@ export const ALERT_WORDS: Record<string, string> = {
   sensor_permission_off: 'Sensor permission switched off',
   no_sync: 'Watch has not synced',
   manual: 'Raised by a carer',
+  visit_late: 'Planned visit is late',
+  visit_missed: 'Planned visit did not happen',
+  off_wrist_night: 'Watch off the wrist overnight',
+  concerning_phrase: 'Said something that needs a check',
 };
 
 export const alertWords = (a: Alert) => ALERT_WORDS[a.kind] ?? a.kind.replace(/_/g, ' ');
@@ -94,4 +98,58 @@ export function whereabouts(alert: Alert, person?: Pick<Person, 'home_address'> 
   if (alert.at_home === true) return { line: `At home${address ? `: ${address}` : ''}${acc}`, mapLink };
   if (alert.at_home === false) return { line: `Away from home${acc}. ${lat.toFixed(5)}, ${lon.toFixed(5)}${address ? `. Home: ${address}` : ''}`, mapLink };
   return { line: `At ${lat.toFixed(5)}, ${lon.toFixed(5)}${acc}; whether this is home is unknown${address ? `. Home: ${address}` : ''}`, mapLink };
+}
+
+/** One line of the timeline, with where it came from, so a reader can tell the
+ *  watch's word from a carer's note from IRA's own question. */
+export type TimelineSource = 'watch' | 'carer' | 'IRA' | 'server';
+export interface TimelineEntry {
+  id: string; at: string; source: TimelineSource; kind: 'checkin' | 'visit' | 'alert'; title: string; detail: string;
+  tone: 'ok' | 'urgent' | 'grey' | 'notice';
+}
+
+export const VISIT_WORDS: Record<Visit['status'], string> = {
+  planned: 'Planned visit', late: 'Visit running late', arrived: 'Carer is here', departed: 'Visit done',
+  missed: 'Visit did not happen', cancelled: 'Visit cancelled',
+};
+
+export function visitLine(v: Visit): string {
+  const who = v.carer_name || 'A carer';
+  const window = `${v.planned_start.slice(11, 16)} to ${v.planned_end.slice(11, 16)}`;
+  const done = v.tasks.filter((t) => t.done).length;
+  const tasks = v.tasks.length ? `; ${done} of ${v.tasks.length} tasks done` : '';
+  if (v.status === 'departed') return `${who}, ${window}. Outcome: ${VISIT_OUTCOME_WORDS[v.outcome as Exclude<VisitOutcome, ''>] ?? v.outcome}${tasks}.${v.handover ? ` Handover: ${v.handover}` : ''}`;
+  if (v.status === 'arrived') return `${who} arrived ${v.arrived_at ? v.arrived_at.slice(11, 16) : ''} (planned ${window})${tasks}.`;
+  return `${who}, ${window}${v.purpose ? `: ${v.purpose}` : ''}${tasks}.`;
+}
+
+export function timeline(checkins: Checkin[], visits: Visit[], alerts: Alert[]): TimelineEntry[] {
+  const out: TimelineEntry[] = [];
+  for (const c of checkins) {
+    out.push({
+      id: `c-${c.id}`, at: c.answered_at ?? c.asked_at ?? c.scheduled_at, kind: 'checkin',
+      source: c.status === 'answered' ? 'watch' : 'IRA',
+      title: `${c.question_kind} check-in${c.question_source === 'model' ? ' (composed)' : ''}`,
+      detail: `${c.status}${c.answer_summary ? `: ${c.answer_summary}` : ''}`,
+      tone: c.status === 'answered' ? 'ok' : c.status === 'missed' || c.status === 'escalated' ? 'urgent' : 'grey',
+    });
+  }
+  for (const v of visits) {
+    out.push({
+      id: `v-${v.id}`, at: v.departed_at ?? v.arrived_at ?? v.planned_start, kind: 'visit',
+      source: v.status === 'late' || v.status === 'missed' ? 'server' : 'carer',
+      title: VISIT_WORDS[v.status], detail: visitLine(v),
+      tone: v.status === 'missed' ? 'urgent' : v.status === 'late' ? 'notice' : v.status === 'departed' || v.status === 'arrived' ? 'ok' : 'grey',
+    });
+  }
+  for (const a of alerts) {
+    if (a.status !== 'resolved') continue; // open alerts have their own cards above the timeline
+    out.push({
+      id: `a-${a.id}`, at: a.resolved_at ?? a.opened_at, kind: 'alert',
+      source: a.kind === 'help_requested' || a.kind === 'suspected_fall' ? 'watch' : a.kind === 'manual' ? 'carer' : 'server',
+      title: alertWords(a), detail: `resolved${a.outcome ? `: ${a.outcome.replace(/_/g, ' ')}` : ''}`,
+      tone: a.severity === 'notice' ? 'grey' : 'notice',
+    });
+  }
+  return out.sort((x, y) => y.at.localeCompare(x.at));
 }

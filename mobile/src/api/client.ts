@@ -1,5 +1,5 @@
 import type { AlertOutcome, AccessNotes, TalkLine, TalkReply,
-  Alert, Checkin, CircleMember, ConsentList, Device, LoginResponse, Person, PersonStatus, Report, WorkspaceList,
+  Alert, Checkin, CircleMember, ConsentList, Device, LoginResponse, Person, PersonStatus, Report, Visit, VisitOutcome, WorkspaceList,
 } from './types';
 
 /** What went wrong, in a way a screen can show. */
@@ -91,6 +91,21 @@ export class CareClient {
 
   async checkins(personId: string): Promise<{ checkins: Checkin[]; answers_included: boolean }> {
     return this.request('GET', `/api/v1/care/people/${personId}/checkins?limit=50`);
+  }
+
+  async visits(personId: string): Promise<Visit[]> {
+    const out = await this.request<{ visits: Visit[] }>('GET', `/api/v1/care/people/${personId}/visits?limit=50`);
+    return out.visits;
+  }
+
+  /** The carer is with the person: the watch says so and check-ins pause. */
+  async arrive(visitId: string): Promise<Visit> {
+    return this.request<Visit>('POST', `/api/v1/care/visits/${visitId}/arrive`, {});
+  }
+
+  /** The carer leaves: the record of what happened. */
+  async depart(visitId: string, body: { outcome: VisitOutcome; notes: string; handover: string; tasks_done: string[] }): Promise<Visit> {
+    return this.request<Visit>('POST', `/api/v1/care/visits/${visitId}/depart`, body);
   }
 
   async circle(personId: string): Promise<CircleMember[]> {

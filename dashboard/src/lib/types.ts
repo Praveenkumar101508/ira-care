@@ -37,6 +37,19 @@ export interface Checkin {
   id: string; scheduled_at: string; asked_at: string | null; status: string; question_kind: string; question_source?: 'template' | 'model';
   question_text: string; answered_at: string | null; answer_summary: string; answer_text: string; answered_via: string;
 }
+export type VisitStatus = 'planned' | 'late' | 'arrived' | 'departed' | 'missed' | 'cancelled';
+export type VisitOutcome = '' | 'all_well' | 'concern_noted' | 'needed_help' | 'not_at_home' | 'declined' | 'other';
+export const VISIT_OUTCOME_WORDS: Record<Exclude<VisitOutcome, ''>, string> = {
+  all_well: 'All well', concern_noted: 'Concern noted', needed_help: 'Needed help', not_at_home: 'Not at home', declined: 'Declined the visit', other: 'Other',
+};
+export interface VisitTask { id: string; visit_id: string; title: string; position: number; done: boolean; done_at: string | null; note: string }
+export interface Visit {
+  id: string; person_id: string; carer_member_id: string | null; carer_name: string; planned_start: string; planned_end: string;
+  purpose: string; status: VisitStatus; arrived_at: string | null; departed_at: string | null; outcome: VisitOutcome;
+  notes: string; handover: string; created_at: string; updated_at: string; tasks: VisitTask[];
+}
+export interface VisitCreate { planned_start: string; planned_end: string; carer_member_id?: string | null; carer_name?: string; purpose?: string; tasks?: string[] }
+export interface VisitDepart { outcome: Exclude<VisitOutcome, ''>; notes: string; handover: string; tasks_done: string[] }
 export interface Routine { id: string; name: string; kind: string; time_of_day: string | null; days_of_week: number[]; active: boolean }
 export interface Medication { id: string; name: string; dose: string; times: string[]; notes: string; active: boolean }
 export interface MedicationEvent { id: string; medication_id: string; due_at: string; status: string; confirmed_via: string }
@@ -53,7 +66,7 @@ export interface SafetySettings {
   no_movement_window_s: number; movement_floor_steps: number; off_wrist_alert_minutes: number;
   battery_alert_percent: number; sync_alert_minutes: number; missed_checkins_before_escalation: number; ack_wait_minutes: number;
   ask_first_wait_s: number; heart_rate_confirm_readings: number; heart_rate_confirm_seconds: number;
-  night_off_wrist_minutes: number; usual_wake_time: string; wake_grace_minutes: number;
+  night_off_wrist_minutes: number; usual_wake_time: string; wake_grace_minutes: number; visit_late_minutes?: number;
   fall_detection_enabled: boolean; fall_countdown_s: number; fall_impact_g: number; fall_still_seconds: number; fall_still_threshold_g: number;
 }
 export interface OpsStatus { monitoring_paused: boolean; stale_after_s: number; checked_at: string; jobs: Record<string, { last_run_at: string | null; age_s: number | null; stale: boolean }> }

@@ -78,7 +78,7 @@ GLOBAL = frozenset({"PLATFORM_GLOBAL", "IDENTITY_GLOBAL", "REFERENCE_DATA"})
 #: LangGraph's checkpoint tables (097) added four: checkpoints, checkpoint_blobs,
 #: checkpoint_writes and checkpoint_migrations, which the runtime role may not
 #: create itself, so conversation-graph state no longer falls back to memory.
-EXPECTED_TABLE_COUNT = 146  # +5 P11-01 (078), +2 P11-03 (079), +1 P11-04 (080), +1 B2 (087), +9 F1 (089), +1 F1 revocation (091), +1 ADR-0010 (095), +1 durable logout (096), +4 LangGraph checkpoints (097), +15 IRA CARE data model (099), +1 IRA CARE reports (100), +1 IRA CARE conversation memory (104), +1 IRA CARE device events (106), +2 IRA CARE push tokens and tickets (107)
+EXPECTED_TABLE_COUNT = 148  # +5 P11-01 (078), +2 P11-03 (079), +1 P11-04 (080), +1 B2 (087), +9 F1 (089), +1 F1 revocation (091), +1 ADR-0010 (095), +1 durable logout (096), +4 LangGraph checkpoints (097), +15 IRA CARE data model (099), +1 IRA CARE reports (100), +1 IRA CARE conversation memory (104), +1 IRA CARE device events (106), +2 IRA CARE push tokens and tickets (107), +2 IRA CARE visits and visit tasks (109)
 
 #: Tables whose contents must never leave the database — key material. They
 #: still declare correctly-scoped cache and storage patterns so the SHAPE is

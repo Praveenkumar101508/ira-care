@@ -43,6 +43,8 @@ class EscalationOutcome:
     repeated_tier3: int = 0
     follow_ups_asked: int = 0
     re_escalated: int = 0
+    visits_late: int = 0
+    visits_missed: int = 0
     errors: int = 0
     opened: list = field(default_factory=list)
 
@@ -97,8 +99,15 @@ def alert_text(person: dict, alert: dict, tier: int) -> tuple[str, str]:
             summary = json.loads(alert["details"]).get("summary", summary)
         except ValueError:
             pass
+    if alert["kind"] == "visit_late":
+        return f"IRA CARE: a visit to {name} is late", f"{summary} Please check where the carer is."
     if alert["severity"] == monitoring.NOTICE:
         return f"IRA CARE: {name}'s watch needs attention", f"{summary} Please check the watch when you can."
+    if alert["kind"] == "visit_missed":
+        from . import location
+        return (f"IRA CARE alert for {name}",
+                f"{summary} Please check on {name} now, and tap 'I'm on my way' in the IRA CARE app so everyone "
+                f"knows who is going. Alert: {location.alert_link(alert['id'])}")
     if alert["kind"] == "help_requested":
         summary = f"{name} asked for help from the watch."
     from . import location
@@ -180,6 +189,11 @@ async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
     fu = await followup.run(conn, principal, now, push_provider=push_provider)
     outcome.follow_ups_asked += fu.asked
     outcome.re_escalated += fu.re_escalated
+    # Planned visits with no arrival: late, then missed (care/visits.py).
+    from . import visits
+    vo = await visits.run(conn, principal, now)
+    outcome.visits_late += vo.late
+    outcome.visits_missed += vo.missed
     # "Are you OK?" went unanswered: the question's deadline is kept here, by
     # the server, whatever the watch did (care/askfirst.py).
     from . import askfirst

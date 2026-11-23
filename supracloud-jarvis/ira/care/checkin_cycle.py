@@ -64,6 +64,7 @@ class CycleOutcome:
     scheduled: int = 0
     skipped_quiet: int = 0
     missed: int = 0
+    paused_for_visit: int = 0
     errors: int = 0
 
 
@@ -139,10 +140,19 @@ async def _advance_person(conn, person, settings, now, outcome: CycleOutcome, rn
         "SELECT * FROM care_checkins WHERE person_id = $1 AND status IN ('scheduled', 'asked', 'repeated') "
         "ORDER BY scheduled_at", person["id"])
     window_s = int(settings["checkin_max_minutes"]) * 60
+    # A carer in the room (care/visits.py): IRA does not interrupt the visit with
+    # a scheduled question. Due check-ins wait, ten minutes at a time.
+    from . import visits
+    carer_here = visits.carer_in_the_room(await visits.open_visits(conn, person["id"], now))
     for c in open_rows:
         local = rules.local_now(now, tz)
         if c["status"] == "scheduled":
             if c["scheduled_at"] > now:
+                continue
+            if carer_here:
+                await conn.execute("UPDATE care_checkins SET scheduled_at = $2 WHERE id = $1",
+                                   c["id"], now + VISIT_PAUSE)
+                outcome.paused_for_visit += 1
                 continue
             if rules.in_quiet_hours(local.time(), settings["quiet_start"], settings["quiet_end"]):
                 await conn.execute("UPDATE care_checkins SET status = 'skipped_quiet' WHERE id = $1", c["id"])
@@ -176,6 +186,9 @@ async def _advance_person(conn, person, settings, now, outcome: CycleOutcome, rn
             "VALUES ($1, $2, 'scheduled', 'wellbeing')", person["id"], when)
         outcome.scheduled += 1
 
+
+#: How far a due check-in moves while a carer is with the person.
+VISIT_PAUSE = dt.timedelta(minutes=10)
 
 #: How long after the wake deadline the morning check can still be asked.
 MORNING_WINDOW = dt.timedelta(hours=3)
