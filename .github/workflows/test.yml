@@ -9,6 +9,8 @@
 #                     with the migration chain applied the sanctioned way
 #                     (provisioned roles, scripts.migrate as ira_migrator)
 #   backend-lint      ruff with the repository's own rule set (zero findings)
+#   secrets           gitleaks over the whole git history (.gitleaksignore lists the
+#                     accepted historical placeholders with their reasons)
 #   watch             Wear OS app: Gradle build and unit tests (when watch/ exists)
 #   mobile            family app: type check and tests (when mobile/ exists)
 #   dashboard         carer dashboard: build and tests (when dashboard/ exists)
@@ -173,6 +175,16 @@ jobs:
         run: |
           echo "## Backend database tests" >> "$GITHUB_STEP_SUMMARY"
           grep -E "^(FAILED|ERROR) |[0-9]+ (passed|failed)" database-tests.log | tail -80 | tee -a "$GITHUB_STEP_SUMMARY" || true
+
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: scripts/ci/gitleaks.sh
 
   backend-lint:
     name: Backend lint

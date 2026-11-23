@@ -28,10 +28,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "supracloud-jarvis" / "ira"))
 sys.path.insert(0, str(ROOT / "scripts"))
-for _k in ("IRA_SECRET_KEY", "IRA_ADMIN_PASSWORD", "POSTGRES_PASSWORD", "REDIS_PASSWORD", "VLLM_API_KEY"):
-    os.environ.setdefault(_k, "soak-placeholder")
-os.environ.setdefault("IRA_CARE_MODEL", "fake")
-os.environ.setdefault("IRA_CONNECTOR_ENCRYPTION_KEY", "c2ltdWxhdG9yLW9ubHkta2V5LW5vdC1mb3ItcHJvZDE=")
+
+from demo._local_state import prepare_environment  # noqa: E402
+
+prepare_environment()
 
 UTC = dt.timezone.utc
 

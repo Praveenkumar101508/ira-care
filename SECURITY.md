@@ -60,16 +60,15 @@ maintained.
   to everyone who can read the repository, so a value in it is a published value.
 - Optional encrypted-at-rest handling via sops + age (`make secrets-encrypt` /
   `secrets-decrypt` in `supracloud-jarvis/Makefile`).
-- **Secret scanning is enforced in CI.** The `secret-scan` job runs
-  [Gitleaks](https://github.com/gitleaks/gitleaks) over the working tree; a detected
-  credential fails the build. Config and allowlist policy live in `.gitleaks.toml`, and
-  `.github/scripts/verify-secret-scan.sh` self-tests the gate on every run by planting a
-  generated credential and requiring the scan to fail on it.
-- Known gap, stated honestly: the history scan (`gitleaks git`) currently runs
-  `continue-on-error: true` because credentials committed before Phase 0 are still present in
-  published history. They are being retired by rotation, not by rewriting history — see
-  [`docs/security/CREDENTIAL_ROTATION.md`](docs/security/CREDENTIAL_ROTATION.md). The history
-  scan becomes blocking once rotation is confirmed.
+- **Secret scanning is enforced in CI.** The `secrets` job runs
+  [Gitleaks](https://github.com/gitleaks/gitleaks) (`scripts/ci/gitleaks.sh`, pinned by
+  version and checksum) over the **whole git history** on every pull request and push to
+  `main`; a detected credential fails the build. The rules are `.gitleaks.toml`; the accepted
+  historical findings, each a placeholder that protected nothing, are listed with their
+  reasons in `.gitleaksignore`. History is never rewritten; a value that was ever committed
+  is treated as published and replaced.
+- Demo and simulation scripts generate every password and key on the machine that runs
+  them (`scripts/demo/_local_state.py`); nothing in the repository can sign in to a demo.
 
 ## Reporting Security Issues
 

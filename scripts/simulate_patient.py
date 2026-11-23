@@ -38,11 +38,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "supracloud-jarvis" / "ira"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
-for _k in ("IRA_SECRET_KEY", "IRA_ADMIN_PASSWORD", "POSTGRES_PASSWORD", "REDIS_PASSWORD", "VLLM_API_KEY"):
-    os.environ.setdefault(_k, "simulator-placeholder")
-# Access notes are sealed at rest; the simulator uses a throwaway key unless one is configured.
-os.environ.setdefault("IRA_CONNECTOR_ENCRYPTION_KEY", "c2ltdWxhdG9yLW9ubHkta2V5LW5vdC1mb3ItcHJvZDE=")
+from demo._local_state import prepare_environment  # noqa: E402
+
+prepare_environment()
+
 
 UTC = dt.timezone.utc
 _NAMESPACE = uuid.UUID("6f3a1c2e-0b4d-5e8a-9c17-2d4b8e6f0a35")

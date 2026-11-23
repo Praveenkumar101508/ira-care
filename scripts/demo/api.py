@@ -21,15 +21,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "supracloud-jarvis" / "ira"))
+sys.path.insert(0, str(ROOT / "scripts"))
 
 os.environ.setdefault("IRA_EDITION", "cloud")
 os.environ.setdefault("IRA_CARE_MODEL", "fake")
 os.environ.setdefault("IRA_WORKER_JOBS", "care_checkins,care_monitoring,care_reports,care_retention")
-for _k, _v in (("IRA_SECRET_KEY", "demo-secret-key-not-for-production-0001"), ("IRA_ADMIN_PASSWORD", "demo-admin-password-01"),
-               ("POSTGRES_USER", "ira_app"), ("POSTGRES_PASSWORD", "ira_app"), ("POSTGRES_DB", "ira_test"),
-               ("POSTGRES_HOST", "127.0.0.1"), ("REDIS_PASSWORD", ""), ("VLLM_API_KEY", "demo"),
-               ("IRA_CONNECTOR_ENCRYPTION_KEY", "c2ltdWxhdG9yLW9ubHkta2V5LW5vdC1mb3ItcHJvZDE=")):
+from demo._local_state import prepare_environment  # noqa: E402
+
+for _k, _v in (("POSTGRES_USER", "ira_app"), ("POSTGRES_PASSWORD", "ira_app"), ("POSTGRES_DB", "ira_test"),
+               ("POSTGRES_HOST", "127.0.0.1"), ("REDIS_PASSWORD", "")):
     os.environ.setdefault(_k, _v)
+prepare_environment()
 
 from fastapi import FastAPI  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
