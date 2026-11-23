@@ -204,7 +204,7 @@ async def test_the_help_button_opens_an_sos_that_a_member_can_acknowledge(client
     acked = r.json()
     assert acked["status"] == "acknowledged"
     assert acked["acknowledgements"][0]["member_id"] == person["member"]["id"]
-    r = await client.post(f"{C}/alerts/{alert['id']}/resolve", json={"resolution": "Visited; all well."})
+    r = await client.post(f"{C}/alerts/{alert['id']}/resolve", json={"resolution": "Visited; all well.", "outcome": "all_well"})
     assert r.status_code == 200 and r.json()["status"] == "resolved"
     client.act_as(families["b"], "admin", "workspace_admin")
     r = await client.get(f"{C}/alerts/{alert['id']}")

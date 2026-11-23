@@ -20,7 +20,7 @@ test('an escalating SOS shows its words, the tier-3 note and the acknowledge but
 test('a notice has no acknowledge button, an acknowledged alert can only be resolved', () => {
   render(<AlertCard alert={{ ...alert, severity: 'notice', kind: 'low_battery', details: {} }} personName="P" busy={false} onAcknowledge={() => {}} onResolve={() => {}} />);
   expect(screen.queryByText("I'm on my way")).toBeNull();
-  expect(screen.getByText('Resolve')).toBeInTheDocument();
+  expect(screen.getByText('Record the outcome')).toBeInTheDocument();
   render(<AlertCard alert={{ ...alert, status: 'acknowledged', details: {} }} personName="P" busy={false} onAcknowledge={() => {}} onResolve={() => {}} />);
   expect(screen.queryByText("I'm on my way")).toBeNull();
 });
@@ -65,4 +65,21 @@ test('push attempts show the delivery state the service reported', () => {
   expect(text).toContain('Tier 1 phone: delivered');
   expect(text).toContain('Tier 2 phone: no phone registered');
   expect(text).not.toContain('sms');
+});
+
+
+test('closing an alert needs an outcome and a line for the record; the follow-up deadline is shown', () => {
+  const resolve = vi.fn();
+  const due = new Date(Date.now() + 25 * 60_000).toISOString();
+  render(<AlertCard alert={{ ...alert, id: 'a4', status: 'acknowledged', details: {}, follow_up_due_at: due }} personName="P" busy={false} onAcknowledge={() => {}} onResolve={resolve} />);
+  expect(screen.getByTestId('follow-up').textContent).toContain('Arrival or outcome expected by');
+  fireEvent.click(screen.getByText('Record the outcome'));
+  const close = screen.getByText('Close the alert') as HTMLButtonElement;
+  expect(close.disabled).toBe(true);
+  fireEvent.change(screen.getByLabelText('Outcome'), { target: { value: 'needed_help' } });
+  fireEvent.change(screen.getByLabelText('Notes'), { target: { value: 'Found on the floor; ambulance called by the family.' } });
+  fireEvent.click(close);
+  expect(resolve).toHaveBeenCalledWith(expect.objectContaining({ id: 'a4' }), 'needed_help', 'Found on the floor; ambulance called by the family.');
+  render(<AlertCard alert={{ ...alert, id: 'a5', status: 'resolved', details: {}, outcome: 'all_well' }} personName="P" busy={false} onAcknowledge={() => {}} onResolve={resolve} />);
+  expect(screen.getByText('Outcome: All well')).toBeInTheDocument();
 });

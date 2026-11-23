@@ -100,7 +100,7 @@ async def test_help_or_silence_during_the_countdown_opens_the_sos_with_location(
     texts = [t for ch, _to, t in provider.log if ch == "sms"]
     assert "hard impact" in texts[0] and "AT HOME" in texts[0] and "1 Example Street" in texts[0]
     client.act_as(fam, "member", "member")
-    await client.post(f"{C}/alerts/{a['id']}/resolve", json={"resolution": "Checked; all well."})
+    await client.post(f"{C}/alerts/{a['id']}/resolve", json={"resolution": "Checked; all well.", "outcome": "all_well"})
     # Silence: the server's own deadline promotes the asking alert.
     client.act_as(fam, "admin", "workspace_admin")
     r = await client.post(f"{C}/devices/me/fall", json={"peak_g": 4.0, "still_seconds": 20}, headers=p["h"])

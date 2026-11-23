@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { FlatList, Linking, StyleSheet, Text, View } from 'react-native';
-import type { AccessNotes, Alert, Person } from '../api/types';
+import type { AccessNotes, Alert, AlertOutcome, Person } from '../api/types';
 import { alertTitle, awaitingArrival, needsSomeone, showCall999, sortAlerts, whereabouts } from '../model/alerts';
 import { timeAgo } from '../model/format';
 import { BigButton, Card, Muted, Screen, colors } from '../ui';
 
 export function AlertsScreen({ alerts, people, onAcknowledge, onArrived, onResolve, onBack, onCall999, onAccessNotes }: {
   alerts: Alert[]; people: Person[];
-  onAcknowledge: (a: Alert) => Promise<void>; onResolve: (a: Alert) => Promise<void>;
+  onAcknowledge: (a: Alert) => Promise<void>; onResolve: (a: Alert, outcome: AlertOutcome) => Promise<void>;
   onArrived?: (a: Alert) => Promise<void>;
   onBack: () => void; onCall999: () => void;
   onAccessNotes?: (a: Alert) => Promise<AccessNotes>;
@@ -70,14 +70,26 @@ export function AlertsScreen({ alerts, people, onAcknowledge, onArrived, onResol
                 onPress={async () => { setBusy(item.id); try { await onAcknowledge(item); } finally { setBusy(null); } }}
               />
             ) : null}
+            {item.status === 'acknowledged' && item.follow_up_due_at ? <Muted>{item.follow_up_asked_at ? 'Have you arrived? The alert is raised again if nobody does.' : `Arrival or outcome expected by ${new Date(item.follow_up_due_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`}</Muted> : null}
             {item.status === 'acknowledged' || item.severity === 'notice' ? (
-              <BigButton
-                label="Resolved: all well"
-                color={colors.muted}
-                disabled={busy !== null}
-                testID={`resolve-${item.id}`}
-                onPress={async () => { setBusy(item.id); try { await onResolve(item); } finally { setBusy(null); } }}
-              />
+              <>
+                <BigButton
+                  label="Resolved: all well"
+                  color={colors.muted}
+                  disabled={busy !== null}
+                  testID={`resolve-${item.id}`}
+                  onPress={async () => { setBusy(item.id); try { await onResolve(item, 'all_well'); } finally { setBusy(null); } }}
+                />
+                {item.severity !== 'notice' ? (
+                  <BigButton
+                    label="Resolved: needed help"
+                    color={colors.muted}
+                    disabled={busy !== null}
+                    testID={`resolve-help-${item.id}`}
+                    onPress={async () => { setBusy(item.id); try { await onResolve(item, 'needed_help'); } finally { setBusy(null); } }}
+                  />
+                ) : null}
+              </>
             ) : null}
           </Card>
         )}

@@ -35,7 +35,7 @@ export default function AlertsPage() {
           onAccessNotes={(x) => api!.accessNotes(x.id)}
           onAcknowledge={(x) => { void act(() => api!.acknowledge(x.id, 'from the dashboard')); }}
           onArrived={(x) => { void act(() => api!.acknowledge(x.id, 'from the dashboard', 'arrived')); }}
-          onResolve={(x) => { const r = window.prompt('What happened?', 'Checked; all well.'); if (r) void act(() => api!.resolve(x.id, r)); }} />
+          onResolve={(x, outcome, resolution) => { void act(() => api!.resolve(x.id, resolution, outcome)); }} />
       ))}
       {alerts.length === 0 ? <p className="muted">No alerts.</p> : null}
     </>

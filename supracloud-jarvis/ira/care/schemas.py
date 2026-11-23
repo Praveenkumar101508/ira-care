@@ -137,6 +137,10 @@ class SafetySettings(BaseModel):
     # How often the watch uploads ordinary readings while its service runs. An
     # out-of-range heart-rate sample is uploaded at once whatever this says.
     reading_upload_interval_s: int = Field(60, ge=15, le=900)
+    # After "I'm on my way": an arrival or an outcome within this long, or the
+    # responder is asked, and after the grace the chain restarts.
+    follow_up_minutes: int = Field(30, ge=5, le=180)
+    follow_up_grace_minutes: int = Field(10, ge=2, le=60)
 
     @field_validator("checkin_max_minutes")
     @classmethod
@@ -285,8 +289,20 @@ class Acknowledge(BaseModel):
         return v
 
 
+ALERT_OUTCOMES = ("all_well", "needed_help", "taken_to_hospital", "false_alarm", "other")
+
+
 class Resolve(BaseModel):
+    """What happened. An alert stays open until an outcome is recorded."""
     resolution: str = Field(..., min_length=1, max_length=1000)
+    outcome: str
+
+    @field_validator("outcome")
+    @classmethod
+    def _outcome(cls, v):
+        if v not in ALERT_OUTCOMES:
+            raise ValueError(f"outcome must be one of {ALERT_OUTCOMES}")
+        return v
 
 
 class RoutineCreate(BaseModel):
