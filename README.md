@@ -7,18 +7,23 @@ raises an alarm that reaches a human who goes to check. Family use a phone app; 
 care organisations use a web dashboard. Conversations stay private unless the person
 agrees to share them.
 
-**Stage: built and tested in software; not yet run on a real watch or phone.** Every part
-below has automated tests that run in CI. Nothing has been tried on a Galaxy Watch, in an
-emulator, or with a real text-message or call provider. [STATUS.md](STATUS.md) says exactly
-what is proved and what is not; [docs/progress/FINAL_REPORT.md](docs/progress/FINAL_REPORT.md)
+**Stage: built, tested and demonstrated in software; not yet run on a real watch or phone,
+and not yet hosted.** Round 2 added real 24/7 safety (readings checked as they arrive, ask
+first then escalate, night rules), home and location for responders, fall detection on the
+watch, a real conversation with IRA, a hardware-free demo, sign-up and billing, deployment
+files with proved backups, store readiness and the compliance drafts. Every part has
+automated tests; the demo was recorded in a real browser; nothing has been tried on a
+Galaxy Watch or with a real text-message, call, mail or payment provider.
+[docs/READINESS.md](docs/READINESS.md) lists every feature as works, needs hardware, or needs
+the owner; [STATUS.md](STATUS.md) says what is proved; [docs/progress/FINAL_REPORT.md](docs/progress/FINAL_REPORT.md)
 is the hand-over.
 
 ## What is here
 
 | Path | What it holds | Checked in CI by |
 | --- | --- | --- |
-| `supracloud-jarvis/ira/care/` | The care backend: data model API, check-in engine, monitoring rules, escalation chain, providers, reports, history, retention | Backend unit and database jobs |
-| `supracloud-jarvis/postgres/099_*.sql`, `100_*.sql` | Sixteen care tables, all tenant and workspace scoped with forced row-level security | Database job (adversarial RLS suites) |
+| `supracloud-jarvis/ira/care/` | The care backend: data model API, check-in engine, continuous monitoring and ask-first, monitoring rules, escalation chain, location and access notes, falls, the conversation service, onboarding, providers, reports, history, retention, the deployable server and worker | Backend unit and database jobs |
+| `supracloud-jarvis/postgres/099_*.sql` to `105_*.sql` | Seventeen care tables, all tenant and workspace scoped with forced row-level security, and the round-2 columns | Database job (adversarial RLS suites) |
 | `watch/` | The Wear OS app (Kotlin, Compose for Wear OS, Health Services) | Gradle build and unit tests |
 | `mobile/` | The family and patient phone app (Expo, TypeScript) | Type check and tests |
 | `dashboard/` | The carer dashboard (Next.js, TypeScript) | Type check, tests and build |
@@ -28,7 +33,10 @@ is the hand-over.
 | `docs/DEVICE_SETUP.md` | Pairing a watch, permissions, fall detection in IRA CARE and the watch maker's own as a second layer | Document |
 | `scripts/demo/` and `docs/demo/` | The hardware-free demo: seed, demo API, scripted scenarios, the recording, and `DEMO_SCRIPT.md` for a presenter; the watch simulator is `/simulator` on the dashboard | Demo |
 | `scripts/simulate_patient.py` | Five end-to-end scenarios on a test database: the person stops answering and moving; abnormal heart rate at 02:00 with no answer; abnormal heart rate answered "I'm OK"; no movement by wake time; the Help button pressed away from home | Database job |
-| `docs/` | Product specification, build rules, every decision, progress and the final report | |
+| `docs/READINESS.md` | Every promised feature as works (proved by), needs hardware, or needs the owner | Document |
+| `docs/compliance/` | Intended purpose, clinical safety case and hazard log, DPIA, DTAC answers, MHRA adviser questions, incident process; all DRAFT FOR REVIEW BY A QUALIFIED PERSON | Documents |
+| `docs/store/` and `docs/legal/` | Store listings, permission and Data safety answers, and the draft privacy notice and terms (DRAFT FOR LEGAL REVIEW) | Documents |
+| `docs/` | Product specification, build rules, every decision (D-001 to D-050), progress and the final report | |
 
 The foundation under `supracloud-jarvis/` (conversation, memory, scheduler, notifier,
 logins and roles, approval and privacy, multi-tenant isolation) is taken from **IRA by

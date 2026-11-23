@@ -558,3 +558,29 @@ Every document is marked DRAFT FOR REVIEW BY A QUALIFIED PERSON, claims no compl
 answers "not yet" or "unmeasured" where that is the truth (no Clinical Safety Officer, no
 DPO review, no penetration test, no pilot, no ICO registration). Their worth is accuracy:
 a reviewer can open the file and the test named beside each claim.
+
+## D-049 The final branch integrates the unmerged phases, because CI stopped starting (round 2, phase 10)
+
+Each phase of round 2 began from `main`, as the rules require. From phase 5 on, GitHub
+Actions reported `startup_failure` for every run on an unchanged, valid workflow with no
+GitHub incident open (the cause, learnt on 23 November, was declined card payments on the
+account, not the allowance this entry first guessed); the rules allow a merge only on green
+CI, so pull requests 14 to 18 stayed open. Rather than stop, `feat/final-readiness` merges those five branches in order (the only
+conflicts were the progress pages and the family app's manifest and package file, resolved
+by keeping both sides and rebuilding the pages), and the proof in `docs/READINESS.md` and
+`FINAL_REPORT.md` is of that integrated tree, from a clean clone. The owner may merge 14 to
+18 and then 19, or 19 alone. Nothing was pushed to `main` and no history was rewritten.
+
+## D-050 Backup tools must match the server's major version (round 2, merge day)
+
+When CI started again on 23 November, the backup round trip on pull request 16 failed at
+the restore: the runner image had moved to the PostgreSQL 17 client over the weekend, and a
+17 `pg_dump` writes `SET transaction_timeout`, which a 16 server refuses, so the restore
+script stopped on the first statement as it is meant to. The database suites had passed.
+Two changes, both in pull request 16: CI adds the PostgreSQL apt repository and installs the
+16 client (the runner's own lists carry only the newest); and `deploy/backup.sh` compares
+`pg_dump`'s major version with the server's and refuses a newer tool before writing anything
+(exit 4), so a mismatch fails at backup time with a clear message instead of at restore
+time. The deployment's backup job already runs in the `postgres:16` image, so it was never
+affected. Proved locally: 151 tables and 104 migrations before and after; a fake 17 `pg_dump`
+refused.

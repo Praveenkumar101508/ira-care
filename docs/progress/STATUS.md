@@ -29,8 +29,8 @@ Round 1 is merged to `main`. Round 2:
 | R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Merged (pull request 15) |
 | R2-7 | deployment-ready | `feat/deployment-ready` | Merged (pull request 16) |
 | R2-8 | store-readiness | `feat/store-readiness` | Merged (pull request 17) |
-| R2-9 | compliance-drafts | `docs/compliance-drafts` | Written; pull request pending |
-| R2-10 | final-readiness | `feat/final-readiness` | Not started |
+| R2-9 | compliance-drafts | `docs/compliance-drafts` | Merged (pull request 18) |
+| R2-10 | final-readiness | `feat/final-readiness` | Integrates 14 to 18; proved from a clean clone; pull request 19 open |
 
 ## Measured locally (21 November 2026, Linux, Python 3.12)
 
@@ -291,10 +291,11 @@ Local measurements before the first phase, on the foundation as received:
   fixture accounts now hold real tenant memberships, as accounts do.
 - Negative control: see the pull request description.
 - **CI note:** from 20:43 UTC on 21 November, GitHub reported `startup_failure` for every
-  workflow run on an unchanged, valid workflow file, with no GitHub incident open. That is
-  consistent with the private repository's Actions allowance being exhausted and is listed
-  under "Needs the owner". Pull requests from this point are opened but cannot be merged
-  until CI runs again; each phase still starts from `main`.
+  workflow run on an unchanged, valid workflow file. The run page later showed the reason:
+  "recent account payments have failed or your spending limit needs to be increased"; three
+  card payments had been declined. The guess recorded at the time (the Actions allowance)
+  was wrong. The payment cleared on 23 November and CI started again; 14 to 18 merged that
+  day. Each phase still started from `main`.
 ## Round 2, phase 7 (deployment-ready), measured locally
 
 - `care/server.py` (the deployable server with `/health` and `/health/jobs`) and
@@ -341,6 +342,18 @@ Local measurements before the first phase, on the foundation as received:
   `INCIDENT_PROCESS.md`. All marked DRAFT FOR REVIEW BY A QUALIFIED PERSON; no compliance
   claimed. Documents only: no code or test changed in this phase.
 
+## Round 2, phase 10 (final-readiness)
+
+- `feat/final-readiness` merges pull requests 14 to 18 in order (D-049); the only conflicts
+  were the progress pages and the family app's manifest and package file.
+- From a clean clone of the integrated branch: lint clean; backend unit 3,768 passed;
+  database suites 3,491 passed and one test that depended on the time of day (fixed to be
+  independent of the clock); watch 35 tests and the unsigned release build; family app 20
+  tests, type check and web export; dashboard 21 tests, type check and build; the demo
+  seeded, the scenarios and the simulator ran, the soak escalated 20 of 20, and the recording
+  produced its 12 screenshots and video. Details in `FINAL_REPORT.md`.
+- `docs/READINESS.md` written; README, STATUS, FINAL_REPORT and NEXT updated.
+
 ## Deferred
 
 - **8 inherited tests of removed parts** were retired on the owner's decision (DECISIONS D-007).
@@ -359,9 +372,8 @@ Local measurements before the first phase, on the foundation as received:
   edition's delegated accounts only. The demo API does not install it; the deployment phase
   must decide how the full server handles cloud accounts (workspace roles already authorise
   every care route).
-- GitHub Actions stopped starting workflows at 20:43 UTC on 21 November (`startup_failure` on
-  an unchanged workflow; no GitHub incident). Check the account's Actions minutes or spending
-  limit, then re-run the checks on the open pull requests so they can be merged in order.
+- Keep a working card as GitHub's default payment method: the two-day CI stop on 21 to 23
+  November was declined payments, and the next monthly charge would stop CI the same way.
 - A screen-reader and large-text pass on a real watch and a real phone (the automated checks
   cover labels, roles, contrast and sizes only).
 - Store accounts, the signing key for the watch app, the build-service project for the family

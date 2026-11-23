@@ -201,6 +201,12 @@ async def test_no_answer_becomes_a_miss_and_so_does_a_question_never_collected(c
 async def test_the_watch_side_over_the_real_routes(client, families, pool):
     fam = families["a"]
     person = await _setup(client, fam)
+    # These routes run on the real clock, so switch quiet hours off for this person:
+    # otherwise the test passes by day and fails after 22:00 UTC.
+    s = (await client.get(f"{C}/people/{person['id']}/settings")).json()
+    body = {k: v for k, v in s.items() if k not in ("person_id", "tenant_id", "workspace_id", "set_by", "updated_at")}
+    body.update(quiet_start="00:00", quiet_end="00:00")
+    assert (await client.put(f"{C}/people/{person['id']}/settings", json=body)).status_code == 200
     h = {"X-Device-Token": person["token"]}
     r = await client.get(f"{C}/devices/me/checkins/due", headers=h)
     assert r.status_code == 200 and r.json()["checkin"] is None

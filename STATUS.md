@@ -22,6 +22,22 @@ tests. The per-phase detail is in [docs/progress/STATUS.md](docs/progress/STATUS
 | Audit: every view of health data logged | Built | Database tests and a static check over every route |
 | Load: 1,000 people in one check-in pass | Measured | About one to two seconds per pass locally, in a test |
 
+## Round 2 features
+
+| Feature | State | How it is proved |
+| --- | --- | --- |
+| Readings checked as they arrive; ask first, then escalate; night rules; the morning check | Built | Unit and database tests; the simulator scenarios |
+| The system watches itself: heartbeats, `/health/jobs`, the "monitoring paused" banner | Built | A database test that stops the jobs; a dashboard test |
+| Home record, sealed access notes, location once at an SOS, whereabouts in every message | Built | Unit and database tests; the recording |
+| Fall detection on the watch with a countdown; the server's deadline; per-person off switch | Built, unit tested | Synthetic signals only; **real-world accuracy unmeasured** |
+| IRA talks: composed check-ins, structured answers, red flags, Talk to IRA, memory | Built | Unit and database tests with the fake model; **latency unmeasured** |
+| The hardware-free demo: seed, simulator, scenarios, recording | Built, recorded | `docs/demo/`; the clean-clone run |
+| Sign-up, invitations by link with consent, plans and limits | Built | Database tests on every new route; sign-up off by default |
+| Deployment: containers, HTTPS, health checks, encrypted backups with a proved restore, soak | Built, checked locally | The CI restore round trip; the soak (20 of 20 escalated); **not run on a rented machine** |
+| Store readiness, accessibility, legal drafts, compliance drafts | Built or written | Automated accessibility checks; every document marked as a draft for review |
+
+The full table with proof or blocker per feature is [docs/READINESS.md](docs/READINESS.md).
+
 ## Foundation (from IRA)
 
 Unchanged from the split: conversation, memory, scheduler, notifier (push and e-mail; push
@@ -40,8 +56,12 @@ text-to-speech.
   rephrase them when `IRA_CARE_MODEL_PHRASING` is on.
 - **One inherited test** fails on a full local clone and skips in CI (DECISIONS D-004).
 
-## Verification (last full local run, 21 November 2026)
+## Verification
 
-Backend unit suite: 4,783 passed, 531 skipped, 1 inherited failure that skips in CI.
-Backend database suites: 3,448 passed. Watch: 22 tests. Family app: 14 tests. Dashboard:
-12 tests and a production build. CI runs all of these on every pull request.
+Round 1 (21 November 2026): backend unit 4,783 passed, 531 skipped, 1 inherited failure that
+skips in CI; database suites 3,448 passed; watch 22; family app 14; dashboard 12 and a build.
+Round 2, from a clean clone of the integrated branch: see `docs/progress/FINAL_REPORT.md`
+("Round 2: test counts"). CI matched the suites for pull requests 10 to 13. From 14 on, GitHub refused to start
+any run for two days (declined card payments on the account, not the workflow or the
+minutes); once the payment cleared on 23 November, 14 to 18 ran green and merged in order,
+after one real fix (D-050).
