@@ -42,6 +42,27 @@ android {
             }
         }
     }
+    // Two platforms, one app (phase 8). `wearos`: Google's Wear OS on development
+    // boards and shop watches, readings through Health Services. `aosp`: our own
+    // watch on plain Android (AOSP) with no Google service on it: readings straight
+    // from the Android sensor framework (docs/hardware/SENSOR_HAL.md), speech
+    // from whatever engine the build installs, push over our own server channel.
+    // CI builds both and fails if the aosp flavour pulls in a Google dependency.
+    flavorDimensions += "platform"
+    productFlavors {
+        create("wearos") {
+            dimension = "platform"
+            isDefault = true
+            buildConfigField("String", "PLATFORM", "\"wearos\"")
+        }
+        create("aosp") {
+            dimension = "platform"
+            buildConfigField("String", "PLATFORM", "\"aosp\"")
+        }
+    }
+    // Simulated sensors (a scripted driver, no hardware) for the emulator, CI and the
+    // presenter: IRA_WATCH_SIMULATED_SENSORS=1 at build time. Never on by default.
+    defaultConfig.buildConfigField("boolean", "SIMULATED_SENSORS", (System.getenv("IRA_WATCH_SIMULATED_SENSORS") == "1").toString())
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -91,10 +112,11 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-service:2.8.7")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.work:work-runtime-ktx:2.10.0")
-    implementation("androidx.health:health-services-client:1.0.0")
-    implementation("com.google.guava:guava:33.3.1-android")
+    // Wear OS only: Health Services needs Google's Health Services app on the watch.
+    "wearosImplementation"("androidx.health:health-services-client:1.0.0")
+    "wearosImplementation"("com.google.guava:guava:33.3.1-android")
+    "wearosImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // The trained fall model (round 3, phase 5) runs through TensorFlow Lite; the rule detector is the fallback.
