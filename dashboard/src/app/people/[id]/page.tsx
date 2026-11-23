@@ -79,7 +79,7 @@ export default function PersonPage() {
         <span><strong>Check-ins (last 200):</strong> {counts.answered} answered, {counts.missed} missed, {counts.skippedQuiet} at night</span>
         <span><strong>Open alerts:</strong> {status.open_alerts.length}</span>
       </div>
-      <nav className="tabs">
+      <nav className="tabs" aria-label="Sections of this person's record">
         {TABS.filter((t) => t !== 'access' || manage).map((t) => <Link key={t} href={`/people/${id}?tab=${t}`} className={t === tab ? 'on' : ''}>{t[0].toUpperCase() + t.slice(1)}</Link>)}
       </nav>
       {error ? <p className="error">{error}</p> : null}

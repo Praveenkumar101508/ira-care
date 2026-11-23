@@ -48,7 +48,7 @@ export function TalkScreen({ person, onSend, onBack }: {
         ) : null}
       </ScrollView>
       <View style={styles.row}>
-        <TextInput value={text} onChangeText={setText} placeholder="Type here…" style={styles.input} testID="talk-input"
+        <TextInput value={text} onChangeText={setText} placeholder="Type here…" accessibilityLabel="Type here…" style={styles.input} testID="talk-input"
           onSubmitEditing={() => { void send(); }} editable={!busy} />
         <BigButton label={busy ? '…' : 'Send'} disabled={busy} testID="talk-send" onPress={() => { void send(); }} />
       </View>

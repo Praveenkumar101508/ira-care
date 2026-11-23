@@ -23,6 +23,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -164,25 +169,30 @@ fun HomeScreen(
                 else -> "All well"
             },
             fontSize = 16.sp, textAlign = TextAlign.Center,
+            // Read aloud by a screen reader as it changes: the question, the countdown, "help is on its way".
+            modifier = Modifier.semantics { heading(); liveRegion = LiveRegionMode.Assertive },
         )
         if (listening) Text("Listening…", fontSize = 12.sp, color = Color(0xFF9FD3A0))
         if (!online) Text("Offline: saving for later", fontSize = 10.sp, color = Color(0xFFE0C068))
         Spacer(Modifier.height(10.dp))
         Button(
-            onClick = onOk, modifier = Modifier.fillMaxWidth().height(44.dp),
+            onClick = onOk,
+            modifier = Modifier.fillMaxWidth().height(48.dp).semantics { contentDescription = "I'm OK. Answers the question, or says you are fine after a fall." },
             colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2E7D32)),
-        ) { Text("I'm OK", fontSize = 16.sp) }
+        ) { Text("I'm OK", fontSize = 18.sp) }
         Spacer(Modifier.height(8.dp))
         Button(
-            onClick = onHelp, modifier = Modifier.fillMaxWidth().height(44.dp),
+            onClick = onHelp,
+            modifier = Modifier.fillMaxWidth().height(48.dp).semantics { contentDescription = "Help. Tells your family and carers you need them now." },
             colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFC62828)),
-        ) { Text("Help", fontSize = 16.sp) }
+        ) { Text("Help", fontSize = 18.sp) }
         if (question == null && fallCountdown == null) {
             Spacer(Modifier.height(8.dp))
             Button(
-                onClick = onTalk, enabled = !talking, modifier = Modifier.fillMaxWidth().height(36.dp),
+                onClick = onTalk, enabled = !talking,
+                modifier = Modifier.fillMaxWidth().height(44.dp).semantics { contentDescription = "Talk to IRA. Say anything; IRA listens and answers." },
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF37474F)),
-            ) { Text(if (talking) "Talking…" else "Talk to IRA", fontSize = 13.sp) }
+            ) { Text(if (talking) "Talking…" else "Talk to IRA", fontSize = 14.sp) }
         }
     }
 }

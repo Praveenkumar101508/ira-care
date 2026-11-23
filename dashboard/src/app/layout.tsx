@@ -6,10 +6,11 @@ export const metadata: Metadata = { title: 'IRA CARE dashboard', description: 'C
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en-GB">
       <body>
+        <a href="#main" className="skip-link">Skip to content</a>
         <TopBar />
-        <main>{children}</main>
+        <main id="main">{children}</main>
       </body>
     </html>
   );

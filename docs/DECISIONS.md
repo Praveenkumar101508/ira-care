@@ -515,3 +515,36 @@ locally: every silent person escalated to tier 3, none missing or late, and the 
 are in `STATUS.md`. The soak taught one thing about simulation, not product: a watch sends a
 sensor snapshot right after a miss, and a simulation that forgets it sees no movement data
 in the window and no SOS.
+## D-045 Ready to publish, not published (round 2, phase 8)
+
+The watch app has a release build (minified and shrunk, with keep rules for the JSON models;
+signing read from the owner's environment or a `keystore.properties` outside git; the
+production server and the version code set at build time; an unsigned release package built
+in this repository's checks), launcher icons, and the listing, permission declarations and
+Data safety answers in `docs/store/WEAR_OS_LISTING.md`. The family app has its icons,
+splash, bundle and package identifiers, build numbers, notification usage text and an
+`eas.json` with build profiles and an empty `submit` section, with its listing in
+`docs/store/FAMILY_APP_LISTING.md`. No store account, build-service project or submission
+exists; those are the owner's, and the listing text says plainly that the app is not a
+medical device and never dials emergency services.
+
+## D-046 Accessibility is tested where the tooling reaches, and owed where it does not (round 2, phase 8)
+
+Dashboard: a skip link, a visible focus ring, 16 px text, 40 px targets, labels on every
+unlabelled field, article names on alert cards, a live region on the simulator's watch face,
+reduced-motion and high-contrast media queries; `jest-axe` checks an alert card and a test
+pins the contrast ratios of the theme's tokens. Family app: every big button announces its
+label, role, hint and state, screens have a header, text scales with the system setting (to a
+cap so an SOS stays readable), text fields carry labels, buttons are at least 56 points;
+tested with the test renderer. Watch: content descriptions on the three buttons, the status
+text as an assertive live region, 48 dp buttons; tested at the source level, because no
+instrumentation runs here. A screen-reader pass on a real watch and phone remains owed and
+is listed under "Needs the owner".
+
+## D-047 The privacy notice and the terms describe the software, and say they are drafts (round 2, phase 8)
+
+`docs/legal/PRIVACY_POLICY.md` and `docs/legal/TERMS_OF_USE.md` are written from what the
+code does (what is collected, where it goes, how long it is kept, who may see what under
+consent, what IRA CARE is not) and are marked DRAFT FOR LEGAL REVIEW, with the operator's
+names, bases, liability and governing law left for a lawyer. They make no claim of
+compliance.
