@@ -28,12 +28,12 @@ the owner").
 | R2-2 home-and-location | 11 (merged) | Home address, coordinates, emergency summary, sealed access notes for tier 1 and 2 while an alert is open; location once at an SOS; whereabouts, address, map and alert links in every SOS message; both apps' alert screens; migration 102 |
 | R2-3 fall-detection | 12 (merged) | The watch's fall detector and countdown; the server's `suspected_fall` alert with its own deadline; per-person settings and off switch; synthetic-signal counts; `docs/DEVICE_SETUP.md`; migration 103 |
 | R2-4 ira-conversation | 13 (merged) | The conversation service: composed check-ins with templates as fallback, structured answers with the stricter reading winning, red-flag phrases that ask first, Talk to IRA on the watch and the phone, rolling memory; model configurable, fake in CI; migration 104 |
-| R2-5 demo-mode | 14 (open) | The seeded demo organisation, the demo API, the watch simulator page, scripted scenarios, the Playwright recording in `docs/demo/`, `DEMO_SCRIPT.md`; the cloud sign-in and the browser `fetch` fixes |
-| R2-6 onboarding-and-billing | 15 (open) | Sign-up through the identity register, the organisation with a trial, invitations by link with consent captured, acceptance, plan limits; the dashboard's sign-up, join and plan pages; the family app's pairing and join screens; migration 105 |
-| R2-7 deployment-ready | 16 (open) | The deployable care server and worker, `deploy/` (compose, images, Caddy, backups, restore, roles), the CI restore round trip, `docs/DEPLOY.md`, the 200-person soak |
-| R2-8 store-readiness | 17 (open) | Release builds, icons, listings, permission and Data safety answers, the accessibility pass with tests, the draft privacy notice and terms |
-| R2-9 compliance-drafts | 18 (open) | Six documents in `docs/compliance/`, all DRAFT FOR REVIEW BY A QUALIFIED PERSON |
-| R2-10 final-readiness | 19 (open) | Integrates 14 to 18, proves everything from a clean clone, `docs/READINESS.md`, these pages |
+| R2-5 demo-mode | 14 (merged 23 Nov) | The seeded demo organisation, the demo API, the watch simulator page, scripted scenarios, the Playwright recording in `docs/demo/`, `DEMO_SCRIPT.md`; the cloud sign-in and the browser `fetch` fixes |
+| R2-6 onboarding-and-billing | 15 (merged 23 Nov) | Sign-up through the identity register, the organisation with a trial, invitations by link with consent captured, acceptance, plan limits; the dashboard's sign-up, join and plan pages; the family app's pairing and join screens; migration 105 |
+| R2-7 deployment-ready | 16 (merged 23 Nov) | The deployable care server and worker, `deploy/` (compose, images, Caddy, backups, restore, roles), the CI restore round trip, `docs/DEPLOY.md`, the 200-person soak |
+| R2-8 store-readiness | 17 (merged 23 Nov) | Release builds, icons, listings, permission and Data safety answers, the accessibility pass with tests, the draft privacy notice and terms |
+| R2-9 compliance-drafts | 18 (merged 23 Nov) | Six documents in `docs/compliance/`, all DRAFT FOR REVIEW BY A QUALIFIED PERSON |
+| R2-10 final-readiness | 19 (open) | Integrates 14 to 18, proves everything from a clean clone, `docs/READINESS.md`, these pages; updated from `main` after 14 to 18 merged |
 
 ## Round 2: test counts (clean-clone run of the integrated branch)
 
@@ -57,6 +57,24 @@ access notes, falls, conversation, the care server) and 33 database-backed (cont
 location, falls, conversation, onboarding), plus the adversarial, manifest and erasure
 ratchets extended to the new table and columns.
 
+## Round 2: the merge day (23 November 2026)
+
+- GitHub refused to start any workflow from 20:43 UTC on 21 November. The run page's own
+  annotation named the cause: "recent account payments have failed or your spending limit
+  needs to be increased"; the payment history showed three declined card payments. The guess
+  recorded on the day (the Actions allowance) was wrong and is corrected in STATUS and
+  D-049. The payment cleared on 23 November and the owner reopened pull requests 14 to 19,
+  which started their runs.
+- 14 ran green on its own commit and merged. 15, 16, 17 and 18 were each brought up to date
+  with `main` (the decisions log and the status page, and for 17 the family app's manifest
+  and package file, resolved by keeping both sides in order), ran green on the merged commit
+  and merged in order.
+- One real failure: the backup round trip on 16, because the runner image had moved to the
+  PostgreSQL 17 client (D-050). Fixed in 16; the database suites had passed on every run.
+- 19 was then updated from `main` (its remaining conflicts were the progress pages and the
+  three files 16's fix touched, taken from `main`) and awaits its run.
+- Nothing was pushed to `main` directly, no history was rewritten, no test was weakened.
+
 ## Round 2: pull request descriptions to clean, and branches to delete
 
 - **Descriptions to clean:** the hosting tooling appended a footer to every pull request
@@ -65,9 +83,9 @@ ratchets extended to the new table and columns.
   read back; the footer returned each time.
 - **Branches to delete** (the session's access cannot delete branches):
   `feat/continuous-monitoring`, `feat/home-and-location`, `feat/fall-detection`,
-  `feat/ira-conversation` (merged), and after merging: `feat/demo-mode`,
-  `feat/onboarding-and-billing`, `feat/deployment-ready`, `feat/store-readiness`,
-  `docs/compliance-drafts`, `feat/final-readiness`. Round 1's `feat/*` branches too.
+  `feat/ira-conversation`, `feat/demo-mode`, `feat/onboarding-and-billing`,
+  `feat/deployment-ready`, `feat/store-readiness`, `docs/compliance-drafts` (all merged), and
+  after merging: `feat/final-readiness`. Round 1's `feat/*` branches too.
 
 ## Round 1: test counts (last full local runs)
 
@@ -104,8 +122,10 @@ on the wrist and in the pocket (the fall detector's real-world accuracy is unmea
 rented UK-region machine for the first `docker compose up`; an SMS and mail provider and a
 payment provider with keys; a signing key, store accounts and submissions; legal review of
 the privacy notice and terms; a Clinical Safety Officer, a data protection officer and an
-MHRA adviser for the compliance drafts; a security test; and, first of all, restoring GitHub
-Actions (the account's allowance) so pull requests 14 to 19 can run their checks and merge.
+MHRA adviser for the compliance drafts; and a security test. The CI block that held pull requests 14 to 19 over the weekend is
+gone: it was GitHub refusing to start jobs after three declined card payments, not the
+allowance; the payment cleared on 23 November, and 14 to 18 ran green and merged in order
+(see "Round 2: the merge day" below).
 
 ## Round 1: what needs a real device or the owner
 
@@ -123,7 +143,7 @@ Actions (the account's allowance) so pull requests 14 to 19 can run their checks
 
 - `docs/PRODUCT_SPEC.md`: what the product is.
 - `docs/BUILD_RULES.md`: how it is built.
-- `docs/DECISIONS.md`: every choice made where the specification left room (D-001 to D-049).
+- `docs/DECISIONS.md`: every choice made where the specification left room (D-001 to D-050).
 - `docs/READINESS.md`: every promised feature as works, needs hardware, or needs the owner.
 - `docs/progress/STATUS.md`: per-phase measurements and deferrals.
 - `STATUS.md`: what is proved and what is not, in one page.

@@ -61,5 +61,7 @@ text-to-speech.
 Round 1 (21 November 2026): backend unit 4,783 passed, 531 skipped, 1 inherited failure that
 skips in CI; database suites 3,448 passed; watch 22; family app 14; dashboard 12 and a build.
 Round 2, from a clean clone of the integrated branch: see `docs/progress/FINAL_REPORT.md`
-("Round 2: test counts"). CI matched the suites for pull requests 10 to 13; from 14 on it
-could not start (the account's Actions allowance), which the owner must restore.
+("Round 2: test counts"). CI matched the suites for pull requests 10 to 13. From 14 on, GitHub refused to start
+any run for two days (declined card payments on the account, not the workflow or the
+minutes); once the payment cleared on 23 November, 14 to 18 ran green and merged in order,
+after one real fix (D-050).

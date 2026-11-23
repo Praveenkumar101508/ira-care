@@ -53,7 +53,7 @@ rounded up.
 | Accessibility: labels, roles, contrast, sizes, live regions | works (automated) / needs hardware for a screen-reader pass | `jest-axe` and the contrast test; the family app's accessibility test; the watch's source test |
 | Privacy notice and terms | needs the owner | marked DRAFT FOR LEGAL REVIEW |
 | Compliance drafts: intended purpose, safety case and hazard log, DPIA, DTAC, MHRA questions, incident process | needs the owner | marked DRAFT FOR REVIEW BY A QUALIFIED PERSON; a Clinical Safety Officer, a DPO, an adviser |
-| CI green on every pull request | needs the owner | Actions stopped starting workflows at 20:43 UTC on 21 November (the account's allowance); 14 to 19 await re-run and merge |
+| CI green on every pull request | works (proved by the merged runs of pull requests 10 to 18 and the run on 19) | the two-day `startup_failure` was GitHub refusing to start jobs after declined card payments; it cleared when the payment went through on 23 November. Keeping the card as the default payment method is the owner's |
 
 ## What "needs hardware" means here
 

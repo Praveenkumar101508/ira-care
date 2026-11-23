@@ -36,7 +36,7 @@ is the hand-over.
 | `docs/READINESS.md` | Every promised feature as works (proved by), needs hardware, or needs the owner | Document |
 | `docs/compliance/` | Intended purpose, clinical safety case and hazard log, DPIA, DTAC answers, MHRA adviser questions, incident process; all DRAFT FOR REVIEW BY A QUALIFIED PERSON | Documents |
 | `docs/store/` and `docs/legal/` | Store listings, permission and Data safety answers, and the draft privacy notice and terms (DRAFT FOR LEGAL REVIEW) | Documents |
-| `docs/` | Product specification, build rules, every decision (D-001 to D-049), progress and the final report | |
+| `docs/` | Product specification, build rules, every decision (D-001 to D-050), progress and the final report | |
 
 The foundation under `supracloud-jarvis/` (conversation, memory, scheduler, notifier,
 logins and roles, approval and privacy, multi-tenant isolation) is taken from **IRA by
