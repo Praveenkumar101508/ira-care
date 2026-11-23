@@ -117,3 +117,6 @@ technical_library_data/
 # Local virtual environments
 .venv/
 supracloud-jarvis/.venv/
+
+# IRA CARE demo: seeded logins and device tokens for the local demo, never committed
+.demo/

@@ -5,10 +5,33 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "platforms": ["ios", "android"],
-    "ios": { "bundleIdentifier": "care.ira.family", "supportsTablet": false },
-    "android": { "package": "care.ira.family" },
-    "plugins": ["expo-secure-store", ["expo-notifications", { "sounds": [] }]],
-    "extra": { "careApiBaseUrl": "http://10.0.2.2:8000" }
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "ios": {
+      "bundleIdentifier": "care.ira.family",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "care.ira.family"
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "sounds": []
+        }
+      ]
+    ],
+    "extra": {
+      "careApiBaseUrl": "http://10.0.2.2:8000"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    }
   }
 }

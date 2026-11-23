@@ -417,3 +417,32 @@ No local model runtime exists in the build environment (4 CPUs, 15 GB, no GPU, n
 server), so first-sentence latency of a real small model is **unmeasured**. The 4-second
 budget is a setting, not a measurement. CI uses the fake model. Measuring on the owner's
 machine with the configured model is listed under "Needs the owner".
+
+## D-037 The demo is the real system with fake people and a watch in the browser (round 2, phase 5)
+
+`scripts/demo/seed_demo.py` creates a demo organisation in one command: three accounts that
+can sign in, two obviously fake people with fake numbers and an Example Street address,
+routines, medication, a week of synthetic readings and check-ins, one resolved alert and a
+report. Logins and device tokens go to `.demo/demo.local.json`, which git ignores. The watch
+simulator (`/simulator` on the dashboard) talks to the same device API with the same device
+token as the real watch: it asks, speaks with the browser's speech, takes typed or spoken
+answers, has I'm OK and Help, and injects a heart rate, no movement, a fall or taking the
+watch off. The scripted scenarios (`scripts/demo/scenarios.py`) drive the real care code
+against the seeded organisation on the real clock, so the dashboard and the family app show
+what happened. Nothing in the demo dials anyone; the providers are log-only.
+
+## D-038 A demo API entry point, and two findings the demo surfaced (round 2, phase 5)
+
+The full server imports the whole of IRA at start (chat, voice, the agent graph, the
+embedding model) and does not start without those libraries. `scripts/demo/api.py` is a lean
+entry point with the real login, workspace and care routers, the same rate limiting and IP
+blocklist, the two care jobs, and browser origins for the dashboard and the family app on
+localhost. Running the apps in a real browser against a cloud-edition server found two
+things the unit tests had not: both apps signed in through the private edition's owner route
+only, so they now sign in by email through the cloud route and fall back to the owner route
+when it is absent; and the browser `fetch` was passed as a bare function and threw when
+called with another receiver, so it is wrapped. One more is recorded for the deployment phase
+rather than changed here: the full server's delegated-scope gate knows only the private
+edition's delegated accounts and answers 403 to every cloud account on `/api/*`, so the demo
+API does not install it. The family app's web build needed the web platform and three
+packages (`react-dom`, `react-native-web`, `expo-asset`).

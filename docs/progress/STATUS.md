@@ -24,8 +24,8 @@ Round 1 is merged to `main`. Round 2:
 | R2-1 | continuous-monitoring | `feat/continuous-monitoring` | Merged (pull request 10) |
 | R2-2 | home-and-location | `feat/home-and-location` | Merged (pull request 11) |
 | R2-3 | fall-detection | `feat/fall-detection` | Merged (pull request 12) |
-| R2-4 | ira-conversation | `feat/ira-conversation` | Built and tested locally; pull request pending |
-| R2-5 | demo-mode | `feat/demo-mode` | Not started |
+| R2-4 | ira-conversation | `feat/ira-conversation` | Merged (pull request 13) |
+| R2-5 | demo-mode | `feat/demo-mode` | Built and recorded locally; pull request 14 open, CI did not start (see below) |
 | R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Not started |
 | R2-7 | deployment-ready | `feat/deployment-ready` | Not started |
 | R2-8 | store-readiness | `feat/store-readiness` | Not started |
@@ -249,6 +249,29 @@ Local measurements before the first phase, on the foundation as received:
   (4 CPUs, 15 GB, no GPU); the 4-second budget is a setting. CI uses the fake model.
 - Negative control: see the pull request description.
 
+## Round 2, phase 5 (demo-mode), measured locally
+
+- `scripts/demo/seed_demo.py` (one command, idempotent, fake people and accounts),
+  `scripts/demo/api.py` (the lean demo API: real login, workspace and care routers, care
+  jobs, localhost browser origins), `scripts/demo/scenarios.py` (normal day with a
+  conversation; abnormal heart rate with no answer and the chain to tier 3; a suspected fall
+  with location; the next morning's report), `scripts/demo/up.sh` and `apps.sh`,
+  `scripts/demo/record_demo.mjs` and `record_demo.sh` (Playwright).
+- Dashboard: `/simulator`, the watch in the browser (same device API and token as the real
+  watch; speech out, typed or spoken answers, I'm OK and Help, injectors for heart rate, no
+  movement, a fall and removing the watch, Talk to IRA). 19 tests (was 16).
+- Family app: web platform enabled and the web build produced (`expo export --platform
+  web`); both apps sign in by email on a cloud deployment (owner route as the fallback); the
+  bare browser `fetch` bug fixed in both apps. 17 tests (was 16).
+- `docs/demo/`: 12 screenshots and `demo.mp4` (the recording), `DEMO_SCRIPT.md` (the
+  10-minute walkthrough). Folder size is recorded in the pull request.
+- Recorded end to end in a real browser: sign-in, people, the home record, the timeline,
+  the simulator pairing with a device token, a confirmed heart-rate breach asking "are you
+  OK?", Talk to IRA, the fall countdown, Help with location, the alerts page, the family app
+  signing in, its alert cards and "I'm on my way".
+- Found by the demo and recorded: the full server's delegated-scope gate refuses every cloud
+  account on `/api/*` (see "Needs the owner" and the deployment phase).
+
 ## Deferred
 
 - **8 inherited tests of removed parts** were retired on the owner's decision (DECISIONS D-007).
@@ -262,6 +285,11 @@ Local measurements before the first phase, on the foundation as received:
 - SMS and call provider keys (the adapter stays off without them).
 - A monitoring-centre contract for tier 3.
 - Regulatory advice before sale.
+- The full server's delegated-scope middleware (`security/scope_enforcer.py`) answers 403 to
+  every cloud-edition account on `/api/*`, because it resolves roles from the private
+  edition's delegated accounts only. The demo API does not install it; the deployment phase
+  must decide how the full server handles cloud accounts (workspace roles already authorise
+  every care route).
 - Measuring the conversation model's first-sentence latency on the owner's machine with the
   configured small local model, and recording machine and model in STATUS.md.
 - A decision on where the access-notes sealing module lives: inside `core/connectors/` (as
