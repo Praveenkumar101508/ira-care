@@ -91,6 +91,10 @@ Every night `deploy/backup.sh` writes `/backups/ira-care-<stamp>.sql.gz.enc` ins
 `BACKUP_PASSPHRASE`, with a sha256 beside it. Copy that folder off the machine (the
 volume is at `/var/lib/docker/volumes/ira-care_backups/_data`).
 
+The client tools must be the server's own major version (the `backup` service uses the
+`postgres:16` image for that reason); a newer `pg_dump` writes settings an older server
+refuses, so the script refuses the mismatch before writing anything.
+
 Run one now and prove it restores:
 
 ```bash
