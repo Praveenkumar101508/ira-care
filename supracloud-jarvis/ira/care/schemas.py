@@ -212,6 +212,17 @@ class HelpRequest(BaseModel):
     location: Optional[LocationFix] = None
 
 
+class PushRegistration(BaseModel):
+    """A phone's push token, tied to the account's circle memberships (one person, or all)."""
+    token: str = Field(..., min_length=8, max_length=200)
+    platform: str = Field("", pattern=r"^(|ios|android|web)$")
+    person_id: Optional[uuid.UUID] = None
+
+
+class PushUnregistration(BaseModel):
+    token: str = Field(..., min_length=8, max_length=200)
+
+
 class Signup(BaseModel):
     """The founder of a care organisation, before verification."""
     email: str = Field(..., min_length=5, max_length=254, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")

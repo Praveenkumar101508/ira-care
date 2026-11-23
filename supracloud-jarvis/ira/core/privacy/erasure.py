@@ -610,6 +610,11 @@ async def erase_postgres(principal, *, scope: str) -> StoreResult:
                             kept[table] = kept.get(table, 0) + n
                     if scope == "conversations":
                         deleted += await _delete_own_transcript_memories(conn, principal)
+                    if scope == "account":
+                        # IRA CARE (107): the account's push tokens in this workspace. Keyed
+                        # on user_id, so only this person's phones go; the circle member
+                        # row (the person cared for's record) stays.
+                        deleted += await _delete_own_care_push_tokens(conn, principal)
             except Exception as exc:  # noqa: BLE001 — recorded, never swallowed
                 logger.error(
                     "erasure: workspace %s pass failed: %s", workspace_id, exc
@@ -833,6 +838,18 @@ def _in_workspace(principal, workspace_id):
     from dataclasses import replace
 
     return replace(principal, workspace_id=workspace_id)
+
+
+async def _delete_own_care_push_tokens(conn, principal) -> int:
+    """`care_push_tokens` rows belong to an ACCOUNT (the phone of a family member or
+    carer), not to the person cared for, so account erasure deletes them by user_id
+    inside the workspace pass. Nothing else in the care tables is the account's."""
+    result = await conn.execute(
+        "DELETE FROM care_push_tokens WHERE user_id = $1", principal.user_id)
+    try:
+        return int(str(result).rsplit(" ", 1)[-1])
+    except ValueError:  # pragma: no cover
+        return 0
 
 
 async def _delete_own_transcript_memories(conn, principal) -> int:

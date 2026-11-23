@@ -26,7 +26,7 @@ from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
-from . import audit, checkin_cycle, consent, history, onboarding, ops, reports, repository as repo, schemas, sos
+from . import audit, checkin_cycle, consent, history, onboarding, ops, push, reports, repository as repo, schemas, sos
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 router = APIRouter(prefix="/care", tags=["care"])
@@ -427,6 +427,36 @@ async def device_help(body: schemas.HelpRequest, d: tuple[Principal, dict] = Dep
         alert["sos"] = await sos.current_for_device(principal, device)
         return alert
     return await _idempotent(principal, device, key, "help", 201, work)
+
+
+# ── Push registration for the family and carer apps ──────────────────────────
+
+@router.post("/push/register", status_code=201)
+async def register_push(body: schemas.PushRegistration, p: Principal = Depends(require_workspace_principal)):
+    """Tie this phone's push token to the signed-in account's circle memberships
+    here. A care alert is pushed only to the tokens of the members it is for."""
+    if not push.is_valid_token(body.token):
+        raise HTTPException(status_code=422, detail="That is not a push token this service accepts.")
+    async with workspace_connection(p) as conn:
+        reg = await push.register(conn, p, body.token, body.platform, body.person_id)
+    if reg.memberships == 0:
+        raise HTTPException(status_code=404, detail="This account is not a member of any care circle here.")
+    return {"memberships": reg.memberships, "tokens": reg.tokens}
+
+
+@router.delete("/push/register")
+async def unregister_push(body: schemas.PushUnregistration, p: Principal = Depends(require_workspace_principal)):
+    """The phone signed out or turned push off: the token is revoked for this account."""
+    async with workspace_connection(p) as conn:
+        n = await push.unregister(conn, p, body.token)
+    return {"revoked": n}
+
+
+@router.get("/push/registrations")
+async def list_push_registrations(p: Principal = Depends(require_workspace_principal)):
+    """The signed-in account's own registrations (no token values)."""
+    async with workspace_connection(p) as conn:
+        return {"registrations": await push.registrations(conn, p)}
 
 
 # ── Check-ins (the watch's side) ─────────────────────────────────────────────

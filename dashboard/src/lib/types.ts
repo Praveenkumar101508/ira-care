@@ -23,7 +23,7 @@ export interface Alert {
   location_latitude?: number | null; location_longitude?: number | null; location_accuracy_m?: number | null;
   location_at?: string | null; at_home?: boolean | null;
 }
-export interface Attempt { id: string; tier: number; channel: string; outcome: string; detail: string; attempted_at: string }
+export interface Attempt { id: string; tier: number; channel: string; outcome: string; detail: string; attempted_at: string; delivery?: string; delivered_at?: string | null }
 export interface Acknowledgement { id: string; kind: string; note: string; acknowledged_at: string }
 export interface Memory { day: string; summary: string; exchanges: number; updated_at: string }
 export interface Checkin {

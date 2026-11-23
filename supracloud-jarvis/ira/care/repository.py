@@ -216,9 +216,15 @@ async def update_member(principal: Principal, member_id: uuid.UUID, changes: dic
         if not sets:
             return _d(await conn.fetchrow("SELECT * FROM care_circle_members WHERE id = $1", member_id))
         args.append(member_id)
-        return _d(await conn.fetchrow(
+        row = _d(await conn.fetchrow(
             f"UPDATE care_circle_members SET {', '.join(sets)}, updated_at = NOW() "
             f"WHERE id = ${len(args)} RETURNING *", *args))
+        if row is not None and (changes.get("active") is False or changes.get("push_enabled") is False):
+            # A member who left the circle, or turned push off, is pushed to no more.
+            from . import push as _push
+            await _push.revoke_for_member(conn, member_id, "member left the circle" if changes.get("active") is False
+                                          else "push turned off for this member")
+        return row
 
 
 async def remove_member(principal: Principal, member_id: uuid.UUID) -> bool:
@@ -552,6 +558,15 @@ async def get_alert(principal: Principal, alert_id: uuid.UUID) -> Optional[dict]
             return None
         alert["attempts"] = _ds(await conn.fetch(
             "SELECT * FROM care_alert_attempts WHERE alert_id = $1 ORDER BY attempted_at", alert_id))
+        # Push delivery, as the service reported it: per attempt, from its tickets.
+        from . import push as _push
+        tickets = _ds(await conn.fetch(
+            "SELECT attempt_id, status, detail, receipt_at FROM care_push_tickets WHERE alert_id = $1 ORDER BY created_at", alert_id))
+        for a in alert["attempts"]:
+            if a["channel"] == "push":
+                mine = [t for t in tickets if t["attempt_id"] == a["id"]]
+                a["delivery"] = _push.delivery_state(mine)
+                a["delivered_at"] = max((t["receipt_at"] for t in mine if t["status"] == "delivered" and t["receipt_at"]), default=None)
         alert["acknowledgements"] = _ds(await conn.fetch(
             "SELECT * FROM care_acknowledgements WHERE alert_id = $1 ORDER BY acknowledged_at", alert_id))
         return alert

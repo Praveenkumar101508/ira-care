@@ -134,6 +134,17 @@ SHREDDED: dict[str, str] = {
 #: Tables deliberately neither deleted nor redacted, with the reason. Each entry
 #: is a decision somebody made, not a table somebody missed.
 EXEMPT: dict[str, str] = {
+    "care_push_tokens":
+        "IRA CARE (107): a family member's or carer's own phone, keyed on user_id. Deleted by "
+        "account erasure through the care-specific step in erase_postgres (by user_id, inside each "
+        "workspace pass), by ON DELETE CASCADE from users, with the circle member, with the person "
+        "cared for and with the TENANT. Listed here rather than in SUBJECT_TABLES because the "
+        "generic tenant-wide DELETE would take every member's phones, not this account's.",
+    "care_push_tickets":
+        "IRA CARE (107): the push service's ticket and receipt for one alert message. Belongs to the "
+        "PERSON CARED FOR's alert, not to an account; the token link is ON DELETE SET NULL. Removed "
+        "with the alert, by the care package's per-person erasure, and when the TENANT is deleted, by "
+        "ON DELETE CASCADE.",
     "care_device_events":
         "IRA CARE (106): one row per urgent event the watch sent, with the answer the server gave, "
         "so a re-sent event changes nothing. Belongs to the PERSON CARED FOR, not to an account; "
@@ -508,7 +519,7 @@ TENANT_LIFECYCLE_EXEMPT: frozenset[str] = frozenset({
     "care_safety_settings", "care_checkins", "care_alerts", "care_alert_attempts",
     "care_acknowledgements", "care_routines", "care_medications",
     "care_medication_events", "care_transcripts", "care_consents", "care_reports",
-    "care_conversation_memory", "care_device_events",
+    "care_conversation_memory", "care_device_events", "care_push_tokens", "care_push_tickets",
 })
 
 

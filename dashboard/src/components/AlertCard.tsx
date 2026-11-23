@@ -22,6 +22,13 @@ export function AlertCard({ alert, personName, person, onAcknowledge, onArrived,
         <span className="muted">{personName} · {timeAgo(alert.opened_at)} · tier {alert.current_tier} · {alert.status}</span>
       </div>
       {summary ? <p className="muted" style={{ margin: '6px 0' }}>{summary}</p> : null}
+      {(alert.attempts ?? []).some((a) => a.channel === 'push') ? (
+        <ul className="muted" data-testid="delivery" style={{ margin: '6px 0', paddingLeft: 18 }}>
+          {(alert.attempts ?? []).filter((a) => a.channel === 'push').map((a) => (
+            <li key={a.id}>Tier {a.tier} phone: {a.delivery ?? a.outcome}{a.delivered_at ? ` (${timeAgo(a.delivered_at)})` : ''}</li>
+          ))}
+        </ul>
+      ) : null}
       {where ? (
         <p data-testid="whereabouts" style={{ margin: '6px 0' }}>
           <strong>Where:</strong> {where.line}

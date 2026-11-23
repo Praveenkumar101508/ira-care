@@ -551,6 +551,11 @@
    "sha256": "532678ab269280a66b8471edbcec54c8c464d097c7a53c52baa325745306d42e",
    "status": "applied"
   },
+  "107_care_push_tokens.sql": {
+   "migration_number": 107,
+   "sha256": "05eadb3dc54613904590f60e940583db7149222b1be1dc998dd3b394bdf650c3",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",

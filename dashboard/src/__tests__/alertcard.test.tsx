@@ -54,3 +54,15 @@ test('an acknowledged SOS offers "I\'ve arrived" until the responder has arrived
   render(<AlertCard alert={{ ...alert, id: 'a2', status: 'acknowledged', details: {}, acknowledgements: [{ id: 'k2', kind: 'arrived', note: '', acknowledged_at: new Date().toISOString() }] }} personName="P" busy={false} onAcknowledge={() => {}} onArrived={arrived} onResolve={() => {}} />);
   expect(screen.getAllByText(/the watch has been told/).length).toBe(1);
 });
+
+test('push attempts show the delivery state the service reported', () => {
+  render(<AlertCard alert={{ ...alert, id: 'a3', attempts: [
+    { id: 't1', tier: 1, channel: 'push', outcome: 'sent', detail: '', attempted_at: new Date().toISOString(), delivery: 'delivered', delivered_at: new Date().toISOString() },
+    { id: 't2', tier: 1, channel: 'sms', outcome: 'logged', detail: '', attempted_at: new Date().toISOString() },
+    { id: 't3', tier: 2, channel: 'push', outcome: 'skipped', detail: '', attempted_at: new Date().toISOString(), delivery: 'no phone registered' },
+  ] }} personName="P" busy={false} onAcknowledge={() => {}} onResolve={() => {}} />);
+  const text = screen.getByTestId('delivery').textContent ?? '';
+  expect(text).toContain('Tier 1 phone: delivered');
+  expect(text).toContain('Tier 2 phone: no phone registered');
+  expect(text).not.toContain('sms');
+});

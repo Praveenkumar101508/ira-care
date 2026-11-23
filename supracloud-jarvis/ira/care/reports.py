@@ -306,16 +306,28 @@ async def get_report(conn, report_id) -> Optional[dict]:
     return _public(row) if row else None
 
 
-async def deliver(conn, principal: Principal, report: dict) -> list[str]:
-    """Send a stored report through the notifier (in-app, push and e-mail when
-    configured) and record where it went."""
+async def deliver(conn, principal: Principal, report: dict, *, push_provider=None) -> list[str]:
+    """Push a stored report to the phones of this person's circle members who
+    have push on (care/push.py: their registered tokens only, never the
+    deployment-wide notifier), and record where it went. The report itself is
+    read in the app; the push carries the title and the first lines."""
+    from . import push
     channels: list[str] = []
     try:
-        from worker.notifier import notify_report
-        _id, channels = await notify_report(
-            report["title"], report["body_text"][:1500], category="briefing", priority="info",
-            metadata={"care_report_id": str(report["id"]), "kind": report["kind"], "person_id": str(report["person_id"])},
-            principal=principal)
+        members = [dict(r) for r in await conn.fetch(
+            "SELECT id FROM care_circle_members WHERE person_id = $1 AND active AND push_enabled", report["person_id"])]
+        pseudo_alert = {"id": report["id"], "kind": f"report_{report['kind']}", "severity": "notice"}
+        outcomes = []
+        for m in members:
+            outcome, _detail, _tickets = await push.send_to_member(
+                conn, m, pseudo_alert, report["title"], report["body_text"][:200], push_provider)
+            outcomes.append(outcome)
+        if "sent" in outcomes:
+            channels = ["push"]
+        elif "logged" in outcomes:
+            channels = ["push_logged"]
+        else:
+            channels = ["app"]   # readable in the app and on the dashboard; nobody had a phone registered
     except Exception as exc:  # noqa: BLE001
         logger.warning("care report delivery failed: %s", exc)
         channels = ["failed"]
