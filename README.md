@@ -22,9 +22,11 @@ is the hand-over.
 | `watch/` | The Wear OS app (Kotlin, Compose for Wear OS, Health Services) | Gradle build and unit tests |
 | `mobile/` | The family and patient phone app (Expo, TypeScript) | Type check and tests |
 | `dashboard/` | The carer dashboard (Next.js, TypeScript) | Type check, tests and build |
+| `IRA_CLOUD_REGISTRATION_ENABLED` (setting) | Opens `/care/signup` (off by default: no sign-ups). `IRA_PAYMENT_PROVIDER` stays unset unless billing is configured; care plans carry no price | Setting |
 | `IRA_CARE_MODEL` (setting) | `local` (default: IRA's model layer, a small local model), `fake` (tests and CI) or `off` (templates only); `IRA_CARE_MODEL_FIRST_SENTENCE_S` is the budget before the template takes over (4) | Setting |
 | `deploy/` and `docs/DEPLOY.md` | Containers for the server, worker and dashboard, HTTPS through Caddy, nightly encrypted backups with a restore proved in CI, and the step-by-step guide for one UK-region machine; `scripts/soak_24h.py` is the accelerated day for 200 people | Deployment |
 | `docs/DEVICE_SETUP.md` | Pairing a watch, permissions, fall detection in IRA CARE and the watch maker's own as a second layer | Document |
+| `scripts/demo/` and `docs/demo/` | The hardware-free demo: seed, demo API, scripted scenarios, the recording, and `DEMO_SCRIPT.md` for a presenter; the watch simulator is `/simulator` on the dashboard | Demo |
 | `scripts/simulate_patient.py` | Five end-to-end scenarios on a test database: the person stops answering and moving; abnormal heart rate at 02:00 with no answer; abnormal heart rate answered "I'm OK"; no movement by wake time; the Help button pressed away from home | Database job |
 | `docs/` | Product specification, build rules, every decision, progress and the final report | |
 

@@ -24,19 +24,32 @@ type Fetch = typeof fetch;
  * alone.
  */
 export class CareClient {
-  constructor(private readonly session: Session, private readonly fetchImpl: Fetch = fetch) {}
+  // `fetch` is wrapped rather than passed bare: on the web, calling it with another `this` throws.
+  constructor(private readonly session: Session, private readonly fetchImpl: Fetch = (input, init) => fetch(input, init)) {}
 
-  static async login(baseUrl: string, username: string, password: string, fetchImpl: Fetch = fetch): Promise<LoginResponse> {
-    const body = new URLSearchParams({ username, password, grant_type: 'password' });
-    const response = await fetchImpl(`${baseUrl}/auth/token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
+  /** Sign in. A cloud deployment signs in by email (/auth/cloud/login); a private
+   *  one has no such route (404) and uses the owner account at /auth/token. */
+  static async login(baseUrl: string, username: string, password: string, fetchImpl: Fetch = (input, init) => fetch(input, init)): Promise<LoginResponse> {
+    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    let response = await fetchImpl(`${baseUrl}/auth/cloud/login`, {
+      method: 'POST', headers, body: new URLSearchParams({ email: username, password }).toString(),
     });
+    if (response.status === 404) {
+      response = await fetchImpl(`${baseUrl}/auth/token`, {
+        method: 'POST', headers, body: new URLSearchParams({ username, password, grant_type: 'password' }).toString(),
+      });
+    }
     if (!response.ok) {
       throw new ApiError(response.status, response.status === 401 ? 'Wrong username or password.' : await readDetail(response));
     }
     return (await response.json()) as LoginResponse;
+  }
+
+  /** Redeem an invitation link as the signed-in, invited account. */
+  static async acceptInvitation(baseUrl: string, accessToken: string, token: string, fetchImpl: Fetch = (input, init) => fetch(input, init)): Promise<{ tenant_id: string; workspace_id: string | null; person_id: string | null }> {
+    const r = await fetchImpl(`${baseUrl}/api/v1/care/invitations/accept`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ token }) });
+    if (!r.ok) throw new ApiError(r.status, r.status === 400 ? 'This invitation link is not valid.' : await readDetail(r));
+    return (await r.json()) as { tenant_id: string; workspace_id: string | null; person_id: string | null };
   }
 
   async workspaces(): Promise<WorkspaceList> {

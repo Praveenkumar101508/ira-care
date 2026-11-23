@@ -1,6 +1,6 @@
 import type {
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, Person,
-  AccessNotes, HomeUpdate, Memory, OpsStatus, PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, WorkspaceList,
+  AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, WorkspaceList,
 } from './types';
 
 export class ApiError extends Error {
@@ -13,11 +13,17 @@ type Fetch = typeof fetch;
 
 /** The dashboard's view of the backend. Browser-side; the token stays in session storage. */
 export class Api {
-  constructor(private readonly s: Session, private readonly f: Fetch = fetch) {}
+  // `fetch` is wrapped rather than passed bare: calling the browser's fetch with another `this` throws.
+  constructor(private readonly s: Session, private readonly f: Fetch = (input, init) => fetch(input, init)) {}
 
-  static async login(baseUrl: string, username: string, password: string, f: Fetch = fetch) {
-    const body = new URLSearchParams({ username, password, grant_type: 'password' });
-    const r = await f(`${baseUrl}/auth/token`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
+  /** Sign in. A cloud deployment signs in by email (/auth/cloud/login); a private
+   *  one has no such route (404) and uses the owner account at /auth/token. */
+  static async login(baseUrl: string, username: string, password: string, f: Fetch = (input, init) => fetch(input, init)) {
+    const form = { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' } };
+    let r = await f(`${baseUrl}/auth/cloud/login`, { ...form, body: new URLSearchParams({ email: username, password }).toString() });
+    if (r.status === 404) {
+      r = await f(`${baseUrl}/auth/token`, { ...form, body: new URLSearchParams({ username, password, grant_type: 'password' }).toString() });
+    }
     if (!r.ok) throw new ApiError(r.status, r.status === 401 ? 'Wrong username or password.' : await detail(r));
     return (await r.json()) as { access_token: string; refresh_token: string };
   }
@@ -53,6 +59,11 @@ export class Api {
   generateReport(id: string, kind: string, date: string) { return this.req<Report>('POST', `/api/v1/care/people/${id}/reports/generate`, { kind, date }); }
   search(id: string, q: string) { return this.req<SearchResponse>('GET', `/api/v1/care/people/${id}/history/search?q=${encodeURIComponent(q)}&limit=100`); }
   opsStatus() { return this.req<OpsStatus>('GET', '/api/v1/care/ops/status'); }
+  plan() { return this.req<PlanSummary>('GET', '/api/v1/care/plan'); }
+  invite(personId: string, body: { email: string; display_name: string; relationship: string; role: string; tier: number; phone: string; consents: { kind: string; granted: boolean; granted_by: string; granted_by_name: string }[] }) {
+    return this.req<InvitationOut>('POST', `/api/v1/care/people/${personId}/invitations`, body);
+  }
+  invitations(personId: string) { return this.req<{ invitations: InvitationRow[] }>('GET', `/api/v1/care/people/${personId}/invitations`).then((o) => o.invitations); }
   memory(id: string) { return this.req<{ memory: Memory[] }>('GET', `/api/v1/care/people/${id}/memory`).then((o) => o.memory); }
   accessLog(id: string) { return this.req<{ entries: AccessEntry[] }>('GET', `/api/v1/care/people/${id}/access-log?limit=200`).then((o) => o.entries); }
 

@@ -9,8 +9,8 @@ import { BigButton, Card, Muted, Screen, colors } from '../ui';
 
 type Tab = 'status' | 'history' | 'reports' | 'contacts' | 'consent';
 
-export function PersonScreen({ client, person, canManage, onBack, onTalk }: {
-  client: CareClient; person: Person; canManage: boolean; onBack: () => void; onTalk?: () => void;
+export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair }: {
+  client: CareClient; person: Person; canManage: boolean; onBack: () => void; onTalk?: () => void; onPair?: () => void;
 }) {
   const [tab, setTab] = useState<Tab>('status');
   const [status, setStatus] = useState<PersonStatus | null>(null);
@@ -75,7 +75,8 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk }: {
             {personPhone ? <BigButton label={`Call ${name}`} onPress={() => Linking.openURL(telLink(personPhone))} /> : null}
             <BigButton label="Ask IRA to check in now" color={colors.notice} onPress={async () => { await client.askNow(person.id); await load(); }} />
             {onTalk ? <BigButton label="Talk to IRA (on this phone)" color={colors.ok} testID="open-talk" onPress={onTalk} /> : null}
-            {canManage ? (
+            {canManage && onPair ? <BigButton label="Pair a watch (step by step)" color={colors.muted} testID="open-pair" onPress={onPair} /> : null}
+            {canManage && !onPair ? (
               <BigButton
                 label={pairing ? 'Pairing code shown below' : 'Pair a new watch'}
                 color={colors.muted}

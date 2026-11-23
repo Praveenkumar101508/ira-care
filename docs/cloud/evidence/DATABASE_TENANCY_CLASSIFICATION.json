@@ -1877,7 +1877,7 @@
       "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_circle_members:{key}",
       "classification": "WORKSPACE_SCOPED",
       "current": {
-        "column_count": 18,
+        "column_count": 20,
         "has_tenant_id": true,
         "has_user_id": true,
         "has_workspace_id": true,
