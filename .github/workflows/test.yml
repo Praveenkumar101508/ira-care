@@ -149,9 +149,15 @@ jobs:
         run: |
           set -euo pipefail
           # The client tools must match the PostgreSQL 16 service: a newer pg_dump
-          # writes settings a 16 server refuses on restore.
+          # writes settings a 16 server refuses on restore. The runner's own lists
+          # carry only the newest client, so the PostgreSQL apt repository is added.
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsS -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -qq >/dev/null
           sudo apt-get install -y -q postgresql-client-16 >/dev/null
           export PATH=/usr/lib/postgresql/16/bin:$PATH
+          pg_dump --version
           sh deploy/backup.sh
           f=$(ls -t "$BACKUP_DIR"/*.enc | head -1)
           psql postgresql://postgres:postgres@localhost:5432/postgres -c "CREATE DATABASE iratest_restore"
