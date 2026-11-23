@@ -55,6 +55,16 @@ rounded up.
 | Compliance drafts: intended purpose, safety case and hazard log, DPIA, DTAC, MHRA questions, incident process | needs the owner | marked DRAFT FOR REVIEW BY A QUALIFIED PERSON; a Clinical Safety Officer, a DPO, an adviser |
 | CI green on every pull request | works (proved by the merged runs of pull requests 10 to 18 and the run on 19) | the two-day `startup_failure` was GitHub refusing to start jobs after declined card payments; it cleared when the payment went through on 23 November. Keeping the card as the default payment method is the owner's |
 
+## Round 3 (the completion run)
+
+| Feature | State | Proof or blocker |
+| --- | --- | --- |
+| Demo state never committed; per-run demo passwords and keys; gitleaks over the whole history in CI | works | `tests/readiness/test_demo_state_not_tracked.py`, the `secrets` CI job, `.gitleaksignore` |
+| The wrist shows the true SOS state: sending, waiting for connection, received, "[Name] is on the way", "[Name] has arrived"; the server pushes changes | works (server, simulator) / needs hardware (the watch screen) | `tests/care/test_care_sos_rules.py`, `tests/tenancy/test_care_sos_db.py` (state and stream), `SosStateTest.kt`, `CareApiSosTest.kt`, the dashboard simulator test |
+| Durable outbox on the watch with idempotency keys; the server ignores duplicates and remembers refusals | works (server and JVM tests) / needs hardware (a real restart and reboot) | `OutboxTest.kt` (restart, backoff, keys), `test_care_sos_db.py` (help, fall, answer sent twice; refusal remembered; keys per device) |
+| Every heart-rate sample kept at its own time; out-of-range samples uploaded at once; readings every 60 s (a setting) | works (server, simulator) / needs hardware (sensor timing) | `ReadingBatcherTest.kt`, `test_every_sample_keeps_its_own_time_and_arrival_is_stamped`, `test_the_watch_is_told_the_carers_range_and_the_upload_interval` |
+| Sample-to-alert delay measured through the simulator path | works (measured) | `scripts/measure_sample_to_alert.py`, `docs/evidence/sample_to_alert.json`, the numbers in STATUS.md |
+
 ## What "needs hardware" means here
 
 A Galaxy Watch 4 or later with LTE for the watch app (sensors, speech, the fall detector,

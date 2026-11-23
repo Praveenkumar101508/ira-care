@@ -19,13 +19,14 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi.encoders import jsonable_encoder
 
 from api.middleware.auth import require_auth
 from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
-from . import audit, checkin_cycle, consent, history, onboarding, ops, reports, repository as repo, schemas
+from . import audit, checkin_cycle, consent, history, onboarding, ops, reports, repository as repo, schemas, sos
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 router = APIRouter(prefix="/care", tags=["care"])
@@ -307,17 +308,60 @@ async def pair_device(body: schemas.PairRequest):
     return device
 
 
+async def _idempotent(principal: Principal, device: dict, key: Optional[str], kind: str, status_code: int, work):
+    """Run `work()` once per idempotency key. A repeat of a key the server has
+    already answered gets the stored answer back and changes nothing; the watch's
+    outbox re-sends until it hears one of these."""
+    from fastapi.responses import JSONResponse
+    replayed = await sos.replay(principal, device, key)
+    if replayed is not None:
+        code, body = replayed
+        return JSONResponse(status_code=code, content=body, headers={"X-Idempotent-Replay": "true"})
+    try:
+        body = await work()
+    except HTTPException as exc:
+        # A refusal is an answer too: the watch must not retry it forever.
+        await sos.remember(principal, device, key, kind, exc.status_code, {"detail": exc.detail})
+        raise
+    payload = jsonable_encoder(body)
+    await sos.remember(principal, device, key, kind, status_code, payload)
+    return JSONResponse(status_code=status_code, content=payload)
+
+
 @router.get("/devices/me")
 async def device_me(d: tuple[Principal, dict] = Depends(require_device)):
     """The watch's own record, with the carer's fall settings so the detector
-    runs with the person's thresholds (or not at all)."""
+    runs with the person's thresholds (or not at all), the heart-rate range the
+    watch checks each sample against, and how often ordinary readings go up."""
     principal, device = d
     from . import falls
     async with workspace_connection(principal) as conn:
         settings = await conn.fetchrow("SELECT * FROM care_safety_settings WHERE person_id = $1", device["person_id"])
+        state = await sos.current(conn, device["person_id"])
     out = dict(device)
     out["fall"] = falls.watch_settings(dict(settings) if settings else {})
+    out["readings"] = sos.watch_settings(dict(settings) if settings else {})
+    out["sos"] = state
     return out
+
+
+@router.get("/devices/me/sos")
+async def device_sos(d: tuple[Principal, dict] = Depends(require_device)):
+    """The true state of the person's SOS, for the wrist: received, on the way
+    (with the responder's name), arrived, closed, or idle."""
+    principal, device = d
+    return await sos.current_for_device(principal, device)
+
+
+@router.get("/devices/me/sos/stream")
+async def device_sos_stream(d: tuple[Principal, dict] = Depends(require_device)):
+    """The same state, pushed: one JSON line now and one on every change, the
+    connection held open (the watch reconnects when it closes)."""
+    from fastapi.responses import StreamingResponse
+    from . import talk
+    principal, device = d
+    return StreamingResponse(talk.ndjson(sos.stream(principal, device)), media_type="application/x-ndjson",
+                             headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})
 
 
 @router.post("/devices/me/talk")
@@ -332,29 +376,37 @@ async def device_talk(body: schemas.Talk, d: tuple[Principal, dict] = Depends(re
 
 
 @router.post("/devices/me/fall", status_code=201)
-async def device_fall_started(body: schemas.FallStart, d: tuple[Principal, dict] = Depends(require_device)):
+async def device_fall_started(body: schemas.FallStart, d: tuple[Principal, dict] = Depends(require_device),
+                              key: Optional[str] = Header(default=None, alias=sos.IDEMPOTENCY_HEADER)):
     """The watch suspects a fall and has started its countdown: the server opens
     an asking alert and keeps its own deadline. 409 when fall detection is off."""
     from . import falls
     principal, device = d
-    try:
-        alert = await falls.start(principal, device, body.model_dump())
-    except falls.FallDetectionOff as exc:
-        raise HTTPException(status_code=409, detail=str(exc))
-    if alert is None:
-        raise HTTPException(status_code=409, detail="A fall alert is already asking or open for this person.")
-    return alert
+
+    async def work():
+        try:
+            alert = await falls.start(principal, device, body.model_dump())
+        except falls.FallDetectionOff as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+        if alert is None:
+            raise HTTPException(status_code=409, detail="A fall alert is already asking or open for this person.")
+        return alert
+    return await _idempotent(principal, device, key, "fall_started", 201, work)
 
 
 @router.post("/devices/me/fall/ok")
-async def device_fall_ok(d: tuple[Principal, dict] = Depends(require_device)):
+async def device_fall_ok(d: tuple[Principal, dict] = Depends(require_device),
+                         key: Optional[str] = Header(default=None, alias=sos.IDEMPOTENCY_HEADER)):
     """The person tapped I'm OK during the fall countdown."""
     from . import falls
     principal, device = d
-    alert = await falls.answered_ok(principal, device)
-    if alert is None:
-        raise _not_found("No fall alert is asking for this person.")
-    return alert
+
+    async def work():
+        alert = await falls.answered_ok(principal, device)
+        if alert is None:
+            raise _not_found("No fall alert is asking for this person.")
+        return alert
+    return await _idempotent(principal, device, key, "fall_ok", 200, work)
 
 
 @router.post("/devices/me/report")
@@ -364,10 +416,17 @@ async def device_report(body: schemas.DeviceReport, d: tuple[Principal, dict] = 
 
 
 @router.post("/devices/me/help", status_code=201)
-async def device_help(body: schemas.HelpRequest, d: tuple[Principal, dict] = Depends(require_device)):
-    """The Help button or the spoken word: opens an SOS alert at once."""
+async def device_help(body: schemas.HelpRequest, d: tuple[Principal, dict] = Depends(require_device),
+                      key: Optional[str] = Header(default=None, alias=sos.IDEMPOTENCY_HEADER)):
+    """The Help button or the spoken word: opens an SOS alert at once. The
+    answer carries the SOS state the wrist shows ("Help request received")."""
     principal, device = d
-    return await repo.record_help_request(principal, device, body.model_dump())
+
+    async def work():
+        alert = await repo.record_help_request(principal, device, body.model_dump())
+        alert["sos"] = await sos.current_for_device(principal, device)
+        return alert
+    return await _idempotent(principal, device, key, "help", 201, work)
 
 
 # ── Check-ins (the watch's side) ─────────────────────────────────────────────
@@ -391,23 +450,31 @@ async def device_checkin_repeated(checkin_id: uuid.UUID, d: tuple[Principal, dic
 
 @router.post("/devices/me/checkins/{checkin_id}/answer")
 async def device_checkin_answer(checkin_id: uuid.UUID, body: schemas.CheckinAnswer,
-                                d: tuple[Principal, dict] = Depends(require_device)):
+                                d: tuple[Principal, dict] = Depends(require_device),
+                                key: Optional[str] = Header(default=None, alias=sos.IDEMPOTENCY_HEADER)):
     """What the person said, or which button they pressed."""
     principal, device = d
-    row = await checkin_cycle.record_answer(principal, device, checkin_id, body.text, via=body.via)
-    if row is None:
-        raise _not_found("No open check-in with that id.")
-    return row
+
+    async def work():
+        row = await checkin_cycle.record_answer(principal, device, checkin_id, body.text, via=body.via)
+        if row is None:
+            raise _not_found("No open check-in with that id.")
+        return row
+    return await _idempotent(principal, device, key, "checkin_answer", 200, work)
 
 
 @router.post("/devices/me/checkins/{checkin_id}/missed")
-async def device_checkin_missed(checkin_id: uuid.UUID, d: tuple[Principal, dict] = Depends(require_device)):
+async def device_checkin_missed(checkin_id: uuid.UUID, d: tuple[Principal, dict] = Depends(require_device),
+                                key: Optional[str] = Header(default=None, alias=sos.IDEMPOTENCY_HEADER)):
     """Nobody answered, after the repeat."""
     principal, device = d
-    row = await checkin_cycle.mark_missed(principal, device, checkin_id)
-    if row is None:
-        raise _not_found("No open check-in with that id.")
-    return row
+
+    async def work():
+        row = await checkin_cycle.mark_missed(principal, device, checkin_id)
+        if row is None:
+            raise _not_found("No open check-in with that id.")
+        return row
+    return await _idempotent(principal, device, key, "checkin_missed", 200, work)
 
 
 @router.post("/people/{person_id}/checkins/ask-now", status_code=201)

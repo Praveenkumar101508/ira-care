@@ -2,12 +2,15 @@ import { useState } from 'react';
 import type { AccessNotes, Alert, Person } from '@/lib/types';
 import { alertWords, timeAgo, whereabouts } from '@/lib/view';
 
-export function AlertCard({ alert, personName, person, onAcknowledge, onResolve, onAccessNotes, busy }: {
+export function AlertCard({ alert, personName, person, onAcknowledge, onArrived, onResolve, onAccessNotes, busy }: {
   alert: Alert; personName: string; busy: boolean; person?: Person | null;
   onAcknowledge: (a: Alert) => void; onResolve: (a: Alert) => void;
+  /** The responder has reached the person: the watch then says "[Name] has arrived". */
+  onArrived?: (a: Alert) => void;
   onAccessNotes?: (a: Alert) => Promise<AccessNotes>;
 }) {
   const open = alert.status === 'open' || alert.status === 'escalating';
+  const arrived = (alert.acknowledgements ?? []).some((a) => a.kind === 'arrived' || a.kind === 'checked_in_person');
   const summary = typeof alert.details?.summary === 'string' ? (alert.details.summary as string) : '';
   const [notes, setNotes] = useState<AccessNotes | 'refused' | null>(null);
   const where = alert.severity !== 'notice' ? whereabouts(alert, person) : null;
@@ -40,6 +43,8 @@ export function AlertCard({ alert, personName, person, onAcknowledge, onResolve,
       ) : null}
       <div className="row">
         {open && alert.severity !== 'notice' ? <button className="ok" disabled={busy} onClick={() => onAcknowledge(alert)}>I&apos;m on my way</button> : null}
+        {alert.status === 'acknowledged' && !arrived && onArrived ? <button className="ok" disabled={busy} onClick={() => onArrived(alert)}>I&apos;ve arrived</button> : null}
+        {arrived && alert.status !== 'resolved' ? <span className="muted">Arrived · the watch has been told</span> : null}
         {alert.status !== 'resolved' ? <button className="grey" disabled={busy} onClick={() => onResolve(alert)}>Resolve</button> : null}
       </div>
     </article>

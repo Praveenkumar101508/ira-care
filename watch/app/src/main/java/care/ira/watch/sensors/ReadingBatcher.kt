@@ -7,21 +7,24 @@ import java.time.format.DateTimeFormatter
 
 /**
  * Turns a stream of raw sensor samples into readings the backend wants:
- * one heart-rate value per minute at most (the latest), step deltas summed per
- * minute, wrist state only when it changes. Pure Kotlin, so it is tested
- * without a watch.
+ * every heart-rate sample with its own sample time (the backend keeps them all
+ * and stamps when each arrived), step deltas summed per minute, wrist state only
+ * when it changes. Pure Kotlin, so it is tested without a watch.
  */
 class ReadingBatcher {
-    private var lastHeartRateMinute: Long = -1
+    private var lastHeartRateMillis: Long = -1
     private var stepsThisMinute = 0.0
     private var stepsMinute: Long = -1
     private var lastOnWrist: Boolean? = null
 
+    /**
+     * Every sample is kept, at the time it was sampled. Only an exact repeat of
+     * the same instant is dropped (the backend's uniqueness is per sample time).
+     */
     fun heartRate(bpm: Double, atMillis: Long): Reading? {
-        val minute = atMillis / 60_000
-        if (minute == lastHeartRateMinute) return null
-        lastHeartRateMinute = minute
-        return Reading(ReadingKinds.HEART_RATE, bpm, iso(minute * 60_000), "bpm")
+        if (atMillis == lastHeartRateMillis) return null
+        lastHeartRateMillis = atMillis
+        return Reading(ReadingKinds.HEART_RATE, bpm, iso(atMillis), "bpm")
     }
 
     /** Steps since the previous sample; returns the finished minute's total when a new minute starts. */

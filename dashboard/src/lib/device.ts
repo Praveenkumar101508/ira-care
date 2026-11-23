@@ -6,6 +6,10 @@
 export interface DueCheckin { id: string; question_kind: string; question_text: string; status: string; safety: boolean; question_source?: string }
 export interface Reading { kind: string; value: number; unit: string; recorded_at: string }
 export interface TalkReply { sentences: string[]; action: Record<string, unknown> | null; needsHelp: boolean }
+/** The true state of the person's SOS, as the server reports it. */
+export interface SosState { state: 'idle' | 'asking' | 'received' | 'on_the_way' | 'arrived' | 'closed'; alert_id: string | null; responder_name: string | null }
+export interface ReadingSettings { heart_rate_min: number | null; heart_rate_max: number | null; reading_upload_interval_s: number }
+export interface DeviceMe { id: string; status: string; fall: { fall_detection_enabled: boolean; fall_countdown_s: number }; readings: ReadingSettings; sos: SosState }
 
 export class DeviceError extends Error { constructor(public readonly status: number, message: string) { super(message); } }
 
@@ -20,7 +24,9 @@ export class DeviceClient {
     return (await r.json()) as { device_token: string; id: string; person_id: string };
   }
 
-  me() { return this.req<{ id: string; status: string; fall: { fall_detection_enabled: boolean; fall_countdown_s: number } }>('GET', '/api/v1/care/devices/me'); }
+  me() { return this.req<DeviceMe>('GET', '/api/v1/care/devices/me'); }
+  /** The state the watch face shows for a Help request or a fall: never guessed, always the server's word. */
+  sos() { return this.req<SosState>('GET', '/api/v1/care/devices/me/sos'); }
   due() { return this.req<{ checkin: DueCheckin | null }>('GET', '/api/v1/care/devices/me/checkins/due').then((o) => o.checkin); }
   answer(id: string, text: string, via: 'button' | 'voice') { return this.req('POST', `/api/v1/care/devices/me/checkins/${id}/answer`, { text, via }); }
   repeated(id: string) { return this.req('POST', `/api/v1/care/devices/me/checkins/${id}/repeated`, {}); }
@@ -28,8 +34,8 @@ export class DeviceClient {
   report(readings: Reading[], state: { on_wrist?: boolean; battery_percent?: number }) {
     return this.req('POST', '/api/v1/care/devices/me/report', { readings, background_sensor_permission: true, battery_percent: 70, ...state });
   }
-  help(via: 'button' | 'voice' | 'fall', location?: { latitude: number; longitude: number; accuracy_m?: number }) {
-    return this.req<{ id: string; kind: string; status: string; at_home: boolean | null }>('POST', '/api/v1/care/devices/me/help', { via, location: location ?? null });
+  help(via: 'button' | 'voice' | 'fall', location?: { latitude: number; longitude: number; accuracy_m?: number }, idempotencyKey?: string) {
+    return this.req<{ id: string; kind: string; status: string; at_home: boolean | null; sos?: SosState }>('POST', '/api/v1/care/devices/me/help', { via, location: location ?? null }, idempotencyKey);
   }
   fallStarted(peakG: number, stillSeconds: number) { return this.req<{ id: string }>('POST', '/api/v1/care/devices/me/fall', { peak_g: peakG, still_seconds: stillSeconds }); }
   fallOk() { return this.req('POST', '/api/v1/care/devices/me/fall/ok', {}); }
@@ -42,15 +48,16 @@ export class DeviceClient {
     return parseTalk(raw, onSentence);
   }
 
-  private headers(json: boolean): Record<string, string> {
+  private headers(json: boolean, idempotencyKey?: string): Record<string, string> {
     const h: Record<string, string> = { 'X-Device-Token': this.token, Accept: 'application/json' };
     if (json) h['Content-Type'] = 'application/json';
+    if (idempotencyKey) h['X-Idempotency-Key'] = idempotencyKey;
     return h;
   }
 
-  private async req<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
+  private async req<T = unknown>(method: string, path: string, body?: unknown, idempotencyKey?: string): Promise<T> {
     let r: Response;
-    try { r = await this.f(this.baseUrl + path, { method, headers: this.headers(body !== undefined), body: body === undefined ? undefined : JSON.stringify(body) }); }
+    try { r = await this.f(this.baseUrl + path, { method, headers: this.headers(body !== undefined, idempotencyKey), body: body === undefined ? undefined : JSON.stringify(body) }); }
     catch { throw new DeviceError(0, 'offline'); }
     if (r.status === 401) throw new DeviceError(401, 'The device token was not accepted.');
     if (!r.ok) throw new DeviceError(r.status, `${r.status}`);
@@ -69,6 +76,26 @@ export function parseTalk(raw: string, onSentence?: (s: string) => void): TalkRe
     if (obj.done) { out.action = obj.action ?? null; out.needsHelp = obj.needs_help === true; }
   }
   return out;
+}
+
+/** The words the watch face shows for an SOS state. Only the server's word says help is coming. */
+export function sosWords(s: SosState | null, pending: 'sending' | 'waiting' | null): string | null {
+  if (pending === 'sending') return 'Sending…';
+  if (pending === 'waiting') return 'Waiting for connection. Help request saved.';
+  if (!s) return null;
+  switch (s.state) {
+    case 'received': return 'Help request received.';
+    case 'on_the_way': return `${s.responder_name ?? 'Someone'} is on the way.`;
+    case 'arrived': return `${s.responder_name ?? 'Someone'} has arrived.`;
+    case 'closed': return 'This is now resolved.';
+    default: return null;
+  }
+}
+
+/** Is this heart-rate sample outside the carer's range? No range set means no rule. */
+export function outOfRange(bpm: number, r: ReadingSettings | null): boolean {
+  if (!r) return false;
+  return (r.heart_rate_min !== null && bpm < r.heart_rate_min) || (r.heart_rate_max !== null && bpm > r.heart_rate_max);
 }
 
 /** Readings the simulator injects, shaped as the watch would send them. */

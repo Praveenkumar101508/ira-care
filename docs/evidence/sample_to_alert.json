@@ -1,0 +1,25 @@
+{
+  "api": "http://127.0.0.1:8000",
+  "measured_at": "2026-11-23T19:27:43.720674+00:00",
+  "heart_rate_range": {
+    "heart_rate_min": 45,
+    "heart_rate_max": 130,
+    "reading_upload_interval_s": 60
+  },
+  "samples": [
+    160.0,
+    165.0,
+    170.0
+  ],
+  "upload_to_question_s": 0.028,
+  "asked_first": true,
+  "question_visible_s": 0.036,
+  "sos_open_s": 106.302,
+  "sos": {
+    "alert_id": "f71e6c04-0faf-4ce0-8c98-8a1e4c966894",
+    "kind": "heart_rate_outside_range",
+    "responder_name": null,
+    "updated_at": "2026-11-23T19:27:43.739332+00:00",
+    "state": "received"
+  }
+}

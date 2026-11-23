@@ -80,7 +80,7 @@ WORKSPACE_SCOPED = (
     "care_safety_settings", "care_checkins", "care_alerts", "care_alert_attempts",
     "care_acknowledgements", "care_routines", "care_medications",
     "care_medication_events", "care_transcripts", "care_consents", "care_access_log",
-    "care_reports", "care_conversation_memory",
+    "care_reports", "care_conversation_memory", "care_device_events",
 )
 
 
@@ -174,6 +174,8 @@ SPECS: dict[str, Spec] = {
                                   "title": "text", "body_text": "text"},
                          parents=(("care_people", "person_id"),)),
     "care_conversation_memory": Spec(columns={"day": "date"}, parents=(("care_people", "person_id"),)),
+    "care_device_events": Spec(columns={"idempotency_key": "text", "kind": "literal:help"},
+                               parents=(("care_people", "person_id"), ("care_devices", "device_id"))),
 }
 
 

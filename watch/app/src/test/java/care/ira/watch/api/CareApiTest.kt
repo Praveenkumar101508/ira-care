@@ -106,3 +106,59 @@ class CareApiTest {
         assertTrue(help.value.needsHelp)
     }
 }
+
+class CareApiSosTest {
+    private val server = MockWebServer()
+    private var token: String? = "cd1.scope.secret"
+    private lateinit var api: CareApi
+
+    @Before fun start() { server.start(); api = CareApi(server.url("/").toString().trimEnd('/'), { token }) }
+    @After fun stop() { server.shutdown() }
+
+    @Test
+    fun `an urgent event carries its idempotency key and the stored answer is accepted on a replay`() {
+        server.enqueue(MockResponse().setResponseCode(201).setBody("""{"id":"a1","sos":{"state":"received"}}"""))
+        val out = api.sendUrgent(CareApi.PATH_HELP, """{"via":"button"}""", "key-1")
+        assertTrue(out is ApiOutcome.Ok)
+        val req = server.takeRequest()
+        assertEquals("key-1", req.getHeader(CareApi.IDEMPOTENCY_HEADER))
+        assertEquals(CareApi.PATH_HELP, req.path)
+        server.enqueue(MockResponse().setResponseCode(201).setHeader("X-Idempotent-Replay", "true").setBody("""{"id":"a1"}"""))
+        assertTrue(api.sendUrgent(CareApi.PATH_HELP, """{"via":"button"}""", "key-1") is ApiOutcome.Ok)
+    }
+
+    @Test
+    fun `network loss is offline and a refusal is a definite answer`() {
+        server.enqueue(MockResponse().setResponseCode(409).setBody("""{"detail":"already asking"}"""))
+        val refused = api.sendUrgent(CareApi.PATH_FALL, "{}", "k")
+        assertEquals(409, (refused as ApiOutcome.Failed).status)
+        server.shutdown()
+        assertTrue(api.sendUrgent(CareApi.PATH_HELP, "{}", "k2") is ApiOutcome.Offline)
+    }
+
+    @Test
+    fun `the device record carries the range the upload interval and the sos state`() {
+        server.enqueue(MockResponse().setBody("""{"id":"d","status":"paired","fall":{"fall_countdown_s":45},"readings":{"heart_rate_min":45,"heart_rate_max":130,"reading_upload_interval_s":30},"sos":{"state":"on_the_way","responder_name":"Sravani","alert_id":"a1"}}"""))
+        val me = (api.me() as ApiOutcome.Ok).value
+        assertEquals(30, me.readings.uploadIntervalS)
+        assertTrue(me.readings.outOfRange(160.0) && me.readings.outOfRange(40.0) && !me.readings.outOfRange(72.0))
+        assertEquals("on_the_way", me.sos.state); assertEquals("Sravani", me.sos.responderName)
+        assertTrue(!ReadingSettingsDto().outOfRange(200.0))   // no range set: no rule
+    }
+
+    @Test
+    fun `the sos stream hands each state line on and skips heartbeats`() {
+        server.enqueue(MockResponse().setBody("""{"state":"received","alert_id":"a1","responder_name":null}
+{"heartbeat":"2026-11-23T02:00:00Z"}
+{"state":"on_the_way","alert_id":"a1","responder_name":"Sravani"}
+"""))
+        val seen = mutableListOf<SosStateDto>()
+        val out = api.sosStream { seen += it }
+        assertTrue(out is ApiOutcome.Ok)
+        assertEquals(listOf("received", "on_the_way"), seen.map { it.state })
+        assertEquals("Sravani", seen[1].responderName)
+        assertEquals("/api/v1/care/devices/me/sos/stream", server.takeRequest().path)
+        server.enqueue(MockResponse().setResponseCode(401))
+        assertTrue(api.sosStream { } is ApiOutcome.Unauthorised)
+    }
+}

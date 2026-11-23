@@ -546,6 +546,11 @@
    "sha256": "f90e7ec57193ff82385a5b9155900d7e3ad1941727cc75e4fab5a84344fa05f1",
    "status": "applied"
   },
+  "106_care_sos_state.sql": {
+   "migration_number": 106,
+   "sha256": "532678ab269280a66b8471edbcec54c8c464d097c7a53c52baa325745306d42e",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",

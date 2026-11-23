@@ -40,6 +40,7 @@ import androidx.wear.compose.material.Text
 import care.ira.watch.R
 import care.ira.watch.api.ApiOutcome
 import care.ira.watch.BuildConfig
+import care.ira.watch.outbox.SosState
 import care.ira.watch.pairing.PairingStore
 import care.ira.watch.service.CareDependencies
 import care.ira.watch.service.CareForegroundService
@@ -70,7 +71,7 @@ class MainActivity : ComponentActivity() {
                     !status.permissionGranted -> PermissionScreen(deps)
                     else -> HomeScreen(
                         question = status.question, listening = status.listening,
-                        lastAnswer = status.lastAnswer, helpSent = status.helpSent, online = status.online,
+                        lastAnswer = status.lastAnswer, sos = status.sos, online = status.online,
                         fallCountdown = status.fallCountdown,
                         onOk = { CareForegroundService.send(this, CareForegroundService.ACTION_OK) },
                         onHelp = { CareForegroundService.send(this, CareForegroundService.ACTION_HELP) },
@@ -152,7 +153,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun HomeScreen(
-    question: String?, listening: Boolean, lastAnswer: String?, helpSent: Boolean, online: Boolean,
+    question: String?, listening: Boolean, lastAnswer: String?, sos: SosState, online: Boolean,
     onOk: () -> Unit, onHelp: () -> Unit, fallCountdown: Int? = null,
     onTalk: () -> Unit = {}, talking: Boolean = false,
 ) {
@@ -161,9 +162,10 @@ fun HomeScreen(
         verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
+            // The SOS line is the server's word, never the watch's guess (SosState.text).
             text = when {
                 fallCountdown != null -> "Did you fall? Are you OK?\nHelp in $fallCountdown s"
-                helpSent -> "Help is on its way."
+                sos.text() != null -> sos.text()!!
                 question != null -> question
                 lastAnswer != null -> "Thank you."
                 else -> "All well"

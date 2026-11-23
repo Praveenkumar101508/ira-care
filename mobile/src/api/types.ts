@@ -65,6 +65,7 @@ export interface Alert {
   opened_at: string;
   current_tier: number;
   acknowledged_at: string | null;
+  acknowledgements?: { id: string; kind: string; note: string; acknowledged_at: string }[];
   resolved_at: string | null;
   details: Record<string, unknown>;
   location_latitude?: number | null;

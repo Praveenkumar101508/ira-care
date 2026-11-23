@@ -15,9 +15,14 @@ import androidx.lifecycle.lifecycleScope
 import care.ira.watch.CareApplication
 import care.ira.watch.R
 import care.ira.watch.api.ApiOutcome
+import care.ira.watch.api.CareApi
 import care.ira.watch.api.CheckinAnswer
 import care.ira.watch.api.FallStart
 import care.ira.watch.api.HelpRequest
+import care.ira.watch.outbox.Outbox
+import care.ira.watch.outbox.SosState
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import care.ira.watch.checkin.CheckinController
 import care.ira.watch.checkin.FallCountdown
 import care.ira.watch.sensors.FallDetector
@@ -53,6 +58,7 @@ class CareForegroundService : LifecycleService() {
     private lateinit var fallCountdown: FallCountdown
     private var loop: Job? = null
     private var listening: Job? = null
+    private val json = Json { explicitNulls = false }
 
     override fun onCreate() {
         super.onCreate()
@@ -62,7 +68,11 @@ class CareForegroundService : LifecycleService() {
         startForeground(NOTIFICATION_ID, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
         lifecycleScope.launch(Dispatchers.IO) { collectReadings() }
         lifecycleScope.launch(Dispatchers.IO) { watchForFalls() }
+        lifecycleScope.launch(Dispatchers.IO) { followSosState() }
         loop = lifecycleScope.launch(Dispatchers.IO) { mainLoop() }
+        // Anything still in the outbox from before a restart or a reboot goes first.
+        deps.status.value = deps.status.value.copy(urgentPending = deps.outbox.size())
+        if (deps.outbox.size() > 0) lifecycleScope.launch(Dispatchers.IO) { syncNow() }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -82,12 +92,36 @@ class CareForegroundService : LifecycleService() {
         return START_STICKY
     }
 
+    /**
+     * Every sample is queued with its own sample time. A heart rate outside the
+     * carer's range (held on the watch from `/devices/me`) is uploaded at once,
+     * not at the next interval: the server's two-in-a-row rule then decides.
+     */
     private suspend fun collectReadings() {
         deps.sensors.readings().onEach { reading ->
             if (reading.kind == ReadingKinds.ON_WRIST) deps.lastOnWrist = reading.value >= 0.5
             deps.queue.append(listOf(reading))
             deps.status.value = deps.status.value.copy(queued = deps.queue.size())
+            if (reading.kind == ReadingKinds.HEART_RATE && deps.readingSettings.outOfRange(reading.value)) syncNow()
         }.collect()
+    }
+
+    /**
+     * The server pushes the SOS state (received, "[Name] is on the way",
+     * "[Name] has arrived", closed) over a held connection; the watch reconnects
+     * when it closes, and backs off while offline.
+     */
+    private suspend fun followSosState() {
+        var wait = 2_000L
+        while (currentCoroutineIsActive()) {
+            if (!deps.pairing.isPaired) { delay(POLL_MS); continue }
+            when (val out = deps.api.sosStream { deps.applyServerSos(it) }) {
+                is ApiOutcome.Ok -> wait = 2_000L
+                is ApiOutcome.Unauthorised -> deps.onUnauthorised()
+                is ApiOutcome.Offline, is ApiOutcome.Failed -> { deps.status.value = deps.status.value.copy(online = out !is ApiOutcome.Offline); wait = minOf(wait * 2, 60_000L) }
+            }
+            delay(wait)
+        }
     }
 
     /**
@@ -121,10 +155,16 @@ class CareForegroundService : LifecycleService() {
             when (action) {
                 FallCountdown.Action.Vibrate -> vibrate()
                 is FallCountdown.Action.Speak -> deps.speaker.speak(action.text, louder = true)
-                is FallCountdown.Action.ReportFallStarted ->
-                    deps.api.fallStarted(FallStart(action.peakG, action.stillSeconds))
+                is FallCountdown.Action.ReportFallStarted -> {
+                    // Through the outbox: it reaches the server even if the link is down right now.
+                    deps.outbox.enqueue(Outbox.KIND_FALL_STARTED, CareApi.PATH_FALL, json.encodeToString(FallStart(action.peakG, action.stillSeconds)))
+                    deps.status.value = deps.status.value.copy(sos = SosState.Sending, urgentPending = deps.outbox.size())
+                    deps.sync.drainOutbox()
+                }
                 FallCountdown.Action.ReportFallOk -> {
-                    deps.api.fallOk()
+                    deps.outbox.enqueue(Outbox.KIND_FALL_OK, CareApi.PATH_FALL_OK, "{}")
+                    deps.status.value = deps.status.value.copy(sos = SosState.Idle, urgentPending = deps.outbox.size())
+                    deps.sync.drainOutbox()
                     deps.speaker.speak("Good. I will leave you be.", louder = false)
                 }
                 FallCountdown.Action.RequestHelp -> perform(listOf(CheckinController.Action.RequestHelp("fall")))
@@ -135,9 +175,12 @@ class CareForegroundService : LifecycleService() {
 
     private suspend fun mainLoop() {
         var lastPoll = 0L
+        var lastUpload = 0L
         while (currentCoroutineIsActive()) {
             if (!deps.pairing.isPaired) { delay(POLL_MS); continue }
             val now = deps.clock.nowMillis()
+            // Ordinary readings go up every `reading_upload_interval_s` (60 s by default, the carer's setting).
+            if (now - lastUpload >= deps.readingSettings.uploadIntervalS * 1000L) { lastUpload = now; syncNow() }
             if (fallCountdown.state is FallCountdown.State.Counting) performFall(fallCountdown.tick())
             perform(controller.tick())
             if (controller.openCheckinId() == null && now - lastPoll >= POLL_MS) {
@@ -162,7 +205,7 @@ class CareForegroundService : LifecycleService() {
         for (action in actions) {
             when (action) {
                 is CheckinController.Action.Speak -> {
-                    deps.status.value = deps.status.value.copy(question = action.text, helpSent = false)
+                    deps.status.value = deps.status.value.copy(question = action.text)
                     deps.speaker.speak(action.text, action.louder)
                 }
                 CheckinController.Action.Vibrate -> vibrate()
@@ -170,25 +213,30 @@ class CareForegroundService : LifecycleService() {
                 is CheckinController.Action.ReportRepeated -> deps.api.repeated(action.checkinId)
                 is CheckinController.Action.ReportAnswer -> {
                     listening?.cancel()
-                    deps.api.answer(action.checkinId, CheckinAnswer(action.text, action.via))
+                    // Answers are urgent too (an "I'm OK" to a safety question stops an SOS): outbox, then sync.
+                    deps.outbox.enqueue(Outbox.KIND_ANSWER, CareApi.pathAnswer(action.checkinId), json.encodeToString(CheckinAnswer(action.text, action.via)))
                     deps.status.value = deps.status.value.copy(question = null, listening = false,
-                        lastAnswer = action.text.ifBlank { getString(R.string.im_ok) })
+                        lastAnswer = action.text.ifBlank { getString(R.string.im_ok) }, urgentPending = deps.outbox.size())
                     controller.reset()
                     syncNow()
                 }
                 is CheckinController.Action.ReportMissed -> {
                     listening?.cancel()
-                    deps.api.missed(action.checkinId)
-                    deps.status.value = deps.status.value.copy(question = null, listening = false)
+                    deps.outbox.enqueue(Outbox.KIND_MISSED, CareApi.pathMissed(action.checkinId), "{}")
+                    deps.status.value = deps.status.value.copy(question = null, listening = false, urgentPending = deps.outbox.size())
                     controller.reset()
                     syncNow()   // the server's sensor check needs the latest readings
                 }
                 is CheckinController.Action.RequestHelp -> {
-                    // Tell the person first; the fix can take a few seconds and must not delay that.
-                    deps.speaker.speak("I am getting help for you now. Stay where you are.", louder = true)
+                    // Written to the outbox first, so a kill or a reboot cannot lose it; then
+                    // the person is told the truth: it is being sent, not that help is coming.
+                    deps.status.value = deps.status.value.copy(sos = SosState.Sending)
+                    deps.speaker.speak("Sending your request for help. Stay where you are.", louder = true)
                     val fix = deps.location.currentFix()   // null when unavailable: the server says so, never guesses
-                    deps.api.help(HelpRequest(via = action.via, location = fix))
-                    deps.status.value = deps.status.value.copy(helpSent = true)
+                    deps.outbox.enqueue(Outbox.KIND_HELP, CareApi.PATH_HELP, json.encodeToString(HelpRequest(via = action.via, location = fix)))
+                    deps.status.value = deps.status.value.copy(urgentPending = deps.outbox.size())
+                    deps.sync.drainOutbox()
+                    deps.status.value.sos.text()?.let { deps.speaker.speak(it, louder = true) }
                 }
                 CheckinController.Action.Nothing -> {}
             }

@@ -1,5 +1,5 @@
 import type { Alert, Device } from '../api/types';
-import { alertTitle, needsSomeone, showCall999, sortAlerts, whereabouts } from '../model/alerts';
+import { alertTitle, awaitingArrival, needsSomeone, showCall999, sortAlerts, whereabouts } from '../model/alerts';
 import { deviceSummary, readingLabel, telLink, timeAgo } from '../model/format';
 
 const base: Alert = {
@@ -71,4 +71,12 @@ test('whereabouts: at home, away, unknown, and unavailable are all said plainly'
   expect(away.line).toMatch(/^Away from home\. 51\.51800, -0\.12000\. Home: 1 Example Street$/);
   const unknown = whereabouts({ ...sos, location_latitude: 51.5, location_longitude: -0.12, at_home: null }, undefined);
   expect(unknown.line).toContain('whether this is home is unknown');
+});
+
+test('an acknowledged alert awaits arrival until a responder says they have arrived', () => {
+  const acked = { ...base, severity: 'sos' as const, status: 'acknowledged' as const };
+  expect(awaitingArrival(acked)).toBe(true);
+  expect(awaitingArrival({ ...acked, acknowledgements: [{ id: 'k', kind: 'on_my_way', note: '', acknowledged_at: '2026-11-21T10:01:00Z' }] })).toBe(true);
+  expect(awaitingArrival({ ...acked, acknowledgements: [{ id: 'k', kind: 'arrived', note: '', acknowledged_at: '2026-11-21T10:09:00Z' }] })).toBe(false);
+  expect(awaitingArrival({ ...acked, status: 'resolved' })).toBe(false);
 });

@@ -67,3 +67,16 @@ wrist and when it last synced. Within a few minutes of pairing you should see re
 the Readings tab. Ask IRA to check in now (family app or dashboard) and answer on the
 watch; the check-in appears on the timeline. Then, with the family told first, press Help
 on the watch and confirm the alert reaches the family app with the address and location.
+
+## What the watch says during an SOS
+
+The wrist shows only what is true. After Help, or when a fall countdown ends, the request
+is saved on the watch first and the screen says **Sending…**; if there is no connection it
+says **Waiting for connection. Help request saved.** and keeps retrying (the request
+survives a restart and a reboot). **Help request received.** appears only once the server
+has confirmed it. **[Name] is on the way.** appears when someone taps "I'm on my way" in the
+family app or on the dashboard, and **[Name] has arrived.** when they tap "I've arrived".
+The server pushes these changes to the watch over a held connection; the watch reconnects
+when it drops. Ordinary readings go up every 60 seconds (the per-person setting
+`reading_upload_interval_s`); a heart-rate sample outside the range the carer set goes up
+at once.
