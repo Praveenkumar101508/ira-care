@@ -1,4 +1,4 @@
-import { DeviceClient, heartRateRun, noMovement, parseTalk, wristOff } from '@/lib/device';
+import { DeviceClient, heartRateRun, noMovement, outOfRange, parseTalk, sosWords, wristOff } from '@/lib/device';
 
 test('a heart-rate run is spaced a minute apart and ends now', () => {
   const now = new Date('2026-11-21T02:00:00Z');
@@ -29,4 +29,30 @@ test('the device client sends the token header to the same routes as the watch',
   expect((calls[0].init.headers as Record<string, string>)['X-Device-Token']).toBe('cd1.scope.secret');
   expect(calls[1].url).toBe('http://care.invalid/api/v1/care/devices/me/help');
   expect(JSON.parse(calls[1].init.body as string)).toEqual({ via: 'fall', location: { latitude: 51.518, longitude: -0.12, accuracy_m: 12 } });
+});
+
+test('the watch face words for an SOS come from the server, never from the button press', () => {
+  expect(sosWords(null, 'sending')).toBe('Sending…');
+  expect(sosWords(null, 'waiting')).toBe('Waiting for connection. Help request saved.');
+  expect(sosWords({ state: 'received', alert_id: 'a', responder_name: null }, null)).toBe('Help request received.');
+  expect(sosWords({ state: 'on_the_way', alert_id: 'a', responder_name: 'Sravani' }, null)).toBe('Sravani is on the way.');
+  expect(sosWords({ state: 'arrived', alert_id: 'a', responder_name: 'Sravani' }, null)).toBe('Sravani has arrived.');
+  expect(sosWords({ state: 'idle', alert_id: null, responder_name: null }, null)).toBeNull();
+  for (const p of ['sending', 'waiting'] as const) expect(sosWords(null, p)!.toLowerCase()).not.toMatch(/on (the|its) way/);
+});
+
+test('a sample is out of range only against a range the carer set', () => {
+  const r = { heart_rate_min: 45, heart_rate_max: 130, reading_upload_interval_s: 60 };
+  expect(outOfRange(160, r)).toBe(true); expect(outOfRange(40, r)).toBe(true); expect(outOfRange(72, r)).toBe(false);
+  expect(outOfRange(200, null)).toBe(false);
+  expect(outOfRange(200, { ...r, heart_rate_max: null })).toBe(false);
+});
+
+test('a help request carries its idempotency key so a retry is the same request', async () => {
+  const calls: { url: string; init: RequestInit }[] = [];
+  const fakeFetch = (async (url: string, init: RequestInit) => { calls.push({ url, init }); return { ok: true, status: 201, text: async () => '{"id":"a1","kind":"help_requested","status":"open","at_home":null,"sos":{"state":"received","alert_id":"a1","responder_name":null}}' }; }) as unknown as typeof fetch;
+  const c = new DeviceClient('http://care.invalid', 'cd1.scope.secret', fakeFetch);
+  const a = await c.help('button', undefined, 'key-1');
+  expect((calls[0].init.headers as Record<string, string>)['X-Idempotency-Key']).toBe('key-1');
+  expect(a.sos?.state).toBe('received');
 });

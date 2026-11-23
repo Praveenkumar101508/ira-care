@@ -86,8 +86,35 @@ data class FallSettingsDto(
     @SerialName("fall_still_threshold_g") val stillThresholdG: Double = 0.3,
 )
 
+/** The carer's heart-rate range and how often ordinary readings go up, as `GET /devices/me` returns them. */
 @Serializable
-data class DeviceMe(val id: String, val status: String, val fall: FallSettingsDto = FallSettingsDto())
+data class ReadingSettingsDto(
+    @SerialName("heart_rate_min") val heartRateMin: Int? = null,
+    @SerialName("heart_rate_max") val heartRateMax: Int? = null,
+    @SerialName("reading_upload_interval_s") val uploadIntervalS: Int = 60,
+) {
+    fun outOfRange(bpm: Double): Boolean =
+        (heartRateMin != null && bpm < heartRateMin) || (heartRateMax != null && bpm > heartRateMax)
+}
+
+/** The true state of the person's SOS, from the server. */
+@Serializable
+data class SosStateDto(
+    val state: String = "idle",
+    @SerialName("alert_id") val alertId: String? = null,
+    @SerialName("responder_name") val responderName: String? = null,
+    val kind: String? = null,
+    @SerialName("updated_at") val updatedAt: String? = null,
+)
+
+@Serializable
+data class DeviceMe(
+    val id: String,
+    val status: String,
+    val fall: FallSettingsDto = FallSettingsDto(),
+    val readings: ReadingSettingsDto = ReadingSettingsDto(),
+    val sos: SosStateDto = SosStateDto(),
+)
 
 @Serializable
 data class TalkRequest(val text: String)
@@ -123,6 +150,8 @@ class CareApi(
 ) {
     private val json = Json { ignoreUnknownKeys = true; explicitNulls = false }
     private val mediaType = "application/json; charset=utf-8".toMediaType()
+    /** The SOS stream is held open; it must not be cut by the ordinary read timeout. */
+    private val streamClient: OkHttpClient = client.newBuilder().readTimeout(0, TimeUnit.MILLISECONDS).build()
 
     fun pair(code: String, appVersion: String): ApiOutcome<PairedDevice> =
         post("/api/v1/care/devices/pair", json.encodeToString(PairRequest(code, appVersion)), auth = false)
@@ -180,8 +209,46 @@ class CareApi(
         }
     }
 
-    fun help(request: HelpRequest): ApiOutcome<JsonObject> =
-        post("/api/v1/care/devices/me/help", json.encodeToString(request)).map { json.parseToJsonElement(it).jsonObject }
+    fun help(request: HelpRequest, idempotencyKey: String? = null): ApiOutcome<JsonObject> =
+        post("/api/v1/care/devices/me/help", json.encodeToString(request), idempotencyKey = idempotencyKey)
+            .map { json.parseToJsonElement(it).jsonObject }
+
+    /**
+     * An urgent event from the outbox: the path and body exactly as queued, with
+     * the event's idempotency key, so a re-send is recognised by the server.
+     */
+    fun sendUrgent(path: String, body: String, idempotencyKey: String): ApiOutcome<String> =
+        post(path, body, idempotencyKey = idempotencyKey)
+
+    /** The state the wrist must show for the current SOS, asked once. */
+    fun sosState(): ApiOutcome<SosStateDto> =
+        get("/api/v1/care/devices/me/sos").map { json.decodeFromString<SosStateDto>(it) }
+
+    /**
+     * The same state, pushed by the server: one JSON line now and one on every
+     * change, the connection held open. `onState` is called for each. Returns
+     * when the server closes the stream (the caller reconnects) or the link drops.
+     */
+    fun sosStream(onState: (SosStateDto) -> Unit): ApiOutcome<Unit> {
+        val token = tokenProvider() ?: return ApiOutcome.Unauthorised
+        val request = Request.Builder().url("$baseUrl/api/v1/care/devices/me/sos/stream").header(TOKEN_HEADER, token).get().build()
+        return try {
+            streamClient.newCall(request).execute().use { response ->
+                if (response.code == 401) return ApiOutcome.Unauthorised
+                if (!response.isSuccessful) return ApiOutcome.Failed(response.code, response.body?.string()?.take(300) ?: "")
+                val source = response.body?.source() ?: return ApiOutcome.Failed(response.code, "empty")
+                while (true) {
+                    val line = source.readUtf8Line() ?: break
+                    if (line.isBlank()) continue
+                    val obj = json.parseToJsonElement(line).jsonObject
+                    if (obj.containsKey("state")) onState(json.decodeFromJsonElement(SosStateDto.serializer(), obj))
+                }
+                ApiOutcome.Ok(Unit)
+            }
+        } catch (e: IOException) {
+            ApiOutcome.Offline(e.javaClass.simpleName)
+        }
+    }
 
     /** The due check-in, or null when there is none (or it is quiet hours). */
     fun dueCheckin(): ApiOutcome<DueCheckin?> =
@@ -201,8 +268,11 @@ class CareApi(
 
     private fun get(path: String): ApiOutcome<String> = execute(Request.Builder().url(baseUrl + path).get(), auth = true)
 
-    private fun post(path: String, body: String, auth: Boolean = true): ApiOutcome<String> =
-        execute(Request.Builder().url(baseUrl + path).post(body.toRequestBody(mediaType)), auth)
+    private fun post(path: String, body: String, auth: Boolean = true, idempotencyKey: String? = null): ApiOutcome<String> {
+        val builder = Request.Builder().url(baseUrl + path).post(body.toRequestBody(mediaType))
+        if (idempotencyKey != null) builder.header(IDEMPOTENCY_HEADER, idempotencyKey)
+        return execute(builder, auth)
+    }
 
     private fun execute(builder: Request.Builder, auth: Boolean): ApiOutcome<String> {
         if (auth) {
@@ -225,6 +295,12 @@ class CareApi(
 
     companion object {
         const val TOKEN_HEADER = "X-Device-Token"
+        const val IDEMPOTENCY_HEADER = "X-Idempotency-Key"
+        const val PATH_HELP = "/api/v1/care/devices/me/help"
+        const val PATH_FALL = "/api/v1/care/devices/me/fall"
+        const val PATH_FALL_OK = "/api/v1/care/devices/me/fall/ok"
+        fun pathAnswer(checkinId: String) = "/api/v1/care/devices/me/checkins/$checkinId/answer"
+        fun pathMissed(checkinId: String) = "/api/v1/care/devices/me/checkins/$checkinId/missed"
     }
 }
 

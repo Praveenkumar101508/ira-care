@@ -10,13 +10,14 @@ queue, and talks to the backend's device API under `/api/v1/care/devices/me`.
 
 | Package | What it holds |
 | --- | --- |
-| `api` | `CareApi`: the device endpoints (pair, report, due check-in, repeated, answer, missed, help) |
+| `api` | `CareApi`: the device endpoints (pair, report, due check-in, repeated, answer, missed, help, the SOS state and its held stream); urgent sends carry an idempotency key |
+| `outbox` | `Outbox`: Help, falls, "I'm OK" and answers on disk, each with its own key, retried with backoff and sent before readings; `SosState`: the words the wrist shows, which only the server can turn into "received", "[Name] is on the way" or "[Name] has arrived" |
 | `checkin` | `CheckinController`: the ask, repeat, answer, miss state machine, no Android in it |
-| `sensors` | `SensorSource` (interface), `HealthServicesSensorSource`, `ReadingBatcher` |
+| `sensors` | `SensorSource` (interface), `HealthServicesSensorSource`, `ReadingBatcher` (every heart-rate sample at its own time) |
 | `queue` | `OfflineQueue`: readings on disk until the backend acknowledges them |
 | `pairing` | `PairingStore`: the device token and ids |
 | `voice` | `Speaker` and `Listener` interfaces with Android implementations |
-| `service` | `CareForegroundService` (the day-long loop), `SyncWorker`, `BootReceiver` |
+| `service` | `CareForegroundService` (the day-long loop: readings every `reading_upload_interval_s`, an out-of-range heart rate at once), `SyncWorker`, `BootReceiver` |
 | `ui` | Pairing, permission and home screens: the question, "I'm OK", "Help" |
 
 The sensor source is an interface on purpose: a vendor sensor SDK can be added behind it

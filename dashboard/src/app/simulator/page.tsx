@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { DeviceClient, DeviceError, heartRateRun, noMovement, wristOff, type DueCheckin } from '@/lib/device';
+import { DeviceClient, DeviceError, heartRateRun, noMovement, outOfRange, sosWords, wristOff, type DueCheckin, type ReadingSettings, type SosState } from '@/lib/device';
 import { DEFAULT_BASE_URL } from '@/lib/session';
 
 /**
@@ -33,6 +33,10 @@ export default function SimulatorPage() {
   const [homeLat, setHomeLat] = useState('51.5000');
   const [homeLon, setHomeLon] = useState('-0.1200');
   const [away, setAway] = useState(false);
+  const [sos, setSos] = useState<SosState | null>(null);
+  const [sosPending, setSosPending] = useState<'sending' | 'waiting' | null>(null);
+  const [ranges, setRanges] = useState<ReadingSettings | null>(null);
+  const [queuedHelp, setQueuedHelp] = useState<{ key: string; via: 'button' | 'voice' | 'fall' } | null>(null);
   const fallTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const askedAt = useRef<number>(0);
   const repeatedFor = useRef<string | null>(null);
@@ -69,6 +73,13 @@ export default function SimulatorPage() {
     const tick = async () => {
       if (stop) return;
       try {
+        // The SOS line is the server's word: asked on every tick, like the watch's held stream.
+        const state = await client.sos(); setSos(state);
+        if (queuedHelp) {
+          // The outbox: a Help request that could not be sent is re-sent with the same key.
+          try { await client.help(queuedHelp.via, location(), queuedHelp.key); setQueuedHelp(null); setSosPending(null); note('The saved help request has reached the server.'); } catch { setSosPending('waiting'); }
+        }
+        if (!ranges) { const me = await client.me(); setRanges(me.readings); }
         if (!question) {
           const due = await client.due();
           setOnline(true);
@@ -88,7 +99,7 @@ export default function SimulatorPage() {
     void tick();
     const t = setInterval(() => { void tick(); }, POLL_MS);
     return () => { stop = true; clearInterval(t); };
-  }, [client, question, say]);
+  }, [client, question, say, queuedHelp, ranges]);
 
   const answer = async (text: string, via: 'button' | 'voice') => {
     if (!client || !question) return;
@@ -108,9 +119,19 @@ export default function SimulatorPage() {
 
   const help = async (via: 'button' | 'voice' | 'fall') => {
     if (!client) return;
-    say('I am getting help for you now. Stay where you are.', true);
-    try { const a = await client.help(via, location()); note(`SOS opened: ${a.kind} (${a.status}), at home: ${a.at_home === null ? 'unknown' : a.at_home ? 'yes' : 'no'}.`); setQuestion(null); }
-    catch (e) { note(`Help could not be sent (${e instanceof Error ? e.message : 'error'}).`); }
+    // Like the watch: the request is saved first (with its key), the person is told it is being sent,
+    // and "received" or "[Name] is on the way" come only from the server.
+    const key = (typeof crypto !== 'undefined' && 'randomUUID' in crypto) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+    setSosPending('sending'); say('Sending your request for help. Stay where you are.', true);
+    try {
+      const a = await client.help(via, location(), key);
+      setSosPending(null); if (a.sos) setSos(a.sos);
+      note(`SOS opened: ${a.kind} (${a.status}), at home: ${a.at_home === null ? 'unknown' : a.at_home ? 'yes' : 'no'}.`); setQuestion(null);
+      say('Help request received.', true);
+    } catch (e) {
+      if (e instanceof DeviceError && e.status === 0) { setQueuedHelp({ key, via }); setSosPending('waiting'); say('Waiting for connection. Your help request is saved and will be sent.', true); }
+      else { setSosPending(null); note(`Help could not be sent (${e instanceof Error ? e.message : 'error'}).`); }
+    }
   };
 
   const talk = async (text: string) => {
@@ -127,7 +148,12 @@ export default function SimulatorPage() {
   const inject = async (what: 'heart' | 'still' | 'off' | 'on') => {
     if (!client) return;
     try {
-      if (what === 'heart') { await client.report(heartRateRun([heartRate, heartRate + 4, heartRate + 7]), { on_wrist: onWrist }); note(`Sent three heart-rate readings of about ${heartRate} bpm, a minute apart.`); }
+      if (what === 'heart') {
+        const run = heartRateRun([heartRate, heartRate + 4, heartRate + 7]);
+        const urgent = run.some((r) => outOfRange(r.value, ranges));
+        await client.report(run, { on_wrist: onWrist });
+        note(urgent ? `Heart rate ${heartRate} bpm is outside the range set for this person: three samples uploaded at once, not at the next interval.` : `Sent three heart-rate readings of about ${heartRate} bpm, a minute apart.`);
+      }
       if (what === 'still') { await client.report(noMovement(), { on_wrist: onWrist }); note('Sent: no steps, no movement.'); }
       if (what === 'off') { setOnWrist(false); await client.report(wristOff(), { on_wrist: false }); note('Watch taken off the wrist.'); }
       if (what === 'on') { setOnWrist(true); await client.report([{ kind: 'on_wrist', value: 1, unit: '', recorded_at: new Date().toISOString() }], { on_wrist: true }); note('Watch back on the wrist.'); }
@@ -172,7 +198,7 @@ export default function SimulatorPage() {
 
       <div className="card" data-testid="watch-face" style={{ border: `6px solid ${flash ? '#c62828' : '#333'}`, borderRadius: 40, padding: 24, textAlign: 'center', background: '#111', color: '#fff', transition: 'border-color .2s' }}>
         <div style={{ fontSize: 22, minHeight: 60 }} data-testid="watch-text">
-          {fallCountdown !== null ? <>Did you fall? Are you OK?<br />Help in {fallCountdown} s</> : question ? question.question_text : 'All well'}
+          {fallCountdown !== null ? <>Did you fall? Are you OK?<br />Help in {fallCountdown} s</> : sosWords(sos, sosPending) ?? (question ? question.question_text : 'All well')}
         </div>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 16 }}>
           <button className="ok" style={{ minWidth: 140, fontSize: 18 }} data-testid="ok" onClick={() => { if (fallCountdown !== null) void fallOk(); else if (question) void answer('', 'button'); }}>I&apos;m OK</button>

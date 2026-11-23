@@ -32,6 +32,11 @@ export function sortAlerts(alerts: Alert[]): Alert[] {
   });
 }
 
+/** Someone said "I'm on my way" and nobody has arrived yet. */
+export function awaitingArrival(alert: Alert): boolean {
+  return alert.status === 'acknowledged' && !(alert.acknowledgements ?? []).some((a) => a.kind === 'arrived' || a.kind === 'checked_in_person');
+}
+
 export function needsSomeone(alert: Alert): boolean {
   return (alert.status === 'open' || alert.status === 'escalating') && alert.severity !== 'notice';
 }

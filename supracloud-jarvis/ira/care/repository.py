@@ -250,6 +250,7 @@ _SETTINGS_FIELDS = (
     "ask_first_wait_s", "heart_rate_confirm_readings", "heart_rate_confirm_seconds",
     "night_off_wrist_minutes", "usual_wake_time", "wake_grace_minutes",
     "fall_detection_enabled", "fall_countdown_s", "fall_impact_g", "fall_still_seconds", "fall_still_threshold_g",
+    "reading_upload_interval_s",
 )
 
 

@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 PERSON_STATUSES = ("active", "paused", "archived")
 CIRCLE_ROLES = ("family", "carer", "clinician", "care_organisation")
-ACK_KINDS = ("on_my_way", "checked_in_person", "spoke_to_person", "false_alarm", "handed_over")
+ACK_KINDS = ("on_my_way", "arrived", "checked_in_person", "spoke_to_person", "false_alarm", "handed_over")
 VITAL_KINDS = ("heart_rate", "steps", "movement", "on_wrist", "battery", "skin_temperature")
 ROUTINE_KINDS = ("meal", "medication", "activity", "sleep", "social", "other")
 MED_EVENT_STATUSES = ("due", "taken", "missed", "skipped", "unknown")
@@ -134,6 +134,9 @@ class SafetySettings(BaseModel):
     night_off_wrist_minutes: int = Field(60, ge=5, le=720)
     usual_wake_time: dt.time = dt.time(7, 30)
     wake_grace_minutes: int = Field(60, ge=10, le=240)
+    # How often the watch uploads ordinary readings while its service runs. An
+    # out-of-range heart-rate sample is uploaded at once whatever this says.
+    reading_upload_interval_s: int = Field(60, ge=15, le=900)
 
     @field_validator("checkin_max_minutes")
     @classmethod

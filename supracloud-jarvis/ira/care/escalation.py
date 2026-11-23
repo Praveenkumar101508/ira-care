@@ -50,10 +50,15 @@ def _now() -> dt.datetime:
 
 
 async def open_from_observation(conn, person_id, obs: Observation, now: dt.datetime) -> Optional[dict]:
-    """Open an alert for `obs` unless one of its kind is already unresolved."""
+    """Open an alert for `obs` unless one of its kind is already unresolved.
+
+    An `asking` alert counts as unresolved: while "Are you OK?" is out for a
+    heart rate outside the range, a missed check-in that sees the same reading
+    must not open a second SOS beside it (found by the sample-to-alert
+    measurement in round 3, phase 1, which produced two alerts for one event)."""
     existing = await conn.fetchval(
         "SELECT id FROM care_alerts WHERE person_id = $1 AND kind = $2 "
-        "AND status IN ('open', 'escalating', 'acknowledged')", person_id, obs.kind)
+        "AND status IN ('asking', 'open', 'escalating', 'acknowledged')", person_id, obs.kind)
     if existing is not None:
         return None
     details = dict(obs.details)

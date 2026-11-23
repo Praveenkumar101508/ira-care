@@ -3,11 +3,20 @@ package care.ira.watch.service
 import android.content.Context
 import android.os.BatteryManager
 import care.ira.watch.BuildConfig
+import care.ira.watch.api.ApiOutcome
 import care.ira.watch.api.CareApi
 import care.ira.watch.core.Clock
 import care.ira.watch.pairing.PairingStore
 import care.ira.watch.queue.OfflineQueue
 import care.ira.watch.api.FallSettingsDto
+import care.ira.watch.api.ReadingSettingsDto
+import care.ira.watch.api.SosStateDto
+import care.ira.watch.outbox.Outbox
+import care.ira.watch.outbox.SosState
+import care.ira.watch.outbox.UrgentEvent
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
 import care.ira.watch.sensors.AccelerometerSource
 import care.ira.watch.sensors.AndroidAccelerometerSource
 import care.ira.watch.sensors.AndroidLocationSource
@@ -31,8 +40,11 @@ data class WatchStatus(
     val question: String? = null,
     val listening: Boolean = false,
     val lastAnswer: String? = null,
-    val helpSent: Boolean = false,
+    /** The true state of a Help request or a fall, as the server reports it (never guessed). */
+    val sos: SosState = SosState.Idle,
     val queued: Int = 0,
+    /** Urgent events still waiting for the server's answer. */
+    val urgentPending: Int = 0,
     val online: Boolean = true,
     /** Seconds left in a fall countdown, or null when none is running. */
     val fallCountdown: Int? = null,
@@ -48,6 +60,8 @@ class CareDependencies private constructor(context: Context) {
     val clock: Clock = Clock.SYSTEM
     val pairing = PairingStore(context)
     val queue = OfflineQueue(File(context.filesDir, "readings.jsonl"))
+    /** Help, falls and answers, on disk until the server has answered. */
+    val outbox = Outbox(File(context.filesDir, "outbox.jsonl"), clock)
     val api = CareApi(BuildConfig.CARE_API_BASE_URL, { pairing.token })
     val sensors: SensorSource = HealthServicesSensorSource(context, clock)
     /** Asked once per SOS; never polled. */
@@ -55,6 +69,9 @@ class CareDependencies private constructor(context: Context) {
     val accelerometer: AccelerometerSource = AndroidAccelerometerSource(context)
     /** The carer's fall settings, refreshed from the server after each sync. */
     @Volatile var fallSettings: FallSettingsDto = FallSettingsDto()
+    /** The carer's heart-rate range and the upload interval, refreshed the same way. */
+    @Volatile var readingSettings: ReadingSettingsDto = ReadingSettingsDto()
+    private val json = Json { ignoreUnknownKeys = true }
     val speaker: Speaker = AndroidSpeaker(context)
     val listener: Listener = AndroidListener(context)
     val sync = Syncer(this)
@@ -72,6 +89,49 @@ class CareDependencies private constructor(context: Context) {
     fun onUnauthorised() {
         pairing.clear()
         status.value = status.value.copy(paired = false)
+    }
+
+    /** The server's word on the SOS: the only source of "received", "on the way", "arrived". */
+    fun applyServerSos(dto: SosStateDto) {
+        val fromServer = SosState.fromServer(dto.state, dto.responderName)
+        val current = status.value.sos
+        val next = when {
+            fromServer != null -> fromServer
+            // Nothing open on the server: a request still in the outbox keeps its own state.
+            current is SosState.Sending || current is SosState.WaitingForConnection -> current
+            else -> SosState.Idle
+        }
+        if (next != current) status.value = status.value.copy(sos = next)
+    }
+
+    /** An urgent event reached the server. A Help or fall answer carries the SOS state. */
+    fun onUrgentDelivered(event: UrgentEvent, responseBody: String) {
+        status.value = status.value.copy(urgentPending = outbox.size())
+        if (event.kind == Outbox.KIND_HELP) {
+            val state = runCatching { json.parseToJsonElement(responseBody).jsonObject["sos"]?.jsonObject }.getOrNull()
+            val name = (state?.get("responder_name") as? JsonPrimitive)?.content
+            applyServerSos(SosStateDto(state = (state?.get("state") as? JsonPrimitive)?.content ?: "received", responderName = name))
+        }
+    }
+
+    /** The server refused the event (a definite answer): it is not retried. */
+    fun onUrgentRefused(event: UrgentEvent, httpStatus: Int) {
+        status.value = status.value.copy(urgentPending = outbox.size())
+        if (event.kind == Outbox.KIND_HELP && status.value.sos is SosState.Sending) {
+            // A refused Help request must never read as help coming: ask the server what it holds.
+            when (val s = api.sosState()) {
+                is ApiOutcome.Ok -> applyServerSos(s.value)
+                else -> status.value = status.value.copy(sos = SosState.WaitingForConnection)
+            }
+        }
+    }
+
+    /** The server could not be reached; the outbox will retry. */
+    fun onUrgentWaiting(event: UrgentEvent) {
+        status.value = status.value.copy(urgentPending = outbox.size())
+        if (event.kind == Outbox.KIND_HELP || event.kind == Outbox.KIND_FALL_STARTED) {
+            status.value = status.value.copy(sos = SosState.WaitingForConnection)
+        }
     }
 
     fun statusFlow(): StateFlow<WatchStatus> = status

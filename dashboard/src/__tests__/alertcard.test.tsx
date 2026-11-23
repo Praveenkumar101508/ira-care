@@ -45,3 +45,12 @@ test('no location is said plainly, never guessed', () => {
   render(<AlertCard alert={alert} personName="P" person={null} busy={false} onAcknowledge={() => {}} onResolve={() => {}} />);
   expect(screen.getByTestId('whereabouts').textContent).toContain('Location unavailable from the watch.');
 });
+
+test('an acknowledged SOS offers "I\'ve arrived" until the responder has arrived', () => {
+  const arrived = vi.fn();
+  render(<AlertCard alert={{ ...alert, status: 'acknowledged', details: {}, acknowledgements: [{ id: 'k1', kind: 'on_my_way', note: '', acknowledged_at: new Date().toISOString() }] }} personName="P" busy={false} onAcknowledge={() => {}} onArrived={arrived} onResolve={() => {}} />);
+  fireEvent.click(screen.getByText("I've arrived"));
+  expect(arrived).toHaveBeenCalled();
+  render(<AlertCard alert={{ ...alert, id: 'a2', status: 'acknowledged', details: {}, acknowledgements: [{ id: 'k2', kind: 'arrived', note: '', acknowledged_at: new Date().toISOString() }] }} personName="P" busy={false} onAcknowledge={() => {}} onArrived={arrived} onResolve={() => {}} />);
+  expect(screen.getAllByText(/the watch has been told/).length).toBe(1);
+});

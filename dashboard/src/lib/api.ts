@@ -37,7 +37,7 @@ export class Api {
     return this.req<{ alerts: Alert[] }>('GET', `/api/v1/care/alerts?${q}`).then((o) => o.alerts);
   }
   alert(id: string) { return this.req<Alert>('GET', `/api/v1/care/alerts/${id}`); }
-  acknowledge(id: string, note: string) { return this.req<Alert>('POST', `/api/v1/care/alerts/${id}/acknowledge`, { kind: 'on_my_way', note }); }
+  acknowledge(id: string, note: string, kind: 'on_my_way' | 'arrived' = 'on_my_way') { return this.req<Alert>('POST', `/api/v1/care/alerts/${id}/acknowledge`, { kind, note }); }
   updateHome(personId: string, body: HomeUpdate) { return this.req<Person>('PATCH', `/api/v1/care/people/${personId}`, body); }
   accessNotes(alertId: string) { return this.req<AccessNotes>('GET', `/api/v1/care/alerts/${alertId}/access-notes`); }
   resolve(id: string, resolution: string) { return this.req<Alert>('POST', `/api/v1/care/alerts/${id}/resolve`, { resolution }); }

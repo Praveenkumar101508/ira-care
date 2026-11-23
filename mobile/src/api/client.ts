@@ -70,8 +70,13 @@ export class CareClient {
     return out.alerts;
   }
 
-  async acknowledge(alertId: string, note = ''): Promise<Alert> {
-    return this.request<Alert>('POST', `/api/v1/care/alerts/${alertId}/acknowledge`, { kind: 'on_my_way', note });
+  async acknowledge(alertId: string, note = '', kind: 'on_my_way' | 'arrived' = 'on_my_way'): Promise<Alert> {
+    return this.request<Alert>('POST', `/api/v1/care/alerts/${alertId}/acknowledge`, { kind, note });
+  }
+
+  /** The responder has reached the person: the watch then shows "[Name] has arrived". */
+  async arrived(alertId: string): Promise<Alert> {
+    return this.acknowledge(alertId, '', 'arrived');
   }
 
   /** Key safe, door, pets: only for tier 1 and 2 while the alert is open; the server logs every view. */

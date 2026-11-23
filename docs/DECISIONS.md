@@ -611,3 +611,32 @@ now set only by the demo scripts that ask for them); and the history scan is lim
 commits that lead to HEAD (`--log-opts="HEAD"`), because the checkout in CI also fetches the
 stale refs of squash-merged branches, which hold the same placeholder lines under other
 commit ids.
+
+## D-052 The wrist tells the truth about an SOS, and urgent events live in an outbox (round 3, phase 1)
+
+The watch used to say "Help is on its way" the moment the button was pressed, whether or
+not the server had heard. Now the only words that say help is coming come from the server:
+`GET /devices/me/sos` and its held stream `GET /devices/me/sos/stream` (one JSON line now
+and one on every change) report `received`, `on_the_way` with the responder's name,
+`arrived` and `closed`; the watch shows "Sending…" and "Waiting for connection. Help request
+saved." from its own outbox before that. Every urgent event (Help, a fall, "I'm OK", an
+answer, a miss) is written to `outbox.jsonl` with its own idempotency key before any send,
+retried with backoff (5 s doubling to 5 min), drained before ordinary readings, and removed
+only on a definite answer; the server stores the first answer per key in `care_device_events`
+(migration 106, forced row-level security) and hands it back for every repeat, so a flaky
+link never opens two alerts and a refusal is not retried forever. "Arrived" is a new
+acknowledgement kind, offered on the dashboard and in the family app once someone is on
+their way. Every heart-rate sample is kept at its own sample time (the per-minute
+collapsing on the watch is gone); the watch holds the carer's range from `/devices/me` and
+uploads an out-of-range sample at once, and ordinary readings go up every
+`reading_upload_interval_s` (60 s, a per-person setting) instead of after check-ins and
+every 15 minutes. The browser simulator does the same, so the demo shows the real thing.
+
+## D-053 A question already out counts as an unresolved alert (round 3, phase 1)
+
+The sample-to-alert measurement (`scripts/measure_sample_to_alert.py`) produced two
+`heart_rate_outside_range` alerts for one event: "Are you OK?" was asking, and an ordinary
+check-in missed in the meantime saw the same reading and opened a second SOS, because the
+duplicate check ignored the `asking` status. It now counts `asking` as unresolved. The first
+measured "36 s to SOS" was that second alert, not the question's deadline; the figure recorded
+in STATUS.md is from the rerun after the fix.

@@ -8,11 +8,14 @@ class ReadingBatcherTest {
     private val t0 = 1_800_000_000_000L  // on a minute boundary
 
     @Test
-    fun `one heart rate per minute the first sample wins`() {
+    fun `every heart rate sample is kept with its own sample time`() {
         val b = ReadingBatcher()
         val first = b.heartRate(72.0, t0 + 1_000)
         assertEquals("heart_rate", first?.kind); assertEquals(72.0, first?.value)
-        assertNull(b.heartRate(80.0, t0 + 30_000))
+        assertEquals(ReadingBatcher.iso(t0 + 1_000), first?.recordedAt)
+        val second = b.heartRate(80.0, t0 + 30_000)
+        assertEquals(80.0, second?.value); assertEquals(ReadingBatcher.iso(t0 + 30_000), second?.recordedAt)
+        assertNull(b.heartRate(80.0, t0 + 30_000))   // the same instant twice is one sample
         assertEquals(80.5, b.heartRate(80.5, t0 + 61_000)?.value)
     }
 

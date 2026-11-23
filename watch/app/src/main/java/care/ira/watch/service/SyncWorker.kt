@@ -8,7 +8,8 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import care.ira.watch.api.ApiOutcome
 import care.ira.watch.api.DeviceReport
-import care.ira.watch.pairing.PairingStore
+import care.ira.watch.outbox.SosState
+import care.ira.watch.outbox.UrgentEvent
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -42,17 +43,54 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
 
 enum class SyncResult { Done, NothingToSend, Offline, Unauthorised }
 
-/** Drains the queue into `/devices/me/report`, batch by batch. */
+/**
+ * Drains the outbox first (Help, falls, answers: each with its idempotency key,
+ * removed only once the server has answered), then the reading queue into
+ * `/devices/me/report`, batch by batch.
+ */
 class Syncer(private val deps: CareDependencies) {
-    /** The carer may have changed the fall settings (or turned detection off). */
+    /** The carer may have changed the fall settings, the heart-rate range or the upload interval. */
     private fun refreshSettings() {
         when (val me = deps.api.me()) {
-            is ApiOutcome.Ok -> deps.fallSettings = me.value.fall
+            is ApiOutcome.Ok -> {
+                deps.fallSettings = me.value.fall
+                deps.readingSettings = me.value.readings
+                deps.applyServerSos(me.value.sos)
+            }
             else -> {}   // keep the last known settings; the defaults until the first answer
         }
     }
 
+    /**
+     * Send every due urgent event, oldest first. Each is removed on any definite
+     * answer from the server (success or a refusal such as 404 or 409: the server
+     * remembers refusals under the key too). It stays, with a longer wait, when
+     * the server could not be reached. Returns false when the link is down.
+     */
+    fun drainOutbox(): Boolean {
+        for (event in deps.outbox.due()) {
+            when (val out = deps.api.sendUrgent(event.path, event.body, event.idempotencyKey)) {
+                is ApiOutcome.Ok -> {
+                    deps.outbox.complete(event.idempotencyKey)
+                    deps.onUrgentDelivered(event, out.value)
+                }
+                is ApiOutcome.Failed -> {
+                    deps.outbox.complete(event.idempotencyKey)
+                    deps.onUrgentRefused(event, out.status)
+                }
+                is ApiOutcome.Offline -> {
+                    deps.outbox.failed(event.idempotencyKey, out.reason)
+                    deps.onUrgentWaiting(event)
+                    return false
+                }
+                is ApiOutcome.Unauthorised -> { deps.onUnauthorised(); return false }
+            }
+        }
+        return true
+    }
+
     fun syncOnce(): SyncResult {
+        if (!drainOutbox()) return SyncResult.Offline
         refreshSettings()
         var sentAnything = false
         while (true) {

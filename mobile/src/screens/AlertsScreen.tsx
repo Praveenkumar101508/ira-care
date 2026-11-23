@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { FlatList, Linking, StyleSheet, Text, View } from 'react-native';
 import type { AccessNotes, Alert, Person } from '../api/types';
-import { alertTitle, needsSomeone, showCall999, sortAlerts, whereabouts } from '../model/alerts';
+import { alertTitle, awaitingArrival, needsSomeone, showCall999, sortAlerts, whereabouts } from '../model/alerts';
 import { timeAgo } from '../model/format';
 import { BigButton, Card, Muted, Screen, colors } from '../ui';
 
-export function AlertsScreen({ alerts, people, onAcknowledge, onResolve, onBack, onCall999, onAccessNotes }: {
+export function AlertsScreen({ alerts, people, onAcknowledge, onArrived, onResolve, onBack, onCall999, onAccessNotes }: {
   alerts: Alert[]; people: Person[];
   onAcknowledge: (a: Alert) => Promise<void>; onResolve: (a: Alert) => Promise<void>;
+  onArrived?: (a: Alert) => Promise<void>;
   onBack: () => void; onCall999: () => void;
   onAccessNotes?: (a: Alert) => Promise<AccessNotes>;
 }) {
@@ -50,7 +51,11 @@ export function AlertsScreen({ alerts, people, onAcknowledge, onResolve, onBack,
                 </View>
               )
             ) : null}
-            {item.status === 'acknowledged' ? <Text style={{ color: colors.ok, marginTop: 6 }}>Someone is on their way.</Text> : null}
+            {item.status === 'acknowledged' ? <Text style={{ color: colors.ok, marginTop: 6 }}>{awaitingArrival(item) ? 'Someone is on their way.' : 'Someone has arrived; the watch has been told.'}</Text> : null}
+            {awaitingArrival(item) && onArrived ? (
+              <BigButton label={busy === item.id ? 'Sending…' : "I've arrived"} disabled={busy !== null} testID={`arrived-${item.id}`}
+                onPress={async () => { setBusy(item.id); try { await onArrived(item); } finally { setBusy(null); } }} />
+            ) : null}
             {showCall999(item) ? (
               <View style={styles.callBox}>
                 <Text style={styles.callText}>Nobody has acknowledged this alert. If you cannot reach anyone, call 999 now.</Text>
