@@ -7,8 +7,13 @@ step is reversible. Ready to host is not hosted: this has been built and checked
 
 ## 1. The machine
 
-- Ubuntu 24.04 LTS, 2 vCPU, 4 GB memory, 40 GB disk, in a UK region of the provider you
-  choose. Open ports 22 (SSH, your address only), 80 and 443.
+- Ubuntu 24.04 LTS, **4 vCPU, 16 GB memory, 80 GB disk**, in a UK region of the provider you
+  choose. Open ports 22 (SSH, your address only), 80 and 443. The memory and the disk are
+  for the conversation model: IRA's words come from two free open-weight models served by
+  Ollama on this machine (`gemma4:e4b`, 6.6 GB on disk, about 7 GB of memory when loaded;
+  `qwen3.5:4b`, 3.3 GB on disk, about 4 GB loaded; docs/MODEL_CHOICE.md has the measured
+  speed on 4 CPU cores). Without the model, 2 vCPU and 4 GB are enough (`IRA_CARE_MODEL=off`).
+  A GPU is not needed; one makes replies faster.
 - A DNS name (for example `care.example.org`) pointing at the machine's address. Caddy
   obtains the HTTPS certificate for that name by itself once port 80 is reachable.
 - Install Docker Engine and the compose plugin from Docker's own repository (`docker
@@ -38,7 +43,8 @@ cp .env.example .env
 | `IRA_SECRET_KEY` | Signs sessions and tokens. Changing it signs everyone out. | as above |
 | `IRA_ADMIN_PASSWORD` | The private edition's owner account. Required by the settings even in the cloud edition; not used for care sign-in. | as above |
 | `IRA_CONNECTOR_ENCRYPTION_KEY` | 32 random bytes, base64. Seals the access notes (and connector credentials). Losing it loses the notes. | `python3 -c "import base64,os;print(base64.b64encode(os.urandom(32)).decode())"` |
-| `IRA_CARE_MODEL` | `off` (templates), `fake` (demos), or `local` (IRA's model layer, which needs a model server you run). | `off` to start |
+| `IRA_CARE_MODEL` | `ollama` (the default: the two free open-weight models served on this machine, then the set questions), `off` (templates only) or `fake` (demos and CI). There is no hosted model API in this product. | leave unset |
+| `IRA_CARE_MODEL_PRIMARY`, `IRA_CARE_MODEL_SECONDARY` | The chain: the chosen model, then the second. `docs/MODEL_CHOICE.md` says why these two. The `ollama-pull` service pulls them on first start. | `gemma4:e4b`, `qwen3.5:4b` |
 | `IRA_CARE_OPS_PHONE` | Who is told when the care jobs stop. Log-only until an SMS provider is configured. | your on-call number |
 | `IRA_CARE_SMS_PROVIDER` | `log` or `twilio`. The adapter never dials emergency numbers. | `log` until you have keys |
 | `IRA_CARE_PUSH_PROVIDER` | `log` or `expo`. Care alerts and reports are pushed only to the phones registered by the members of that person's circle (`care_push_tokens`), never to every phone the server knows. Expo's push service is free; `IRA_CARE_EXPO_ACCESS_TOKEN` is optional (Expo's "enhanced security" setting). | `expo` once the family app is installed on phones |

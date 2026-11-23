@@ -37,22 +37,19 @@ logger = logging.getLogger("ira.reasoning.consent_audit")
 ALLOW_EXTERNAL_ENV = "IRA_ALLOW_EXTERNAL_API"      # master off-switch (default false)
 REQUIRE_CONSENT_ENV = "IRA_REQUIRE_API_CONSENT"    # ask before any external (default true)
 PRIVACY_MODE_ENV = "IRA_PRIVACY_MODE"              # local_only | local_first | external_ok
+# Kept as names so older imports resolve; neither setting does anything any more.
+# IRA CARE (round 3, phase 4, D-056): there is no hosted model API in this product.
 EXTERNAL_PROVIDER_ENV = "IRA_EXTERNAL_API_PROVIDER"
 EXTERNAL_MODEL_ENV = "IRA_EXTERNAL_API_MODEL"
 
 DEFAULT_PRIVACY_MODE = "local_first"
 
-#: Shown to the user when IRA offers Deep Intelligence Mode for a very hard task.
+#: Shown to the user when a very hard task is routed: IRA answers on the machine,
+#: with its own open-weight models; there is no external model to approve.
 CONSENT_MESSAGE = (
-    "IRA can answer this locally, but this request deserves deeper reasoning.\n\n"
-    "For the strongest result, I can activate Deep Intelligence Mode using an "
-    "external frontier model. This may send the necessary prompt/context to the "
-    "selected API provider and may use paid tokens.\n\n"
-    "Your privacy stays in your control.\n\n"
-    "Choose one:\n"
-    "- Approve Deep Intelligence Mode for this request\n"
-    "- Continue with Local Mode only\n\n"
-    "Reply: 'Approve' or 'Local only'."
+    "IRA answers this on your own machine, with its own open models. "
+    "There is no external model service in IRA CARE and no paid tokens: your words stay here.\n\n"
+    "Reply: 'Local only' (the only mode) to continue."
 )
 
 
@@ -72,9 +69,11 @@ def privacy_mode(env: Optional[Mapping[str, str]] = None) -> str:
 
 
 def external_api_allowed(env: Optional[Mapping[str, str]] = None) -> bool:
-    """Master switch: may IRA EVER use an external API (default: no)."""
-    env = os.environ if env is None else env
-    return _bool_env(env, ALLOW_EXTERNAL_ENV, False)
+    """May a MODEL call ever leave the machine? Never. IRA CARE has no hosted model
+    API and no paid model service (D-056); `IRA_ALLOW_EXTERNAL_API` no longer
+    turns one on. (The same variable still governs ordinary web fetches in the
+    research and browser tools, which are not model calls; see utils/external_gate.)"""
+    return False
 
 
 def consent_required(env: Optional[Mapping[str, str]] = None) -> bool:
@@ -86,14 +85,6 @@ def consent_message() -> str:
     return CONSENT_MESSAGE
 
 
-def _external_target(env: Mapping[str, str]) -> tuple[str, str]:
-    # No vendor is baked in: with nothing configured the target is simply "external".
-    provider = (env.get(EXTERNAL_PROVIDER_ENV) or "external").strip() or "external"
-    model = (env.get(EXTERNAL_MODEL_ENV) or "").strip()
-    if not model:
-        # A neutral placeholder; the actual provider/model is wired by the caller.
-        model = f"{provider}:external-frontier"
-    return provider, model
 
 
 # ── Structured consent audit hook ───────────────────────────────────────────────
@@ -244,29 +235,15 @@ def apply_consent(
             provider="local",
         )
 
-    if not external_api_allowed(env):
-        _audit_from_decision(decision, reason_code=CONSENT_BLOCKED, consent_approved=True)
-        return replace(
-            decision,
-            requires_api_consent=False,
-            reason=decision.reason + "; external API disabled by config (IRA_ALLOW_EXTERNAL_API=false) — staying local",
-            provider="local",
-        )
-
-    provider, model = _external_target(env)
-    final = replace(
+    # Approved or not, there is nothing external to switch to: the answer stays
+    # on the machine, and the approval is recorded as blocked by design.
+    _audit_from_decision(decision, reason_code=CONSENT_BLOCKED, consent_approved=True)
+    return replace(
         decision,
-        provider="external",
-        selected_model=model,
-        fallback_model=decision.selected_model,   # the local model remains the safety net
         requires_api_consent=False,
-        estimated_cost_level="high",
-        reason=decision.reason + f"; user approved Deep Intelligence Mode -> {provider}",
+        reason=decision.reason + "; external API disabled by config (no hosted model exists in IRA CARE) — staying local",
+        provider="local",
     )
-    _audit_from_decision(
-        final, reason_code=CONSENT_APPROVED, consent_approved=True, provider=provider
-    )
-    return final
 
 
 # ── Execution gate (defence in depth) ───────────────────────────────────────────
@@ -281,23 +258,16 @@ class ExternalExecutorNotConfigured(RuntimeError):
     """Raised when an external decision is run without a registered, allowed executor."""
 
 
-_EXTERNAL_EXECUTOR = None  # set via register_external_executor()
-
-
 def register_external_executor(fn) -> None:
-    """Register the callable that performs an external (frontier) call.
-
-    ``fn(decision, system, prompt) -> str``. Registering is an explicit, deliberate
-    act by the host app; until then external execution is impossible.
-    """
-    global _EXTERNAL_EXECUTOR
-    _EXTERNAL_EXECUTOR = fn
+    """Refused. No external model executor can be registered in IRA CARE (D-056):
+    the only way words leave the machine would be here, and here is closed."""
+    raise ExternalExecutorNotConfigured(
+        "IRA CARE has no hosted model API: an external executor cannot be registered.")
 
 
 def clear_external_executor() -> None:
-    """Remove any registered external executor (tests / lockdown)."""
-    global _EXTERNAL_EXECUTOR
-    _EXTERNAL_EXECUTOR = None
+    """Kept for older callers; there is never anything to clear."""
+    return None
 
 
 def run_decision(
@@ -319,24 +289,13 @@ def run_decision(
     if decision.provider == "local":
         return local_runner(decision)
 
-    # provider == "external" — re-check the master switch at execution time.
-    if not external_api_allowed(env):
-        _audit_from_decision(
-            decision, reason_code=CONSENT_UNAVAILABLE, consent_approved=True
-        )
-        raise ExternalExecutorNotConfigured(
-            "External execution blocked: IRA_ALLOW_EXTERNAL_API is false."
-        )
-    if _EXTERNAL_EXECUTOR is None:
-        _audit_from_decision(
-            decision, reason_code=CONSENT_UNAVAILABLE, consent_approved=True
-        )
-        raise ExternalExecutorNotConfigured(
-            "External execution blocked: no external executor is registered. "
-            "Deep Intelligence Mode is decision-only by default; the host app must "
-            "call register_external_executor() to enable it."
-        )
-    return _EXTERNAL_EXECUTOR(decision, system, prompt)
+    # provider == "external" can only come from a hand-built decision: refused.
+    _audit_from_decision(
+        decision, reason_code=CONSENT_UNAVAILABLE, consent_approved=True
+    )
+    raise ExternalExecutorNotConfigured(
+        "External execution blocked: IRA CARE has no hosted model API and no external executor."
+    )
 
 
 __all__ = [

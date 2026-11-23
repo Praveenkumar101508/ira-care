@@ -97,7 +97,8 @@ def test_blocked_by_master_switch_emits_blocked_event(_fresh):
     assert ev.estimated_cost_level == "none"
 
 
-def test_approved_emits_approved_event_with_provider(_fresh):
+def test_approval_is_recorded_as_blocked_because_no_external_model_exists(_fresh):
+    """D-056: the user's approval is kept in the audit, and the outcome is blocked."""
     env = {
         "IRA_ALLOW_EXTERNAL_API": "true",
         "IRA_EXTERNAL_API_PROVIDER": "acme-labs",
@@ -105,28 +106,23 @@ def test_approved_emits_approved_event_with_provider(_fresh):
     }
     d = _hard(env=env)
     _fresh.clear()
-    apply_consent(d, approved=True, env=env)
+    final = apply_consent(d, approved=True, env=env)
+    assert final.provider == "local"
     assert len(_fresh) == 1
     ev = _fresh[0]
-    assert ev.reason_code == CONSENT_APPROVED
+    assert ev.reason_code == CONSENT_BLOCKED
     assert ev.consent_approved is True
-    assert ev.provider == "acme-labs"
-    assert ev.selected_model == "acme-frontier"
-    assert ev.estimated_cost_level == "high"
+    assert ev.provider is None
+    assert ev.selected_model != "acme-frontier"
 
 
-def test_unavailable_external_run_emits_unavailable_event(_fresh):
-    env = {
-        "IRA_ALLOW_EXTERNAL_API": "true",
-        "IRA_EXTERNAL_API_PROVIDER": "acme-labs",
-        "IRA_EXTERNAL_API_MODEL": "acme-frontier",
-    }
-    d = _hard(env=env)
-    final = apply_consent(d, approved=True, env=env)
+def test_a_forged_external_run_is_refused_and_audited(_fresh):
+    from dataclasses import replace as _replace
+    d = _hard(env={})
+    forged = _replace(apply_consent(d, approved=True, env={}), provider="external")
     _fresh.clear()
-    # No executor registered -> external run must fail AND be audited.
     with pytest.raises(ExternalExecutorNotConfigured):
-        run_decision(final, local_runner=lambda dec: "local", env=env)
+        run_decision(forged, local_runner=lambda dec: "local", env={"IRA_ALLOW_EXTERNAL_API": "true"})
     assert len(_fresh) == 1
     assert _fresh[0].reason_code == CONSENT_UNAVAILABLE
 

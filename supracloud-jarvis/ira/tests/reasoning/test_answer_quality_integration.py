@@ -44,11 +44,11 @@ def test_external_still_requires_approval_and_master_switch():
     declined_switch = apply_consent(d, approved=True, env={})
     assert declined_switch.provider == "local"
 
-    # Approve WITH the master switch on: only now does it go external.
+    # Approve WITH the master switch on: still local (D-056: no hosted model exists).
     env = {"IRA_ALLOW_EXTERNAL_API": "true"}
     d2 = route(VERY_HARD, env=env, availability=avail)
     final = apply_consent(d2, approved=True, env=env)
-    assert final.provider == "external"
+    assert final.provider == "local"
 
     # The verifier flags exactly the unsafe case (no recorded approval) and
     # clears once approval is recorded — it never grants approval itself.

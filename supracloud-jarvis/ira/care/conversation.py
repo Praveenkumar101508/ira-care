@@ -2,9 +2,13 @@
 
 One place that composes check-in questions, reads answers into a fixed
 structure, and holds a free conversation ("Talk to IRA"), all through a
-`Model` adapter. The default model is IRA's own model layer (`utils/llm.py`,
-the fast tier, a small local model); `IRA_CARE_MODEL=fake` is the
-deterministic model CI and the tests use; `off` means templates only.
+`Model` adapter. The default (`IRA_CARE_MODEL=ollama`, or unset) is a chain of
+two free open-weight models served by Ollama on the server itself
+(`IRA_CARE_MODEL_PRIMARY`, then `IRA_CARE_MODEL_SECONDARY`; docs/MODEL_CHOICE.md),
+with the set questions as the last resort. `fake` is the deterministic model
+CI and the tests use; `off` means templates only; `local` is IRA's older model
+layer. No hosted model API exists anywhere in this path: every word stays on
+the operator's own machine.
 
 Every model reply passes `guard()`: no diagnosis words, no advice, bounded
 length, one question at most for a check-in. A reply that fails gets a safe
@@ -115,19 +119,138 @@ class LayerModel:
         return out if isinstance(out, str) else ""
 
 
+class OllamaModel:
+    """One open-weight model served by Ollama on this machine. Streams tokens
+    from `/api/chat`; asks for JSON with `format: json` when a structure is wanted."""
+
+    def __init__(self, name: str, base_url: Optional[str] = None, *, timeout_s: float = 60.0, transport=None) -> None:
+        self.name = name
+        self.base_url = (base_url or os.getenv("IRA_CARE_OLLAMA_URL") or "http://127.0.0.1:11434").rstrip("/")
+        self.timeout_s = timeout_s
+        self._transport = transport   # tests hand in an httpx.MockTransport
+
+    def _options(self, max_tokens: int, temperature: float) -> dict:
+        return {"num_predict": max_tokens, "temperature": temperature, "num_ctx": 2048}
+
+    async def stream(self, messages, *, max_tokens, temperature):
+        import httpx
+        body = {"model": self.name, "messages": messages, "stream": True, "think": False,
+                "options": self._options(max_tokens, temperature)}
+        async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout_s, connect=5.0), transport=self._transport) as client:
+            async with client.stream("POST", f"{self.base_url}/api/chat", json=body) as r:
+                r.raise_for_status()
+                async for line in r.aiter_lines():
+                    if not line.strip():
+                        continue
+                    obj = json.loads(line)
+                    tok = (obj.get("message") or {}).get("content") or ""
+                    if tok:
+                        yield tok
+                    if obj.get("done"):
+                        break
+
+    async def complete_json(self, messages, *, max_tokens):
+        import httpx
+        body = {"model": self.name, "messages": messages, "stream": False, "format": "json", "think": False,
+                "options": self._options(max_tokens, 0.0)}
+        async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout_s, connect=5.0), transport=self._transport) as client:
+            r = await client.post(f"{self.base_url}/api/chat", json=body)
+            r.raise_for_status()
+            return ((r.json().get("message") or {}).get("content") or "").strip()
+
+
+class ChainModel:
+    """The chosen model, then the second model, then (by the callers) the set
+    questions. A model that fails, or that has not produced its first token
+    within `first_token_s`, hands over to the next. `name` is the model that
+    answered last, so transcripts and the timeline say which one spoke."""
+
+    def __init__(self, models: Sequence[Model], *, first_token_s: Optional[float] = None) -> None:
+        if not models:
+            raise ValueError("a chain needs at least one model")
+        self.models = list(models)
+        self.first_token_s = first_token_s if first_token_s is not None else first_token_budget_s()
+        self.name = self.models[0].name
+        self.last_error: str = ""
+
+    @property
+    def first_sentence_budget(self) -> float:
+        """Enough for every model in the chain to be given its chance."""
+        return self.first_token_s * len(self.models) + first_sentence_budget_s()
+
+    async def stream(self, messages, *, max_tokens, temperature):
+        last: Optional[BaseException] = None
+        for model in self.models:
+            it = model.stream(messages, max_tokens=max_tokens, temperature=temperature).__aiter__()
+            try:
+                first = await asyncio.wait_for(it.__anext__(), timeout=self.first_token_s)
+            except StopAsyncIteration:
+                last = RuntimeError(f"{model.name}: empty reply")
+                continue
+            except Exception as exc:  # noqa: BLE001 - this model is skipped, the next tried
+                last = exc
+                self.last_error = f"{model.name}: {type(exc).__name__}"
+                logger.info("care conversation: %s did not answer in time (%s); trying the next model", model.name, type(exc).__name__)
+                continue
+            self.name = model.name
+            yield first
+            async for tok in it:
+                yield tok
+            return
+        raise RuntimeError(f"no model in the chain answered ({self.last_error or last})")
+
+    async def complete_json(self, messages, *, max_tokens):
+        last: Optional[BaseException] = None
+        for model in self.models:
+            try:
+                out = await asyncio.wait_for(model.complete_json(messages, max_tokens=max_tokens),
+                                             timeout=self.first_token_s * 3)
+            except Exception as exc:  # noqa: BLE001
+                last = exc
+                self.last_error = f"{model.name}: {type(exc).__name__}"
+                continue
+            if out:
+                self.name = model.name
+                return out
+        raise RuntimeError(f"no model in the chain answered ({self.last_error or last})")
+
+
+#: The free open-weight models the chain uses by default (docs/MODEL_CHOICE.md).
+DEFAULT_PRIMARY = "gemma4:e4b"
+DEFAULT_SECONDARY = "qwen3.5:4b"
+FIRST_TOKEN_S = 3.0
+
 _override: Optional[Model] = None
+
+
+def first_token_budget_s() -> float:
+    try:
+        return float(os.getenv("IRA_CARE_MODEL_FIRST_TOKEN_S") or FIRST_TOKEN_S)
+    except ValueError:
+        return FIRST_TOKEN_S
+
+
+def chain_from_env() -> ChainModel:
+    primary = (os.getenv("IRA_CARE_MODEL_PRIMARY") or DEFAULT_PRIMARY).strip()
+    secondary = (os.getenv("IRA_CARE_MODEL_SECONDARY") or DEFAULT_SECONDARY).strip()
+    models: list[Model] = [OllamaModel(primary)]
+    if secondary and secondary.lower() not in ("off", "none", "") and secondary != primary:
+        models.append(OllamaModel(secondary))
+    return ChainModel(models)
 
 
 def configured_model() -> Optional[Model]:
     """The model to use, or None for templates only. Tests inject one with `use_model`."""
     if _override is not None:
         return _override
-    choice = (os.getenv("IRA_CARE_MODEL") or "local").strip().lower()
+    choice = (os.getenv("IRA_CARE_MODEL") or "ollama").strip().lower()
     if choice in ("off", "none", "0", "false"):
         return None
     if choice == "fake":
         return FakeModel()
-    return LayerModel()
+    if choice == "local":
+        return LayerModel()
+    return chain_from_env()
 
 
 def use_model(model: Optional[Model]) -> None:
@@ -150,9 +273,10 @@ _ADVICE = re.compile(
     r"increase your|reduce your|double your|stop taking|it is safe to|it's safe to|you need to see|see a doctor|"
     r"call (999|911|112)|dial (999|911|112)|i (would )?recommend|i advise|symptoms? of|you (probably )?have\b)", re.I)
 _ADVICE_ASK = re.compile(
-    r"\b(should i (take|stop|have)|is it (safe|normal|ok|okay) to|can i take|how (much|many) (should|can) i|"
-    r"what('s| is) wrong with me|do i (have|need)|what should i do about|is this (normal|serious)|dose|dosage|"
-    r"what (tablet|pill|medicine) (should|can))\b", re.I)
+    r"\b(should i (take|stop|have|skip|go|see|call|ring|double|miss)|is it (safe|normal|ok|okay) to|can i (take|skip|miss|stop|have)|"
+    r"how (much|many) (\w+ )?(should|can|could|may) i|what('s| is) wrong with me|do i (have|need)|do you think i('ve| have| am| might)|"
+    r"what should i do about|is (this|it|that) .{0,30}(normal|serious|dangerous)|dose|dosage|"
+    r"what (tablet|pill|medicine|medication) (should|can)|(go|get) to (the )?hospital|see (a|the|my) (doctor|gp|nurse))\b", re.I)
 _URL = re.compile(r"https?://|www\.", re.I)
 
 FALLBACK_LINE = "I'm here with you, {name}. Shall I let {carer} know you'd like a word?"
@@ -219,7 +343,10 @@ async def stream_sentences(model: Model, messages: list[dict], *, max_tokens: in
                            first_sentence_s: Optional[float] = None) -> AsyncIterator[str]:
     """Sentences from the model as they complete. Raises TimeoutError if the
     first sentence is not ready within the budget, so the caller can fall back."""
-    budget = first_sentence_s if first_sentence_s is not None else first_sentence_budget_s()
+    if first_sentence_s is not None:
+        budget = first_sentence_s
+    else:
+        budget = getattr(model, "first_sentence_budget", None) or first_sentence_budget_s()
     splitter = SentenceSplitter()
     it = model.stream(messages, max_tokens=max_tokens, temperature=temperature).__aiter__()
     started = time.monotonic()
@@ -331,9 +458,11 @@ class StructuredAnswer(BaseModel):
 
 #: Phrases that go straight to "ask first" and then the escalation chain.
 RED_FLAGS = re.compile(
-    r"\b(i (have )?fell|i('ve| have)? fallen|i fall|can'?t breathe|cannot breathe|chest pain|pains? in my chest|"
+    r"\b(i (have )?fell|i('ve| have)? fallen|i fall|(had|having) a fall|fell (down|over|off)|"
+    r"can'?t breathe|cannot breathe|chest pains?|pains? in my chest|(my )?chest (hurts|is tight)|"
     r"can'?t get up|cannot get up|i'?m bleeding|bleeding (a lot|badly)|can'?t move|cannot move|"
-    r"can'?t feel my|i'?m stuck|passed out|blacked out)\b", re.I)
+    r"can'?t feel my|(arm|leg|face|hand) is numb|i'?m stuck|passed out|blacked out|collapsed|"
+    r"heart attack|stroke)\b", re.I)
 
 
 def red_flag(text: str) -> bool:
@@ -460,6 +589,13 @@ def rule_reply(text: str, ctx: TalkContext) -> Optional[Turn]:
     if red_flag(t) or rules._HELP.search(t.lower()):
         return Turn([f"I'm getting help for you now, {ctx.name}. Stay where you are."], source="rules",
                     red_flag=red_flag(t), needs_help=True)
+    # A reminder first: "remind me to ring Sravani later" is a reminder, not a call.
+    m = _REMIND.search(t)
+    if m:
+        what = m.group(2).strip().strip(".") or "that"
+        what = re.sub(r"^(to|about|that)\s+", "", what, flags=re.I)
+        return Turn([f"I'll remind you about {what} at your next check-in, {ctx.name}."],
+                    action={"kind": "reminder", "text": what[:200]}, source="rules")
     m = _CALL.search(t)
     if m:
         who = m.group(3).strip().lower().rstrip(".!?")
@@ -482,11 +618,6 @@ def rule_reply(text: str, ctx: TalkContext) -> Optional[Turn]:
         if ctx.doses_today:
             return Turn(["Today's tablets: " + "; ".join(ctx.doses_today) + "."], source="rules")
         return Turn([f"I have no tablets written down for today, {ctx.name}."], source="rules")
-    m = _REMIND.search(t)
-    if m:
-        what = m.group(2).strip().strip(".") or "that"
-        return Turn([f"I'll remind you about {what} at your next check-in, {ctx.name}."],
-                    action={"kind": "reminder", "text": what[:200]}, source="rules")
     if asks_for_advice(t):
         return Turn([ADVICE_LINE.format(name=ctx.name, carer=ctx.carer_name)], source="rules")
     return None

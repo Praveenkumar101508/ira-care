@@ -18,7 +18,12 @@ x-care-env: &care-env
   REDIS_PASSWORD: ""
   VLLM_API_KEY: unused
   IRA_CARE_PUBLIC_URL: https://${IRA_CARE_DOMAIN:?set in .env}
-  IRA_CARE_MODEL: ${IRA_CARE_MODEL:-off}
+  # The conversation model: a chain of two free open-weight models served by Ollama on this
+  # machine (docs/MODEL_CHOICE.md). No hosted model API exists in this product.
+  IRA_CARE_MODEL: ${IRA_CARE_MODEL:-ollama}
+  IRA_CARE_OLLAMA_URL: http://ollama:11434
+  IRA_CARE_MODEL_PRIMARY: ${IRA_CARE_MODEL_PRIMARY:-gemma4:e4b}
+  IRA_CARE_MODEL_SECONDARY: ${IRA_CARE_MODEL_SECONDARY:-qwen3.5:4b}
   IRA_CARE_OPS_PHONE: ${IRA_CARE_OPS_PHONE:-}
   IRA_CLOUD_REGISTRATION_ENABLED: ${IRA_CLOUD_REGISTRATION_ENABLED:-false}
   IRA_MAIL_TRANSPORT: ${IRA_MAIL_TRANSPORT:-null}
@@ -38,6 +43,7 @@ services:
       IRA_APP_PASSWORD: ${IRA_APP_PASSWORD:?set in .env}
       IRA_MIGRATOR_PASSWORD: ${IRA_MIGRATOR_PASSWORD:?set in .env}
     volumes:
+  ollama:
       - pgdata:/var/lib/postgresql/data
       - ./postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
@@ -58,6 +64,36 @@ services:
       timeout: 3s
       retries: 10
 
+  ollama:
+    # The model server. CPU only by default: the chosen models need about 10 GB of memory
+    # between them (docs/DEPLOY.md, section 1). The models are pulled once by ollama-pull
+    # and kept in the volume.
+    image: ollama/ollama:0.13.0
+    restart: unless-stopped
+    environment:
+      OLLAMA_KEEP_ALIVE: 30m
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "2"
+    volumes:
+      - ollama:/root/.ollama
+    expose: ["11434"]
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+
+  ollama-pull:
+    # Pulls the two models on first start (idempotent), then exits.
+    image: ollama/ollama:0.13.0
+    restart: "no"
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["ollama pull ${IRA_CARE_MODEL_PRIMARY:-gemma4:e4b} && ollama pull ${IRA_CARE_MODEL_SECONDARY:-qwen3.5:4b}"]
+    depends_on:
+      ollama: { condition: service_healthy }
+
   api:
     build: { context: .., dockerfile: deploy/Dockerfile.api }
     image: ira-care/api:local
@@ -72,6 +108,7 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
+      ollama: { condition: service_healthy }
     expose: ["8000"]
 
   worker:

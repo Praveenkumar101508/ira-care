@@ -216,7 +216,13 @@ the legacy `OLLAMA_MODEL_*` value, so the existing chat flow never breaks. The
 vision path resolves `local_vision` the same way (but never falls back to a text
 model). Set `IRA_USE_MODEL_ROUTER=false` to pin the old static behaviour.
 
-### Deep Intelligence Mode execution (external)
+### Deep Intelligence Mode execution (external): removed
+
+**IRA CARE (D-056):** there is no hosted model API in this product. `apply_consent` always
+stays local, no external executor can be registered, and the two provider settings do
+nothing. The text below describes the mechanism that was closed and is kept as history.
+
+#### The closed mechanism, as it was
 
 External execution is guarded twice. `apply_consent(approved=True)` only *names* an
 external target; actually running it goes through `run_decision(...)`, which raises
