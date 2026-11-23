@@ -32,6 +32,7 @@ export function TopBar() {
           <nav>
             <Link href="/">People</Link>
             <Link href="/alerts">Alerts</Link>
+        {session.role === 'workspace_admin' ? <Link href="/billing">Plan</Link> : null}
           </nav>
           <span className="muted" style={{ marginLeft: 'auto' }}>{session.workspaceName} · {session.role.replace('_', ' ')}</span>
           <button className="grey" onClick={() => { saveSession(null); window.location.href = '/login'; }}>Sign out</button>

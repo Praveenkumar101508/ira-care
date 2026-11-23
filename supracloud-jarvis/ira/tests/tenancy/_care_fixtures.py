@@ -59,10 +59,14 @@ async def _make_family(pool, admin, key: str) -> dict:
         await conn.execute(
             "INSERT INTO workspaces (id,tenant_id,organisation_id,name,slug,is_default,status) "
             "VALUES ($1,$2,$3,'Default','default',TRUE,'active')", ws, tenant_id, org)
-        for uid in (admin_user, member_user, viewer_user):
+        for uid, tenant_role in ((admin_user, "owner"), (member_user, "member"), (viewer_user, "viewer")):
             await conn.execute(
                 "INSERT INTO users (id,email,display_name,status) VALUES ($1,$2,'care probe','active')",
                 uid, f"{slug}-{uid.hex[:8]}@example.invalid")
+            # Real accounts hold a tenant membership; the invitation code reads it.
+            await conn.execute(
+                "INSERT INTO tenant_memberships (tenant_id,user_id,role,status,joined_at) VALUES ($1,$2,$3,'active',NOW())",
+                tenant_id, uid, tenant_role)
         for k in ("app.tenant_id", "app.user_id", "app.workspace_id"):
             await conn.execute(f"SELECT set_config('{k}','',false)")
     return {"tenant_id": tenant_id, "workspace_id": ws, "admin": admin_user,
