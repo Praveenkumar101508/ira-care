@@ -7,8 +7,10 @@ Everything it creates is obviously fake: "Demo Care Organisation", two people
 called Demo Person A and B, circle members with +4400000000xx numbers, an
 address at Example Street, routines, medication, a week of readings and
 check-ins, one resolved alert and one report. Three accounts can sign in to the
-dashboard and the family app; their passwords are printed and written to
-`.demo/demo.local.json` (ignored by git), never committed.
+dashboard and the family app. Their passwords and the device tokens are
+generated afresh on every run, printed to the terminal and written for the
+local scripts to `.demo/demo.local.json` (mode 0600, ignored by git). Nothing
+in the repository can sign in to any seeded demo.
 
 Idempotent: `--reset` (or a second run) removes the previous demo tenant first.
 Nothing here is real health data, and no message leaves the machine.
@@ -29,20 +31,20 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "supracloud-jarvis" / "ira"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-for _k in ("IRA_SECRET_KEY", "IRA_ADMIN_PASSWORD", "POSTGRES_PASSWORD", "REDIS_PASSWORD", "VLLM_API_KEY"):
-    os.environ.setdefault(_k, "demo-placeholder")
-os.environ.setdefault("IRA_CONNECTOR_ENCRYPTION_KEY", "c2ltdWxhdG9yLW9ubHkta2V5LW5vdC1mb3ItcHJvZDE=")
-os.environ.setdefault("IRA_CARE_MODEL", "fake")
-os.environ.setdefault("IRA_EDITION", "cloud")
+from demo._local_state import fresh_password, prepare_environment, write_private  # noqa: E402
+
+# A fresh sealing key on every seed: the notes it seals are reseeded with it.
+prepare_environment(renew_key=True, edition="cloud", model="fake")
 
 UTC = dt.timezone.utc
 SLUG = "demo-care-organisation"
 DISPLAY = "Demo Care Organisation"
 ACCOUNTS = [
-    # email, display name, tenant role, workspace role, password
-    ("demo-manager@example.invalid", "Demo Manager", "owner", "workspace_admin", "demo-manager-pass-01"),
-    ("demo-family@example.invalid", "Demo Family Member", "member", "member", "demo-family-pass-01"),
-    ("demo-viewer@example.invalid", "Demo Viewer", "member", "viewer", "demo-viewer-pass-01"),
+    # email, display name, tenant role, workspace role. Passwords are generated
+    # on every run (fresh_password) and never written into the repository.
+    ("demo-manager@example.invalid", "Demo Manager", "owner", "workspace_admin"),
+    ("demo-family@example.invalid", "Demo Family Member", "member", "member"),
+    ("demo-viewer@example.invalid", "Demo Viewer", "member", "viewer"),
 ]
 PEOPLE = [
     {"display_name": "Demo Person A", "preferred_name": "Ada", "timezone": "Europe/London", "language": "en-GB",
@@ -102,9 +104,10 @@ async def seed(dsn: str, admin_dsn: str, out: Path) -> dict:
         await admin.execute(
             "INSERT INTO tenants (id, name, slug, display_name, edition, status) VALUES ($1, $2, $2, $3, 'cloud', 'active')",
             tenant_id, SLUG, DISPLAY)
-        users = {}
-        for email, name, trole, wrole, password in ACCOUNTS:
+        users, passwords = {}, {}
+        for email, name, trole, wrole in ACCOUNTS:
             uid = uuid.uuid4()
+            password = passwords[email] = fresh_password()
             await admin.execute(
                 "INSERT INTO users (id, email, email_verified_at, display_name, auth_provider, status) "
                 "VALUES ($1, $2, NOW(), $3, 'password', 'active')", uid, email, name)
@@ -158,9 +161,8 @@ async def seed(dsn: str, admin_dsn: str, out: Path) -> dict:
                                "home_latitude": spec["home_latitude"], "home_longitude": spec["home_longitude"]})
         result = {"tenant_id": str(tenant_id), "workspace_id": str(ws_id), "organisation": DISPLAY,
                   "manager_user_id": str(users["workspace_admin"]),
-                  "logins": [{"email": e, "password": p, "role": w} for e, _n, _t, w, p in ACCOUNTS], "people": out_people}
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(result, indent=2) + "\n")
+                  "logins": [{"email": e, "password": passwords[e], "role": w} for e, _n, _t, w in ACCOUNTS], "people": out_people}
+        write_private(out, json.dumps(result, indent=2) + "\n")
         return result
     finally:
         await admin.close()
@@ -219,10 +221,13 @@ def main() -> int:
               "with the migration chain applied. The demo seeds a tenant of its own and never touches other tenants.", file=sys.stderr)
         return 2
     result = asyncio.run(seed(dsn, admin_dsn, Path(args.out)))
-    print(json.dumps({k: v for k, v in result.items() if k != "people"}, indent=2))
+    print(json.dumps({k: v for k, v in result.items() if k not in ("people", "logins")}, indent=2))
+    print("\nLogins (generated for this run only):")
+    for login in result["logins"]:
+        print(f"  {login['role']:16} {login['email']}  password {login['password']}")
     for p in result["people"]:
         print(f"{p['display_name']}: device token {p['device_token']}")
-    print(f"\nWritten to {args.out} (ignored by git). All of it is fake.")
+    print(f"\nWritten for the local scripts to {args.out} (mode 0600, inside the ignored .demo/ directory). All of it is fake.")
     return 0
 
 

@@ -584,3 +584,30 @@ Two changes, both in pull request 16: CI adds the PostgreSQL apt repository and 
 time. The deployment's backup job already runs in the `postgres:16` image, so it was never
 affected. Proved locally: 151 tables and 104 migrations before and after; a fake 17 `pg_dump`
 refused.
+
+## D-051 Demo state is generated on the machine, never carried in the repository (round 3, phase 0)
+
+`.demo/demo.local.json`, `.demo/scenarios.log` and `.demo/soak_report.json` had been
+committed although `.demo/` is ignored (`git add -f` or an add before the ignore line).
+They are removed from tracking, not from history: history is never rewritten here. The
+seeded logins they held were fixed strings in `seed_demo.py`, so anyone with the repository
+could sign in to any demo seeded from it. Now every demo run generates its own passwords
+and sealing key (`scripts/demo/_local_state.py`), prints them to the terminal, and writes
+them only for the local scripts to `.demo/` with mode 0600; device tokens were already
+random per pairing. The two device tokens in history belonged to a throwaway local database
+that the seed reseeds (which revokes them). gitleaks over the full history (27 commits)
+found 14 placeholder-shaped values and no credential; all 14 are the fixed base64
+placeholders and those two tokens, listed with reasons in `.gitleaksignore`. The fake key
+in `tests/runtime/test_log_redaction.py` is not reported by gitleaks 8.24.3 at all. CI now
+runs `scripts/ci/gitleaks.sh` over the whole history on every pull request, and
+`tests/readiness/test_demo_state_not_tracked.py` fails if `.demo/` is tracked again or a
+fixed password returns to the seed. The local scripts keep reading `.demo/demo.local.json`
+(the recording and scenario scripts need the logins), so "printed only to the terminal" is
+read as "written nowhere that could be committed".
+Two corrections after the first CI run of this branch: the shared helper had set the
+cloud edition for any process that imported the simulator, and the test suite imports the
+simulator, so 83 private-edition sign-in tests answered 503 (the edition and the model are
+now set only by the demo scripts that ask for them); and the history scan is limited to the
+commits that lead to HEAD (`--log-opts="HEAD"`), because the checkout in CI also fetches the
+stale refs of squash-merged branches, which hold the same placeholder lines under other
+commit ids.

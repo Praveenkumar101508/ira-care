@@ -1,0 +1,25 @@
+# gitleaks fingerprints (commit:file:rule:line) that are known and accepted.
+#
+# Every entry below is a value that protected nothing: a fixed base64 placeholder that
+# the demo and simulator scripts used as a sealing key for a throwaway local database
+# ("simulator-only-key-not-for-prod1" spelled in base64), the test suite's fixed sealing
+# key ("test-key-for-ira-care-tests-0001"), and two device tokens of a local demo
+# database that was reseeded (which revokes them) and never existed anywhere else.
+# All were replaced on the branch fix/remove-demo-state: the scripts now generate every
+# key and password on the machine that runs them, and .demo/ is no longer tracked.
+# History is never rewritten, so the old commits still carry the lines; CI scans the
+# whole history, and this file is what keeps those accepted lines from failing it.
+b2923b43357c9fa228ab1efffd223df10b78c7ff:scripts/demo/api.py:generic-api-key:31
+b2923b43357c9fa228ab1efffd223df10b78c7ff:scripts/demo/scenarios.py:generic-api-key:28
+b2923b43357c9fa228ab1efffd223df10b78c7ff:scripts/demo/seed_demo.py:generic-api-key:34
+1563a4fdd40110f98a212486758f25f2e28ee534:.demo/demo.local.json:generic-api-key:27
+1563a4fdd40110f98a212486758f25f2e28ee534:.demo/demo.local.json:generic-api-key:34
+dd963124f786a778e61fb2ef38ca4dd00767633d:.demo/demo.local.json:generic-api-key:27
+dd963124f786a778e61fb2ef38ca4dd00767633d:.demo/demo.local.json:generic-api-key:34
+5d67ef09a3f80690b98a06f3fb88b308e7bbf6f0:scripts/soak_24h.py:generic-api-key:34
+3c2f05c7c4ef113d1ccd959b94c33c5546e09409:scripts/soak_24h.py:generic-api-key:34
+6daf35a2af92e4fd1131d66cb027fd66e41f007b:scripts/demo/scenarios.py:generic-api-key:28
+6daf35a2af92e4fd1131d66cb027fd66e41f007b:scripts/demo/seed_demo.py:generic-api-key:34
+6daf35a2af92e4fd1131d66cb027fd66e41f007b:scripts/demo/api.py:generic-api-key:31
+35fb6e4ffb8c7bc4a713dd6f3ba86bcf0660103f:scripts/simulate_patient.py:generic-api-key:45
+35fb6e4ffb8c7bc4a713dd6f3ba86bcf0660103f:supracloud-jarvis/ira/tests/tenancy/_care_fixtures.py:generic-api-key:24

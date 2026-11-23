@@ -1,5 +1,16 @@
 # IRA CARE: next step
 
+**Round 3 (the completion run) is in progress.** Phases and their state are in
+`STATUS.md` (table "Round 3"). Current phase: R3-0 `fix/remove-demo-state`, built and proved
+locally; next is the pull request, CI, squash-merge, then R3-1 `fix/trustworthy-sos` from
+the new `main`.
+
+Owner actions found so far in round 3: none yet.
+
+---
+
+## Round 2 record (kept for history)
+
 **Round 2 is built.** Phases 1 to 4 are merged to `main` (pull requests 10 to 13). Phases 5
 to 9 are open pull requests 14 to 18, each from `main`; `feat/final-readiness` (pull request
 19) integrates all of them and is proved from a clean clone (`docs/READINESS.md`).

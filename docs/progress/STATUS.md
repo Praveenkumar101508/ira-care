@@ -32,6 +32,48 @@ Round 1 is merged to `main`. Round 2:
 | R2-9 | compliance-drafts | `docs/compliance-drafts` | Merged (pull request 18) |
 | R2-10 | final-readiness | `feat/final-readiness` | Integrates 14 to 18; proved from a clean clone; pull request 19 open |
 
+Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion run):
+
+| # | Phase | Branch | State |
+| --- | --- | --- | --- |
+| R3-0 | remove-demo-state | `fix/remove-demo-state` | Built and proved locally; pull request to follow |
+| R3-1 | trustworthy-sos | `fix/trustworthy-sos` | not started |
+| R3-2 | care-push-isolation | `fix/care-push-isolation` | not started |
+| R3-3 | responder-follow-up | `fix/responder-follow-up` | not started |
+| R3-4 | private-model | `feat/private-model` | not started |
+| R3-5 | own-models | `feat/own-models` | not started |
+| R3-6 | scheduled-care | `feat/scheduled-care` | not started |
+| R3-7 | ira-personal | `feat/ira-personal` | not started |
+| R3-8 | watch-platform-layer | `feat/watch-platform-layer` | not started |
+| R3-9 | hardware-blueprint | `feat/hardware-blueprint` | not started |
+| R3-10 | one-mobile-app | `feat/one-mobile-app` | not started |
+| R3-11 | dashboard-care-record | `feat/dashboard-care-record` | not started |
+| R3-12 | clean-product-ui | `feat/clean-product-ui` | not started |
+| R3-13 | founder-demo-data | `feat/founder-demo-data` | not started |
+| R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | not started |
+| R3-15 | cost-cuts | `ci/cost-cuts` | not started |
+| R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 0 (remove-demo-state), measured locally (23 November 2026)
+
+- `.demo/*` untracked (3 files). `scripts/demo/_local_state.py` generates the sealing key
+  and per-account passwords on every seed; the seed ran against a fresh PostgreSQL 16 with
+  pgvector (104 migrations) and `scenarios.py normal-day` ran on the result.
+- gitleaks 8.24.3 over all 27 commits: 14 findings, all placeholders (`.gitleaksignore`),
+  0 credentials; with the ignore list: "no leaks found". New CI job `secrets`.
+- New ratchet: `tests/readiness/test_demo_state_not_tracked.py` (6 tests; the negative
+  control with a fixed password failed 2 of them).
+- Full local suites on this branch: unit suite without a database **4,828 passed, 536 skipped,
+  2 failed** (both environmental and pre-existing: `test_public_url_allowed_by_egress_guard`
+  needs public DNS, which this build machine blocks; `test_the_table_matches_a_fresh_scan_of_history`
+  needs a history script that was never carried over, D-004); database suites **3,414 passed,
+  15 skipped** once run on their own (a first run concurrent with the unit suite shared Redis
+  and failed 85 sign-in tests with 503; rerun alone, every one passed). Watch unit tests pass
+  under Gradle with the Android SDK installed locally.
+- Local environment for this round: Docker (pgvector/pgvector:pg16), Redis, Python 3.12
+  virtual environment with `requirements-test.txt`, Android SDK 35 at `/opt/android-sdk`.
+  The two Python suites must run one after the other: they share one Redis.
+
 ## Measured locally (21 November 2026, Linux, Python 3.12)
 
 Local measurements before the first phase, on the foundation as received:

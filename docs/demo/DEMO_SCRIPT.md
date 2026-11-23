@@ -13,8 +13,9 @@ and no real message leaves the machine (the providers are log-only).
 ./scripts/demo/apps.sh          # dashboard on http://localhost:3000, family app on http://localhost:8081
 ```
 
-`scripts/demo/seed_demo.py` prints the logins and writes them to `.demo/demo.local.json`
-(never committed). Open three browser tabs:
+`scripts/demo/seed_demo.py` generates fresh passwords and device tokens on every run, prints
+them to the terminal and writes them for the local scripts to `.demo/demo.local.json` (mode
+0600, ignored by git, never committed). Open three browser tabs:
 
 | Tab | Address | Sign in as |
 | --- | --- | --- |
