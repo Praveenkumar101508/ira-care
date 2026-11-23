@@ -418,6 +418,136 @@ server), so first-sentence latency of a real small model is **unmeasured**. The 
 budget is a setting, not a measurement. CI uses the fake model. Measuring on the owner's
 machine with the configured model is listed under "Needs the owner".
 
+## D-037 The demo is the real system with fake people and a watch in the browser (round 2, phase 5)
+
+`scripts/demo/seed_demo.py` creates a demo organisation in one command: three accounts that
+can sign in, two obviously fake people with fake numbers and an Example Street address,
+routines, medication, a week of synthetic readings and check-ins, one resolved alert and a
+report. Logins and device tokens go to `.demo/demo.local.json`, which git ignores. The watch
+simulator (`/simulator` on the dashboard) talks to the same device API with the same device
+token as the real watch: it asks, speaks with the browser's speech, takes typed or spoken
+answers, has I'm OK and Help, and injects a heart rate, no movement, a fall or taking the
+watch off. The scripted scenarios (`scripts/demo/scenarios.py`) drive the real care code
+against the seeded organisation on the real clock, so the dashboard and the family app show
+what happened. Nothing in the demo dials anyone; the providers are log-only.
+
+## D-038 A demo API entry point, and two findings the demo surfaced (round 2, phase 5)
+
+The full server imports the whole of IRA at start (chat, voice, the agent graph, the
+embedding model) and does not start without those libraries. `scripts/demo/api.py` is a lean
+entry point with the real login, workspace and care routers, the same rate limiting and IP
+blocklist, the two care jobs, and browser origins for the dashboard and the family app on
+localhost. Running the apps in a real browser against a cloud-edition server found two
+things the unit tests had not: both apps signed in through the private edition's owner route
+only, so they now sign in by email through the cloud route and fall back to the owner route
+when it is absent; and the browser `fetch` was passed as a bare function and threw when
+called with another receiver, so it is wrapped. One more is recorded for the deployment phase
+rather than changed here: the full server's delegated-scope gate knows only the private
+edition's delegated accounts and answers 403 to every cloud account on `/api/*`, so the demo
+API does not install it. The family app's web build needed the web platform and three
+packages (`react-dom`, `react-native-web`, `expo-asset`).
+## D-039 Sign-up and the organisation reuse IRA's identity register (round 2, phase 6)
+
+A care organisation starts with `POST /care/signup`, which is IRA's own `register_account`
+behind a care-shaped route: the same password rule, the same confirmation link by mail, the
+same answer whether or not the address existed, and 404 unless `IRA_CLOUD_REGISTRATION_ENABLED`
+is on (it is off by default, so there are no sign-ups on a deployment nobody opened). Once
+the address is confirmed, `POST /care/organisations` is `provision_tenant`: tenant, a "Care
+team" workspace, the founder's memberships, plus a 30-day trial row on the chosen care plan so
+its limits apply from the first day. Mail goes through `core/notify/mail`, which prints to
+the log (console) or discards (null) unless an SMTP host is configured.
+
+## D-040 Family are invited by link, and consent is captured at the invitation (round 2, phase 6)
+
+`POST /care/people/{id}/invitations` creates a tenant invitation (`tenant_invitations`, the
+existing single-use, address-bound token), a pending circle member that carries the
+invitation id and address, and the consents the person or their legal representative gave
+for that member's role, recorded as `care_consents` rows at that moment with a note naming the
+invitation; the event is written to the access log. The link is mailed and also returned so
+it can be shared another way. `POST /care/invitations/accept` is the invitee's own, signed in
+with the invited address: the identity layer's `accept_invitation` creates the memberships
+and the pending member is linked to the account. Workspace managers invite; members and
+viewers may not; another organisation's person is not found.
+
+## D-041 Plans and billing reuse IRA's billing, and nothing can be paid for yet (round 2, phase 6)
+
+Two care plans (`care_family`, `care_organisation`) are rows in `billing_plans` with
+entitlements (`care_people_max`, `care_circle_members_max`) that the care routes enforce with
+a 402 when a trial or subscription exists. No price rows are inserted: IRA's billing routes
+answer `PRICE_NOT_CONFIGURED` for checkout, never a zero. The payment provider stays as IRA
+built it: off unless `IRA_PAYMENT_PROVIDER` names one; `test` works only with a test secret
+and is refused in production or staging; `stripe` needs its keys. No live keys exist anywhere
+in this repository. `GET /care/plan` shows the plan, limits and usage; the dashboard's Plan
+page shows the catalogue with "price not set".
+## D-042 The deployable care server is its own process, and the jobs are a worker (round 2, phase 7)
+
+`care/server.py` is the process a deployment runs: the care routes, login and the workspace
+picker on the full server's request pipeline (rate limiting, IP blocklist, request context),
+with two health routes (`/health`: process, database, Redis; `/health/jobs`: the care jobs
+have run in the last five minutes) and no documentation pages. It does not start the full
+server's chat, voice or agent graph, whose libraries and model server a care deployment does
+not have. The four care jobs run in `care/worker.py`, a separate container whose health check
+is the server's `/health/jobs`; `IRA_CARE_JOBS_IN_API=true` runs them in the server for a
+one-container setup. The full server's delegated-scope gate is not installed here, for the
+reason D-038 records.
+
+## D-043 One machine, every piece restarted and checked, HTTPS by the proxy (round 2, phase 7)
+
+`deploy/docker-compose.yml` runs PostgreSQL (pgvector), Redis, the server, the worker, the
+dashboard (standalone build), Caddy and the backup job, every one with a health check and
+`restart: unless-stopped`. Caddy obtains the certificate for `IRA_CARE_DOMAIN` itself and
+serves the dashboard and the API from one host name, so the browser makes same-origin calls
+and no CORS origin needs listing. The database roles the migration chain expects are created
+on the volume's first run; migrations apply when the server starts, as `ira_migrator`.
+Secrets come from `deploy/.env`, which git ignores; `deploy/.env.example` and `docs/DEPLOY.md`
+explain every variable. Nothing creates a cloud account or resource: the guide tells the
+owner what to rent and open.
+
+## D-044 Nightly encrypted backups, and the restore is proved in CI (round 2, phase 7)
+
+`deploy/backup.sh` is `pg_dump`, gzip, then AES-256-CBC with PBKDF2 under
+`BACKUP_PASSPHRASE`, with a sha256 beside the file; the backup container runs it at
+`BACKUP_HOUR_UTC` and keeps `BACKUP_KEEP_DAYS`. `deploy/restore.sh` checks the sha256, refuses
+a tampered file, decrypts and restores into an empty database. CI runs the pair on every pull
+request against the test database and compares the table count and the migration ledger.
+The accelerated soak (`scripts/soak_24h.py`, 200 people, a day in five-minute steps) ran
+locally: every silent person escalated to tier 3, none missing or late, and the pass timings
+are in `STATUS.md`. The soak taught one thing about simulation, not product: a watch sends a
+sensor snapshot right after a miss, and a simulation that forgets it sees no movement data
+in the window and no SOS.
+## D-045 Ready to publish, not published (round 2, phase 8)
+
+The watch app has a release build (minified and shrunk, with keep rules for the JSON models;
+signing read from the owner's environment or a `keystore.properties` outside git; the
+production server and the version code set at build time; an unsigned release package built
+in this repository's checks), launcher icons, and the listing, permission declarations and
+Data safety answers in `docs/store/WEAR_OS_LISTING.md`. The family app has its icons,
+splash, bundle and package identifiers, build numbers, notification usage text and an
+`eas.json` with build profiles and an empty `submit` section, with its listing in
+`docs/store/FAMILY_APP_LISTING.md`. No store account, build-service project or submission
+exists; those are the owner's, and the listing text says plainly that the app is not a
+medical device and never dials emergency services.
+
+## D-046 Accessibility is tested where the tooling reaches, and owed where it does not (round 2, phase 8)
+
+Dashboard: a skip link, a visible focus ring, 16 px text, 40 px targets, labels on every
+unlabelled field, article names on alert cards, a live region on the simulator's watch face,
+reduced-motion and high-contrast media queries; `jest-axe` checks an alert card and a test
+pins the contrast ratios of the theme's tokens. Family app: every big button announces its
+label, role, hint and state, screens have a header, text scales with the system setting (to a
+cap so an SOS stays readable), text fields carry labels, buttons are at least 56 points;
+tested with the test renderer. Watch: content descriptions on the three buttons, the status
+text as an assertive live region, 48 dp buttons; tested at the source level, because no
+instrumentation runs here. A screen-reader pass on a real watch and phone remains owed and
+is listed under "Needs the owner".
+
+## D-047 The privacy notice and the terms describe the software, and say they are drafts (round 2, phase 8)
+
+`docs/legal/PRIVACY_POLICY.md` and `docs/legal/TERMS_OF_USE.md` are written from what the
+code does (what is collected, where it goes, how long it is kept, who may see what under
+consent, what IRA CARE is not) and are marked DRAFT FOR LEGAL REVIEW, with the operator's
+names, bases, liability and governing law left for a lawyer. They make no claim of
+compliance.
 ## D-048 The compliance drafts describe the code and name their own limits (round 2, phase 9)
 
 `docs/compliance/` holds the intended purpose statement, a clinical safety case with a

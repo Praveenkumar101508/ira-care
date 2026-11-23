@@ -1,6 +1,6 @@
 :root { --bg: #f6f4ef; --card: #fff; --text: #1f2a24; --muted: #5b6b63; --border: #e1ded8; --sos: #b3261e; --urgent: #b35c00; --notice: #2f5d8a; --ok: #2e7d32; }
 * { box-sizing: border-box; }
-body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.45; }
 a { color: var(--notice); text-decoration: none; }
 header.top { display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: var(--card); border-bottom: 1px solid var(--border); }
 header.top h1 { font-size: 18px; margin: 0; }
@@ -20,3 +20,12 @@ table { width: 100%; border-collapse: collapse; } th, td { text-align: left; pad
 .tabs a.on { background: var(--notice); color: #fff; border-color: var(--notice); }
 .error { color: var(--sos); }
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* Accessibility: a visible focus ring everywhere, large targets, a skip link, and no motion for those who ask. */
+:focus-visible { outline: 3px solid #1a5fb4; outline-offset: 2px; }
+button, .tabs a, input, select, textarea { min-height: 40px; }
+.skip-link { position: absolute; left: -999px; top: 8px; background: var(--text); color: #fff; padding: 8px 12px; border-radius: 8px; z-index: 100; }
+.skip-link:focus { left: 8px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+@media (prefers-contrast: more) { :root { --muted: #3a463f; --border: #8a8a8a; } }
+.pill { font-size: 13px; }

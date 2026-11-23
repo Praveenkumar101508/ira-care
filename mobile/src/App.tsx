@@ -10,10 +10,12 @@ import { HomeScreen } from './screens/HomeScreen';
 import { LoginScreen, type LoginResult } from './screens/LoginScreen';
 import { PersonScreen } from './screens/PersonScreen';
 import { TalkScreen } from './screens/TalkScreen';
+import { PairWatchScreen } from './screens/PairWatchScreen';
+import { JoinScreen } from './screens/JoinScreen';
 import { WorkspaceScreen } from './screens/WorkspaceScreen';
 import { loadSession, saveSession, type StoredSession } from './storage';
 
-type Route = { name: 'home' } | { name: 'alerts' } | { name: 'person'; person: Person } | { name: 'talk'; person: Person };
+type Route = { name: 'home' } | { name: 'alerts' } | { name: 'person'; person: Person } | { name: 'talk'; person: Person } | { name: 'pair'; person: Person };
 
 const DEFAULT_BASE_URL: string =
   (Constants.expoConfig?.extra as { careApiBaseUrl?: string } | undefined)?.careApiBaseUrl ?? 'http://10.0.2.2:8000';
@@ -23,6 +25,7 @@ export const REFRESH_MS = 30_000;
 
 export default function App() {
   const [session, setSession] = useState<StoredSession | null | undefined>(undefined);
+  const [joining, setJoining] = useState(false);
   const [pendingWorkspaces, setPendingWorkspaces] = useState<LoginResult | null>(null);
   const [route, setRoute] = useState<Route>({ name: 'home' });
   const [people, setPeople] = useState<Person[]>([]);
@@ -78,7 +81,15 @@ export default function App() {
   if (pendingWorkspaces) {
     return <WorkspaceScreen workspaces={pendingWorkspaces.workspaces} onPick={(w) => { void finishLogin(pendingWorkspaces, w); }} />;
   }
-  if (!session) return <><StatusBar style="dark" /><LoginScreen defaultBaseUrl={DEFAULT_BASE_URL} onLoggedIn={onLoggedIn} /></>;
+  if (!session && joining) {
+    return (
+      <><StatusBar style="dark" />
+        <JoinScreen baseUrl={DEFAULT_BASE_URL} onBack={() => setJoining(false)}
+          onJoined={(j) => { void finishLogin({ baseUrl: DEFAULT_BASE_URL, accessToken: j.accessToken, refreshToken: j.refreshToken, username: j.username, workspaces: [] }, { id: j.workspaceId ?? '', name: 'Care team', role: 'member', slug: 'care-team', is_default: true, status: 'active' } as Workspace); }} />
+      </>
+    );
+  }
+  if (!session) return <><StatusBar style="dark" /><LoginScreen defaultBaseUrl={DEFAULT_BASE_URL} onLoggedIn={onLoggedIn} onJoin={() => setJoining(true)} /></>;
 
   const c = client.current!;
   const canManage = role === 'workspace_admin';
@@ -102,7 +113,11 @@ export default function App() {
       )}
       {route.name === 'person' && (
         <PersonScreen client={c} person={route.person} canManage={canManage} onBack={() => setRoute({ name: 'home' })}
-          onTalk={() => setRoute({ name: 'talk', person: route.person })} />
+          onTalk={() => setRoute({ name: 'talk', person: route.person })}
+          onPair={canManage ? () => setRoute({ name: 'pair', person: route.person }) : undefined} />
+      )}
+      {route.name === 'pair' && (
+        <PairWatchScreen client={c} person={route.person} onBack={() => setRoute({ name: 'person', person: route.person })} />
       )}
       {route.name === 'talk' && (
         <TalkScreen person={route.person} onSend={(t) => c.talk(route.person.id, t)} onBack={() => setRoute({ name: 'person', person: route.person })} />

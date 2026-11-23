@@ -12,9 +12,9 @@ export function AlertCard({ alert, personName, person, onAcknowledge, onResolve,
   const [notes, setNotes] = useState<AccessNotes | 'refused' | null>(null);
   const where = alert.severity !== 'notice' ? whereabouts(alert, person) : null;
   return (
-    <div className="card" data-testid={`alert-${alert.id}`}>
+    <article className="card" data-testid={`alert-${alert.id}`} aria-label={`${alertWords(alert)}, ${personName}, ${alert.severity}, ${alert.status}`}>
       <div className="row">
-        <span className={`pill ${alert.severity}`}>{alert.severity.toUpperCase()}</span>
+        <span className={`pill ${alert.severity}`} aria-hidden="true">{alert.severity.toUpperCase()}</span>
         <strong>{alertWords(alert)}</strong>
         <span className="muted">{personName} · {timeAgo(alert.opened_at)} · tier {alert.current_tier} · {alert.status}</span>
       </div>
@@ -42,6 +42,6 @@ export function AlertCard({ alert, personName, person, onAcknowledge, onResolve,
         {open && alert.severity !== 'notice' ? <button className="ok" disabled={busy} onClick={() => onAcknowledge(alert)}>I&apos;m on my way</button> : null}
         {alert.status !== 'resolved' ? <button className="grey" disabled={busy} onClick={() => onResolve(alert)}>Resolve</button> : null}
       </div>
-    </div>
+    </article>
   );
 }

@@ -1,0 +1,149 @@
+# IRA CARE on one machine: database, Redis, the care server, the care worker,
+# the dashboard, HTTPS through Caddy, and nightly encrypted backups.
+# Every variable is explained in deploy/.env.example and docs/DEPLOY.md.
+name: ira-care
+
+x-care-env: &care-env
+  IRA_EDITION: cloud
+  IRA_ENVIRONMENT: ${IRA_ENVIRONMENT:-production}
+  IRA_SECRET_KEY: ${IRA_SECRET_KEY:?set in .env}
+  IRA_ADMIN_PASSWORD: ${IRA_ADMIN_PASSWORD:?set in .env}
+  IRA_CONNECTOR_ENCRYPTION_KEY: ${IRA_CONNECTOR_ENCRYPTION_KEY:?set in .env}
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: ${POSTGRES_DB:-ira_care}
+  POSTGRES_USER: ira_app
+  POSTGRES_PASSWORD: ${IRA_APP_PASSWORD:?set in .env}
+  REDIS_HOST: redis
+  REDIS_PASSWORD: ""
+  VLLM_API_KEY: unused
+  IRA_CARE_PUBLIC_URL: https://${IRA_CARE_DOMAIN:?set in .env}
+  IRA_CARE_MODEL: ${IRA_CARE_MODEL:-off}
+  IRA_CARE_OPS_PHONE: ${IRA_CARE_OPS_PHONE:-}
+  IRA_CLOUD_REGISTRATION_ENABLED: ${IRA_CLOUD_REGISTRATION_ENABLED:-false}
+  IRA_MAIL_TRANSPORT: ${IRA_MAIL_TRANSPORT:-null}
+  IRA_PAYMENT_PROVIDER: ${IRA_PAYMENT_PROVIDER:-}
+  IRA_CARE_SMS_PROVIDER: ${IRA_CARE_SMS_PROVIDER:-log}
+  IRA_WORKER_JOBS: care_checkins,care_monitoring,care_reports,care_retention
+  IRA_LEDGER_JOURNAL_DIR: /var/lib/ira/ledger
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ira_care}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?set in .env}
+      IRA_APP_PASSWORD: ${IRA_APP_PASSWORD:?set in .env}
+      IRA_MIGRATOR_PASSWORD: ${IRA_MIGRATOR_PASSWORD:?set in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB:-ira_care}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: { context: .., dockerfile: deploy/Dockerfile.api }
+    image: ira-care/api:local
+    restart: unless-stopped
+    command: ["server"]
+    environment:
+      <<: *care-env
+      IRA_MIGRATOR_DSN: postgresql://ira_migrator:${IRA_MIGRATOR_PASSWORD}@postgres:5432/${POSTGRES_DB:-ira_care}
+      IRA_CARE_JOBS_IN_API: "false"
+    volumes:
+      - ledger:/var/lib/ira/ledger
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    expose: ["8000"]
+
+  worker:
+    image: ira-care/api:local
+    restart: unless-stopped
+    command: ["worker"]
+    environment:
+      <<: *care-env
+    volumes:
+      - ledger:/var/lib/ira/ledger
+    depends_on:
+      api: { condition: service_healthy }
+    healthcheck:
+      # The worker is healthy when the server says the jobs have run recently.
+      test: ["CMD-SHELL", "curl -fsS http://api:8000/health/jobs >/dev/null || exit 1"]
+      interval: 60s
+      timeout: 5s
+      start_period: 120s
+      retries: 3
+
+  dashboard:
+    build: { context: .., dockerfile: deploy/Dockerfile.dashboard }
+    image: ira-care/dashboard:local
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+    expose: ["3000"]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      IRA_CARE_DOMAIN: ${IRA_CARE_DOMAIN:?set in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+    depends_on:
+      - api
+      - dashboard
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:80/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?set in .env}
+      PGDATABASE: ${POSTGRES_DB:-ira_care}
+      BACKUP_PASSPHRASE: ${BACKUP_PASSPHRASE:?set in .env}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      BACKUP_HOUR_UTC: ${BACKUP_HOUR_UTC:-02}
+    volumes:
+      - backups:/backups
+      - ./backup.sh:/usr/local/bin/backup.sh:ro
+      - ./restore.sh:/usr/local/bin/restore.sh:ro
+    entrypoint: ["/bin/sh", "-c"]
+    # Nightly at BACKUP_HOUR_UTC. No cron daemon: a loop that sleeps to the hour.
+    command: ["apk add --no-cache openssl >/dev/null; while true; do if [ \"$$(date -u +%H)\" = \"$$BACKUP_HOUR_UTC\" ]; then sh /usr/local/bin/backup.sh && sleep 3600; fi; sleep 300; done"]
+    depends_on:
+      postgres: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  redisdata:
+  ledger:
+  backups:
+  caddydata:
+  caddyconfig:

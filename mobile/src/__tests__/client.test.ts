@@ -16,13 +16,21 @@ function fakeFetch(handler: (url: string, init?: RequestInit) => { status: numbe
 
 const session = { baseUrl: 'http://care.invalid', accessToken: 'tok', workspaceId: 'ws-1' };
 
-test('login posts a form and returns the tokens', async () => {
+test('login signs in by email on a cloud deployment and returns the tokens', async () => {
   const { f, calls } = fakeFetch(() => ({ status: 200, body: { access_token: 'a', refresh_token: 'r', token_type: 'bearer', expires_in: 900 } }));
-  const out = await CareClient.login('http://care.invalid', 'fam', 'pw', f);
+  const out = await CareClient.login('http://care.invalid', 'fam@example.invalid', 'pw', f);
   expect(out.access_token).toBe('a');
-  expect(calls[0].url).toBe('http://care.invalid/auth/token');
-  expect(String(calls[0].init?.body)).toContain('username=fam');
+  expect(calls[0].url).toBe('http://care.invalid/auth/cloud/login');
+  expect(String(calls[0].init?.body)).toContain('email=fam%40example.invalid');
   expect((calls[0].init?.headers as Record<string, string>)['Content-Type']).toContain('x-www-form-urlencoded');
+});
+
+test('a private deployment has no cloud login (404) and the owner account route is used instead', async () => {
+  const { f, calls } = fakeFetch((url) => url.endsWith('/auth/cloud/login') ? { status: 404 } : { status: 200, body: { access_token: 'a', refresh_token: 'r', token_type: 'bearer', expires_in: 900 } });
+  const out = await CareClient.login('http://care.invalid', 'owner', 'pw', f);
+  expect(out.access_token).toBe('a');
+  expect(calls.map((c) => c.url)).toEqual(['http://care.invalid/auth/cloud/login', 'http://care.invalid/auth/token']);
+  expect(String(calls[1].init?.body)).toContain('username=owner');
 });
 
 test('a wrong password is a plain message, not a stack trace', async () => {

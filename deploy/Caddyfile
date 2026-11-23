@@ -1,0 +1,20 @@
+# HTTPS through the reverse proxy. Caddy obtains and renews the certificate for
+# IRA_CARE_DOMAIN by itself (Let's Encrypt, HTTP-01) once the name points at
+# this machine and ports 80 and 443 are open. No account is created by us.
+{$IRA_CARE_DOMAIN} {
+    encode zstd gzip
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer
+        -Server
+    }
+    @api path /api/* /auth/* /health /health/*
+    handle @api {
+        reverse_proxy api:8000
+    }
+    handle {
+        reverse_proxy dashboard:3000
+    }
+}

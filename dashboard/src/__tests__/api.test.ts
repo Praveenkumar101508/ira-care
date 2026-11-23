@@ -21,10 +21,15 @@ test('every care call carries the bearer token and the workspace header', async 
   expect(calls[0].url).toBe('http://care.invalid/api/v1/care/people?include_archived=false');
 });
 
-test('login is a form post and a wrong password is a plain message', async () => {
+test('login is a form post by email first, with the owner route only when the cloud route is absent', async () => {
   const { f, calls } = fakeFetch(() => ({ status: 401 }));
-  await expect(Api.login('http://care.invalid', 'carer', 'bad', f)).rejects.toThrow('Wrong username or password.');
-  expect(String(calls[0].init?.body)).toContain('grant_type=password');
+  await expect(Api.login('http://care.invalid', 'carer@example.invalid', 'bad', f)).rejects.toThrow('Wrong username or password.');
+  expect(calls).toHaveLength(1);
+  expect(calls[0].url).toBe('http://care.invalid/auth/cloud/login');
+  expect(String(calls[0].init?.body)).toContain('email=carer%40example.invalid');
+  const fallback = fakeFetch((url) => url.endsWith('/auth/cloud/login') ? { status: 404 } : { status: 200, body: { access_token: 'a', refresh_token: 'r' } });
+  expect((await Api.login('http://care.invalid', 'owner', 'pw', fallback.f)).access_token).toBe('a');
+  expect(String(fallback.calls[1].init?.body)).toContain('grant_type=password');
 });
 
 test('no workspace means no network call', async () => {

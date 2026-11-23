@@ -5,10 +5,58 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "platforms": ["ios", "android"],
-    "ios": { "bundleIdentifier": "care.ira.family", "supportsTablet": false },
-    "android": { "package": "care.ira.family" },
-    "plugins": ["expo-secure-store", ["expo-notifications", { "sounds": [] }]],
-    "extra": { "careApiBaseUrl": "http://10.0.2.2:8000" }
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FAF8F4"
+    },
+    "ios": {
+      "bundleIdentifier": "care.ira.family",
+      "supportsTablet": false,
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "IRA CARE tells you when the person you look after needs someone.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "care.ira.family",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundImage": "./assets/adaptive-icon-background.png"
+      },
+      "permissions": [
+        "POST_NOTIFICATIONS",
+        "CALL_PHONE"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "sounds": []
+        }
+      ]
+    ],
+    "extra": {
+      "careApiBaseUrl": "http://10.0.2.2:8000",
+      "eas": {
+        "projectId": "set-when-the-owner-creates-the-project"
+      }
+    },
+    "privacy": "unlisted"
   }
 }

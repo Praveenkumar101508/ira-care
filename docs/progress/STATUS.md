@@ -24,11 +24,11 @@ Round 1 is merged to `main`. Round 2:
 | R2-1 | continuous-monitoring | `feat/continuous-monitoring` | Merged (pull request 10) |
 | R2-2 | home-and-location | `feat/home-and-location` | Merged (pull request 11) |
 | R2-3 | fall-detection | `feat/fall-detection` | Merged (pull request 12) |
-| R2-4 | ira-conversation | `feat/ira-conversation` | Built and tested locally; pull request pending |
-| R2-5 | demo-mode | `feat/demo-mode` | Not started |
-| R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Not started |
-| R2-7 | deployment-ready | `feat/deployment-ready` | Not started |
-| R2-8 | store-readiness | `feat/store-readiness` | Not started |
+| R2-4 | ira-conversation | `feat/ira-conversation` | Merged (pull request 13) |
+| R2-5 | demo-mode | `feat/demo-mode` | Merged (pull request 14) |
+| R2-6 | onboarding-and-billing | `feat/onboarding-and-billing` | Merged (pull request 15) |
+| R2-7 | deployment-ready | `feat/deployment-ready` | Merged (pull request 16) |
+| R2-8 | store-readiness | `feat/store-readiness` | Merged (pull request 17) |
 | R2-9 | compliance-drafts | `docs/compliance-drafts` | Written; pull request pending |
 | R2-10 | final-readiness | `feat/final-readiness` | Not started |
 
@@ -249,6 +249,91 @@ Local measurements before the first phase, on the foundation as received:
   (4 CPUs, 15 GB, no GPU); the 4-second budget is a setting. CI uses the fake model.
 - Negative control: see the pull request description.
 
+## Round 2, phase 5 (demo-mode), measured locally
+
+- `scripts/demo/seed_demo.py` (one command, idempotent, fake people and accounts),
+  `scripts/demo/api.py` (the lean demo API: real login, workspace and care routers, care
+  jobs, localhost browser origins), `scripts/demo/scenarios.py` (normal day with a
+  conversation; abnormal heart rate with no answer and the chain to tier 3; a suspected fall
+  with location; the next morning's report), `scripts/demo/up.sh` and `apps.sh`,
+  `scripts/demo/record_demo.mjs` and `record_demo.sh` (Playwright).
+- Dashboard: `/simulator`, the watch in the browser (same device API and token as the real
+  watch; speech out, typed or spoken answers, I'm OK and Help, injectors for heart rate, no
+  movement, a fall and removing the watch, Talk to IRA). 19 tests (was 16).
+- Family app: web platform enabled and the web build produced (`expo export --platform
+  web`); both apps sign in by email on a cloud deployment (owner route as the fallback); the
+  bare browser `fetch` bug fixed in both apps. 17 tests (was 16).
+- `docs/demo/`: 12 screenshots and `demo.mp4` (the recording), `DEMO_SCRIPT.md` (the
+  10-minute walkthrough). Folder size is recorded in the pull request.
+- Recorded end to end in a real browser: sign-in, people, the home record, the timeline,
+  the simulator pairing with a device token, a confirmed heart-rate breach asking "are you
+  OK?", Talk to IRA, the fall countdown, Help with location, the alerts page, the family app
+  signing in, its alert cards and "I'm on my way".
+- Found by the demo and recorded: the full server's delegated-scope gate refuses every cloud
+  account on `/api/*` (see "Needs the owner" and the deployment phase).
+## Round 2, phase 6 (onboarding-and-billing), measured locally
+
+- Migration `105_care_onboarding.sql`: the invitation link on circle members, two care plans
+  and their entitlements (no prices). Rollback file, hash recorded, manifest updated.
+- `care/onboarding.py` and six routes: sign-up (identity register, 404 unless enabled), the
+  organisation with a 30-day trial, invitations by link with consent captured at invitation,
+  acceptance as the invited account, the invitation list, the plan with limits and usage;
+  the person limit and the circle limit enforced (402).
+- Dashboard: `/signup` (three steps), `/join` (the invitation link), `/billing` (plan,
+  usage, catalogue with "price not set"), the invitation form with consent boxes on the
+  Circle tab, a Watch tab that pairs step by step. 16 tests; type check passes.
+- Family app: a pairing screen with five steps that watches for the first sync, and "I have
+  an invitation link" on the sign-in screen. 16 tests; type check passes.
+- Tests: 5 database-backed (sign-up closed unless enabled and never an oracle; an invitation
+  creates the pending member, records consent, mails the link and is logged; acceptance by
+  the invited account links the member, once only, strangers refused; plan limits for people
+  and circle members; viewer and member 403, other organisation 404 on every new route). The
+  fixture accounts now hold real tenant memberships, as accounts do.
+- Negative control: see the pull request description.
+- **CI note:** from 20:43 UTC on 21 November, GitHub reported `startup_failure` for every
+  workflow run on an unchanged, valid workflow file, with no GitHub incident open. That is
+  consistent with the private repository's Actions allowance being exhausted and is listed
+  under "Needs the owner". Pull requests from this point are opened but cannot be merged
+  until CI runs again; each phase still starts from `main`.
+## Round 2, phase 7 (deployment-ready), measured locally
+
+- `care/server.py` (the deployable server with `/health` and `/health/jobs`) and
+  `care/worker.py` (the care jobs). Both booted locally against the test database and Redis;
+  the health routes answered; the browser preflight answered for a listed origin.
+- `deploy/`: `docker-compose.yml` (postgres, redis, api, worker, dashboard, caddy, backup;
+  health checks and restart policies on every service), `Dockerfile.api`,
+  `Dockerfile.dashboard`, `Caddyfile` (HTTPS by Caddy), `postgres-init/01-roles.sh`,
+  `backup.sh`, `restore.sh`, `entrypoint.sh`, `.env.example`. The compose and workflow files
+  parse; **the images have not been built here** (no container runtime in this
+  environment), so the first `docker compose up` on a machine is the proof that remains.
+- Backup and restore: run locally against the test database (151 tables and 104 migrations
+  before and after); a wrong passphrase and a tampered file are both refused. The same round
+  trip is a CI step on every pull request.
+- `docs/DEPLOY.md`: a single UK-region machine, step by step, every variable explained.
+- **Soak test** (`scripts/soak_24h.py`, 200 people, 24 simulated hours in 5-minute steps,
+  289 passes each of check-ins and monitoring, 6873 check-ins answered and
+  385 missed by 20 people who went silent): **20 of 20 silent people escalated,
+  0 missing, 0 late, every one reached tier 3**. Check-in pass:
+  mean 0.094 s, p95 0.131 s, max 0.163 s. Monitoring pass: mean
+  0.202 s, p95 0.309 s, max 0.349 s. Measured on this build machine
+  (4 CPUs, local PostgreSQL 16), not on a rented one.
+- Tests: 2 unit tests on the server; the care suites unchanged and green.
+- Negative control: see the pull request description.
+## Round 2, phase 8 (store-readiness), measured locally
+
+- Watch: release build configuration (minify, shrink, keep rules, signing from the owner's
+  environment, server and version code at build time); the unsigned release package and
+  shrinker mapping were produced locally; launcher icons; content descriptions, a live
+  status region and 48 dp buttons. 35 JVM tests (was 33). `docs/store/WEAR_OS_LISTING.md`.
+- Family app: icons, splash, identifiers, build numbers, notification usage text,
+  `eas.json` with build profiles (no submission); accessibility labels, hints, states,
+  headers, scalable text, 56-point buttons. 19 tests (was 16). `docs/store/FAMILY_APP_LISTING.md`.
+- Dashboard: skip link, focus ring, larger text and targets, field labels, named alert
+  cards, live region on the simulator, reduced-motion and high-contrast support; `jest-axe`
+  and a contrast test. 18 tests (was 16); type check and build pass.
+- `docs/legal/PRIVACY_POLICY.md` and `TERMS_OF_USE.md`, both marked DRAFT FOR LEGAL REVIEW.
+- Not done here, listed under "Needs the owner": a screen-reader pass on a real watch and
+  phone; store accounts and submissions; the signing key.
 ## Round 2, phase 9 (compliance-drafts)
 
 - `docs/compliance/`: `INTENDED_PURPOSE.md`, `CLINICAL_SAFETY_CASE.md` (13 hazards, each tied
@@ -268,6 +353,20 @@ Local measurements before the first phase, on the foundation as received:
 - The vendor sensor SDK partner request before release.
 - SMS and call provider keys (the adapter stays off without them).
 - A monitoring-centre contract for tier 3.
+- Regulatory advice before sale.
+- The full server's delegated-scope middleware (`security/scope_enforcer.py`) answers 403 to
+  every cloud-edition account on `/api/*`, because it resolves roles from the private
+  edition's delegated accounts only. The demo API does not install it; the deployment phase
+  must decide how the full server handles cloud accounts (workspace roles already authorise
+  every care route).
+- GitHub Actions stopped starting workflows at 20:43 UTC on 21 November (`startup_failure` on
+  an unchanged workflow; no GitHub incident). Check the account's Actions minutes or spending
+  limit, then re-run the checks on the open pull requests so they can be merged in order.
+- A screen-reader and large-text pass on a real watch and a real phone (the automated checks
+  cover labels, roles, contrast and sizes only).
+- Store accounts, the signing key for the watch app, the build-service project for the family
+  app, and the submissions themselves; the listing text and the policy drafts are ready for
+  legal review first.
 - Regulatory advice before sale: the questions are written (`docs/compliance/MHRA_ADVISER_QUESTIONS.md`).
 - A Clinical Safety Officer to review the hazard log, a data protection officer to review the
   DPIA, and a security test; none has happened.
