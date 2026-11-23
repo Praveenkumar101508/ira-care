@@ -31,7 +31,7 @@ from demo._local_state import prepare_environment  # noqa: E402
 for _k, _v in (("POSTGRES_USER", "ira_app"), ("POSTGRES_PASSWORD", "ira_app"), ("POSTGRES_DB", "ira_test"),
                ("POSTGRES_HOST", "127.0.0.1"), ("REDIS_PASSWORD", "")):
     os.environ.setdefault(_k, _v)
-prepare_environment()
+prepare_environment(edition="cloud", model="fake")
 
 from fastapi import FastAPI  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402

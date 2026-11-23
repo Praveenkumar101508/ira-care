@@ -34,7 +34,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from demo._local_state import fresh_password, prepare_environment, write_private  # noqa: E402
 
 # A fresh sealing key on every seed: the notes it seals are reseeded with it.
-prepare_environment(renew_key=True)
+prepare_environment(renew_key=True, edition="cloud", model="fake")
 
 UTC = dt.timezone.utc
 SLUG = "demo-care-organisation"

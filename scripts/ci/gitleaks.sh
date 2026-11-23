@@ -19,4 +19,6 @@ if [ ! -x "$BIN_DIR/gitleaks" ]; then
   tar -xzf "$BIN_DIR/gitleaks.tgz" -C "$BIN_DIR" gitleaks
 fi
 "$BIN_DIR/gitleaks" version
-exec "$BIN_DIR/gitleaks" git --no-banner --redact=100 --exit-code 1 .
+# Only the history that leads to HEAD: stale branch refs of squash-merged work hold the
+# same placeholder lines under other commit ids and are not what a pull request adds.
+exec "$BIN_DIR/gitleaks" git --no-banner --redact=100 --exit-code 1 --log-opts="HEAD" .

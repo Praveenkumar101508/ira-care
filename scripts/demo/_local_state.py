@@ -48,14 +48,19 @@ def connector_key(*, renew: bool = False) -> str:
     return KEY_FILE.read_text().strip()
 
 
-def prepare_environment(*, renew_key: bool = False) -> None:
+def prepare_environment(*, renew_key: bool = False, edition: str | None = None, model: str | None = None) -> None:
     """Fill the environment with local-only values so the server modules import.
 
     Each placeholder is random for this process: none of them is a credential
-    anything else accepts, and none of them appears in the repository.
+    anything else accepts, and none of them appears in the repository. The
+    edition and the conversation model are set only when a caller asks
+    (the demo API and seed run as the cloud edition with the fake model); the
+    simulator is also imported by the test suite, which chooses its own.
     """
     for name in PLACEHOLDER_KEYS:
         os.environ.setdefault(name, secrets.token_urlsafe(16))
     os.environ["IRA_CONNECTOR_ENCRYPTION_KEY"] = connector_key(renew=renew_key)
-    os.environ.setdefault("IRA_CARE_MODEL", "fake")
-    os.environ.setdefault("IRA_EDITION", "cloud")
+    if model:
+        os.environ.setdefault("IRA_CARE_MODEL", model)
+    if edition:
+        os.environ.setdefault("IRA_EDITION", edition)

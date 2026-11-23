@@ -62,4 +62,6 @@ def test_gitleaks_runs_in_ci_over_the_whole_history():
     workflow = (ROOT / ".github" / "workflows" / "test.yml").read_text()
     assert "scripts/ci/gitleaks.sh" in workflow
     assert "fetch-depth: 0" in workflow, "a shallow clone would scan only the newest commit"
+    assert '--log-opts="HEAD"' in (ROOT / "scripts" / "ci" / "gitleaks.sh").read_text(), (
+        "the scan covers the history that leads to HEAD, not stale branch refs")
     assert (ROOT / ".gitleaksignore").exists()

@@ -604,3 +604,10 @@ runs `scripts/ci/gitleaks.sh` over the whole history on every pull request, and
 fixed password returns to the seed. The local scripts keep reading `.demo/demo.local.json`
 (the recording and scenario scripts need the logins), so "printed only to the terminal" is
 read as "written nowhere that could be committed".
+Two corrections after the first CI run of this branch: the shared helper had set the
+cloud edition for any process that imported the simulator, and the test suite imports the
+simulator, so 83 private-edition sign-in tests answered 503 (the edition and the model are
+now set only by the demo scripts that ask for them); and the history scan is limited to the
+commits that lead to HEAD (`--log-opts="HEAD"`), because the checkout in CI also fetches the
+stale refs of squash-merged branches, which hold the same placeholder lines under other
+commit ids.

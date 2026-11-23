@@ -31,7 +31,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from demo._local_state import prepare_environment  # noqa: E402
 
-prepare_environment()
+prepare_environment(model="fake")
 
 UTC = dt.timezone.utc
 
