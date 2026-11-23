@@ -119,7 +119,9 @@ def test_talk_answers_from_the_record_before_any_model():
     assert "lunch at 12:30" in run(conv.talk("what's on today?", ctx, model=conv.FakeModel(broken=True))).sentences[0]
     assert "taken" in run(conv.talk("did I take my tablets", ctx, model=conv.FakeModel(broken=True))).sentences[0]
     r = run(conv.talk("remind me to water the plants", ctx, model=conv.FakeModel(broken=True)))
-    assert r.action == {"kind": "reminder", "text": "water the plants"}
+    assert r.action["kind"] == "reminder" and r.action["text"] == "water the plants" and r.action["when"] == "in an hour"
+    r = run(conv.talk("remind me to ring Sravani at three", ctx, model=conv.FakeModel(broken=True)))
+    assert r.action["text"] == "ring Sravani" and r.action["when"] == "at 15:00" and "15:00" in r.sentences[0]
     a = run(conv.talk("should I take another tablet?", ctx, model=conv.FakeModel()))
     assert a.sentences == ["I can't advise on that, Tess. Shall I let Sam know?"]
     h = run(conv.talk("I've fallen and I can't get up", ctx, model=conv.FakeModel()))

@@ -81,7 +81,7 @@ WORKSPACE_SCOPED = (
     "care_acknowledgements", "care_routines", "care_medications",
     "care_medication_events", "care_transcripts", "care_consents", "care_access_log",
     "care_reports", "care_conversation_memory", "care_device_events", "care_push_tokens", "care_push_tickets",
-    "care_visits", "care_visit_tasks",
+    "care_visits", "care_visit_tasks", "care_communication_profiles", "care_reminders",
 )
 
 
@@ -182,6 +182,8 @@ SPECS: dict[str, Spec] = {
     "care_push_tickets": Spec(parents=(("care_alerts", "alert_id"),)),
     "care_visits": Spec(columns={"planned_start": "now", "planned_end": "later"}, parents=(("care_people", "person_id"),)),
     "care_visit_tasks": Spec(columns={"title": "text"}, parents=(("care_visits", "visit_id"),)),
+    "care_communication_profiles": Spec(parents=(("care_people", "person_id"),)),
+    "care_reminders": Spec(columns={"due_at": "now", "text": "text"}, parents=(("care_people", "person_id"),)),
 }
 
 

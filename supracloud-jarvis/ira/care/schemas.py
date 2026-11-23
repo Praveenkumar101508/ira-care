@@ -14,7 +14,7 @@ VITAL_KINDS = ("heart_rate", "steps", "movement", "on_wrist", "battery", "skin_t
 ROUTINE_KINDS = ("meal", "medication", "activity", "sleep", "social", "other")
 MED_EVENT_STATUSES = ("due", "taken", "missed", "skipped", "unknown")
 CONSENT_KINDS = ("transcripts_family", "transcripts_carer", "transcripts_organisation",
-                 "health_data_family", "data_retention")
+                 "health_data_family", "data_retention", "topics")
 PLATFORMS = ("wearos", "watchos", "other")
 
 
@@ -144,6 +144,15 @@ class SafetySettings(BaseModel):
     # A planned visit with no arrival this long after its start is late (a notice
     # to the coordinator and an extra check-in); none by its end is missed (urgent).
     visit_late_minutes: int = Field(15, ge=5, le=120)
+    # Hydration prompts every N minutes in waking hours; 0 turns them off.
+    hydration_every_minutes: int = Field(0, ge=0, le=360)
+
+    @field_validator("hydration_every_minutes")
+    @classmethod
+    def _hydration(cls, v):
+        if v != 0 and v < 60:
+            raise ValueError("hydration_every_minutes is 0 (off) or at least 60")
+        return v
 
     @field_validator("checkin_max_minutes")
     @classmethod
@@ -306,6 +315,67 @@ class Resolve(BaseModel):
         if v not in ALERT_OUTCOMES:
             raise ValueError(f"outcome must be one of {ALERT_OUTCOMES}")
         return v
+
+
+class CommunicationProfile(BaseModel):
+    """How IRA speaks to this person. Topic lists need the 'topics' consent."""
+    pace: str = "normal"
+    prompting_level: str = "standard"
+    voice_on: bool = True
+    touch_on: bool = True
+    vibration_on: bool = True
+    topics_avoid: list[str] = Field(default_factory=list, max_length=20)
+    familiar_topics: list[str] = Field(default_factory=list, max_length=20)
+    redirect_member_id: Optional[uuid.UUID] = None
+
+    @field_validator("pace")
+    @classmethod
+    def _pace(cls, v):
+        if v not in ("slow", "normal"):
+            raise ValueError("pace must be slow or normal")
+        return v
+
+    @field_validator("prompting_level")
+    @classmethod
+    def _level(cls, v):
+        if v not in ("light", "standard", "full"):
+            raise ValueError("prompting_level must be light, standard or full")
+        return v
+
+    @field_validator("topics_avoid", "familiar_topics")
+    @classmethod
+    def _topics(cls, v):
+        return [t.strip()[:60] for t in v if t and t.strip()]
+
+
+class ReminderCreate(BaseModel):
+    text: str = Field("", max_length=200)
+    due_at: dt.datetime
+    kind: str = "reminder"
+    medication_id: Optional[uuid.UUID] = None
+
+    @field_validator("kind")
+    @classmethod
+    def _kind(cls, v):
+        if v not in ("reminder", "medication", "hydration"):
+            raise ValueError("kind must be reminder, medication or hydration")
+        return v
+
+
+class ReminderAction(BaseModel):
+    action: str
+    minutes: int = Field(10, ge=1, le=240)
+
+    @field_validator("action")
+    @classmethod
+    def _action(cls, v):
+        if v not in ("confirm", "snooze", "skip", "cancel"):
+            raise ValueError("action must be confirm, snooze, skip or cancel")
+        return v
+
+
+class MemoryEdit(BaseModel):
+    summary: str = Field("", max_length=4000)
 
 
 VISIT_OUTCOMES = ("all_well", "concern_noted", "needed_help", "not_at_home", "declined", "other")

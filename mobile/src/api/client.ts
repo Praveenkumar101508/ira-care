@@ -1,5 +1,5 @@
 import type { AlertOutcome, AccessNotes, TalkLine, TalkReply,
-  Alert, Checkin, CircleMember, ConsentList, Device, LoginResponse, Person, PersonStatus, Report, Visit, VisitOutcome, WorkspaceList,
+  Alert, Checkin, CircleMember, CommunicationProfile, ConsentList, Device, LoginResponse, Memory, Person, PersonStatus, Reminder, Report, Visit, VisitOutcome, WorkspaceList,
 } from './types';
 
 /** What went wrong, in a way a screen can show. */
@@ -106,6 +106,43 @@ export class CareClient {
   /** The carer leaves: the record of what happened. */
   async depart(visitId: string, body: { outcome: VisitOutcome; notes: string; handover: string; tasks_done: string[] }): Promise<Visit> {
     return this.request<Visit>('POST', `/api/v1/care/visits/${visitId}/depart`, body);
+  }
+
+  /** How IRA speaks to this person; the person or their representative may change it. */
+  async profile(personId: string): Promise<CommunicationProfile> {
+    return this.request<CommunicationProfile>('GET', `/api/v1/care/people/${personId}/profile`);
+  }
+
+  async putProfile(personId: string, body: CommunicationProfile): Promise<CommunicationProfile> {
+    const { person_id: _p, redirect_name: _n, topics_consented: _c, updated_by_role: _r, updated_at: _u, ...rest } = body;
+    return this.request<CommunicationProfile>('PUT', `/api/v1/care/people/${personId}/profile`, rest);
+  }
+
+  async reminders(personId: string, openOnly = false): Promise<Reminder[]> {
+    const out = await this.request<{ reminders: Reminder[] }>('GET', `/api/v1/care/people/${personId}/reminders?open_only=${openOnly}&limit=50`);
+    return out.reminders;
+  }
+
+  async addReminder(personId: string, text: string, dueAt: string): Promise<Reminder> {
+    return this.request<Reminder>('POST', `/api/v1/care/people/${personId}/reminders`, { text, due_at: dueAt, kind: 'reminder' });
+  }
+
+  async actOnReminder(reminderId: string, action: 'confirm' | 'snooze' | 'skip' | 'cancel'): Promise<Reminder> {
+    return this.request<Reminder>('POST', `/api/v1/care/reminders/${reminderId}/act`, { action, minutes: 10 });
+  }
+
+  /** What IRA remembers: summaries by day, which the person or their representative may change or clear. */
+  async memory(personId: string): Promise<Memory[]> {
+    const out = await this.request<{ memory: Memory[] }>('GET', `/api/v1/care/people/${personId}/memory`);
+    return out.memory;
+  }
+
+  async editMemory(personId: string, day: string, summary: string): Promise<Memory> {
+    return this.request<Memory>('PUT', `/api/v1/care/people/${personId}/memory/${day}`, { summary });
+  }
+
+  async forgetMemory(personId: string, day: string): Promise<void> {
+    await this.request<void>('DELETE', `/api/v1/care/people/${personId}/memory/${day}`);
   }
 
   async circle(personId: string): Promise<CircleMember[]> {

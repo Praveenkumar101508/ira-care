@@ -125,6 +125,20 @@ data class DeviceMe(
     val fall: FallSettingsDto = FallSettingsDto(),
     val readings: ReadingSettingsDto = ReadingSettingsDto(),
     val sos: SosStateDto = SosStateDto(),
+    val profile: ProfileDto = ProfileDto(),
+)
+
+/** How IRA speaks to this person (110): set by the person or their representative, applied here. */
+@Serializable
+data class ProfileDto(
+    val pace: String = "normal",
+    @SerialName("prompting_level") val promptingLevel: String = "standard",
+    @SerialName("speech_rate") val speechRate: Float = 0.9f,
+    @SerialName("repeat_after_s") val repeatAfterS: Int = 60,
+    val repeats: Int = 1,
+    val voice: Boolean = true,
+    val touch: Boolean = true,
+    val vibration: Boolean = true,
 )
 
 @Serializable

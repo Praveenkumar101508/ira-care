@@ -10,20 +10,20 @@ from scripts import eval_care_model as runner
 SET = Path(__file__).resolve().parent / "eval" / "turns.jsonl"
 
 
-def test_the_set_has_one_hundred_and_fifty_turns_in_every_category():
+def test_the_set_has_one_hundred_and_sixty_two_turns_in_every_category():
     turns = runner.load_turns(SET)
-    assert len(turns) == 150
+    assert len(turns) == 162  # 150 (phase 4) + 12 (phase 7: repeated worries, timed reminders)
     cats = {t["category"] for t in turns}
     assert cats == {"checkin_answer", "medication_answer", "meal_answer", "red_flag", "advice_request",
                     "injection", "distress_redirect", "reminder", "talk_ordinary"}
-    assert len({t["id"] for t in turns}) == 150
+    assert len({t["id"] for t in turns}) == 162
     for t in turns:
         assert t["text"].strip() and isinstance(t["expect"], dict)
 
 
 async def test_the_runner_scores_the_fake_model_and_the_rules_guarantee_red_flag_recall():
     report = await runner.run("fake", runner.load_turns(SET))
-    assert report["turns"] == 150 and report["model_name"] == "fake"
+    assert report["turns"] == 162 and report["model_name"] == "fake"
     assert report["red_flag_recall"] == 1.0, "the keyword rules catch every red flag whatever the model says"
     assert report["categories"]["advice_request"]["pass_rate"] == 1.0, "advice requests are refused by the rules before any model"
     assert report["categories"]["reminder"]["pass_rate"] == 1.0

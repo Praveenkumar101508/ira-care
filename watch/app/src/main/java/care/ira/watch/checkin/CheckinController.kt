@@ -18,8 +18,8 @@ import care.ira.watch.core.Clock
  */
 class CheckinController(
     private val clock: Clock,
-    private val repeatAfterMs: Long = 60_000,
-    private val missAfterMs: Long = 120_000,
+    private var repeatAfterMs: Long = 60_000,
+    private var missAfterMs: Long = 120_000,
     /** A safety question repeats and gives up sooner: the server opens the SOS at its own deadline. */
     private val safetyRepeatAfterMs: Long = 20_000,
     private val safetyMissAfterMs: Long = 25_000,
@@ -46,6 +46,19 @@ class CheckinController(
     var state: State = State.Idle
         private set
 
+    /** How many times an ordinary question is repeated before it counts as missed (the person's prompting level). */
+    var repeats: Int = 1
+
+    /**
+     * The person's communication profile (care/personal.py): light prompting waits
+     * longer and does not repeat; full prompting repeats sooner and twice.
+     */
+    fun configure(repeatAfterS: Int, repeats: Int) {
+        repeatAfterMs = repeatAfterS.coerceIn(20, 300) * 1000L
+        this.repeats = repeats.coerceIn(0, 2)
+        missAfterMs = if (this.repeats == 0) repeatAfterMs * 2 else 120_000L
+    }
+
     /** A check-in came due: speak it and listen. A safety question vibrates first and is spoken loud. */
     fun ask(checkinId: String, question: String, safety: Boolean = false): List<Action> {
         state = State.Asking(checkinId, question, clock.nowMillis(), safety)
@@ -58,8 +71,14 @@ class CheckinController(
         val now = clock.nowMillis()
         return when (val s = state) {
             is State.Asking -> if (now - s.askedAt >= (if (s.safety) safetyRepeatAfterMs else repeatAfterMs)) {
-                state = State.Repeating(s.checkinId, s.question, now, s.safety)
-                listOf(Action.Vibrate, Action.Speak(s.question, louder = true), Action.Listen, Action.ReportRepeated(s.checkinId))
+                if (!s.safety && repeats == 0) {
+                    // Light prompting: one quiet question, then it is simply missed; the server decides what that means.
+                    state = State.Missed(s.checkinId)
+                    listOf(Action.ReportMissed(s.checkinId))
+                } else {
+                    state = State.Repeating(s.checkinId, s.question, now, s.safety)
+                    listOf(Action.Vibrate, Action.Speak(s.question, louder = true), Action.Listen, Action.ReportRepeated(s.checkinId))
+                }
             } else emptyList()
             is State.Repeating -> if (now - s.repeatedAt >= (if (s.safety) safetyMissAfterMs else missAfterMs)) {
                 state = State.Missed(s.checkinId)

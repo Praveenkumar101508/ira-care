@@ -93,3 +93,38 @@ class CheckinControllerTest {
         assertTrue(!CheckinController.looksLikeHelp("I'm fine, very helpful day"))
     }
 }
+
+class CheckinControllerProfileTest {
+    private val clock = FakeClock()
+
+    @Test
+    fun `light prompting asks once, waits longer, and never repeats`() {
+        val c = CheckinController(clock)
+        c.configure(repeatAfterS = 90, repeats = 0)
+        c.ask("c1", "How are you?")
+        clock.advance(60_000)
+        assertTrue(c.tick().isEmpty())
+        clock.advance(31_000)
+        assertEquals(listOf(CheckinController.Action.ReportMissed("c1")), c.tick())
+    }
+
+    @Test
+    fun `full prompting repeats sooner`() {
+        val c = CheckinController(clock)
+        c.configure(repeatAfterS = 45, repeats = 2)
+        c.ask("c2", "How are you?")
+        clock.advance(46_000)
+        val actions = c.tick()
+        assertTrue(actions.contains(CheckinController.Action.Vibrate))
+        assertTrue(actions.contains(CheckinController.Action.ReportRepeated("c2")))
+    }
+
+    @Test
+    fun `a safety question keeps its own timings whatever the profile says`() {
+        val c = CheckinController(clock)
+        c.configure(repeatAfterS = 300, repeats = 0)
+        c.ask("s1", "Are you OK?", safety = true)
+        clock.advance(21_000)
+        assertTrue(c.tick().contains(CheckinController.Action.ReportRepeated("s1")))
+    }
+}

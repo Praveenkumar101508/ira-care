@@ -8,7 +8,7 @@ import { Sparkline } from '@/components/Sparkline';
 import { canManage, useApi } from '@/components/useApi';
 import { ApiError, type Reading } from '@/lib/api';
 import type {
-  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, InvitationOut, Medication, Memory, MedicationEvent, Person, PersonStatus, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitOutcome,
+  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, InvitationOut, Medication, Memory, MedicationEvent, Person, PersonStatus, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitOutcome, CommunicationProfile,
 } from '@/lib/types';
 import { VISIT_OUTCOME_WORDS } from '@/lib/types';
 import { VISIT_WORDS, byDay, checkinCounts, series, sortAlerts, timeAgo, timeline, visitLine } from '@/lib/view';
@@ -38,6 +38,8 @@ export default function PersonPage() {
   const [access, setAccess] = useState<AccessEntry[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
+  const [profile, setProfile] = useState<CommunicationProfile | null>(null);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [query, setQuery] = useState('');
   const [found, setFound] = useState<SearchResponse | null>(null);
   const [pairing, setPairing] = useState<Device | null>(null);
@@ -55,6 +57,8 @@ export default function PersonPage() {
       setError('');
       if (tab === 'conversation') {
         setMemory(await api.memory(id));
+        setProfile(await api.profile(id));
+        setReminders(await api.reminders(id));
         try { setTranscripts(await api.transcripts(id)); } catch (e) { setTranscripts(e instanceof ApiError && e.status === 403 ? 'refused' : null); }
       }
       if (tab === 'access' && manage) setAccess(await api.accessLog(id));
@@ -230,11 +234,20 @@ export default function PersonPage() {
         </div>
       ) : null}
 
+      {tab === 'conversation' && profile ? (
+        <ProfileForm profile={profile} circle={circle} onSave={(b) => act(() => api!.putProfile(id, b))} busy={busy} />
+      ) : null}
+      {tab === 'conversation' && (
+        <RemindersCard reminders={reminders} busy={busy} onAdd={(t, d) => act(() => api!.addReminder(id, t, d))} onAct={(r, a) => act(() => api!.actOnReminder(r, a))} />
+      )}
       {tab === 'conversation' && (
         <div className="card">
           <strong>What IRA remembers (summaries, never the person&apos;s words)</strong>
+          <p className="muted">The person or their representative can change or clear any day. An edited day is marked.</p>
           {memory.length === 0 ? <p className="muted">Nothing yet.</p> : (
-            <table><tbody>{memory.map((m) => <tr key={m.day}><td className="muted">{m.day}</td><td style={{ whiteSpace: 'pre-line' }}>{m.summary}</td><td className="muted">{m.exchanges} exchanges</td></tr>)}</tbody></table>
+            <table><tbody>{memory.map((m) => (
+              <MemoryRow key={m.day} m={m} busy={busy} onSave={(summary) => act(() => api!.editMemory(id, m.day, summary))} onForget={() => act(() => api!.forgetMemory(id, m.day))} />
+            ))}</tbody></table>
           )}
         </div>
       )}
@@ -428,6 +441,7 @@ function SettingsForm({ settings, manage, onSave }: { settings: SafetySettings; 
         </td></tr>
         <tr><td>Fall thresholds: impact (g) / still for (s) / movement above (g)</td><td>{num('fall_impact_g')} / {num('fall_still_seconds')} / {num('fall_still_threshold_g')}<span className="muted"> · settings, not medical claims; accuracy on real devices is unmeasured</span></td></tr>
         <tr><td>A planned visit counts as late with no arrival after (min)</td><td>{num('visit_late_minutes')}<span className="muted"> · a notice to the coordinator and an extra check-in; missed at the window&apos;s end is an alert</span></td></tr>
+        <tr><td>Hydration prompt every (min; 0 = off)</td><td>{num('hydration_every_minutes')}<span className="muted"> · in waking hours, as a reminder the watch asks</span></td></tr>
         <tr><td>Usual wake time / morning check after (min)</td><td><input type="time" value={s.usual_wake_time.slice(0, 5)} disabled={!manage} onChange={(e) => setS({ ...s, usual_wake_time: e.target.value })} /> / {num('wake_grace_minutes')}</td></tr>
       </tbody></table>
       {manage ? <button type="submit">Save settings</button> : <p className="muted">Only an administrator may change these.</p>}
@@ -477,5 +491,85 @@ function DepartForm({ busy, tasks, onDepart }: { busy: boolean; tasks: string[];
       <label>Handover <input value={handover} onChange={(e) => setHandover(e.target.value)} maxLength={4000} /></label>
       <button type="submit" disabled={busy}>Carer has left: record the visit</button>
     </form>
+  );
+}
+
+
+const PROFILE_WORDS = {
+  pace: { slow: 'Slow: IRA speaks more slowly and leaves longer pauses', normal: 'Normal' },
+  prompting_level: { light: 'Light: one quiet question, no repeat', standard: 'Standard: one repeat after a minute', full: 'Full: repeats sooner, twice' },
+} as const;
+
+function ProfileForm({ profile, circle, onSave, busy }: { profile: CommunicationProfile; circle: CircleMember[]; onSave: (b: CommunicationProfile) => void; busy: boolean }) {
+  const [p, setP] = useState<CommunicationProfile>(profile);
+  const consented = profile.topics_consented === true;
+  return (
+    <form className="card" onSubmit={(e) => { e.preventDefault(); onSave(p); }}>
+      <strong>How IRA speaks to this person</strong>
+      <p className="muted">Set by the person or their representative{profile.updated_by_role ? ` (last changed by the ${profile.updated_by_role})` : ''}. Applied on the watch and the phone.</p>
+      <table><tbody>
+        <tr><td>Pace</td><td><select value={p.pace} onChange={(e) => setP({ ...p, pace: e.target.value as CommunicationProfile['pace'] })}>{(Object.keys(PROFILE_WORDS.pace) as CommunicationProfile['pace'][]).map((k) => <option key={k} value={k}>{PROFILE_WORDS.pace[k]}</option>)}</select></td></tr>
+        <tr><td>Prompting</td><td><select value={p.prompting_level} onChange={(e) => setP({ ...p, prompting_level: e.target.value as CommunicationProfile['prompting_level'] })}>{(Object.keys(PROFILE_WORDS.prompting_level) as CommunicationProfile['prompting_level'][]).map((k) => <option key={k} value={k}>{PROFILE_WORDS.prompting_level[k]}</option>)}</select></td></tr>
+        <tr><td>Channels</td><td>
+          <label><input type="checkbox" checked={p.voice_on} onChange={(e) => setP({ ...p, voice_on: e.target.checked })} /> voice</label>{' '}
+          <label><input type="checkbox" checked={p.touch_on} onChange={(e) => setP({ ...p, touch_on: e.target.checked })} /> touch</label>{' '}
+          <label><input type="checkbox" checked={p.vibration_on} onChange={(e) => setP({ ...p, vibration_on: e.target.checked })} /> vibration</label>
+          <span className="muted"> · a safety question is always spoken</span>
+        </td></tr>
+        <tr><td>When a worry repeats, offer</td><td><select value={p.redirect_member_id ?? ''} onChange={(e) => setP({ ...p, redirect_member_id: e.target.value || null })}><option value="">the carer</option>{circle.map((m) => <option key={m.id} value={m.id}>{m.display_name}</option>)}</select></td></tr>
+        <tr><td>Familiar topics</td><td><input value={p.familiar_topics.join(', ')} disabled={!consented} onChange={(e) => setP({ ...p, familiar_topics: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) })} placeholder={consented ? 'the garden, the grandchildren' : 'needs the topics consent'} /></td></tr>
+        <tr><td>Topics to avoid</td><td><input value={p.topics_avoid.join(', ')} disabled={!consented} onChange={(e) => setP({ ...p, topics_avoid: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) })} placeholder={consented ? 'the accident' : 'needs the topics consent'} /></td></tr>
+      </tbody></table>
+      {!consented ? <p className="muted">Topic lists are used only once the person&apos;s &quot;topics&quot; consent is recorded on the Consent tab.</p> : null}
+      <button type="submit" disabled={busy}>Save how IRA speaks</button>
+    </form>
+  );
+}
+
+const REMINDER_WORDS: Record<Reminder['status'], string> = {
+  pending: 'Waiting', asked: 'Asked on the watch', confirming: 'Checking once more', confirmed: 'Done', snoozed: 'Asked again later',
+  skipped: 'Not today', missed: 'No answer', cancelled: 'Cancelled',
+};
+
+function RemindersCard({ reminders, busy, onAdd, onAct }: { reminders: Reminder[]; busy: boolean; onAdd: (text: string, dueAt: string) => void; onAct: (id: string, action: 'confirm' | 'snooze' | 'skip' | 'cancel') => void }) {
+  const [text, setText] = useState('');
+  const [due, setDue] = useState('');
+  return (
+    <div className="card">
+      <strong>Reminders</strong>
+      <p className="muted">From conversation (&quot;remind me to ring Sravani at three&quot;), from here, or the hydration setting. The watch asks at the time; a dose is confirmed in two steps.</p>
+      <table><thead><tr><th>When</th><th>What</th><th>From</th><th>State</th><th></th></tr></thead><tbody>
+        {reminders.map((r) => (
+          <tr key={r.id}><td className="muted">{r.due_at.slice(0, 16).replace('T', ' ')}</td><td>{r.kind === 'hydration' ? 'A drink of water' : r.kind === 'medication' ? `Medication: ${r.text}` : r.text}</td><td>{r.source}</td>
+            <td><span className={`pill ${r.status === 'confirmed' ? 'ok' : r.status === 'missed' ? 'urgent' : 'grey'}`}>{REMINDER_WORDS[r.status]}</span></td>
+            <td className="row">{['pending', 'asked', 'confirming', 'snoozed'].includes(r.status) ? (<>
+              <button disabled={busy} onClick={() => onAct(r.id, 'confirm')}>Done</button>
+              <button disabled={busy} onClick={() => onAct(r.id, 'snooze')}>Later</button>
+              <button disabled={busy} onClick={() => onAct(r.id, 'skip')}>Skip</button>
+            </>) : null}</td></tr>
+        ))}
+      </tbody></table>
+      <form className="row" onSubmit={(e) => { e.preventDefault(); if (text && due) { onAdd(text, new Date(due).toISOString()); setText(''); setDue(''); } }}>
+        <label>Remind them to <input value={text} onChange={(e) => setText(e.target.value)} maxLength={200} required /></label>
+        <label>at <input type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} required /></label>
+        <button type="submit" disabled={busy}>Add the reminder</button>
+      </form>
+    </div>
+  );
+}
+
+function MemoryRow({ m, busy, onSave, onForget }: { m: Memory; busy: boolean; onSave: (summary: string) => void; onForget: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(m.summary);
+  return (
+    <tr>
+      <td className="muted">{m.day}{m.edited_at ? <div className="pill grey">edited by the {m.edited_by || 'person'}</div> : null}</td>
+      <td style={{ whiteSpace: 'pre-line' }}>{editing ? <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4} style={{ width: '100%' }} aria-label={`What IRA remembers for ${m.day}`} /> : m.summary}</td>
+      <td className="muted">{m.exchanges} exchanges</td>
+      <td className="row">
+        {editing ? <button disabled={busy} onClick={() => { onSave(text); setEditing(false); }}>Save</button> : <button disabled={busy} onClick={() => setEditing(true)}>Change</button>}
+        <button disabled={busy} onClick={onForget}>Clear this day</button>
+      </td>
+    </tr>
   );
 }

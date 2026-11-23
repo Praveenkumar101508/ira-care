@@ -21,6 +21,7 @@ Safety signals are never the model's alone: the keyword rules in
 from __future__ import annotations
 
 import asyncio
+import datetime as dt
 import json
 import logging
 import os
@@ -605,6 +606,60 @@ _REMIND = re.compile(r"\b(remind me|don'?t let me forget)\b(.*)", re.I)
 class TalkContext(Context):
     contacts: Sequence[Mapping] = ()        # circle members: display_name, phone, relationship
     doses_today: Sequence[str] = ()         # "Metformin at 08:00: taken"
+    # The communication profile (care/personal.py, 110). The topic lists are
+    # empty unless the person's 'topics' consent is recorded.
+    familiar_topics: Sequence[str] = ()
+    topics_avoid: Sequence[str] = ()
+    redirect_name: Optional[str] = None     # who IRA offers to contact when a worry repeats
+    reminder_due_words: Optional[str] = None  # "at 15:00", set by the caller once the time is parsed
+
+
+_WORRY = re.compile(r"\b(worr(y|ied|ies)|scared|afraid|frightened|anxious|lonely|alone|nobody|no one|what if|where is|"
+                    r"where'?s|has (he|she|anyone) |is (he|she) (coming|dead|all right|alright)|can'?t stop thinking|"
+                    r"keep thinking|again and again|still not|not come|hasn'?t come|forgot(ten)? me)\b", re.I)
+_STOP = frozenset("i me my the a an is are was were to of and it its it's im i'm he she they do does did has have had "
+                  "not no so just very really that this there here what where when why how about for with on in at be been".split())
+
+
+def _worry_tokens(text: str) -> frozenset:
+    return frozenset(w for w in re.findall(r"[a-z']+", (text or "").lower()) if w not in _STOP and len(w) > 2)
+
+
+def worry_repeated(text: str, earlier: Sequence[str]) -> bool:
+    """The same worry, again: worry words now, and at least two earlier turns
+    today that share most of their words with this one."""
+    if not _WORRY.search(text or ""):
+        return False
+    now_tokens = _worry_tokens(text)
+    if len(now_tokens) < 2:
+        return False
+    alike = 0
+    for e in earlier:
+        t = _worry_tokens(e)
+        if not t:
+            continue
+        overlap = len(now_tokens & t) / max(1, len(now_tokens | t))
+        if overlap >= 0.5 or (now_tokens & t) == now_tokens:
+            alike += 1
+    return alike >= 2
+
+
+def redirect_reply(ctx: "TalkContext") -> Turn:
+    """Gentle: acknowledge, do not argue or diagnose, offer a familiar topic
+    (with consent) and the named person."""
+    who = ctx.redirect_name or ctx.carer_name
+    first = f"I hear you, {ctx.name}. That has been on your mind today, and I'm here with you."
+    if ctx.familiar_topics:
+        topic = ctx.familiar_topics[0]
+        second = f"Shall I let {who} know you'd like a word? Or tell me about {topic}."
+    else:
+        second = f"Shall I let {who} know you'd like a word?"
+    return Turn([first, second], action={"kind": "offer_contact", "name": who}, source="rules")
+
+
+def mentions_avoided_topic(sentence: str, topics: Sequence[str]) -> bool:
+    low = (sentence or "").lower()
+    return any(t and t.lower() in low for t in topics)
 
 
 def rule_reply(text: str, ctx: TalkContext) -> Optional[Turn]:
@@ -617,10 +672,13 @@ def rule_reply(text: str, ctx: TalkContext) -> Optional[Turn]:
     # A reminder first: "remind me to ring Sravani later" is a reminder, not a call.
     m = _REMIND.search(t)
     if m:
-        what = m.group(2).strip().strip(".") or "that"
-        what = re.sub(r"^(to|about|that)\s+", "", what, flags=re.I)
-        return Turn([f"I'll remind you about {what} at your next check-in, {ctx.name}."],
-                    action={"kind": "reminder", "text": what[:200]}, source="rules")
+        from .personal import parse_reminder
+        raw = m.group(2).strip().strip(".") or "that"
+        what, due_local, how = parse_reminder(raw, dt.datetime.now())
+        when = ctx.reminder_due_words or ("in an hour" if how.startswith("default") else how if how.startswith("in ")
+                                          else f"at {due_local.strftime('%H:%M')}")
+        return Turn([f"I'll remind you about {what} {when}, {ctx.name}."],
+                    action={"kind": "reminder", "text": what[:200], "raw": raw[:200], "when": when}, source="rules")
     m = _CALL.search(t)
     if m:
         who = m.group(3).strip().lower().rstrip(".!?")
@@ -649,9 +707,14 @@ def rule_reply(text: str, ctx: TalkContext) -> Optional[Turn]:
 
 
 def talk_messages(ctx: TalkContext, text: str, recent: Sequence[tuple[str, str]] = ()) -> list[dict]:
+    personal = ""
+    if ctx.topics_avoid:
+        personal += " Never bring up: " + ", ".join(ctx.topics_avoid) + "."
+    if ctx.familiar_topics:
+        personal += " Topics the person enjoys: " + ", ".join(ctx.familiar_topics) + "."
     msgs = [{"role": "system", "content": SYSTEM.format(language=ctx.language) +
              " Keep replies to two or three short sentences. If asked for advice, say you cannot advise and offer to "
-             "tell the carer. Here is what you know:\n" + _context_lines(ctx)}]
+             "tell the carer." + personal + " Here is what you know:\n" + _context_lines(ctx)}]
     for speaker, words in recent[-6:]:
         msgs.append({"role": "assistant" if speaker == "companion" else "user", "content": words})
     msgs.append({"role": "user", "content": f"Talk: {text}"})
@@ -662,6 +725,8 @@ async def talk(text: str, ctx: TalkContext, *, recent: Sequence[tuple[str, str]]
                on_sentence: Optional[Callable[[str], None]] = None) -> Turn:
     """A reply to the person. Rules first, then the model behind the guard, then the fallback line."""
     ruled = rule_reply(text, ctx)
+    if ruled is None and worry_repeated(text, [w for sp, w in recent if sp == "person"]):
+        ruled = redirect_reply(ctx)
     if ruled is not None:
         for s in ruled.sentences:
             if on_sentence:
@@ -679,6 +744,8 @@ async def talk(text: str, ctx: TalkContext, *, recent: Sequence[tuple[str, str]]
             verdict = guard(sentence, max_chars=240)
             if not verdict.ok:
                 raise ValueError(f"reply failed the guard: {verdict.reason}")
+            if mentions_avoided_topic(verdict.text, ctx.topics_avoid):
+                continue  # the person asked IRA not to bring this up
             spoken.append(verdict.text)
             if on_sentence:
                 on_sentence(verdict.text)

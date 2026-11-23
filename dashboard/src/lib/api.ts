@@ -1,6 +1,6 @@
 import type { AlertOutcome,
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, Person,
-  AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitCreate, VisitDepart, WorkspaceList,
+  AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitCreate, VisitDepart, WorkspaceList, CommunicationProfile,
 } from './types';
 
 export class ApiError extends Error {
@@ -69,6 +69,16 @@ export class Api {
     return this.req<InvitationOut>('POST', `/api/v1/care/people/${personId}/invitations`, body);
   }
   invitations(personId: string) { return this.req<{ invitations: InvitationRow[] }>('GET', `/api/v1/care/people/${personId}/invitations`).then((o) => o.invitations); }
+  profile(id: string) { return this.req<CommunicationProfile>('GET', `/api/v1/care/people/${id}/profile`); }
+  putProfile(id: string, body: CommunicationProfile) {
+    const { person_id: _p, redirect_name: _n, topics_consented: _c, updated_by_role: _r, updated_at: _u, ...rest } = body;
+    return this.req<CommunicationProfile>('PUT', `/api/v1/care/people/${id}/profile`, rest);
+  }
+  reminders(id: string) { return this.req<{ reminders: Reminder[] }>('GET', `/api/v1/care/people/${id}/reminders?limit=100`).then((o) => o.reminders); }
+  addReminder(id: string, text: string, dueAt: string) { return this.req<Reminder>('POST', `/api/v1/care/people/${id}/reminders`, { text, due_at: dueAt, kind: 'reminder' }); }
+  actOnReminder(reminderId: string, action: 'confirm' | 'snooze' | 'skip' | 'cancel') { return this.req<Reminder>('POST', `/api/v1/care/reminders/${reminderId}/act`, { action, minutes: 10 }); }
+  editMemory(id: string, day: string, summary: string) { return this.req<Memory>('PUT', `/api/v1/care/people/${id}/memory/${day}`, { summary }); }
+  forgetMemory(id: string, day: string) { return this.req<void>('DELETE', `/api/v1/care/people/${id}/memory/${day}`); }
   memory(id: string) { return this.req<{ memory: Memory[] }>('GET', `/api/v1/care/people/${id}/memory`).then((o) => o.memory); }
   accessLog(id: string) { return this.req<{ entries: AccessEntry[] }>('GET', `/api/v1/care/people/${id}/access-log?limit=200`).then((o) => o.entries); }
 

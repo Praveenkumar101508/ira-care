@@ -739,3 +739,34 @@ notebook log and is reconstructed by `scripts/training/`.
 Rejected: shipping the fine-tune anyway "for warmth" (nothing measured it warmer, and the
 measured thing got worse); training on EmpatheticDialogues under a research reading of its
 licence (the rule is commercial use or nothing).
+
+## D-058 IRA is personal to the person, and the person holds the pen (round 3, phase 7)
+
+A communication profile (`care_communication_profiles`, 110) says how IRA speaks to one
+person: pace (the watch's speech rate), prompting level (whether and how soon a question is
+repeated), and which channels are used (voice, touch, vibration; a safety question is always
+spoken). The person or their representative edits it; a carer or administrator may too, and
+the record says who did. Familiar topics, topics to avoid and the person to offer when a
+worry repeats are stored only once the person's `topics` consent is recorded; without it the
+lists are cleared, so nothing is used that the person did not agree to. When the same worry
+comes back (worry words now, and two earlier turns today that share most of their words), IRA
+does not argue, correct or diagnose: it acknowledges, offers a familiar topic if there is one,
+and offers to let the named person know. The rule lives in `care/conversation.py` so the
+evaluation set exercises it (12 turns added: repeated worries and timed reminders; the first
+mention of a worry is answered, not redirected). A model sentence that names an avoided topic
+is dropped before it is spoken.
+
+Reminders are real (`care_reminders`): "remind me to ring Sravani at three" is read on the
+person's own clock (three in the afternoon, tomorrow if it has passed; "in 20 minutes"; "this
+evening") and becomes a question the watch asks at that time, in IRA's words, instead of the
+scheduled question due then. The answer is read plainly: yes, later (asked again in ten
+minutes), or not today; no answer twice is "missed". A medication reminder confirms in two
+steps ("Have you taken it?" then "You've taken X. Is that right?") before a dose is written
+down as taken, because a single misheard "yes" must not become a record. Hydration prompts
+are a per-person setting (`hydration_every_minutes`, off by default, at least an hour) in
+waking hours. The person or their representative can read, change or clear what IRA
+remembers about any day; an edit is marked with who made it. A concern alert carries a
+summary labelled "summary by IRA" and a link to the transcript row it came from; the
+person's words stay in the transcript, shown only to a role with their consent. On the watch
+the fall countdown also listens: "I'm OK" ends it as the button would, "help" asks now, and
+no other words are read into anything.

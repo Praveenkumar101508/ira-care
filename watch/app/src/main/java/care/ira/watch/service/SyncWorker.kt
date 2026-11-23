@@ -55,6 +55,8 @@ class Syncer(private val deps: CareDependencies) {
             is ApiOutcome.Ok -> {
                 deps.fallSettings = me.value.fall
                 deps.readingSettings = me.value.readings
+                deps.profile = me.value.profile
+                deps.speaker.setRate(me.value.profile.speechRate)
                 deps.applyServerSos(me.value.sos)
             }
             else -> {}   // keep the last known settings; the defaults until the first answer
