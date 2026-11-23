@@ -25,7 +25,7 @@ from typing import Optional
 
 from core.identity.principal import Principal
 
-from . import monitoring, providers
+from . import monitoring, providers, push
 from .monitoring import Observation
 
 logger = logging.getLogger("ira.care.escalation")
@@ -79,10 +79,10 @@ async def _members(conn, person_id, tier: int) -> list[dict]:
     return [dict(r) for r in rows]
 
 
-async def _attempt(conn, alert_id, tier, member_id, channel, delivery: providers.Delivery) -> None:
-    await conn.execute(
+async def _attempt(conn, alert_id, tier, member_id, channel, delivery: providers.Delivery):
+    return await conn.fetchval(
         "INSERT INTO care_alert_attempts (alert_id, tier, member_id, channel, outcome, detail, provider_ref) "
-        "VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        "VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
         alert_id, tier, member_id, channel, delivery.outcome, delivery.detail[:1000], delivery.provider_ref[:200])
 
 
@@ -110,7 +110,8 @@ def alert_text(person: dict, alert: dict, tier: int) -> tuple[str, str]:
 
 async def _tell_tier(conn, principal: Principal, person: dict, alert: dict, tier: int,
                      provider: providers.MessageProvider, outcome: EscalationOutcome,
-                     *, wording_tier: Optional[int] = None) -> int:
+                     *, wording_tier: Optional[int] = None,
+                     push_provider: Optional[push.PushProvider] = None) -> int:
     """Reach every active member of circle `tier`. `wording_tier` is the tier
     the alert has REACHED (tier 3 wording adds 'call 999 now' when tiers 1 and
     2 are being repeated)."""
@@ -119,8 +120,9 @@ async def _tell_tier(conn, principal: Principal, person: dict, alert: dict, tier
     attempts = 0
     for m in members:
         if m["push_enabled"]:
-            delivery = await _push(principal, title, body, alert, m)
-            await _attempt(conn, alert["id"], tier, m["id"], "push", delivery)
+            delivery, tickets = await _push(conn, title, body, alert, m, push_provider)
+            attempt_id = await _attempt(conn, alert["id"], tier, m["id"], "push", delivery)
+            await push.record_tickets(conn, alert["id"], attempt_id, tickets)
             attempts += 1
         if m["sms_enabled"] and m["phone"]:
             try:
@@ -144,31 +146,33 @@ async def _tell_tier(conn, principal: Principal, person: dict, alert: dict, tier
     return attempts
 
 
-async def _push(principal: Principal, title: str, body: str, alert: dict, member: dict) -> providers.Delivery:
-    """A push through the existing notifier (in-app, mobile push when enabled)."""
+async def _push(conn, title: str, body: str, alert: dict, member: dict,
+                provider: Optional[push.PushProvider]) -> tuple[providers.Delivery, list[dict]]:
+    """A push to THIS member's registered phones only (care/push.py). Never the
+    deployment-wide notifier: that one sends to every phone it knows."""
     try:
-        from worker.notifier import notify_report
-        priority = "critical" if alert["severity"] in (monitoring.SOS, monitoring.URGENT) else "warning"
-        _id, channels = await notify_report(
-            title, body, category="system", priority=priority,
-            metadata={"care_alert_id": str(alert["id"]), "member_id": str(member["id"]),
-                      "kind": alert["kind"], "severity": alert["severity"]},
-            principal=principal)
-        return providers.Delivery("sent" if "mobile" in channels else "logged",
-                                  "channels: " + ", ".join(channels))
+        outcome, detail, tickets = await push.send_to_member(conn, member, alert, title, body, provider)
+        return providers.Delivery(outcome, detail), tickets
     except Exception as exc:  # noqa: BLE001 - a push failure is recorded, never raised
         logger.warning("care push failed: %s", exc)
-        return providers.Delivery("failed", f"notifier error: {type(exc).__name__}")
+        return providers.Delivery("failed", f"push error: {type(exc).__name__}"), []
 
 
 async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
                               provider: Optional[providers.MessageProvider] = None,
                               centre: Optional[providers.MonitoringCentreProvider] = None,
-                              outcome: Optional[EscalationOutcome] = None) -> EscalationOutcome:
+                              outcome: Optional[EscalationOutcome] = None,
+                              push_provider: Optional[push.PushProvider] = None) -> EscalationOutcome:
     """Advance every alert whose next action is due, inside one workspace."""
     outcome = outcome or EscalationOutcome()
     provider = provider or providers.provider_from_env()
     centre = centre or providers.monitoring_centre_from_env()
+    push_provider = push_provider or push.provider_from_env()
+    # Receipts for pushes sent earlier: delivered, failed, or a dead token revoked.
+    try:
+        await push.fetch_receipts(conn, push_provider, now=now)
+    except Exception:  # noqa: BLE001
+        logger.exception("care push receipts failed")
     # "Are you OK?" went unanswered: the question's deadline is kept here, by
     # the server, whatever the watch did (care/askfirst.py).
     from . import askfirst
@@ -187,14 +191,14 @@ async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
         person = dict(person)
         wait = dt.timedelta(minutes=int(settings["ack_wait_minutes"]) if settings else 5)
         if alert["severity"] == monitoring.NOTICE:
-            await _tell_tier(conn, principal, person, alert, 1, provider, outcome)
+            await _tell_tier(conn, principal, person, alert, 1, provider, outcome, push_provider=push_provider)
             await conn.execute("UPDATE care_alerts SET current_tier = 1, next_action_at = NULL WHERE id = $1",
                                alert["id"])
             outcome.notices += 1
             continue
         tier = int(alert["current_tier"]) + 1
         if tier == 1 or tier == 2:
-            await _tell_tier(conn, principal, person, alert, tier, provider, outcome)
+            await _tell_tier(conn, principal, person, alert, tier, provider, outcome, push_provider=push_provider)
             await conn.execute(
                 "UPDATE care_alerts SET status = 'escalating', current_tier = $2, next_action_at = $3 WHERE id = $1",
                 alert["id"], tier, now + wait)
@@ -213,7 +217,7 @@ async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
                 details[CALL_999_FLAG] = True
                 for repeat_tier in (1, 2):
                     await _tell_tier(conn, principal, person, alert, repeat_tier, provider, outcome,
-                                     wording_tier=3)
+                                     wording_tier=3, push_provider=push_provider)
                 outcome.repeated_tier3 += 1
             await conn.execute(
                 "UPDATE care_alerts SET status = 'escalating', current_tier = 3, next_action_at = $2, "
@@ -270,7 +274,8 @@ async def evaluate_person(conn, person: dict, settings: dict, now: dt.datetime,
 
 async def run_workspace(principal: Principal, now: Optional[dt.datetime] = None, *,
                         provider: Optional[providers.MessageProvider] = None,
-                        centre: Optional[providers.MonitoringCentreProvider] = None) -> EscalationOutcome:
+                        centre: Optional[providers.MonitoringCentreProvider] = None,
+                        push_provider: Optional[push.PushProvider] = None) -> EscalationOutcome:
     from core.identity.db_context import workspace_connection
     now = now or _now()
     outcome = EscalationOutcome()
@@ -285,7 +290,8 @@ async def run_workspace(principal: Principal, now: Optional[dt.datetime] = None,
             except Exception:  # noqa: BLE001
                 logger.exception("care monitoring: evaluation failed for a person")
                 outcome.errors += 1
-        await run_due_escalations(conn, principal, now, provider=provider, centre=centre, outcome=outcome)
+        await run_due_escalations(conn, principal, now, provider=provider, centre=centre, outcome=outcome,
+                                  push_provider=push_provider)
     return outcome
 
 

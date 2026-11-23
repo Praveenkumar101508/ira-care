@@ -1,7 +1,7 @@
 {
   "phase": "3B batch 0/1",
   "schema_version": 1,
-  "table_count": 144,
+  "table_count": 146,
   "tables": {
     "access_audit_log": {
       "access": {
@@ -2441,6 +2441,156 @@
         "target_columns": {}
       },
       "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_people/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_push_tickets": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/push.py"
+        ],
+        "delete_call_sites": [],
+        "non_test_code_files": 3,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/push.py",
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/push.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_push_tickets:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 11,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "The push service's ticket for one message to one token, with its delivery receipt (107): the delivery state shown on an alert. Belongs to the person cared for's alert; removed with the alert and with the tenant.",
+      "migration": {
+        "done_by": "107_care_push_tokens.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_push_tickets/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_push_tokens": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/push.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/core/privacy/erasure.py"
+        ],
+        "non_test_code_files": 3,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/push.py",
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/push.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_push_tokens:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 13,
+        "has_tenant_id": true,
+        "has_user_id": true,
+        "has_workspace_id": true,
+        "policy_count": 4,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoked when the circle membership ends (care/push.revoke_for_member)",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "deleted: the rows are the account's own phones (user_id, ON DELETE CASCADE from users, and erase_postgres deletes them by user_id in the account scope)",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "A phone's push token tied to an account (user_id), a circle membership, the person, the tenant and the workspace (107). A care alert is pushed only to the tokens of the members it is for. Revoked when the member leaves or the service says the device is gone; deleted by account erasure (user_id), with the member, with the person and with the tenant.",
+      "migration": {
+        "done_by": "107_care_push_tokens.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_push_tokens/",
       "retention": "care_consents.retention_months per person, default 12 months",
       "rls": {
         "already_satisfied": true,

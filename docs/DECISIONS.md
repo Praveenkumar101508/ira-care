@@ -640,3 +640,21 @@ check-in missed in the meantime saw the same reading and opened a second SOS, be
 duplicate check ignored the `asking` status. It now counts `asking` as unresolved. The first
 measured "36 s to SOS" was that second alert, not the question's deadline; the figure recorded
 in STATUS.md is from the rerun after the fix.
+
+## D-054 Care push reaches the circle's phones and nobody else's (round 3, phase 2)
+
+Care alerts and reports used to go through the server's general notifier, whose mobile
+channel sends to every phone registered with the deployment and whose registry is one Redis
+set with no tenant in it. Now a phone registers with `POST /api/v1/care/push/register`, and
+the token is tied to the signed-in account, to each active circle membership that account
+holds in the workspace, to the person, the tenant and the workspace under forced row-level
+security (`care_push_tokens`, migration 107). The escalation chain pushes to a member's
+active tokens only, records one `care_push_tickets` row per phone with the push service's
+ticket, fetches receipts on the next monitoring pass, marks them delivered or failed, and
+revokes a token the service says is dead. A member who is deactivated or whose push is
+turned off loses their tokens at once; a deleted member's and an erased account's tokens go
+with them (ON DELETE CASCADE, plus a by-user delete in the account erasure). The alert now
+carries the delivery state per push attempt ("delivered", "sent, delivery not yet confirmed",
+"no phone registered", "failed", "logged only"). `tests/care/test_care_push_rules.py`
+fails if any care module reaches the deployment-wide sender again. The push provider is
+log-only by default; `IRA_CARE_PUSH_PROVIDER=expo` turns the free Expo channel on.

@@ -130,8 +130,14 @@ export class CareClient {
     return out.reports;
   }
 
+  /** Tie this phone's push token to the account's circle memberships here: a care
+   *  alert is pushed only to the phones of the members it is for. */
   async registerPush(token: string, platform: string): Promise<void> {
-    await this.request('POST', '/mobile/devices', { token, platform }, false);
+    await this.request('POST', '/api/v1/care/push/register', { token, platform });
+  }
+
+  async unregisterPush(token: string): Promise<void> {
+    await this.request('DELETE', '/api/v1/care/push/register', { token });
   }
 
   private async requestText(method: string, path: string, body?: unknown): Promise<string> {

@@ -56,6 +56,8 @@ export interface Device {
   pairing_code?: string;
 }
 
+export interface Attempt { id: string; tier: number; channel: string; outcome: string; detail: string; attempted_at: string; delivery?: string; delivered_at?: string | null }
+
 export interface Alert {
   id: string;
   person_id: string;
@@ -66,6 +68,7 @@ export interface Alert {
   current_tier: number;
   acknowledged_at: string | null;
   acknowledgements?: { id: string; kind: string; note: string; acknowledged_at: string }[];
+  attempts?: Attempt[];
   resolved_at: string | null;
   details: Record<string, unknown>;
   location_latitude?: number | null;

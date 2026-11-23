@@ -41,6 +41,7 @@ cp .env.example .env
 | `IRA_CARE_MODEL` | `off` (templates), `fake` (demos), or `local` (IRA's model layer, which needs a model server you run). | `off` to start |
 | `IRA_CARE_OPS_PHONE` | Who is told when the care jobs stop. Log-only until an SMS provider is configured. | your on-call number |
 | `IRA_CARE_SMS_PROVIDER` | `log` or `twilio`. The adapter never dials emergency numbers. | `log` until you have keys |
+| `IRA_CARE_PUSH_PROVIDER` | `log` or `expo`. Care alerts and reports are pushed only to the phones registered by the members of that person's circle (`care_push_tokens`), never to every phone the server knows. Expo's push service is free; `IRA_CARE_EXPO_ACCESS_TOKEN` is optional (Expo's "enhanced security" setting). | `expo` once the family app is installed on phones |
 | `IRA_MAIL_TRANSPORT` | `null`, `console` or `smtp`. Sign-up confirmations and invitations go this way. With `smtp`, also set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`. | `null` until you have a mail account |
 | `IRA_CLOUD_REGISTRATION_ENABLED` | `true` opens `/care/signup`. | `false` until you are ready |
 | `IRA_PAYMENT_PROVIDER` | Empty (off), `test` (development only) or `stripe` (needs `IRA_STRIPE_SECRET_KEY` and `IRA_STRIPE_WEBHOOK_SECRET`). The care plans carry no price until you set one. | empty |
