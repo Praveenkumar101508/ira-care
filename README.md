@@ -25,6 +25,7 @@ is the hand-over.
 | `IRA_CLOUD_REGISTRATION_ENABLED` (setting) | Opens `/care/signup` (off by default: no sign-ups). `IRA_PAYMENT_PROVIDER` stays unset unless billing is configured; care plans carry no price | Setting |
 | `IRA_CARE_MODEL` (setting) | `local` (default: IRA's model layer, a small local model), `fake` (tests and CI) or `off` (templates only); `IRA_CARE_MODEL_FIRST_SENTENCE_S` is the budget before the template takes over (4) | Setting |
 | `docs/DEVICE_SETUP.md` | Pairing a watch, permissions, fall detection in IRA CARE and the watch maker's own as a second layer | Document |
+| `scripts/demo/` and `docs/demo/` | The hardware-free demo: seed, demo API, scripted scenarios, the recording, and `DEMO_SCRIPT.md` for a presenter; the watch simulator is `/simulator` on the dashboard | Demo |
 | `scripts/simulate_patient.py` | Five end-to-end scenarios on a test database: the person stops answering and moving; abnormal heart rate at 02:00 with no answer; abnormal heart rate answered "I'm OK"; no movement by wake time; the Help button pressed away from home | Database job |
 | `docs/` | Product specification, build rules, every decision, progress and the final report | |
 
