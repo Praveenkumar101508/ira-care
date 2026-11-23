@@ -107,7 +107,7 @@ export default function App() {
         <AlertsScreen alerts={alerts} people={people}
           onAcknowledge={async (a) => { await c.acknowledge(a.id); await refresh(); }}
           onArrived={async (a) => { await c.arrived(a.id); await refresh(); }}
-          onResolve={async (a) => { await c.resolve(a.id, 'Resolved from the family app.'); await refresh(); }}
+          onResolve={async (a, outcome) => { await c.resolve(a.id, outcome === 'all_well' ? 'All well; resolved from the family app.' : 'Needed help; resolved from the family app.', outcome); await refresh(); }}
           onBack={() => setRoute({ name: 'home' })}
           onCall999={() => { void Linking.openURL('tel:999'); }}
           onAccessNotes={(a) => c.accessNotes(a.id)} />

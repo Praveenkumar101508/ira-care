@@ -658,3 +658,19 @@ carries the delivery state per push attempt ("delivered", "sent, delivery not ye
 "no phone registered", "failed", "logged only"). `tests/care/test_care_push_rules.py`
 fails if any care module reaches the deployment-wide sender again. The push provider is
 log-only by default; `IRA_CARE_PUSH_PROVIDER=expo` turns the free Expo channel on.
+
+## D-055 "I'm on my way" is a promise with a deadline, and nothing closes without an outcome (round 3, phase 3)
+
+An acknowledgement used to stop the chain for good: a responder who never arrived left
+the person with nobody coming and nobody told. Now "I'm on my way" sets `follow_up_due_at`
+to now plus the person's `follow_up_minutes` (30 by default, migration 108). On the
+monitoring pass after the deadline the responder's own phone is asked "Have you reached
+[Name]?" (recorded as an attempt), a grace of `follow_up_grace_minutes` (10) starts, and
+if there is still no arrival and no outcome the alert goes back to `escalating` and the
+chain restarts from the next tier, counted in `re_escalations` and written into the alert's
+summary. An arrival (`arrived`, `checked_in_person`, `spoke_to_person`) clears the
+deadline. Nothing closes an alert except a resolution with an `outcome` (all well, needed
+help, taken to hospital, false alarm, other); the dashboard has an outcome form and the
+family app two outcome buttons. Two responders at once are safe: the status change is one
+atomic update, both acknowledgements are kept, and a second close at the same moment
+returns the alert as the first close left it.

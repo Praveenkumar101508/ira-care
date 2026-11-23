@@ -608,7 +608,7 @@ async def acknowledge_alert(alert_id: uuid.UUID, body: schemas.Acknowledge,
 async def resolve_alert(alert_id: uuid.UUID, body: schemas.Resolve,
                         p: Principal = Depends(require_workspace_principal)):
     ensure_can_act(p)
-    alert = await repo.resolve_alert(p, alert_id, body.resolution)
+    alert = await repo.resolve_alert(p, alert_id, body.resolution, outcome=body.outcome)
     if alert is None:
         raise _not_found("Alert not found or already resolved.")
     return alert

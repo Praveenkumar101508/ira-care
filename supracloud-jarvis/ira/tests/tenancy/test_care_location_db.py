@@ -100,7 +100,7 @@ async def test_at_home_and_no_location_are_both_stated_honestly(client, families
     assert r.json()["at_home"] is True
     client.act_as(fam, "member", "member")
     alerts = (await client.get(f"{C}/alerts")).json()["alerts"]
-    await client.post(f"{C}/alerts/{alerts[0]['id']}/resolve", json={"resolution": "All well."})
+    await client.post(f"{C}/alerts/{alerts[0]['id']}/resolve", json={"resolution": "All well.", "outcome": "all_well"})
     # No location at all.
     r = await client.post(f"{C}/devices/me/help", json={"via": "button"}, headers={"X-Device-Token": p["token"]})
     alert = r.json()
@@ -137,7 +137,7 @@ async def test_access_notes_open_for_tier_1_while_the_alert_is_open_and_every_vi
     client.act_as(fam, "member", "member")
     await client.post(f"{C}/alerts/{alert_id}/acknowledge", json={"kind": "on_my_way", "note": ""})
     assert (await client.get(f"{C}/alerts/{alert_id}/access-notes")).status_code == 200
-    await client.post(f"{C}/alerts/{alert_id}/resolve", json={"resolution": "All well."})
+    await client.post(f"{C}/alerts/{alert_id}/resolve", json={"resolution": "All well.", "outcome": "all_well"})
     assert (await client.get(f"{C}/alerts/{alert_id}/access-notes")).status_code == 403
     # Three successful openings, three log rows naming the alert.
     client.act_as(fam, "admin", "workspace_admin")

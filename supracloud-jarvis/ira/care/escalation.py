@@ -41,6 +41,8 @@ class EscalationOutcome:
     attempts: int = 0
     notices: int = 0
     repeated_tier3: int = 0
+    follow_ups_asked: int = 0
+    re_escalated: int = 0
     errors: int = 0
     opened: list = field(default_factory=list)
 
@@ -173,6 +175,11 @@ async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
         await push.fetch_receipts(conn, push_provider, now=now)
     except Exception:  # noqa: BLE001
         logger.exception("care push receipts failed")
+    # "I'm on my way" deadlines: ask the responder, then restart the chain (care/followup.py).
+    from . import followup
+    fu = await followup.run(conn, principal, now, push_provider=push_provider)
+    outcome.follow_ups_asked += fu.asked
+    outcome.re_escalated += fu.re_escalated
     # "Are you OK?" went unanswered: the question's deadline is kept here, by
     # the server, whatever the watch did (care/askfirst.py).
     from . import askfirst
@@ -322,7 +329,8 @@ async def run_once(now: Optional[dt.datetime] = None) -> EscalationOutcome:
                 logger.exception("care monitoring: workspace pass failed")
                 total.errors += 1
                 continue
-            for k in ("alerts_opened", "promoted", "tiers_run", "attempts", "notices", "repeated_tier3", "errors"):
+            for k in ("alerts_opened", "promoted", "tiers_run", "attempts", "notices", "repeated_tier3",
+                      "follow_ups_asked", "re_escalated", "errors"):
                 setattr(total, k, getattr(total, k) + getattr(out, k))
             total.opened.extend(out.opened)
     from .checkin_cycle import _heartbeat

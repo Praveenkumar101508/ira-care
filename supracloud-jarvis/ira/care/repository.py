@@ -256,7 +256,7 @@ _SETTINGS_FIELDS = (
     "ask_first_wait_s", "heart_rate_confirm_readings", "heart_rate_confirm_seconds",
     "night_off_wrist_minutes", "usual_wake_time", "wake_grace_minutes",
     "fall_detection_enabled", "fall_countdown_s", "fall_impact_g", "fall_still_seconds", "fall_still_threshold_g",
-    "reading_upload_interval_s",
+    "reading_upload_interval_s", "follow_up_minutes", "follow_up_grace_minutes",
 )
 
 
@@ -580,24 +580,44 @@ async def acknowledge_alert(principal: Principal, alert_id: uuid.UUID, body: dic
         member_id = await conn.fetchval(
             "SELECT id FROM care_circle_members WHERE person_id = $1 AND user_id = $2 AND active "
             "ORDER BY tier, priority LIMIT 1", alert["person_id"], principal.user_id)
+        kind = body.get("kind", "on_my_way")
         await conn.execute(
             "INSERT INTO care_acknowledgements (alert_id, member_id, user_id, kind, note) "
             "VALUES ($1, $2, $3, $4, $5)",
-            alert_id, member_id, principal.user_id, body.get("kind", "on_my_way"), body.get("note", ""))
-        if alert["status"] in ("open", "escalating"):
+            alert_id, member_id, principal.user_id, kind, body.get("note", ""))
+        if kind == "on_my_way":
+            # The promise starts a deadline (care/followup.py): an arrival or an outcome is
+            # expected within follow_up_minutes, or the responder is asked and the chain restarts.
+            # Atomic on the status, so two responders at once change it once.
+            settings = await conn.fetchrow("SELECT follow_up_minutes FROM care_safety_settings WHERE person_id = $1",
+                                           alert["person_id"])
+            minutes = int(settings["follow_up_minutes"]) if settings else 30
             await conn.execute(
-                "UPDATE care_alerts SET status = 'acknowledged', acknowledged_at = NOW(), "
-                "next_action_at = NULL WHERE id = $1", alert_id)
+                "UPDATE care_alerts SET status = 'acknowledged', acknowledged_at = NOW(), next_action_at = NULL, "
+                "follow_up_due_at = NOW() + make_interval(mins => $2), follow_up_asked_at = NULL "
+                "WHERE id = $1 AND status IN ('open', 'escalating', 'acknowledged')", alert_id, minutes)
+        elif kind in ("arrived", "checked_in_person", "spoke_to_person"):
+            # Someone reached the person: the deadline is met; the alert still waits for its outcome.
+            await conn.execute(
+                "UPDATE care_alerts SET follow_up_due_at = NULL, status = CASE WHEN status IN ('open', 'escalating') "
+                "THEN 'acknowledged' ELSE status END, acknowledged_at = COALESCE(acknowledged_at, NOW()), "
+                "next_action_at = CASE WHEN status IN ('open', 'escalating') THEN NULL ELSE next_action_at END "
+                "WHERE id = $1 AND status <> 'resolved'", alert_id)
     return await get_alert(principal, alert_id)
 
 
-async def resolve_alert(principal: Principal, alert_id: uuid.UUID, resolution: str) -> Optional[dict]:
+async def resolve_alert(principal: Principal, alert_id: uuid.UUID, resolution: str, *,
+                        outcome: str = "other") -> Optional[dict]:
+    """Close the alert with its outcome. Idempotent: a second close at the same
+    moment finds it closed and returns it unchanged (the first outcome stands)."""
     async with workspace_connection(principal) as conn:
-        row = await conn.fetchrow(
-            "UPDATE care_alerts SET status = 'resolved', resolved_at = NOW(), resolution = $2, "
-            "next_action_at = NULL WHERE id = $1 AND status <> 'resolved' RETURNING id", alert_id, resolution)
-        if row is None:
+        exists = await conn.fetchval("SELECT 1 FROM care_alerts WHERE id = $1", alert_id)
+        if not exists:
             return None
+        await conn.execute(
+            "UPDATE care_alerts SET status = 'resolved', resolved_at = NOW(), resolution = $2, outcome = $3, "
+            "next_action_at = NULL, follow_up_due_at = NULL WHERE id = $1 AND status <> 'resolved'",
+            alert_id, resolution, outcome)
     return await get_alert(principal, alert_id)
 
 

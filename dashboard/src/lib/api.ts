@@ -1,4 +1,4 @@
-import type {
+import type { AlertOutcome,
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, Person,
   AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, WorkspaceList,
 } from './types';
@@ -40,7 +40,7 @@ export class Api {
   acknowledge(id: string, note: string, kind: 'on_my_way' | 'arrived' = 'on_my_way') { return this.req<Alert>('POST', `/api/v1/care/alerts/${id}/acknowledge`, { kind, note }); }
   updateHome(personId: string, body: HomeUpdate) { return this.req<Person>('PATCH', `/api/v1/care/people/${personId}`, body); }
   accessNotes(alertId: string) { return this.req<AccessNotes>('GET', `/api/v1/care/alerts/${alertId}/access-notes`); }
-  resolve(id: string, resolution: string) { return this.req<Alert>('POST', `/api/v1/care/alerts/${id}/resolve`, { resolution }); }
+  resolve(id: string, resolution: string, outcome: AlertOutcome = 'other') { return this.req<Alert>('POST', `/api/v1/care/alerts/${id}/resolve`, { resolution, outcome }); }
   vitals(id: string, kind?: string, limit = 500) { return this.req<{ vitals: Reading[] }>('GET', `/api/v1/care/people/${id}/vitals?limit=${limit}${kind ? `&kind=${kind}` : ''}`).then((o) => o.vitals); }
   checkins(id: string) { return this.req<{ checkins: Checkin[]; answers_included: boolean }>('GET', `/api/v1/care/people/${id}/checkins?limit=200`); }
   transcripts(id: string) { return this.req<{ transcripts: Transcript[] }>('GET', `/api/v1/care/people/${id}/transcripts?limit=500`).then((o) => o.transcripts); }

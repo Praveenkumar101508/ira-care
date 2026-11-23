@@ -1725,7 +1725,7 @@
       "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_alerts:{key}",
       "classification": "WORKSPACE_SCOPED",
       "current": {
-        "column_count": 20,
+        "column_count": 24,
         "has_tenant_id": true,
         "has_user_id": false,
         "has_workspace_id": true,
@@ -2782,7 +2782,7 @@
       "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_safety_settings:{key}",
       "classification": "WORKSPACE_SCOPED",
       "current": {
-        "column_count": 32,
+        "column_count": 34,
         "has_tenant_id": true,
         "has_user_id": false,
         "has_workspace_id": true,

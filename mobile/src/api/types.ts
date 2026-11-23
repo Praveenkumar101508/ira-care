@@ -58,6 +58,8 @@ export interface Device {
 
 export interface Attempt { id: string; tier: number; channel: string; outcome: string; detail: string; attempted_at: string; delivery?: string; delivered_at?: string | null }
 
+export type AlertOutcome = 'all_well' | 'needed_help' | 'taken_to_hospital' | 'false_alarm' | 'other';
+
 export interface Alert {
   id: string;
   person_id: string;
@@ -69,6 +71,7 @@ export interface Alert {
   acknowledged_at: string | null;
   acknowledgements?: { id: string; kind: string; note: string; acknowledged_at: string }[];
   attempts?: Attempt[];
+  follow_up_due_at?: string | null; follow_up_asked_at?: string | null; re_escalations?: number; outcome?: AlertOutcome | '';
   resolved_at: string | null;
   details: Record<string, unknown>;
   location_latitude?: number | null;

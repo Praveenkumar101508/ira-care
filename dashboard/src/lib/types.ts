@@ -15,6 +15,12 @@ export interface Device {
   id: string; platform: string; status: string; battery_percent: number | null; on_wrist: boolean | null;
   background_sensor_permission: boolean | null; last_sync_at: string | null; pairing_code?: string;
 }
+/** What happened, recorded when an alert is resolved. An alert stays open until it is. */
+export type AlertOutcome = 'all_well' | 'needed_help' | 'taken_to_hospital' | 'false_alarm' | 'other';
+export const OUTCOME_WORDS: Record<AlertOutcome, string> = {
+  all_well: 'All well', needed_help: 'Needed help', taken_to_hospital: 'Taken to hospital', false_alarm: 'False alarm', other: 'Other',
+};
+
 export interface Alert {
   id: string; person_id: string; kind: string; severity: 'notice' | 'urgent' | 'sos';
   status: 'open' | 'escalating' | 'acknowledged' | 'resolved' | 'cancelled'; opened_at: string;
@@ -22,6 +28,7 @@ export interface Alert {
   attempts?: Attempt[]; acknowledgements?: Acknowledgement[];
   location_latitude?: number | null; location_longitude?: number | null; location_accuracy_m?: number | null;
   location_at?: string | null; at_home?: boolean | null;
+  follow_up_due_at?: string | null; follow_up_asked_at?: string | null; re_escalations?: number; outcome?: AlertOutcome | '';
 }
 export interface Attempt { id: string; tier: number; channel: string; outcome: string; detail: string; attempted_at: string; delivery?: string; delivered_at?: string | null }
 export interface Acknowledgement { id: string; kind: string; note: string; acknowledged_at: string }

@@ -90,7 +90,7 @@ export default function PersonPage() {
             <AlertCard key={a.id} alert={a} personName={name} person={person} busy={busy}
               onAccessNotes={(x) => api!.accessNotes(x.id)}
               onAcknowledge={(x) => { void act(() => api!.acknowledge(x.id, 'from the dashboard')); }}
-              onResolve={(x) => { const r = window.prompt('What happened?', 'Checked; all well.'); if (r) void act(() => api!.resolve(x.id, r)); }} />
+              onResolve={(x, outcome, resolution) => { void act(() => api!.resolve(x.id, resolution, outcome)); }} />
           ))}
           {byDay(checkins.checkins, 'scheduled_at').map(({ day, items }) => (
             <div className="card" key={day}>

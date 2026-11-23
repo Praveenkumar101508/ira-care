@@ -165,7 +165,7 @@ async def test_the_wrist_sees_received_then_the_responders_name_then_arrival_the
     assert r.status_code == 200, r.text
     state = (await client.get(f"{C}/devices/me/sos", headers=p["h"])).json()
     assert (state["state"], state["responder_name"]) == ("arrived", "Sravani")
-    r = await client.post(f"{C}/alerts/{alert_id}/resolve", json={"resolution": "Visited; all well."})
+    r = await client.post(f"{C}/alerts/{alert_id}/resolve", json={"resolution": "Visited; all well.", "outcome": "all_well"})
     assert r.status_code == 200
     state = (await client.get(f"{C}/devices/me/sos", headers=p["h"])).json()
     assert state["state"] == "closed" and state["alert_id"] == alert_id

@@ -1,4 +1,4 @@
-import type { AccessNotes, TalkLine, TalkReply,
+import type { AlertOutcome, AccessNotes, TalkLine, TalkReply,
   Alert, Checkin, CircleMember, ConsentList, Device, LoginResponse, Person, PersonStatus, Report, WorkspaceList,
 } from './types';
 
@@ -84,8 +84,9 @@ export class CareClient {
     return this.request<AccessNotes>('GET', `/api/v1/care/alerts/${alertId}/access-notes`);
   }
 
-  async resolve(alertId: string, resolution: string): Promise<Alert> {
-    return this.request<Alert>('POST', `/api/v1/care/alerts/${alertId}/resolve`, { resolution });
+  /** What happened. An alert stays open until an outcome is recorded. */
+  async resolve(alertId: string, resolution: string, outcome: AlertOutcome = 'all_well'): Promise<Alert> {
+    return this.request<Alert>('POST', `/api/v1/care/alerts/${alertId}/resolve`, { resolution, outcome });
   }
 
   async checkins(personId: string): Promise<{ checkins: Checkin[]; answers_included: boolean }> {
