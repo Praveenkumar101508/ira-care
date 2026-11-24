@@ -1,9 +1,8 @@
 # IRA CARE: next step
 
 **Round 3 (the completion run) is in progress.** Phases and their state are in
-`STATUS.md` (table "Round 3"). Phases 0 to 7 are merged (pull requests 20 to 27). Phase 8
-is built and tested; next is its pull request, CI and squash-merge, then phases 9 to 14
-(built on their branches) in order, each rebased on the new `main`, then R3-15 `ci/cost-cuts`.
+`STATUS.md` (table "Round 3"). Phases 0 to 8 are merged (pull requests 20 to 28). Phase 9
+is built; next is its pull request, CI and squash-merge, then phases 10 to 15 in order.
 
 Owner actions found so far in round 3:
 
@@ -13,6 +12,9 @@ Owner actions found so far in round 3:
 2. Allow `api.figshare.com`, `ieee-dataport.org` and `www.kaggleusercontent.com` on the
    environment if the original terms of UMAFall and FallAllD or the notebook output files
    are wanted; nothing shipped depends on them.
+3. A hardware engineer verifies the rows of `docs/hardware/COMPONENTS.md` marked not verified
+   (those manufacturers' sites refuse automated readers) and a regulatory adviser reviews
+   `docs/hardware/BLUEPRINT.md` section 8 before any submission.
 
 ---
 

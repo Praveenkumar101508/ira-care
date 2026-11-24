@@ -790,3 +790,29 @@ Jetpack libraries (Compose for Wear OS, AndroidX) stay in both flavours: they ar
 and run on AOSP without any Google service. The sensor arithmetic (unreliable heart-rate
 samples dropped, step totals to deltas with a reboot read as zero, off-body to wrist state)
 is in `SensorEventMapper`, with no Android in it, so the JVM tests prove it for both drivers.
+
+## D-060 Our watch exists first as a script, a model and a blueprint (round 3, phase 9)
+
+The hardware is designed in the open before any board exists: `scripts/hardware/build_watch.py`
+builds the watch in Blender from parameters in millimetres, with every part a named object
+that carries what it does for the person and which feature uses it, renders it with Cycles on
+the CPU (hero, front, side, back, exploded with labels, cross-section, on a wrist with its
+dock, a 15-second turntable), and exports glTF; `docs/hardware/viewer.html` is one
+self-contained page (three.js, MIT, embedded with the model) that turns, zooms, explodes and
+names parts on a phone. The display in the model shows the app's own home screen, drawn from
+the watch app's layout (the words, colours and buttons of `MainActivity.kt`). Components are
+candidates, each with a reason, an alternative and the manufacturer's page; the figures were
+read from the manufacturers' own pages where their sites allowed it and are marked *not
+verified* where they did not (Analog Devices, ST, NXP, Knowles, Panasonic and several others
+refuse automated readers): a hardware engineer verifies every row by hand before a board is
+drawn. Two findings from that research shape the design: the wearable-class Qi transmitter
+controllers found are end-of-life, so the dock needs a current part or our own controller; and
+the simplest AOSP-capable compute path is Qualcomm's W5+ Gen 1 under NDA documentation,
+with a module-based alternative for freedom. `BLUEPRINT.md` is written for an endorsing body
+in plain English, with every figure labelled measured, read-from-source or estimated, and a
+UK certification roadmap researched from gov.uk, legislation.gov.uk, EUR-Lex, ETSI, the IEC
+webstore, GCF, PTCRB and GSMA on 24 November 2026. The intended purpose decides whether the
+watch is a consumer product or a medical device; kept to the language of
+`docs/compliance/INTENDED_PURPOSE.md`, it is a consumer product. Nothing in this phase is
+claimed built: the renders are of a model, the power budget is an estimate, and the folder
+says so.

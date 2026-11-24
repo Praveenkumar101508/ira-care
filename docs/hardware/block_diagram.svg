@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 620" font-family="system-ui, Helvetica, Arial, sans-serif" font-size="13">
+  <title>IRA CARE watch: block diagram</title>
+  <style>
+    .box { fill: #ffffff; stroke: #1f2a24; stroke-width: 1.4; rx: 8; }
+    .core { fill: #eaf1f8; }
+    .radio { fill: #eef7ea; }
+    .sense { fill: #fff6e6; }
+    .power { fill: #f7eaea; }
+    .human { fill: #efeaf7; }
+    .t { fill: #1f2a24; }
+    .s { fill: #5b6b63; font-size: 11px; }
+    .w { stroke: #1f2a24; stroke-width: 1.2; fill: none; marker-end: url(#a); }
+    .p { stroke: #b3261e; stroke-width: 1.4; fill: none; stroke-dasharray: 4 3; }
+  </style>
+  <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#1f2a24"/></marker></defs>
+  <text x="20" y="28" font-size="18" font-weight="600" class="t">IRA CARE watch: what is inside and how it is wired</text>
+  <text x="20" y="46" class="s">Solid arrows: data. Dashed red: power. Every block is a candidate part in COMPONENTS.md.</text>
+
+  <!-- core -->
+  <rect class="box core" x="360" y="230" width="260" height="130"/>
+  <text x="490" y="255" text-anchor="middle" class="t" font-weight="600">System-on-chip (AOSP)</text>
+  <text x="490" y="275" text-anchor="middle" class="s">4 × Cortex-A53, always-on co-processor</text>
+  <text x="490" y="292" text-anchor="middle" class="s">LTE modem with VoLTE, GNSS, Wi-Fi, Bluetooth</text>
+  <text x="490" y="309" text-anchor="middle" class="s">memory, secure boot, over-the-air updates</text>
+  <text x="490" y="334" text-anchor="middle" class="t">runs the IRA CARE app (watch/, aosp flavour)</text>
+
+  <!-- radio -->
+  <rect class="box radio" x="700" y="110" width="250" height="60"/><text x="825" y="135" text-anchor="middle" class="t" font-weight="600">LTE antenna + eSIM</text><text x="825" y="155" text-anchor="middle" class="s">calls to the circle, data to the server; no SIM tray</text>
+  <rect class="box radio" x="700" y="190" width="250" height="60"/><text x="825" y="215" text-anchor="middle" class="t" font-weight="600">GNSS antenna</text><text x="825" y="235" text-anchor="middle" class="s">one position fix per SOS, never continuous</text>
+  <rect class="box radio" x="700" y="270" width="250" height="60"/><text x="825" y="295" text-anchor="middle" class="t" font-weight="600">Wi-Fi / Bluetooth antenna</text><text x="825" y="315" text-anchor="middle" class="s">home upload; pairing</text>
+  <rect class="box radio" x="700" y="350" width="250" height="70"/><text x="825" y="375" text-anchor="middle" class="t" font-weight="600">Our server (held connection)</text><text x="825" y="393" text-anchor="middle" class="s">readings, check-ins, the SOS state, "Sravani is here"</text><text x="825" y="409" text-anchor="middle" class="s">the only push channel: no third party in between</text>
+
+  <!-- sensors -->
+  <rect class="box sense" x="30" y="110" width="250" height="56"/><text x="155" y="133" text-anchor="middle" class="t" font-weight="600">Optical heart-rate sensor (PPG)</text><text x="155" y="152" text-anchor="middle" class="s">heart rate; off-body contact detection</text>
+  <rect class="box sense" x="30" y="180" width="250" height="56"/><text x="155" y="203" text-anchor="middle" class="t" font-weight="600">6-axis motion sensor, 50 Hz, FIFO</text><text x="155" y="222" text-anchor="middle" class="s">fall detectors (rules and the trained model)</text>
+  <rect class="box sense" x="30" y="250" width="250" height="56"/><text x="155" y="273" text-anchor="middle" class="t" font-weight="600">Barometer, skin temperature</text><text x="155" y="292" text-anchor="middle" class="s">fall confidence (planned), daily trend (planned)</text>
+  <rect class="box sense" x="30" y="320" width="250" height="56"/><text x="155" y="343" text-anchor="middle" class="t" font-weight="600">Two microphones</text><text x="155" y="362" text-anchor="middle" class="s">Talk to IRA; answers; "I'm OK" and "help" by voice</text>
+
+  <!-- human -->
+  <rect class="box human" x="30" y="420" width="250" height="56"/><text x="155" y="443" text-anchor="middle" class="t" font-weight="600">Round always-on display, touch</text><text x="155" y="462" text-anchor="middle" class="s">the question, the countdown, who is coming</text>
+  <rect class="box human" x="30" y="490" width="250" height="56"/><text x="155" y="513" text-anchor="middle" class="t" font-weight="600">Speaker, vibration motor</text><text x="155" y="532" text-anchor="middle" class="s">IRA speaks; a pattern for each event</text>
+  <rect class="box human" x="360" y="420" width="260" height="56"/><text x="490" y="443" text-anchor="middle" class="t" font-weight="600">Help button (large, red) and side button</text><text x="490" y="462" text-anchor="middle" class="s">SOS; I'm OK</text>
+
+  <!-- power -->
+  <rect class="box power" x="360" y="520" width="260" height="70"/><text x="490" y="545" text-anchor="middle" class="t" font-weight="600">Power management + battery (about 400 mAh)</text><text x="490" y="563" text-anchor="middle" class="s">charge from the dock coil; fuel gauge; battery notice</text><text x="490" y="579" text-anchor="middle" class="s">a day and a night on one charge (BLUEPRINT.md section 6)</text>
+  <rect class="box power" x="700" y="520" width="250" height="70"/><text x="825" y="545" text-anchor="middle" class="t" font-weight="600">Charging dock</text><text x="825" y="563" text-anchor="middle" class="s">magnet-aligned wireless coil, weighted puck</text><text x="825" y="579" text-anchor="middle" class="s">the watch drops in; nothing to plug</text>
+
+  <!-- wires -->
+  <path class="w" d="M280 138 L350 138 L350 250 L360 250"/>
+  <path class="w" d="M280 208 L345 208 L345 262 L360 262"/>
+  <path class="w" d="M280 278 L360 278"/>
+  <path class="w" d="M280 348 L345 348 L345 300 L360 300"/>
+  <path class="w" d="M360 448 L300 448 L300 448 L280 448"/>
+  <path class="w" d="M400 420 L400 360"/>
+  <path class="w" d="M360 518 L300 518 L280 518"/>
+  <path class="w" d="M620 250 L660 250 L660 140 L700 140"/>
+  <path class="w" d="M620 280 L660 280 L660 220 L700 220"/>
+  <path class="w" d="M620 300 L700 300"/>
+  <path class="w" d="M825 170 L825 190" />
+  <path class="w" d="M825 330 L825 350" />
+  <path class="p" d="M490 520 L490 360"/>
+  <path class="p" d="M700 555 L620 555"/>
+</svg>

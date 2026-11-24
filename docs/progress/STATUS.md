@@ -44,8 +44,8 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-5 | own-models | `feat/own-models` | Merged (pull request 25) |
 | R3-6 | scheduled-care | `feat/scheduled-care` | Merged (pull request 26) |
 | R3-7 | ira-personal | `feat/ira-personal` | Merged (pull request 27) |
-| R3-8 | watch-platform-layer | `feat/watch-platform-layer` | Built and tested locally (both flavours); pull request to follow |
-| R3-9 | hardware-blueprint | `feat/hardware-blueprint` | not started |
+| R3-8 | watch-platform-layer | `feat/watch-platform-layer` | Merged (pull request 28) |
+| R3-9 | hardware-blueprint | `feat/hardware-blueprint` | Built locally (model, renders, viewer, components, blueprint); pull request to follow |
 | R3-10 | one-mobile-app | `feat/one-mobile-app` | not started |
 | R3-11 | dashboard-care-record | `feat/dashboard-care-record` | not started |
 | R3-12 | clean-product-ui | `feat/clean-product-ui` | not started |
@@ -53,6 +53,20 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | not started |
 | R3-15 | cost-cuts | `ci/cost-cuts` | not started |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 9 (hardware-blueprint), measured locally (24 November 2026)
+
+- Blender 5.3 (the `bpy` wheel from PyPI, Python 3.13) runs headless on this machine: the
+  build script makes the model, seven renders at 1600 × 1200 with 96 samples on 4 CPU cores
+  (about 2 to 3 minutes each), the turntable (PNG frames encoded by ffmpeg) and the glTF.
+- The viewer (three.js 0.170, embedded) was opened in a headless browser at phone (Pixel 7
+  profile) and desktop sizes: 31 meshes loaded, no page or console errors, the explode slider
+  and part descriptions work.
+- Component figures were read from manufacturers' pages where their sites allowed it (the
+  owner allowed those hosts on the environment); the rest are marked not verified.
+- Folder size: `docs/hardware` is 17 MB in all (eight renders of about 1.9 MB each, the glTF
+  0.95 MB, the viewer 2.35 MB with the model embedded, the 15 s turntable at 540 × 540 0.39 MB,
+  the Blender file 0.25 MB), under the 60 MB budget.
 
 ## Round 3, phase 8 (watch-platform-layer), measured locally (24 November 2026)
 
