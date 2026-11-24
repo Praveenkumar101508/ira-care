@@ -1,14 +1,14 @@
 {
-  "measured_at": "2026-11-24T09:13:08+00:00",
-  "revision": "94ea5ff42fa4d24867beb94181c37d64689f4a1b",
+  "measured_at": "2026-11-24T09:47:45+00:00",
+  "revision": "77e555446bffadc31f45df538a1ec3d04afdf943",
   "machine": "Linux-6.18.44-fc-v819-x86_64-with-glibc2.39",
   "result": "passed",
-  "total_seconds": 181,
+  "total_seconds": 192,
   "steps": [
     {
       "step": "clone",
       "status": "ok",
-      "seconds": 1,
+      "seconds": 0,
       "note": ""
     },
     {
@@ -20,7 +20,7 @@
     {
       "step": "compose-up",
       "status": "ok",
-      "seconds": 11,
+      "seconds": 12,
       "note": ""
     },
     {
@@ -32,31 +32,31 @@
     {
       "step": "migrate",
       "status": "ok",
-      "seconds": 2,
+      "seconds": 1,
       "note": ""
     },
     {
       "step": "api-up",
       "status": "ok",
-      "seconds": 2,
+      "seconds": 3,
       "note": "care.server on :8010"
     },
     {
       "step": "worker-up",
       "status": "ok",
-      "seconds": 63,
+      "seconds": 62,
       "note": ""
     },
     {
       "step": "dashboard-install",
       "status": "ok",
-      "seconds": 6,
+      "seconds": 9,
       "note": ""
     },
     {
       "step": "dashboard-build",
       "status": "ok",
-      "seconds": 25,
+      "seconds": 32,
       "note": ""
     },
     {
@@ -92,7 +92,7 @@
     {
       "step": "e2e-install",
       "status": "ok",
-      "seconds": 0,
+      "seconds": 1,
       "note": ""
     },
     {

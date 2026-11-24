@@ -49,8 +49,8 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-10 | one-mobile-app | `feat/one-mobile-app` | Merged (pull request 30) |
 | R3-11 | dashboard-care-record | `feat/dashboard-care-record` | Merged (pull request 31) |
 | R3-12 | clean-product-ui | `feat/clean-product-ui` | Merged (pull request 32) |
-| R3-13 | founder-demo-data | `feat/founder-demo-data` | Built and tested locally; pull request to follow |
-| R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | Built and proved locally (clean-clone staging, 7 browser tests, film); pull request to follow once R3-13 merges |
+| R3-13 | founder-demo-data | `feat/founder-demo-data` | Merged (pull request 33) |
+| R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | Built and proved locally (clean-clone staging, 7 browser tests, film); pull request to follow |
 | R3-15 | cost-cuts | `ci/cost-cuts` | not started |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
 

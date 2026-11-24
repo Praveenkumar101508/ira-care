@@ -1,5 +1,5 @@
 {
-  "measured_at": "2026-11-24T09:13:08.056Z",
+  "measured_at": "2026-11-24T09:47:44.843Z",
   "results": [
     {
       "outage": "redis",
@@ -32,7 +32,7 @@
       "outage": "postgres",
       "step": "server healthy again after start",
       "seconds_after_start": 0.5,
-      "stop_at_s": 1.2
+      "stop_at_s": 1.3
     }
   ]
 }
