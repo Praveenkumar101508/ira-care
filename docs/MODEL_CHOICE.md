@@ -170,8 +170,10 @@ latency, now with the round 4 rule that a model may be at most 0.03 below the be
 
 - `gemma4:e4b` is the best measured model on the round 4 code (0.909), with red-flag recall
   1.00, every injection resisted, and the first sentence at 2.8 s p50 (5.9 s p95). With the
-  acknowledgement the first words are handed to the watch at once. Both targets are met:
-  first words within 1.5 s and the first sentence within 3 s, at the median.
+  acknowledgement the first words are handed to the watch at once. Both targets are met on
+  the evaluation set: first words within 1.5 s and the first sentence within 3 s, at the
+  median. On a whole talk turn the first sentence takes 3.5 to 5.5 s (measured on staging,
+  below).
 - `gemma4:e2b` (0.882) is the only other model inside the 0.03 band and the fastest of those
   (1.9 s). It is the second model in the chain, loaded only when the primary has not started
   inside the first-token budget.
@@ -186,14 +188,57 @@ What this means for the person: IRA answers at once with a short line, and the r
 follows within about three seconds on the 4 vCPU machine `docs/DEPLOY.md` describes, against
 about ten seconds in round 3 (and fifteen after a quiet spell, when the model had unloaded).
 
+### Measured again on the staging stack (round 4, phase 3)
+
+The evaluation's prompts are shorter than a real talk turn. Recording the film against the
+real model on the staging stack (a person with a care record, about 270 prompt tokens read in
+full on every turn, because Gemma 4's sliding window leaves Ollama no prompt cache) found that
+the numbers above were not what a person got, and four faults behind it (D-073): the model
+never reloaded once cold, the warm request loaded it with a different context so the first
+turn loaded it again, the 3-second first-token budget handed every real turn to the set lines,
+and the browser watch held the acknowledgement back until the whole reply had arrived. After
+the fixes, measured on the same 4 vCPU machine through the server's talk endpoint:
+
+- **First words:** the acknowledgement arrives with the first byte of the reply (under 0.1 s).
+- **The model's first sentence:** 3.5 to 5.5 s after the person spoke, over five turns
+  (`gemma4:e4b`, loaded), against 2.8 s p50 on the evaluation set. The 3-second target for
+  the first sentence is therefore met on the evaluation set and **not** on a whole talk turn;
+  the acknowledgement is what the person hears in the meantime.
+- **The budgets now:** 8 s for the primary's first token (`IRA_CARE_MODEL_FIRST_TOKEN_S`),
+  12 s for the first sentence; a model not in memory is not asked inside a turn, and the
+  primary is loaded in the background (with the turn's own context size) for the next one.
+- **What would close the gap:** a shorter talk prompt, or a GPU (below), which processes the
+  prompt in tens of milliseconds.
+
 ### What a small GPU server would give
 
-Nothing below was measured on this machine: it has no GPU. Each figure says where it was read.
-A measurement of the same prompts on Kaggle's free GPU is scripted
-(`scripts/training/kaggle_ollama_bench.py`, run with `scripts/training/run_kaggle.py gpu_bench`);
-on 24 November 2026 it waited over an hour in Kaggle's queue for a GPU, and its numbers are
-added here when it has run.
-The product does not need a GPU; one makes the model's part of a turn several times faster.
+The product does not need a GPU; one makes the model's part of a turn many times faster.
+
+**Measured on Kaggle's free GPU (24 November 2026).** `scripts/training/kaggle_ollama_bench.py`,
+run with `scripts/training/run_kaggle.py gpu_bench` as a private kernel, installed the same
+Ollama (0.40.18) on an NVIDIA Tesla T4 (16 GB; the kernel had two, Ollama used them as its
+scheduler chose) and timed the same prompt shapes the conversation service sends: 30 talk
+turns from the evaluation set (the round 4 system prompt and context lines) and 15 answer
+readings as JSON, each model loaded and kept loaded, `num_ctx` 1024. The raw report is
+`docs/evidence/training/gpu_bench.json` (the run took 864 s of GPU time). The first run that
+day stopped before measuring anything (Kaggle's image has no `zstd`, which the Ollama installer
+needs; the kernel now installs it).
+
+| Model | First token p50 | First sentence p50 / p95 | Whole reply p50 | Prompt tokens/s | Generated tokens/s | Answer read as JSON p50 |
+| --- | --- | --- | --- | --- | --- | --- |
+| `gemma4:e4b` | 0.10 s | 0.18 s / 0.34 s | 0.61 s | 1,682 | 57.7 | 0.83 s (15 of 15 valid) |
+| `gemma4:e2b` | 0.05 s | 0.15 s / 0.22 s | 0.34 s | 3,820 | 91.9 | 0.50 s (15 of 15) |
+| `qwen3.5:2b` | 0.07 s | 0.27 s / 0.53 s | 0.72 s | 2,366 | 66.6 | 1.03 s (15 of 15) |
+| `gemma4:12b` | 0.36 s | 0.94 s / 1.22 s | 1.60 s | 446 | 25.6 | 2.79 s (15 of 15) |
+
+Against this machine's four cores (prompt about 100 tokens a second, generation 3.5 to 5
+tokens a second for `gemma4:e4b`), the T4 reads the prompt about 17 times faster and writes
+about 12 to 16 times faster: the chosen model's first sentence comes in under a fifth of a
+second, and even `gemma4:12b`, the best reader of check-in answers, has its first sentence
+within about a second. Quality is the same on either (the same weights); only the time
+changes. A T4 is a 2018 data-centre card; the cards below are newer.
+
+Each figure below was read elsewhere, as it says.
 
 - **Why the CPU is the limit.** On four cores, `gemma4:e4b` processes the prompt at about
   100 tokens a second and generates at 3.5 to 5 tokens a second (measured here, round 4

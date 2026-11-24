@@ -1,14 +1,14 @@
 {
-  "measured_at": "2026-11-24T09:47:45+00:00",
-  "revision": "77e555446bffadc31f45df538a1ec3d04afdf943",
+  "measured_at": "2026-11-24T20:13:08+00:00",
+  "revision": "89e8c18e9bbebe76f315c8871db03806f70f4da7",
   "machine": "Linux-6.18.44-fc-v819-x86_64-with-glibc2.39",
   "result": "passed",
-  "total_seconds": 192,
+  "total_seconds": 186,
   "steps": [
     {
       "step": "clone",
       "status": "ok",
-      "seconds": 0,
+      "seconds": 1,
       "note": ""
     },
     {
@@ -20,19 +20,19 @@
     {
       "step": "compose-up",
       "status": "ok",
-      "seconds": 12,
+      "seconds": 11,
       "note": ""
     },
     {
       "step": "pip-install",
       "status": "ok",
-      "seconds": 0,
+      "seconds": 1,
       "note": ""
     },
     {
       "step": "migrate",
       "status": "ok",
-      "seconds": 1,
+      "seconds": 2,
       "note": ""
     },
     {
@@ -50,13 +50,13 @@
     {
       "step": "dashboard-install",
       "status": "ok",
-      "seconds": 9,
+      "seconds": 8,
       "note": ""
     },
     {
       "step": "dashboard-build",
       "status": "ok",
-      "seconds": 32,
+      "seconds": 31,
       "note": ""
     },
     {
@@ -68,13 +68,13 @@
     {
       "step": "app-install",
       "status": "ok",
-      "seconds": 7,
+      "seconds": 8,
       "note": ""
     },
     {
       "step": "app-export",
       "status": "ok",
-      "seconds": 4,
+      "seconds": 3,
       "note": ""
     },
     {
@@ -86,13 +86,13 @@
     {
       "step": "seed",
       "status": "ok",
-      "seconds": 2,
+      "seconds": 3,
       "note": ""
     },
     {
       "step": "e2e-install",
       "status": "ok",
-      "seconds": 1,
+      "seconds": 0,
       "note": ""
     },
     {

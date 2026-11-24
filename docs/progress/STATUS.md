@@ -54,14 +54,36 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-15 | cost-cuts | `ci/cost-cuts` | Merged (pull request 35) |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | Merged (pull request 36) |
 
-Round 3 is merged to `main` (pull requests 20 to 36). Round 4 (the polish):
+Round 3 is merged to `main` (pull requests 20 to 36). Round 4 (the polish, pull requests 37 to 40):
 
 | # | Phase | Branch | State |
 | --- | --- | --- | --- |
 | R4-1 | fast-conversation | `feat/fast-conversation` | Merged (pull request 37) |
 | R4-2 | watch-design-renders | `fix/watch-design-renders` | Merged (pull request 38) |
-| R4-3 | demo-film-polish | `feat/demo-film-polish` | Pull request open; CI green |
-| R4-4 | polish-final | `docs/polish-final` | Not started |
+| R4-3 | demo-film-polish | `feat/demo-film-polish` | Merged (pull request 39) |
+| R4-4 | polish-final | `docs/polish-final` | Pull request 40; merges on green CI |
+
+## Round 4, phases 2 to 4 (24 November 2026)
+
+- **Phase 2 (pull request 38).** One look (graphite case `#2B2E33`, coral Help button
+  `#E2574C`; D-072) in the Blender model, the eight renders at 1600 × 1200, the 20-second
+  turntable, the glTF, `viewer.html` (three.js 0.170.0) and the dashboard's browser watch. The
+  exploded view is computed from each layer's height, 7 mm apart, in the order cover glass,
+  display, display frame, case with buttons, logic board, battery, sensor board, back cover;
+  labels drawn after rendering, each line ending on its part. Every render reviewed at full
+  size; the viewer exploded in headless Chromium with no console errors.
+- **Phase 3 (pull request 39).** The film `docs/film/ira_care.mp4`: 1920 × 1080, 30 fps,
+  5 min 6 s, 15.2 MB; title card, the turntable, the journey with cross-fades and zooms on the
+  key moments, captions, the Piper voice-over and IRA's own lines. Recording against the real
+  model found four conversation faults and one wording fault (D-073), each fixed with a test
+  that fails without its fix; after them, on staging, the acknowledgement arrives at once and
+  the model's first sentence 3.5 to 5.5 s after the person spoke. Local suites: care unit 159
+  passed, care database 366 passed, dashboard 36 passed. The clean-clone staging proof with
+  the end-to-end browser tests passed in 186 s on the merged tree
+  (`docs/evidence/staging/clean_clone_proof.json`).
+- **Phase 4 (pull request 40).** The documents brought in line with the merged code; the
+  Kaggle GPU measurement (below, in `docs/MODEL_CHOICE.md`); `FINAL_REPORT.md` section
+  "Round 4".
 
 ## Round 4, phase 1 (fast-conversation), measured locally (24 November 2026)
 

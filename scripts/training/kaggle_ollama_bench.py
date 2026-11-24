@@ -82,6 +82,8 @@ def pct(xs, p):
     return round(xs[min(len(xs) - 1, int(p * (len(xs) - 1)))], 3) if xs else None
 
 log("installing ollama")
+# The installer unpacks a .tar.zst; Kaggle's image has no zstd (first run, 24 November 2026).
+sh("apt-get install -y -q zstd >/dev/null 2>&1 || (apt-get update -q >/dev/null 2>&1 && apt-get install -y -q zstd >/dev/null 2>&1)")
 r = sh("curl -fsSL https://ollama.com/install.sh | sh")
 log(r.stdout[-400:] + r.stderr[-400:])
 subprocess.Popen("OLLAMA_KEEP_ALIVE=30m OLLAMA_MAX_LOADED_MODELS=1 ollama serve > /tmp/ollama.log 2>&1", shell=True)

@@ -1,7 +1,8 @@
 # IRA CARE: next step
 
-**Round 4 (the polish) is in progress.** Four phases, each one branch and one pull request
-squash-merged on green CI, from the latest `main`:
+**Round 4 (the polish) is complete** once pull request 40 merges: pull requests 37 to 40,
+each squash-merged on green CI from the latest `main`. What was built and measured, and what
+is left for the owner, is in `FINAL_REPORT.md` (section "Round 4"). The four phases:
 
 1. `feat/fast-conversation` (R4-1): IRA's first words within 1.5 s and first sentence within
    3 s on 4 vCPU; the 162-turn evaluation re-run for every variant; `docs/MODEL_CHOICE.md`
