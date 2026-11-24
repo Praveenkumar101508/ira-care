@@ -38,6 +38,9 @@ KNOWN_JOBS: frozenset[str] = frozenset({
     # IRA CARE: the daily retention purge of care data past each person's period
     # (care/retention.py).
     "care_retention",
+    # IRA CARE: keeps the conversation model loaded in Ollama between turns, so the
+    # first words after a quiet spell do not wait for a model load (care/conversation.py).
+    "care_model_warm",
 })
 
 #: What runs when ``IRA_WORKER_JOBS`` is unset. None of these calls a model.

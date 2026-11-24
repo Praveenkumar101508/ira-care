@@ -86,3 +86,70 @@ No hosted model API is used or available (D-056). The budgets: `IRA_CARE_MODEL_F
 (3 s by default: the chain moves to the next model), `IRA_CARE_MODEL_FIRST_SENTENCE_S` (now
 12 s: the set question takes over). The fine-tuning of the primary on synthetic care turns is
 phase 5 (`feat/own-models`); its before-and-after numbers are added to this file when it lands.
+
+## Round 4: a conversation that feels smooth on four CPU cores
+
+Target set for round 4 (phase 1, `feat/fast-conversation`): first spoken words within 1.5 s
+(p50) and the first full sentence within 3 s (p50) on the same 4 vCPU machine, red-flag recall
+still 1.00, quality no more than 0.03 below the best measured model. Everything below was
+measured on this machine on 24 November 2026 with `scripts/eval_care_model.py` over the
+evaluation set, which is now 162 turns (the 150 of round 3 plus the 12 of phase 7).
+
+__ROUND4_HARDWARE__
+
+### What was tried, one change at a time
+
+__ROUND4_VARIANTS__
+
+### The numbers, every candidate on the round 4 code
+
+__ROUND4_TABLE__
+
+### The choice
+
+__ROUND4_CHOICE__
+
+### What a small GPU server would give
+
+Nothing below was measured here: this machine has no GPU. Each figure says where it was read.
+The product does not need a GPU; one makes the model's part of a turn several times faster.
+
+- **Why the CPU is the limit.** On four cores, `gemma4:e4b` processes the prompt at about
+  100 tokens a second and generates at 3.5 to 5 tokens a second (measured here, round 4
+  bench runs); `qwen3.5:2b` generates at about 15 tokens a second. Token generation is bound
+  by memory bandwidth: a rule of thumb is tokens per second ≈ memory bandwidth ÷ model size
+  in memory, as a ceiling (read from a comparison of local inference engines at
+  https://computingforgeeks.com/ollama-vs-vllm-vs-llama-cpp/). A server's DDR4 gives tens
+  of GB/s; a small GPU gives hundreds.
+- **Measured by others on small GPUs.** Gemma 4 E4B at Q4_K_M: a user-reported 74 tokens a
+  second on an RTX 3060 12 GB with llama.cpp (LM Studio), about 128 on an RTX 4090, and a
+  listed 37.9 on an RTX 4060 8 GB where the model only just fits (all read from
+  https://willitrunai.com/models/gemma-4-e4b). Those are 10 to 30 times this machine's
+  generation rate; at 74 tokens a second a ten-token first sentence is ready in well under
+  half a second after the prompt is processed, and the prompt itself is processed in tens of
+  milliseconds. Estimates for the same card by other sites (26 to 61 tokens a second;
+  https://llmconfigurator.com/en/gpu/rtx-4060, https://modelfit.io/can-i-run/gemma4-e4b-q4-on-rtx-4060/)
+  are engine estimates, not measurements. A measurement of Gemma 4 E4B under Ollama on a
+  96 GB Blackwell card reported 196 tokens a second
+  (https://allenkuo.medium.com/gemma-4-on-vllm-vs-ollama-benchmarks-on-a-96-gb-blackwell-gpu-804ca4845a21),
+  which says what the ceiling looks like, not what a small server gives.
+- **What it would mean for IRA.** With `gemma4:12b` (8 GB on disk, about 9 GB loaded) on a
+  20 or 24 GB card, the model that read check-in answers best in round 3 could be primary
+  again with a first sentence well inside the 3 s target, and the secondary could stay
+  loaded beside it. The acknowledgement (D-070) and the prepared questions (D-071) would
+  still apply; they cost nothing.
+- **What it costs (read from the providers' pages on 24 November 2026; check the live price).**
+  A dedicated server with an NVIDIA RTX 4000 SFF Ada (20 GB) at Hetzner (GEX44) was launched at
+  €184 a month plus a one-off setup fee (https://www.hetzner.com/press-release/new-gpu-server;
+  the product page https://www.hetzner.com/dedicated-rootserver/gex44/ showed €184 to €205
+  and a price-adjustment note listed €232.30); its successor with an RTX PRO 4000 Blackwell
+  (24 GB), the GEX45, is listed at €214 a month
+  (https://www.hetzner.com/dedicated-rootserver/gex45/). A cloud instance with one NVIDIA L4
+  (24 GB) at Scaleway (L4-1-24G) is listed at €0.75 an hour, about €550 a month if left running
+  (https://www.scaleway.com/en/pricing/gpu/). The 4 vCPU, 16 GB machine `docs/DEPLOY.md`
+  describes costs a fraction of either, which is why the CPU path is the one that was made
+  to feel smooth.
+- **Nothing hosted.** A GPU server runs the same Ollama and the same open models on the care
+  team's own machine; no model API is involved (D-056). The only change to the deployment
+  is giving the `ollama` container the GPU through the NVIDIA container runtime, which
+  Ollama's Docker documentation describes (https://docs.ollama.com/docker).

@@ -171,6 +171,14 @@ def build_scheduler(jobs: frozenset[str] | None = None) -> AsyncIOScheduler:
         replace_existing=True,
     )
     add(
+        _care_model_warm,
+        trigger="interval",
+        seconds=600,
+        id="care_model_warm",
+        name="IRA CARE conversation model kept loaded",
+        replace_existing=True,
+    )
+    add(
         _care_reports,
         trigger="cron",
         minute=5,
@@ -434,6 +442,17 @@ async def _care_checkins() -> None:
         logger.debug("care check-ins: %s", outcome)
     except Exception as e:
         logger.error(f"care check-in cycle failed: {e}", exc_info=True)
+
+
+async def _care_model_warm() -> None:
+    """Keep the conversation model loaded in Ollama (keep_alive is 30 minutes;
+    this runs every ten), so the first person to speak after a quiet hour does
+    not wait for the model to load. Nothing happens with the fake model."""
+    try:
+        from care.conversation import warm_configured_model
+        await warm_configured_model()
+    except Exception as e:
+        logger.error(f"care model warm-up failed: {e}", exc_info=True)
 
 
 async def _care_monitoring() -> None:

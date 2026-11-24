@@ -52,7 +52,16 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-13 | founder-demo-data | `feat/founder-demo-data` | Merged (pull request 33) |
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | Merged (pull request 34) |
 | R3-15 | cost-cuts | `ci/cost-cuts` | Merged (pull request 35) |
-| R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | Built; truth check passes; pull request to follow |
+| R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | Merged (pull request 36) |
+
+Round 3 is merged to `main` (pull requests 20 to 36). Round 4 (the polish):
+
+| # | Phase | Branch | State |
+| --- | --- | --- | --- |
+| R4-1 | fast-conversation | `feat/fast-conversation` | In progress |
+| R4-2 | watch-design-renders | `fix/watch-design-renders` | Not started |
+| R4-3 | demo-film-polish | `feat/demo-film-polish` | Not started |
+| R4-4 | polish-final | `docs/polish-final` | Not started |
 
 ## Round 3, phase 15 (cost-cuts), measured from the Actions API (24 November 2026)
 

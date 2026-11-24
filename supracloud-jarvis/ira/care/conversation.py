@@ -94,11 +94,11 @@ class FakeModel:
     def _compose(messages) -> str:
         user = messages[-1]["content"]
         everything = "\n".join(m.get("content", "") for m in messages)
-        name = re.search(r"Name: (.+)", everything)
+        name = re.search(r"Name: ([^\n.]+)", everything)
         n = name.group(1).strip() if name else "there"
         if "Talk:" in user:
             return f"I'm here, {n}. Tell me more about that."
-        due = re.search(r"Medication due now: ([^\n;]+)", everything)
+        due = re.search(r"Medication due now: ([^\n;.]+)", everything)
         if due:
             return f"Hello {n}. Have you had {due.group(1).strip()} yet?"
         return f"Good to hear from you, {n}. How are you feeling today?"
@@ -131,12 +131,21 @@ class OllamaModel:
         self._transport = transport   # tests hand in an httpx.MockTransport
 
     def _options(self, max_tokens: int, temperature: float) -> dict:
-        return {"num_predict": max_tokens, "temperature": temperature, "num_ctx": 2048}
+        opts = {"num_predict": max_tokens, "temperature": temperature, "num_ctx": context_window()}
+        threads = _int_env("IRA_CARE_MODEL_THREADS")
+        if threads:
+            opts["num_thread"] = threads
+        return opts
+
+    def _body(self, messages, *, stream: bool, max_tokens: int, temperature: float) -> dict:
+        # keep_alive: the model stays loaded between turns, so no turn pays the
+        # load (about 10 to 15 s on four cores) again (round 4, D-069).
+        return {"model": self.name, "messages": messages, "stream": stream, "think": False,
+                "keep_alive": keep_alive(), "options": self._options(max_tokens, temperature)}
 
     async def stream(self, messages, *, max_tokens, temperature):
         import httpx
-        body = {"model": self.name, "messages": messages, "stream": True, "think": False,
-                "options": self._options(max_tokens, temperature)}
+        body = self._body(messages, stream=True, max_tokens=max_tokens, temperature=temperature)
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout_s, connect=5.0), transport=self._transport) as client:
             async with client.stream("POST", f"{self.base_url}/api/chat", json=body) as r:
                 r.raise_for_status()
@@ -152,12 +161,23 @@ class OllamaModel:
 
     async def complete_json(self, messages, *, max_tokens):
         import httpx
-        body = {"model": self.name, "messages": messages, "stream": False, "format": "json", "think": False,
-                "options": self._options(max_tokens, 0.0)}
+        body = {**self._body(messages, stream=False, max_tokens=max_tokens, temperature=0.0), "format": "json"}
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout_s, connect=5.0), transport=self._transport) as client:
             r = await client.post(f"{self.base_url}/api/chat", json=body)
             r.raise_for_status()
             return ((r.json().get("message") or {}).get("content") or "").strip()
+
+
+    async def warm(self) -> float:
+        """Load the model (or refresh its keep-alive) with an empty request.
+        Returns the seconds it took: about 0.05 s when it was already loaded."""
+        import httpx
+        t0 = time.monotonic()
+        body = {"model": self.name, "keep_alive": keep_alive()}
+        async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout_s, connect=5.0), transport=self._transport) as client:
+            r = await client.post(f"{self.base_url}/api/generate", json=body)
+            r.raise_for_status()
+        return time.monotonic() - t0
 
 
 class ChainModel:
@@ -173,6 +193,13 @@ class ChainModel:
         self.first_token_s = first_token_s if first_token_s is not None else first_token_budget_s()
         self.name = self.models[0].name
         self.last_error: str = ""
+
+    async def warm(self) -> float:
+        """Load the primary only: on a 16 GB machine the second model would
+        push the first out (OLLAMA_MAX_LOADED_MODELS is 1 in the deployment)."""
+        first = self.models[0]
+        warm = getattr(first, "warm", None)
+        return await warm() if warm else 0.0
 
     @property
     def first_sentence_budget(self) -> float:
@@ -216,12 +243,47 @@ class ChainModel:
         raise RuntimeError(f"no model in the chain answered ({self.last_error or last})")
 
 
-#: The free open-weight models the chain uses by default (docs/MODEL_CHOICE.md).
-DEFAULT_PRIMARY = "gemma4:12b"
-DEFAULT_SECONDARY = "gemma4:e4b"
+#: The free open-weight models the chain uses by default (docs/MODEL_CHOICE.md, round 4).
+DEFAULT_PRIMARY = "gemma4:e4b"
+DEFAULT_SECONDARY = "qwen3.5:2b"
 FIRST_TOKEN_S = 3.0
+#: How long Ollama keeps a model loaded after a turn, and the context window a turn is given.
+DEFAULT_KEEP_ALIVE = "30m"
+DEFAULT_NUM_CTX = 1024
 
 _override: Optional[Model] = None
+
+
+def _int_env(name: str, default: int = 0) -> int:
+    try:
+        return int(os.getenv(name) or default)
+    except ValueError:
+        return default
+
+
+def keep_alive() -> str:
+    return (os.getenv("IRA_CARE_MODEL_KEEP_ALIVE") or DEFAULT_KEEP_ALIVE).strip()
+
+
+def context_window() -> int:
+    return _int_env("IRA_CARE_MODEL_NUM_CTX", DEFAULT_NUM_CTX) or DEFAULT_NUM_CTX
+
+
+async def warm_configured_model() -> Optional[float]:
+    """Load the configured model so the first person to speak does not wait for
+    it. Called at server start and by the worker every few minutes; harmless
+    with the fake model or templates only (returns None)."""
+    model = configured_model()
+    warm = getattr(model, "warm", None)
+    if model is None or warm is None:
+        return None
+    try:
+        took = await warm()
+    except Exception as exc:  # noqa: BLE001 - a cold model is slow, not broken
+        logger.info("care conversation: could not warm the model (%s)", exc)
+        return None
+    logger.info("care conversation: model %s warm in %.2f s", getattr(model, "name", "?"), took)
+    return took
 
 
 def first_token_budget_s() -> float:
@@ -387,32 +449,47 @@ class Context:
 
 
 SYSTEM = (
-    "You are IRA, a kind, patient companion speaking aloud to an older person who lives alone. "
-    "Plain everyday words, warm and unhurried. Never give medical advice, never name a condition, never "
-    "suggest a dose. Never mention being a program. Speak in {language}."
+    "You are IRA, a kind companion speaking aloud to an older person living alone. "
+    "Short, plain and warm. No medical advice, no condition names, no doses. "
+    "Never say you are a program. Speak {language}."
 )
+
+#: Every prompt token costs about 10 ms on four CPU cores and Gemma's sliding-window
+#: attention means the prompt is processed afresh on every turn (round 4, D-069), so
+#: the context is kept to what the question needs: at most this many items per line
+#: and this many characters of memory.
+CONTEXT_ITEMS = 3
+CONTEXT_MEMORY_CHARS = 240
+
+_LANGUAGE_NAMES = {"en-gb": "British English", "en": "English", "en-us": "English", "cy": "Welsh", "pl": "Polish",
+                   "ur": "Urdu", "pa": "Punjabi", "bn": "Bengali", "gu": "Gujarati", "hi": "Hindi", "ta": "Tamil"}
+
+
+def language_name(code: str) -> str:
+    return _LANGUAGE_NAMES.get((code or "").lower(), code or "English")
 
 
 def _context_lines(ctx: Context) -> str:
-    lines = [f"Name: {ctx.name}", f"Time of day: {ctx.time_of_day}"]
+    lines = [f"Name: {ctx.name}. It is {ctx.time_of_day}."]
     if ctx.routines:
-        lines.append("Routines today: " + "; ".join(ctx.routines))
+        lines.append("Routines: " + "; ".join(list(ctx.routines)[:CONTEXT_ITEMS]) + ".")
     if ctx.medication_due:
-        lines.append("Medication due now: " + "; ".join(ctx.medication_due))
+        lines.append("Medication due now: " + "; ".join(list(ctx.medication_due)[:CONTEXT_ITEMS]) + ".")
     if ctx.earlier_today:
-        lines.append("Earlier today they said: " + "; ".join(ctx.earlier_today))
+        lines.append("Earlier today: " + "; ".join(list(ctx.earlier_today)[:CONTEXT_ITEMS]) + ".")
     if ctx.summary:
-        lines.append("What IRA remembers: " + ctx.summary)
+        memory = ctx.summary if len(ctx.summary) <= CONTEXT_MEMORY_CHARS else ctx.summary[:CONTEXT_MEMORY_CHARS].rsplit(" ", 1)[0] + "…"
+        lines.append("Memory: " + memory)
     return "\n".join(lines)
 
 
 def checkin_messages(ctx: Context, kind: str, subject: Optional[str] = None) -> list[dict]:
     about = f" It must mention {subject} by that name." if subject else ""
     return [
-        {"role": "system", "content": SYSTEM.format(language=ctx.language)},
+        {"role": "system", "content": SYSTEM.format(language=language_name(ctx.language))},
         {"role": "user", "content": (
-            f"Compose the next check-in. Topic: {kind}.{about} One short warm question only, at most two sentences, "
-            f"using the name. Reply with the words only.\n{_context_lines(ctx)}")},
+            f"Ask the next check-in question about {kind}.{about} One warm question, at most two short sentences, "
+            f"using the name. Words only.\n{_context_lines(ctx)}")},
     ]
 
 
@@ -472,11 +549,10 @@ def red_flag(text: str) -> bool:
 
 def answer_messages(kind: str, question: str, text: str, language: str = DEFAULT_LANGUAGE) -> list[dict]:
     return [
-        {"role": "system", "content": "You read an older person's spoken answer to a companion's question and fill "
-                                      "in a form. Reply with JSON only, with exactly these keys: wellbeing (good|ok|poor|unknown), "
-                                      "pain_mentioned (true|false), medication_taken (yes|no|unknown), needs_help (true|false), "
-                                      "mood_words (list of up to 6 single words), summary (one short sentence that does not "
-                                      "quote their words). Never diagnose."},
+        {"role": "system", "content": "Read an older person's spoken answer to a companion's question. Reply with JSON only: "
+                                      '{"wellbeing": good|ok|poor|unknown, "pain_mentioned": bool, "medication_taken": yes|no|unknown, '
+                                      '"needs_help": bool, "mood_words": [up to 6 words], "summary": "one short sentence in your '
+                                      'own words"}. "ok" is so-so or tired; "poor" is low, unwell or in pain. Never diagnose.'},
         {"role": "user", "content": f"Question kind: {kind}\nQuestion: {question}\nAnswer: {text}"},
     ]
 
@@ -587,12 +663,55 @@ async def read_answer(kind: str, question: str, text: str, *, subject: Optional[
 
 @dataclass
 class Turn:
-    """One reply: sentences to speak, and an optional action for the client."""
+    """One reply: sentences to speak, and an optional action for the client.
+    `acknowledgement` is the short line the rules speak at once while the
+    model composes `sentences` (round 4, D-070); it is spoken before them and
+    is not one of them."""
     sentences: list[str]
     action: Optional[dict] = None
     source: str = "model"
     red_flag: bool = False
     needs_help: bool = False
+    acknowledgement: Optional[str] = None
+
+    @property
+    def spoken(self) -> list[str]:
+        """Everything the person heard, in order."""
+        return ([self.acknowledgement] if self.acknowledgement else []) + list(self.sentences)
+
+
+# ── The instant acknowledgement ──────────────────────────────────────────────
+#
+# A person who has just spoken should hear something within a second or so, the
+# way a listener says "mm" before answering. The model's first sentence takes
+# two to four seconds on four CPU cores, so the rules choose one short line and
+# it is spoken at once; the model's sentences follow. The lines say nothing
+# about the content, so they can never be wrong, and they never carry a
+# question. IRA_CARE_INSTANT_ACK=off turns them off.
+
+_QUESTION_WORDS = re.compile(r"^(what|when|where|who|why|how|is|are|do|does|did|can|could|will|would|shall|should|have|has)\b", re.I)
+_ACK_QUESTION = ("Let me think, {name}.", "Let me see, {name}.", "Good question, {name}.")
+_ACK_STATEMENT = ("I see, {name}.", "I'm listening, {name}.", "Thank you for telling me, {name}.", "Mm, {name}.")
+_ACK_WORRY = ("I'm here, {name}.", "I hear you, {name}.")
+
+
+def instant_ack_on() -> bool:
+    return (os.getenv("IRA_CARE_INSTANT_ACK") or "on").strip().lower() not in ("off", "0", "false", "no")
+
+
+def acknowledgement(text: str, name: str, *, pick: Optional[Callable[[Sequence[str]], str]] = None) -> str:
+    """The short line spoken while the model composes. `pick` chooses among the
+    lines (random by default); the tests pass their own."""
+    import random
+    choose = pick or random.choice
+    t = (text or "").strip()
+    if _WORRY.search(t):
+        lines = _ACK_WORRY
+    elif t.endswith("?") or _QUESTION_WORDS.search(t):
+        lines = _ACK_QUESTION
+    else:
+        lines = _ACK_STATEMENT
+    return choose(lines).format(name=name)
 
 
 _CALL = re.compile(r"\b(call|ring|phone|dial)\s+(my\s+)?([a-z][a-z' -]{1,40})$", re.I)
@@ -709,12 +828,13 @@ def rule_reply(text: str, ctx: TalkContext) -> Optional[Turn]:
 def talk_messages(ctx: TalkContext, text: str, recent: Sequence[tuple[str, str]] = ()) -> list[dict]:
     personal = ""
     if ctx.topics_avoid:
-        personal += " Never bring up: " + ", ".join(ctx.topics_avoid) + "."
+        personal += " Never mention: " + ", ".join(list(ctx.topics_avoid)[:CONTEXT_ITEMS]) + "."
     if ctx.familiar_topics:
-        personal += " Topics the person enjoys: " + ", ".join(ctx.familiar_topics) + "."
-    msgs = [{"role": "system", "content": SYSTEM.format(language=ctx.language) +
-             " Keep replies to two or three short sentences. If asked for advice, say you cannot advise and offer to "
-             "tell the carer." + personal + " Here is what you know:\n" + _context_lines(ctx)}]
+        personal += " Enjoys: " + ", ".join(list(ctx.familiar_topics)[:CONTEXT_ITEMS]) + "."
+    who = ctx.redirect_name or ctx.carer_name
+    msgs = [{"role": "system", "content": SYSTEM.format(language=language_name(ctx.language)) +
+             f" Two or three short sentences. Asked for advice: you cannot advise, offer to tell {ctx.carer_name}. "
+             f"Worried, low or lonely: offer to let {who} know." + personal + "\n" + _context_lines(ctx)}]
     for speaker, words in recent[-6:]:
         msgs.append({"role": "assistant" if speaker == "companion" else "user", "content": words})
     msgs.append({"role": "user", "content": f"Talk: {text}"})
@@ -738,6 +858,9 @@ async def talk(text: str, ctx: TalkContext, *, recent: Sequence[tuple[str, str]]
         if on_sentence:
             on_sentence(fallback)
         return Turn([fallback], source="template")
+    ack = acknowledgement(text, ctx.name) if instant_ack_on() else None
+    if ack and on_sentence:
+        on_sentence(ack)
     spoken: list[str] = []
     try:
         async for sentence in stream_sentences(model, talk_messages(ctx, text, recent), max_tokens=120, temperature=0.6):
@@ -756,8 +879,8 @@ async def talk(text: str, ctx: TalkContext, *, recent: Sequence[tuple[str, str]]
         if not spoken:
             if on_sentence:
                 on_sentence(fallback)
-            return Turn([fallback], source="template")
-    return Turn(spoken, source=model.name)
+            return Turn([fallback], source="template", acknowledgement=ack)
+    return Turn(spoken, source=model.name, acknowledgement=ack)
 
 
 # ── Memory: the rolling summary ──────────────────────────────────────────────
