@@ -1,5 +1,9 @@
 # Which model IRA talks with, and why
 
+**Round 4 changed the choice** to `gemma4:e4b` then `gemma4:e2b`, with the model kept loaded,
+a shorter prompt, an instant acknowledgement and prepared check-in questions: see "Round 4"
+at the end. The round 3 sections are kept as they were measured.
+
 Measured on 2026-11-23 with `scripts/eval_care_model.py` over the 150-turn
 evaluation set in `supracloud-jarvis/ira/tests/care/eval/turns.jsonl` (nine categories; the
 README beside it says how each is scored). Every candidate is a free open-weight model served
@@ -86,3 +90,147 @@ No hosted model API is used or available (D-056). The budgets: `IRA_CARE_MODEL_F
 (3 s by default: the chain moves to the next model), `IRA_CARE_MODEL_FIRST_SENTENCE_S` (now
 12 s: the set question takes over). The fine-tuning of the primary on synthetic care turns is
 phase 5 (`feat/own-models`); its before-and-after numbers are added to this file when it lands.
+
+## Round 4: a conversation that feels smooth on four CPU cores
+
+Target set for round 4 (phase 1, `feat/fast-conversation`): first spoken words within 1.5 s
+(p50) and the first full sentence within 3 s (p50) on the same 4 vCPU machine, red-flag recall
+still 1.00, quality no more than 0.03 below the best measured model. Everything below was
+measured on this machine on 24 November 2026 with `scripts/eval_care_model.py` over the
+evaluation set, which is now 162 turns (the 150 of round 3 plus the 12 of phase 7).
+
+- Intel(R) Xeon(R) Processor @ 2.10GHz, 4 cores, 15.7 GB memory, no GPU, Ollama 0.40.18; the
+  same class of machine as round 3.
+- Each model ran alone (`OLLAMA_MAX_LOADED_MODELS=1`), loaded before its run and kept loaded,
+  one turn at a time, with the first-token and first-sentence budgets raised so the model, not
+  the fallback, was measured.
+- The raw reports, turn by turn, are in `docs/evidence/eval/round4/`; the variant timings in
+  `docs/evidence/eval/round4/variants.jsonl`.
+- **First words** is the time from the person's words reaching the conversation service to
+  the first line it hands the watch to speak. With the acknowledgement on (D-070) that line is
+  produced by the rules without waiting for anything, so it measures 0.0 s on the server; what
+  the person hears adds the network hop to the watch and the speech engine's start, which are
+  not measured here (they need the watch, `docs/READINESS.md`). **First sentence** is the time
+  to the model's first complete sentence, as round 3 measured it.
+
+### What was tried, one change at a time
+
+`gemma4:e4b`, 12 talk turns from the evaluation set per variant (6 for the cold one, whose
+turns take up to half a minute each), through the repository's own `conv.talk()`. Each line
+adds one change to the one above. Samples of 12 turns vary by about a second between runs on
+this machine; the 162-turn runs below are the figures to quote.
+
+| # | Variant | First words s, p50 | First sentence s, p50 / p95 |
+| --- | --- | --- | --- |
+| 1 | Round 3 code, the model unloaded before every turn (what the first person after a quiet spell met) | 15.4 | 15.4 / 30.9 |
+| 2 | Round 3 code, the model kept loaded (`keep_alive`) | 5.1 | 5.1 / 8.0 |
+| 3 | + the shorter prompt and capped context (context window still 2048) | 4.0 | 4.0 / 6.4 |
+| 4 | + a context window of 1024 | 3.5 | 3.5 / 5.7 |
+| 5 | + `num_thread` 4, one per core | 3.4 | 3.4 / 7.2 |
+| 6 | + the quantisation-aware 4-bit build of the same model (`gemma4:e4b-it-qat`) | 2.3 | 2.3 / 3.7 |
+| 7 | variant 4 + the instant acknowledgement (D-070) | 0.0 | 4.4 / 6.3 |
+
+Kept: 2, 3, 4 and 7. Not kept: 5 (no better at the median and worse at the 95th percentile
+than leaving the thread count to Ollama; the setting stays available as
+`IRA_CARE_MODEL_THREADS`). Variant 6 was measured on all 162 turns before it was decided (below).
+No quantisation below 4 bits is published for these models in Ollama's library, so none was
+tried. Two further changes have no latency of their own to measure on a talk turn: sentences
+now reach the watch as each one is spoken (the talk route used to wait for the whole reply),
+and a scheduled check-in's question is composed up to five minutes before it is due (D-071),
+so the watch asks it the moment it is due with no model time at all.
+
+### The numbers, every candidate on the round 4 code
+
+| Model (Ollama tag) | Quality | Red-flag recall | Advice refused | Injection resisted | Redirect | Check-in reading | First words s, p50 | First sentence s, p50 / p95 | Fallbacks | Minutes for 162 turns |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `gemma4:12b` | 0.895 | 1.00 | 0.92 | 1.00 | 0.92 | 0.73 | 0.0 | 10.5 / 12.8 | 0 | 31 |
+| `gemma4:e2b` | 0.882 | 1.00 | 0.92 | 0.95 | 0.77 | 0.53 | 0.0 | 1.9 / 3.5 | 0 | 10 |
+| `gemma4:e4b-it-qat` | 0.844 | 1.00 | 0.88 | 0.95 | 0.96 | 0.60 | 0.0 | 2.0 / 2.7 | 0 | 9 |
+| `gemma4:e4b` | 0.909 | 1.00 | 0.88 | 1.00 | 0.96 | 0.60 | 0.0 | 2.8 / 5.9 | 0 | 16 |
+| `qwen3.5:2b` | 0.834 | 1.00 | 0.88 | 1.00 | 0.96 | 0.00 | 0.0 | 1.6 / 2.4 | 1 | 6 |
+
+Every row ran the round 4 code with the acknowledgement on, on all 162 turns. Quality is the
+share of turns that pass every check in their category, weighted equally across categories, as
+in round 3. Red-flag recall is 1.00 for every row because the keyword rules run on every answer
+whatever the model says (D-056). Every model scores higher than in round 3 on the same weights
+(`gemma4:e4b` 0.779 then, 0.909 now; `gemma4:12b` 0.860 then, 0.895 now): the shorter prompt
+names the person to offer when someone sounds worried or low, and the redirect rate rose from
+0.05 to 0.96 for `gemma4:e4b`.
+
+- `qwen3.5:2b` read none of the 15 check-in answers: it writes the mood words as one string
+  ("fine thank you") where the form asks for a list, so every structured reading was refused
+  and the keyword rules alone were used (checked by hand on 24 November 2026).
+- `gemma4:e4b-it-qat`, the quantisation-aware 4-bit build of the same model, is the fastest
+  Gemma here (2.0 s), but its quality is 0.065 below the best.
+
+### The choice
+
+**Primary: `gemma4:e4b`. Secondary: `gemma4:e2b`.** Chosen as in round 3, quality first, then
+latency, now with the round 4 rule that a model may be at most 0.03 below the best measured.
+
+- `gemma4:e4b` is the best measured model on the round 4 code (0.909), with red-flag recall
+  1.00, every injection resisted, and the first sentence at 2.8 s p50 (5.9 s p95). With the
+  acknowledgement the first words are handed to the watch at once. Both targets are met:
+  first words within 1.5 s and the first sentence within 3 s, at the median.
+- `gemma4:e2b` (0.882) is the only other model inside the 0.03 band and the fastest of those
+  (1.9 s). It is the second model in the chain, loaded only when the primary has not started
+  inside the first-token budget.
+- `gemma4:12b` read check-in answers best (0.73 against 0.60) but takes 10.5 s to its first
+  sentence on four cores; it is the model to make primary on a machine with a GPU (below).
+- What is still slow: the 95th percentile of the first sentence (5.9 s) is above the 3 s
+  target, on long or emotional turns where the model writes a long first sentence. The
+  acknowledgement covers that wait; it does not shorten it. A check-in question never waits
+  on the model at all (D-071).
+
+What this means for the person: IRA answers at once with a short line, and the reply itself
+follows within about three seconds on the 4 vCPU machine `docs/DEPLOY.md` describes, against
+about ten seconds in round 3 (and fifteen after a quiet spell, when the model had unloaded).
+
+### What a small GPU server would give
+
+Nothing below was measured on this machine: it has no GPU. Each figure says where it was read.
+A measurement of the same prompts on Kaggle's free GPU is scripted
+(`scripts/training/kaggle_ollama_bench.py`, run with `scripts/training/run_kaggle.py gpu_bench`);
+on 24 November 2026 it waited over an hour in Kaggle's queue for a GPU, and its numbers are
+added here when it has run.
+The product does not need a GPU; one makes the model's part of a turn several times faster.
+
+- **Why the CPU is the limit.** On four cores, `gemma4:e4b` processes the prompt at about
+  100 tokens a second and generates at 3.5 to 5 tokens a second (measured here, round 4
+  bench runs); `qwen3.5:2b` generates at about 15 tokens a second. Token generation is bound
+  by memory bandwidth: a rule of thumb is tokens per second ≈ memory bandwidth ÷ model size
+  in memory, as a ceiling (read from a comparison of local inference engines at
+  https://computingforgeeks.com/ollama-vs-vllm-vs-llama-cpp/). A server's DDR4 gives tens
+  of GB/s; a small GPU gives hundreds.
+- **Measured by others on small GPUs.** Gemma 4 E4B at Q4_K_M: a user-reported 74 tokens a
+  second on an RTX 3060 12 GB with llama.cpp (LM Studio), about 128 on an RTX 4090, and a
+  listed 37.9 on an RTX 4060 8 GB where the model only just fits (all read from
+  https://willitrunai.com/models/gemma-4-e4b). Those are 10 to 30 times this machine's
+  generation rate; at 74 tokens a second a ten-token first sentence is ready in well under
+  half a second after the prompt is processed, and the prompt itself is processed in tens of
+  milliseconds. Estimates for the same card by other sites (26 to 61 tokens a second;
+  https://llmconfigurator.com/en/gpu/rtx-4060, https://modelfit.io/can-i-run/gemma4-e4b-q4-on-rtx-4060/)
+  are engine estimates, not measurements. A measurement of Gemma 4 E4B under Ollama on a
+  96 GB Blackwell card reported 196 tokens a second
+  (https://allenkuo.medium.com/gemma-4-on-vllm-vs-ollama-benchmarks-on-a-96-gb-blackwell-gpu-804ca4845a21),
+  which says what the ceiling looks like, not what a small server gives.
+- **What it would mean for IRA.** With `gemma4:12b` (8 GB on disk, about 9 GB loaded) on a
+  20 or 24 GB card, the model that read check-in answers best in round 3 could be primary
+  again with a first sentence well inside the 3 s target, and the secondary could stay
+  loaded beside it. The acknowledgement (D-070) and the prepared questions (D-071) would
+  still apply; they cost nothing.
+- **What it costs (read from the providers' pages on 24 November 2026; check the live price).**
+  A dedicated server with an NVIDIA RTX 4000 SFF Ada (20 GB) at Hetzner (GEX44) was launched at
+  €184 a month plus a one-off setup fee (https://www.hetzner.com/press-release/new-gpu-server;
+  the product page https://www.hetzner.com/dedicated-rootserver/gex44/ showed €184 to €205
+  and a price-adjustment note listed €232.30); its successor with an RTX PRO 4000 Blackwell
+  (24 GB), the GEX45, is listed at €214 a month
+  (https://www.hetzner.com/dedicated-rootserver/gex45/). A cloud instance with one NVIDIA L4
+  (24 GB) at Scaleway (L4-1-24G) is listed at €0.75 an hour, about €550 a month if left running
+  (https://www.scaleway.com/en/pricing/gpu/). The 4 vCPU, 16 GB machine `docs/DEPLOY.md`
+  describes costs a fraction of either, which is why the CPU path is the one that was made
+  to feel smooth.
+- **Nothing hosted.** A GPU server runs the same Ollama and the same open models on the care
+  team's own machine; no model API is involved (D-056). The only change to the deployment
+  is giving the `ollama` container the GPU through the NVIDIA container runtime, which
+  Ollama's Docker documentation describes (https://docs.ollama.com/docker).

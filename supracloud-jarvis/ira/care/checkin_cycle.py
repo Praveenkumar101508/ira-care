@@ -66,6 +66,7 @@ class CycleOutcome:
     missed: int = 0
     paused_for_visit: int = 0
     reminders_asked: int = 0
+    prepared: int = 0
     errors: int = 0
 
 
@@ -155,6 +156,10 @@ async def _advance_person(conn, person, settings, now, outcome: CycleOutcome, rn
         local = rules.local_now(now, tz)
         if c["status"] == "scheduled":
             if c["scheduled_at"] > now:
+                if c["scheduled_at"] - now <= PREPARE_AHEAD and not c["question_text"] and c["reminder_id"] is None \
+                        and c["question_kind"] not in ("safety", "morning"):
+                    await prepare_question(conn, dict(person), dict(c), rng)
+                    outcome.prepared += 1
                 continue
             if carer_here:
                 await conn.execute("UPDATE care_checkins SET scheduled_at = $2 WHERE id = $1",
@@ -200,6 +205,41 @@ async def _advance_person(conn, person, settings, now, outcome: CycleOutcome, rn
 
 #: How far a due check-in moves while a carer is with the person.
 VISIT_PAUSE = dt.timedelta(minutes=10)
+
+#: How long before a check-in is due its question is composed, so the watch
+#: speaks it the moment it is due instead of after the model's seconds (round 4, D-071).
+PREPARE_AHEAD = dt.timedelta(minutes=5)
+
+
+async def _choose(conn, person: dict, row: dict, local, rng) -> tuple[rules.QuestionChoice, str]:
+    """The rules' choice of question for this check-in and its template words."""
+    person_id = person["id"]
+    routines = await conn.fetch("SELECT * FROM care_routines WHERE person_id = $1 AND active", person_id)
+    medications = await conn.fetch("SELECT * FROM care_medications WHERE person_id = $1 AND active", person_id)
+    since = row["scheduled_at"] - dt.timedelta(hours=36)
+    events = await conn.fetch(
+        "SELECT * FROM care_medication_events WHERE person_id = $1 AND due_at >= $2", person_id, since)
+    recent = await conn.fetch(
+        "SELECT * FROM care_checkins WHERE person_id = $1 AND id <> $2 ORDER BY scheduled_at DESC LIMIT 12",
+        person_id, row["id"])
+    choice = rules.choose_question(local, routines=routines, medications=medications,
+                                   medication_events=events, recent=recent, rng=rng)
+    text = rules.question_text(choice, person["preferred_name"] or person["display_name"], time_of_day=local.time(), rng=rng)
+    return choice, text
+
+
+async def prepare_question(conn, person: dict, row: dict, rng) -> dict:
+    """Compose a scheduled check-in's question a few minutes early and keep it
+    on the row (still 'scheduled'). `due_checkin` then asks those words at
+    once. The choice is made for the scheduled time, so a dose due at ten is
+    asked about at ten whether the words were composed at five to or at ten."""
+    local = rules.local_now(row["scheduled_at"], person["timezone"])
+    choice, template = await _choose(conn, person, row, local, rng)
+    text, source = await _compose(conn, person, choice, template, row["scheduled_at"])
+    updated = await conn.fetchrow(
+        "UPDATE care_checkins SET question_kind = $2, question_text = $3, question_source = $4 "
+        "WHERE id = $1 AND status = 'scheduled' RETURNING *", row["id"], choice.kind, text, source)
+    return dict(updated or row)
 
 #: How long after the wake deadline the morning check can still be asked.
 MORNING_WINDOW = dt.timedelta(hours=3)
@@ -294,29 +334,23 @@ async def due_checkin(principal: Principal, device: dict, now: Optional[dt.datet
                 "INSERT INTO care_transcripts (person_id, checkin_id, speaker, text) VALUES ($1, $2, 'companion', $3)",
                 person_id, row["id"], row["question_text"])
             return _public_checkin(dict(row))
-        routines = await conn.fetch(
-            "SELECT * FROM care_routines WHERE person_id = $1 AND active", person_id)
-        medications = await conn.fetch(
-            "SELECT * FROM care_medications WHERE person_id = $1 AND active", person_id)
-        since = now - dt.timedelta(hours=36)
-        events = await conn.fetch(
-            "SELECT * FROM care_medication_events WHERE person_id = $1 AND due_at >= $2", person_id, since)
-        recent = await conn.fetch(
-            "SELECT * FROM care_checkins WHERE person_id = $1 AND id <> $2 ORDER BY scheduled_at DESC LIMIT 12",
-            person_id, row["id"])
-        choice = rules.choose_question(local, routines=routines, medications=medications,
-                                       medication_events=events, recent=recent, rng=rng)
-        text = rules.question_text(choice, person["preferred_name"] or person["display_name"],
-                                   time_of_day=local.time(), rng=rng)
-        text, source = await _compose(conn, dict(person), choice, text, now)
+        if row["question_text"]:
+            # Prepared by the scheduler a few minutes ago (prepare_question): spoken at once.
+            kind, text, source, subject_id = row["question_kind"], row["question_text"], row["question_source"], None
+            prepared = True
+        else:
+            choice, text = await _choose(conn, dict(person), dict(row), local, rng)
+            text, source = await _compose(conn, dict(person), choice, text, now)
+            kind, subject_id, prepared = choice.kind, choice.subject_id, False
         row = await conn.fetchrow(
             "UPDATE care_checkins SET status = 'asked', asked_at = $2, question_kind = $3, question_text = $4, "
-            "question_source = $5 WHERE id = $1 RETURNING *", row["id"], now, choice.kind, text, source)
+            "question_source = $5 WHERE id = $1 RETURNING *", row["id"], now, kind, text, source)
         await conn.execute(
             "INSERT INTO care_transcripts (person_id, checkin_id, speaker, text) VALUES ($1, $2, 'companion', $3)",
             person_id, row["id"], text)
         out = _public_checkin(dict(row))
-        out["subject_id"] = choice.subject_id
+        out["subject_id"] = subject_id
+        out["prepared"] = prepared
         return out
 
 

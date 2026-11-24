@@ -33,6 +33,8 @@ JOBS = {
                    "artefact": ("HEADS_PART", "classifier_heads.json"), "datasets": ["ira-care-training-data"]},
     "conversation": {"code": "kaggle_conversation_qlora.py", "slug": "ira-care-conversation-qlora", "title": "ira-care-conversation-qlora",
                      "artefact": None},
+    # Round 4: how fast the open models answer on Kaggle's free GPU (docs/MODEL_CHOICE.md).
+    "gpu_bench": {"code": "kaggle_ollama_bench.py", "slug": "ira-care-gpu-bench", "title": "ira-care-gpu-bench", "artefact": None},
 }
 
 

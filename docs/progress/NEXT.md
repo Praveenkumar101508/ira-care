@@ -1,5 +1,26 @@
 # IRA CARE: next step
 
+**Round 4 (the polish) is in progress.** Four phases, each one branch and one pull request
+squash-merged on green CI, from the latest `main`:
+
+1. `feat/fast-conversation` (R4-1): IRA's first words within 1.5 s and first sentence within
+   3 s on 4 vCPU; the 162-turn evaluation re-run for every variant; `docs/MODEL_CHOICE.md`
+   ("Round 4"), D-069 to D-071.
+2. `fix/watch-design-renders` (R4-2): one product look (graphite case, coral Help button, the
+   app's colours) across the Blender model, the eight renders, the turntable, the viewer and
+   the browser watch; the exploded view in the right order with legible labels.
+3. `feat/demo-film-polish` (R4-3): the film again at 1080p, 4 to 6 minutes, under 60 MB.
+4. `docs/polish-final` (R4-4): the documents in line with the merged code; a dated round 4
+   section in `FINAL_REPORT.md`; the truth check.
+
+The state of each phase is in `STATUS.md` (table "Round 4"). To continue in a new session:
+read `STATUS.md`, this file, `docs/BUILD_RULES.md` and `docs/DECISIONS.md`, then carry on with
+the same rules.
+
+---
+
+## Round 3 record (kept for history)
+
 **Round 3 (the completion run) is complete.** Phases 0 to 15 are merged (pull requests 20
 to 35) and phase 16 is pull request 36, which merges on green CI. The state of every phase
 is in `STATUS.md` (table "Round 3"); what was built, measured and left for the owner is in

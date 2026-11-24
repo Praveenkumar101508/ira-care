@@ -132,7 +132,8 @@ def test_talk_streams_guarded_sentences_from_the_model_and_falls_back_when_it_mi
     ctx = conv.TalkContext(name="Tess", carer_name="Sam")
     heard: list[str] = []
     t = run(conv.talk("I had a lovely walk this morning", ctx, model=conv.FakeModel(), on_sentence=heard.append))
-    assert t.source == "fake" and heard == t.sentences and "Tess" in t.sentences[0]
+    assert t.source == "fake" and heard == t.spoken and "Tess" in t.sentences[0]
+    assert heard[0] == t.acknowledgement and heard[1:] == t.sentences  # round 4: the acknowledgement comes first
     bad = conv.FakeModel(reply="You should take two more pills. That is a stroke symptom.")
     t = run(conv.talk("I feel odd", ctx, model=bad))
     assert t.source == "template" and t.sentences == ["I'm here with you, Tess. Shall I let Sam know you'd like a word?"]
@@ -164,3 +165,67 @@ def test_configured_model_follows_the_setting(monkeypatch):
     from pydantic import ValidationError
     with pytest.raises(ValidationError):
         conv.StructuredAnswer(mood_words="not a list")
+
+
+# ── Round 4: the instant acknowledgement and the model kept warm ─────────────
+
+def test_the_acknowledgement_fits_the_kind_of_thing_said_and_never_asks():
+    first = lambda lines: lines[0]  # noqa: E731
+    assert conv.acknowledgement("What's the weather like today?", "Tess", pick=first) == "Let me think, Tess."
+    assert conv.acknowledgement("I went to the shops this morning", "Tess", pick=first) == "I see, Tess."
+    assert conv.acknowledgement("I'm worried about Sravani, she hasn't rung", "Tess", pick=first) == "I'm here, Tess."
+    for text in ("how are you", "The garden is lovely.", "I feel lonely tonight"):
+        for pick in (lambda l: l[0], lambda l: l[-1]):
+            line = conv.acknowledgement(text, "Tess", pick=pick)
+            assert "?" not in line and "Tess" in line and conv.guard(line).ok
+
+
+def test_talk_speaks_the_acknowledgement_at_once_and_keeps_it_apart_from_the_sentences(monkeypatch):
+    ctx = conv.TalkContext(name="Tess", carer_name="Sam", contacts=[])
+    model = conv.FakeModel(reply="That sounds lovely, Tess. The roses must be out.")
+    heard: list[str] = []
+    turn = run(conv.talk("I had a walk in the garden", ctx, model=model, on_sentence=heard.append))
+    assert turn.acknowledgement and heard[0] == turn.acknowledgement
+    assert turn.sentences == ["That sounds lovely, Tess.", "The roses must be out."] and len(turn.sentences) == 2
+    assert heard == turn.spoken == [turn.acknowledgement, *turn.sentences]
+    # The rules' own replies are instant and get no acknowledgement.
+    heard.clear()
+    turn = run(conv.talk("What's on today?", ctx, model=model, on_sentence=heard.append))
+    assert turn.acknowledgement is None and heard == turn.sentences
+    # Switched off, nothing is spoken before the model.
+    monkeypatch.setenv("IRA_CARE_INSTANT_ACK", "off")
+    heard.clear()
+    turn = run(conv.talk("I had a walk in the garden", ctx, model=model, on_sentence=heard.append))
+    assert turn.acknowledgement is None and heard == turn.sentences
+    # When the model then fails, the acknowledgement was still heard, then the fallback line.
+    monkeypatch.delenv("IRA_CARE_INSTANT_ACK")
+    heard.clear()
+    turn = run(conv.talk("I had a walk in the garden", ctx, model=conv.FakeModel(broken=True), on_sentence=heard.append))
+    assert turn.source == "template" and heard == [turn.acknowledgement, conv.FALLBACK_LINE.format(name="Tess", carer="Sam")]
+
+
+def test_the_context_is_kept_short_for_the_prompt():
+    ctx = conv.TalkContext(name="Tess", routines=[f"routine {i}" for i in range(8)], earlier_today=[f"said {i}" for i in range(8)],
+                           summary="x" * 2000, contacts=[], language="en-GB")
+    lines = conv._context_lines(ctx)
+    assert lines.count("routine") == conv.CONTEXT_ITEMS and lines.count("said") == conv.CONTEXT_ITEMS
+    assert len(lines) < 600 and "Memory: " in lines
+    assert "British English" in conv.talk_messages(ctx, "hello")[0]["content"]
+    assert conv.language_name("xx-YY") == "xx-YY"
+
+
+def test_the_configured_model_is_warmed_only_when_it_can_be(monkeypatch):
+    monkeypatch.setenv("IRA_CARE_MODEL", "fake")
+    conv.use_model(None)
+    assert run(conv.warm_configured_model()) is None       # the fake model has nothing to load
+    monkeypatch.setenv("IRA_CARE_MODEL", "off")
+    assert run(conv.warm_configured_model()) is None       # templates only
+
+    class Warmable(conv.FakeModel):
+        async def warm(self):
+            return 0.25
+    conv.use_model(Warmable())
+    try:
+        assert run(conv.warm_configured_model()) == 0.25
+    finally:
+        conv.use_model(None)
