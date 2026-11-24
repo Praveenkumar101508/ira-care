@@ -54,14 +54,15 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-15 | cost-cuts | `ci/cost-cuts` | Merged (pull request 35) |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | Merged (pull request 36) |
 
-Round 3 is merged to `main` (pull requests 20 to 36). Round 4 (the polish, pull requests 37 to 40):
+Round 3 is merged to `main` (pull requests 20 to 36). Round 4 (the polish, pull requests 37 to 40, and the GPU profile, 41):
 
 | # | Phase | Branch | State |
 | --- | --- | --- | --- |
 | R4-1 | fast-conversation | `feat/fast-conversation` | Merged (pull request 37) |
 | R4-2 | watch-design-renders | `fix/watch-design-renders` | Merged (pull request 38) |
 | R4-3 | demo-film-polish | `feat/demo-film-polish` | Merged (pull request 39) |
-| R4-4 | polish-final | `docs/polish-final` | Pull request 40; merges on green CI |
+| R4-4 | polish-final | `docs/polish-final` | Merged (pull request 40) |
+| R4-5 | gpu-profile (asked for after the round) | `feat/gpu-profile` | Pull request 41; merges on green CI |
 
 ## Round 4, phases 2 to 4 (24 November 2026)
 

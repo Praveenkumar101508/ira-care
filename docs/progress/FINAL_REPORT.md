@@ -66,13 +66,25 @@ back. A fifth fault was wording: "Have you taken your the evening tablet yet?".
 - Staging from a clean clone of the merged phase 3 tree, with the end-to-end browser tests:
   passed in 186 s.
 
+### Round 4: the GPU profile (added after the round, 24 November 2026)
+
+The owner chose the GPU option. `deploy/compose.gpu.yml` (D-074) runs the model server on an
+NVIDIA GPU with `gemma4:12b` then `gemma4:e4b`, both loaded. Measured with the backend's own
+code on Kaggle's Tesla T4 over the 162-turn evaluation, three passes: quality 0.903, red-flag
+recall 1.00, check-in answers read right 12 of 15 in every pass (against 8 to 9 for the CPU's
+model alone on the same GPU), the model's first sentence 0.92 s at the median
+(`docs/MODEL_CHOICE.md`, "The GPU profile"; `docs/evidence/eval/gpu/`). Kaggle measured the
+profile; it cannot run it for real people (sessions end, no incoming connections, and the
+conversations must stay on the care team's machine). To use it, rent a server with an NVIDIA
+GPU of 16 GB or more and follow `docs/DEPLOY.md`, "With a GPU".
+
 ### Round 4: needs the owner
 
 - Delete the merged branches `feat/fast-conversation`, `fix/watch-design-renders`,
   `feat/demo-film-polish` and, once pull request 40 is merged, `docs/polish-final` (this
   session cannot delete branches).
-- Decide whether the first sentence should be faster on a whole talk turn: a shorter talk
-  prompt, or a GPU server (`docs/MODEL_CHOICE.md`, "What a small GPU server would give").
+- Rent a server with an NVIDIA GPU of 16 GB or more and start the GPU profile on it
+  (`docs/DEPLOY.md`, "With a GPU"); the profile is built and measured, the server is the owner's.
 - Watch the film and the renders and say whether the look is the one wanted; the colours are
   in one place (`LOOK` in `scripts/hardware/build_watch.py`) and the renders, turntable,
   viewer and film are remade from scripts.

@@ -35,7 +35,40 @@ JOBS = {
                      "artefact": None},
     # Round 4: how fast the open models answer on Kaggle's free GPU (docs/MODEL_CHOICE.md).
     "gpu_bench": {"code": "kaggle_ollama_bench.py", "slug": "ira-care-gpu-bench", "title": "ira-care-gpu-bench", "artefact": None},
+    # The GPU profile (D-074): the real evaluation, through the backend's own code, on Kaggle's GPU.
+    # The code goes up first as a private dataset (upload_code); the reports come back in parts.
+    "gpu_eval": {"code": "kaggle_gpu_eval.py", "slug": "ira-care-gpu-eval", "title": "ira-care-gpu-eval",
+                 "artefact": ("EVAL_PART", "gpu_eval_reports.json"), "datasets": ["ira-care-code"], "upload_code": True},
 }
+
+CODE_DATASET = "ira-care-code"
+
+
+def upload_code(workdir: Path) -> None:
+    """Put the backend's code (supracloud-jarvis/ira without its tests, plus the evaluation set)
+    on Kaggle as a private dataset, as a new version when it already exists. Nothing secret is
+    in it: the same files are in this repository, which the secret scan checks."""
+    import subprocess
+    import tarfile
+    user = os.environ["KAGGLE_USERNAME"]
+    ira = ROOT / "supracloud-jarvis" / "ira"
+    workdir.mkdir(parents=True, exist_ok=True)
+    keep = lambda info: None if "__pycache__" in info.name or info.name.endswith(".pyc") else info
+    with tarfile.open(workdir / "ira-code.tar.gz", "w:gz") as tar:
+        for child in sorted(ira.iterdir()):
+            if child.name not in ("tests", ".venv", "node_modules"):
+                tar.add(child, arcname=f"ira/{child.name}", filter=keep)
+        for rel in ("tests/__init__.py", "tests/care/__init__.py", "tests/care/eval"):
+            tar.add(ira / rel, arcname=f"ira/{rel}", filter=keep)
+    meta = {"title": CODE_DATASET, "id": f"{user}/{CODE_DATASET}", "licenses": [{"name": "other"}]}
+    (workdir / "dataset-metadata.json").write_text(json.dumps(meta, indent=2))
+    out = subprocess.run(["kaggle", "datasets", "version", "-p", str(workdir), "-m", "code for the GPU evaluation"], capture_output=True, text=True, check=False)
+    if out.returncode != 0 or "not found" in (out.stdout + out.stderr).lower():
+        out = subprocess.run(["kaggle", "datasets", "create", "-p", str(workdir)], capture_output=True, text=True, check=False)
+    print((out.stdout or out.stderr).strip())
+    if out.returncode != 0:
+        raise SystemExit(out.returncode)
+    time.sleep(60)   # Kaggle processes a new version before a kernel can attach it
 
 
 def kaggle_api():
@@ -97,6 +130,8 @@ def main() -> int:
     api = kaggle_api()
     started = dt.datetime.now(dt.UTC)
     if not args.fetch:
+        if job.get("upload_code"):
+            upload_code(ROOT / ".kaggle-runs" / "code")
         push(job, ROOT / ".kaggle-runs" / args.job)
         time.sleep(20)
         deadline = time.time() + args.wait_minutes * 60
@@ -130,7 +165,7 @@ def main() -> int:
     run = {"job": args.job, "kernel": f"{os.environ['KAGGLE_USERNAME']}/{job['slug']}", "status": status(api, job["slug"]),
            "pushed_at": started.isoformat(timespec="seconds"), "fetched_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
            "output_files": files, "gpu_seconds_reported_by_script": (metrics or {}).get("seconds"), "metrics": metrics,
-           "log_tail": [ln for ln in lines if not ln.startswith(("TFLITE_B64", "HEADS"))][-40:]}
+           "log_tail": [ln for ln in lines if not ln.startswith(("TFLITE_B64", "HEADS", "EVAL_PART"))][-40:]}
     (EVIDENCE / f"{args.job}.json").write_text(json.dumps(run, indent=2) + "\n")
     print(json.dumps({k: v for k, v in run.items() if k not in ("metrics", "log_tail")}, indent=2))
     if metrics:

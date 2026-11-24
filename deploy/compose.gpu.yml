@@ -1,0 +1,40 @@
+# The GPU profile (D-074): the same stack on a machine with an NVIDIA GPU (16 GB or more).
+# The model server uses the GPU, keeps both models loaded, and the chain becomes gemma4:12b
+# (the best reader of check-in answers) then gemma4:e4b. Measured on Kaggle's Tesla T4 in
+# docs/MODEL_CHOICE.md ("The GPU profile"). Needs the NVIDIA driver and the NVIDIA Container
+# Toolkit on the host (docs/DEPLOY.md, "With a GPU").
+#
+#   docker compose -f deploy/docker-compose.yml -f deploy/compose.gpu.yml --env-file deploy/.env up -d
+#
+# Without this file the stack runs on the CPU exactly as before.
+
+# Its own settings, so a .env made for the CPU (IRA_CARE_MODEL_PRIMARY=gemma4:e4b) does not
+# carry the CPU's models onto the GPU.
+x-gpu-models: &gpu-models
+  IRA_CARE_MODEL_PRIMARY: ${IRA_CARE_GPU_MODEL_PRIMARY:-gemma4:12b}
+  IRA_CARE_MODEL_SECONDARY: ${IRA_CARE_GPU_MODEL_SECONDARY:-gemma4:e4b}
+
+services:
+  ollama:
+    environment:
+      # Both models fit in a 16 GB card's memory together (about 9 GB and 4 GB at 1024 tokens of
+      # context), so the second never pushes the first out.
+      OLLAMA_MAX_LOADED_MODELS: "2"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  ollama-pull:
+    command: ["ollama pull ${IRA_CARE_GPU_MODEL_PRIMARY:-gemma4:12b} && ollama pull ${IRA_CARE_GPU_MODEL_SECONDARY:-gemma4:e4b}"]
+
+  api:
+    environment:
+      <<: *gpu-models
+
+  worker:
+    environment:
+      <<: *gpu-models

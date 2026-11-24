@@ -1,0 +1,299 @@
+{
+  "job": "gpu_eval",
+  "kernel": "Praveen0116/ira-care-gpu-eval",
+  "status": "complete",
+  "pushed_at": "2026-11-24T21:15:21+00:00",
+  "fetched_at": "2026-11-24T21:45:02+00:00",
+  "output_files": [
+    "chain-12b-e4b-run1.json",
+    "chain-12b-e4b-run2.json",
+    "chain-e4b-e2b-run1.json",
+    "chain-e4b-e2b-run2.json",
+    "gemma4-12b-run1.json",
+    "gemma4-12b-run2.json",
+    "gemma4-e2b-run1.json",
+    "gemma4-e2b-run2.json",
+    "gemma4-e4b-run1.json",
+    "gemma4-e4b-run2.json"
+  ],
+  "gpu_seconds_reported_by_script": 1682,
+  "metrics": {
+    "gpu": "Tesla T4, 15360 MiB\nTesla T4, 15360 MiB",
+    "ollama": "ollama version is 0.40.18",
+    "primary": "gemma4:12b",
+    "secondary": "gemma4:e4b",
+    "reports": {
+      "gemma4-12b-run1": {
+        "quality": 0.89,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.96,
+        "injection_resistance": 1.0,
+        "first_words_s": {
+          "n": 51,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 51,
+          "p50": 0.897,
+          "p95": 1.114,
+          "max": 1.314
+        },
+        "model_fallbacks": 0,
+        "wall_time_s": 251.5,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 9,
+          "pass_rate": 0.6
+        }
+      },
+      "gemma4-e4b-run1": {
+        "quality": 0.895,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.88,
+        "injection_resistance": 1.0,
+        "first_words_s": {
+          "n": 51,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 51,
+          "p50": 0.229,
+          "p95": 0.392,
+          "max": 0.503
+        },
+        "model_fallbacks": 0,
+        "wall_time_s": 104.8,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 8,
+          "pass_rate": 0.533
+        }
+      },
+      "gemma4-e2b-run1": {
+        "quality": 0.871,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.92,
+        "injection_resistance": 0.9,
+        "first_words_s": {
+          "n": 51,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 51,
+          "p50": 0.159,
+          "p95": 0.232,
+          "max": 0.247
+        },
+        "model_fallbacks": 0,
+        "wall_time_s": 39.5,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 8,
+          "pass_rate": 0.533
+        }
+      },
+      "chain-12b-e4b-run1": {
+        "quality": 0.904,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.92,
+        "injection_resistance": 1.0,
+        "first_words_s": {
+          "n": 51,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 51,
+          "p50": 0.93,
+          "p95": 1.191,
+          "max": 1.676
+        },
+        "model_fallbacks": 0,
+        "wall_time_s": 185.4,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 12,
+          "pass_rate": 0.8
+        }
+      },
+      "chain-e4b-e2b-run1": {
+        "quality": 0.893,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.84,
+        "injection_resistance": 1.0,
+        "first_words_s": {
+          "n": 50,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 50,
+          "p50": 0.261,
+          "p95": 0.415,
+          "max": 0.494
+        },
+        "model_fallbacks": 1,
+        "wall_time_s": 68.8,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 9,
+          "pass_rate": 0.6
+        }
+      },
+      "gemma4-12b-run2": {
+        "quality": 0.896,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.84,
+        "injection_resistance": 1.0,
+        "first_words_s": {
+          "n": 51,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 51,
+          "p50": 0.913,
+          "p95": 1.122,
+          "max": 1.153
+        },
+        "model_fallbacks": 0,
+        "wall_time_s": 181.4,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 12,
+          "pass_rate": 0.8
+        }
+      },
+      "gemma4-e4b-run2": {
+        "quality": 0.888,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.84,
+        "injection_resistance": 1.0,
+        "first_words_s": {
+          "n": 51,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 51,
+          "p50": 0.234,
+          "p95": 0.345,
+          "max": 0.47
+        },
+        "model_fallbacks": 0,
+        "wall_time_s": 65.6,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 9,
+          "pass_rate": 0.6
+        }
+      },
+      "gemma4-e2b-run2": {
+        "quality": 0.878,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.92,
+        "injection_resistance": 0.95,
+        "first_words_s": {
+          "n": 51,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 51,
+          "p50": 0.16,
+          "p95": 0.231,
+          "max": 0.274
+        },
+        "model_fallbacks": 0,
+        "wall_time_s": 39.5,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 8,
+          "pass_rate": 0.533
+        }
+      },
+      "chain-12b-e4b-run2": {
+        "quality": 0.91,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.96,
+        "injection_resistance": 1.0,
+        "first_words_s": {
+          "n": 51,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 51,
+          "p50": 0.933,
+          "p95": 1.156,
+          "max": 1.268
+        },
+        "model_fallbacks": 0,
+        "wall_time_s": 185.9,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 12,
+          "pass_rate": 0.8
+        }
+      },
+      "chain-e4b-e2b-run2": {
+        "quality": 0.897,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.84,
+        "injection_resistance": 1.0,
+        "first_words_s": {
+          "n": 51,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 51,
+          "p50": 0.285,
+          "p95": 0.453,
+          "max": 0.488
+        },
+        "model_fallbacks": 0,
+        "wall_time_s": 70.2,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 9,
+          "pass_rate": 0.6
+        }
+      }
+    },
+    "seconds": 1682
+  },
+  "log_tail": [
+    "pulled gemma4:e4b in 50s rc=0",
+    "pulled gemma4:e2b in 38s rc=0",
+    "code at /kaggle/input/datasets/praveen0116/ira-care-code/ira",
+    "loaded gemma4:12b in 124.7s",
+    "loaded gemma4:e4b in 64.4s",
+    "loaded gemma4:e2b in 42.9s",
+    "loaded: NAME          ID              SIZE      PROCESSOR    CONTEXT    RUNNER      UNTIL                | gemma4:e2b    b37049369adf    267 MB    100% GPU     2048       llamacpp    59 minutes from now     | gemma4:e4b    dc35e8d9c606    299 MB    100% GPU     2048       llamacpp    59 minutes from now     | gemma4:12b    6114515d63c1    1.1 GB    100% GPU     2048       llamacpp    58 minutes from now     | ",
+    "gemma4-12b-run1: rc=0 in 257s ",
+    "gemma4-e4b-run1: rc=0 in 105s ",
+    "gemma4-e2b-run1: rc=0 in 40s ",
+    "chain-12b-e4b-run1: rc=0 in 186s ",
+    "chain-e4b-e2b-run1: rc=0 in 69s ",
+    "gemma4-12b-run2: rc=0 in 182s ",
+    "gemma4-e4b-run2: rc=0 in 66s ",
+    "gemma4-e2b-run2: rc=0 in 40s ",
+    "chain-12b-e4b-run2: rc=0 in 186s ",
+    "chain-e4b-e2b-run2: rc=0 in 71s ",
+    "METRICS {\"gpu\": \"Tesla T4, 15360 MiB\\nTesla T4, 15360 MiB\", \"ollama\": \"ollama version is 0.40.18\", \"primary\": \"gemma4:12b\", \"secondary\": \"gemma4:e4b\", \"reports\": {\"gemma4-12b-run1\": {\"quality\": 0.89, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.96, \"injection_resistance\": 1.0, \"first_words_s\": {\"n\": 51, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 51, \"p50\": 0.897, \"p95\": 1.114, \"max\": 1.314}, \"model_fallbacks\": 0, \"wall_time_s\": 251.5, \"checkin_answer\": {\"turns\": 15, \"passed\": 9, \"pass_rate\": 0.6}}, \"gemma4-e4b-run1\": {\"quality\": 0.895, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.88, \"injection_resistance\": 1.0, \"first_words_s\": {\"n\": 51, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 51, \"p50\": 0.229, \"p95\": 0.392, \"max\": 0.503}, \"model_fallbacks\": 0, \"wall_time_s\": 104.8, \"checkin_answer\": {\"turns\": 15, \"passed\": 8, \"pass_rate\": 0.533}}, \"gemma4-e2b-run1\": {\"quality\": 0.871, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.92, \"injection_resistance\": 0.9, \"first_words_s\": {\"n\": 51, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 51, \"p50\": 0.159, \"p95\": 0.232, \"max\": 0.247}, \"model_fallbacks\": 0, \"wall_time_s\": 39.5, \"checkin_answer\": {\"turns\": 15, \"passed\": 8, \"pass_rate\": 0.533}}, \"chain-12b-e4b-run1\": {\"quality\": 0.904, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.92, \"injection_resistance\": 1.0, \"first_words_s\": {\"n\": 51, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 51, \"p50\": 0.93, \"p95\": 1.191, \"max\": 1.676}, \"model_fallbacks\": 0, \"wall_time_s\": 185.4, \"checkin_answer\": {\"turns\": 15, \"passed\": 12, \"pass_rate\": 0.8}}, \"chain-e4b-e2b-run1\": {\"quality\": 0.893, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.84, \"injection_resistance\": 1.0, \"first_words_s\": {\"n\": 50, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 50, \"p50\": 0.261, \"p95\": 0.415, \"max\": 0.494}, \"model_fallbacks\": 1, \"wall_time_s\": 68.8, \"checkin_answer\": {\"turns\": 15, \"passed\": 9, \"pass_rate\": 0.6}}, \"gemma4-12b-run2\": {\"quality\": 0.896, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.84, \"injection_resistance\": 1.0, \"first_words_s\": {\"n\": 51, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 51, \"p50\": 0.913, \"p95\": 1.122, \"max\": 1.153}, \"model_fallbacks\": 0, \"wall_time_s\": 181.4, \"checkin_answer\": {\"turns\": 15, \"passed\": 12, \"pass_rate\": 0.8}}, \"gemma4-e4b-run2\": {\"quality\": 0.888, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.84, \"injection_resistance\": 1.0, \"first_words_s\": {\"n\": 51, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 51, \"p50\": 0.234, \"p95\": 0.345, \"max\": 0.47}, \"model_fallbacks\": 0, \"wall_time_s\": 65.6, \"checkin_answer\": {\"turns\": 15, \"passed\": 9, \"pass_rate\": 0.6}}, \"gemma4-e2b-run2\": {\"quality\": 0.878, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.92, \"injection_resistance\": 0.95, \"first_words_s\": {\"n\": 51, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 51, \"p50\": 0.16, \"p95\": 0.231, \"max\": 0.274}, \"model_fallbacks\": 0, \"wall_time_s\": 39.5, \"checkin_answer\": {\"turns\": 15, \"passed\": 8, \"pass_rate\": 0.533}}, \"chain-12b-e4b-run2\": {\"quality\": 0.91, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.96, \"injection_resistance\": 1.0, \"first_words_s\": {\"n\": 51, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 51, \"p50\": 0.933, \"p95\": 1.156, \"max\": 1.268}, \"model_fallbacks\": 0, \"wall_time_s\": 185.9, \"checkin_answer\": {\"turns\": 15, \"passed\": 12, \"pass_rate\": 0.8}}, \"chain-e4b-e2b-run2\": {\"quality\": 0.897, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.84, \"injection_resistance\": 1.0, \"first_words_s\": {\"n\": 51, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 51, \"p50\": 0.285, \"p95\": 0.453, \"max\": 0.488}, \"model_fallbacks\": 0, \"wall_time_s\": 70.2, \"checkin_answer\": {\"turns\": 15, \"passed\": 9, \"pass_rate\": 0.6}}}, \"seconds\": 1682}"
+  ]
+}

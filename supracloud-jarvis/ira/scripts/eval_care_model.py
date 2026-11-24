@@ -62,8 +62,24 @@ def _hardware() -> dict:
                     break
     except OSError:
         pass
-    return {"cpu": cpu, "cores": os.cpu_count(), "memory_gb": mem_gb, "gpu": "none (CPU only)",
+    return {"cpu": cpu, "cores": os.cpu_count(), "memory_gb": mem_gb, "gpu": gpu_name(),
             "platform": platform.platform()}
+
+
+def gpu_name(run=None) -> str:
+    """The GPUs as nvidia-smi names them, or "none (CPU only)" when there is none to ask."""
+    import shutil
+    import subprocess
+    if run is None:
+        if not shutil.which("nvidia-smi"):
+            return "none (CPU only)"
+        run = lambda: subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader"],  # noqa: E731
+                                     capture_output=True, text=True, timeout=10, check=False).stdout
+    try:
+        names = [ln.strip() for ln in run().splitlines() if ln.strip()]
+    except Exception:  # noqa: BLE001 - a broken driver is reported as no GPU, not a crash
+        names = []
+    return "; ".join(names) or "none (CPU only)"
 
 
 def make_model(spec: str):
