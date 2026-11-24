@@ -95,11 +95,45 @@ still 1.00, quality no more than 0.03 below the best measured model. Everything 
 measured on this machine on 24 November 2026 with `scripts/eval_care_model.py` over the
 evaluation set, which is now 162 turns (the 150 of round 3 plus the 12 of phase 7).
 
-__ROUND4_HARDWARE__
+- Intel(R) Xeon(R) Processor @ 2.10GHz, 4 cores, 15.7 GB memory, no GPU, Ollama 0.40.18; the
+  same class of machine as round 3.
+- Each model ran alone (`OLLAMA_MAX_LOADED_MODELS=1`), loaded before its run and kept loaded,
+  one turn at a time, with the first-token and first-sentence budgets raised so the model, not
+  the fallback, was measured.
+- The raw reports, turn by turn, are in `docs/evidence/eval/round4/`; the variant timings in
+  `docs/evidence/eval/round4/variants.jsonl`.
+- **First words** is the time from the person's words reaching the conversation service to
+  the first line it hands the watch to speak. With the acknowledgement on (D-070) that line is
+  produced by the rules without waiting for anything, so it measures 0.0 s on the server; what
+  the person hears adds the network hop to the watch and the speech engine's start, which are
+  not measured here (they need the watch, `docs/READINESS.md`). **First sentence** is the time
+  to the model's first complete sentence, as round 3 measured it.
 
 ### What was tried, one change at a time
 
-__ROUND4_VARIANTS__
+`gemma4:e4b`, 12 talk turns from the evaluation set per variant (6 for the cold one, whose
+turns take up to half a minute each), through the repository's own `conv.talk()`. Each line
+adds one change to the one above. Samples of 12 turns vary by about a second between runs on
+this machine; the 162-turn runs below are the figures to quote.
+
+| # | Variant | First words s, p50 | First sentence s, p50 / p95 |
+| --- | --- | --- | --- |
+| 1 | Round 3 code, the model unloaded before every turn (what the first person after a quiet spell met) | 15.4 | 15.4 / 30.9 |
+| 2 | Round 3 code, the model kept loaded (`keep_alive`) | 5.1 | 5.1 / 8.0 |
+| 3 | + the shorter prompt and capped context (context window still 2048) | 4.0 | 4.0 / 6.4 |
+| 4 | + a context window of 1024 | 3.5 | 3.5 / 5.7 |
+| 5 | + `num_thread` 4, one per core | 3.4 | 3.4 / 7.2 |
+| 6 | + the quantisation-aware 4-bit build of the same model (`gemma4:e4b-it-qat`) | 2.3 | 2.3 / 3.7 |
+| 7 | variant 4 + the instant acknowledgement (D-070) | 0.0 | 4.4 / 6.3 |
+
+Kept: 2, 3, 4 and 7. Not kept: 5 (no better at the median and worse at the 95th percentile
+than leaving the thread count to Ollama; the setting stays available as
+`IRA_CARE_MODEL_THREADS`). Variant 6 was measured on all 162 turns before it was decided (below).
+No quantisation below 4 bits is published for these models in Ollama's library, so none was
+tried. Two further changes have no latency of their own to measure on a talk turn: sentences
+now reach the watch as each one is spoken (the talk route used to wait for the whole reply),
+and a scheduled check-in's question is composed up to five minutes before it is due (D-071),
+so the watch asks it the moment it is due with no model time at all.
 
 ### The numbers, every candidate on the round 4 code
 
