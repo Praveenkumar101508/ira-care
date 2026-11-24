@@ -298,7 +298,11 @@ class ChainModel:
 #: The free open-weight models the chain uses by default (docs/MODEL_CHOICE.md, round 4).
 DEFAULT_PRIMARY = "gemma4:e4b"
 DEFAULT_SECONDARY = "gemma4:e2b"
-FIRST_TOKEN_S = 3.0
+#: How long the primary is given for its first token before the chain moves on. The
+#: instant acknowledgement (D-070) is already spoken, so waiting for the model's own words is
+#: better than the set line: a whole talk prompt (about 270 tokens) is read again on every turn
+#: (no prompt cache with Gemma 4's sliding window) and takes 3 to 6 s on four cores (D-073).
+FIRST_TOKEN_S = 8.0
 #: How long Ollama keeps a model loaded after a turn, and the context window a turn is given.
 DEFAULT_KEEP_ALIVE = "30m"
 DEFAULT_NUM_CTX = 1024

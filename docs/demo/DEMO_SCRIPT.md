@@ -1,8 +1,15 @@
 # IRA CARE demo script (10 minutes, no hardware)
 
-The four-to-six-minute film made from this stack is `docs/film/ira_care.mp4`, with its words in
-`docs/film/NARRATION.md`; `scripts/film/record_scenes.mjs` and `scripts/film/make_film.sh` remake it
-from a running staging stack (`scripts/staging/clean_clone_proof.sh --keep`).
+The four-to-six-minute film made from this stack is `docs/film/ira_care.mp4` (1920 × 1080),
+with its words in `docs/film/NARRATION.md`; `scripts/film/record_scenes.mjs` and
+`scripts/film/make_film.sh` remake it from a running staging stack
+(`scripts/staging/clean_clone_proof.sh --keep`). The film follows the same journey as this
+script, in this order: the title, the 20-second turntable of the watch, a check-in composed by
+the model and a short talk with IRA, the ask-first question after a heart rate outside the
+range, Help from the wrist reaching Sravani's phone with "I'm on my way" back on the wrist, the
+coordinator's dashboard, the carer arriving on the watch, the morning report, privacy, and the
+hardware. It zooms in on each of those moments; what IRA says in it is IRA's own words from the
+recording.
 
 Everything in this demo is made up: the people being looked after, the telephone numbers, the
 readings and the addresses are invented (docs/BUILD_RULES.md, "Demonstration data"), and the

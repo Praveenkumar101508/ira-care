@@ -192,3 +192,13 @@ async def test_the_ollama_adapter_reads_what_is_loaded_from_ps():
     assert await conv.OllamaModel("gemma4:e2b", "http://ollama.test", transport=t).loaded() is False
     down = httpx.MockTransport(lambda r: httpx.Response(500))
     assert await conv.OllamaModel("gemma4:e4b", "http://ollama.test", transport=down).loaded() is None
+
+
+def test_the_primary_is_given_eight_seconds_for_its_first_token(monkeypatch):
+    # Round 4 film: with 3 s, a whole talk prompt on four cores never reached its first token
+    # and every reply came from the set lines (D-073). The acknowledgement covers the wait.
+    monkeypatch.delenv("IRA_CARE_MODEL_FIRST_TOKEN_S", raising=False)
+    assert conv.first_token_budget_s() == 8.0
+    assert conv.ChainModel([conv.FakeModel()]).first_token_s == 8.0
+    monkeypatch.setenv("IRA_CARE_MODEL_FIRST_TOKEN_S", "5")
+    assert conv.first_token_budget_s() == 5.0

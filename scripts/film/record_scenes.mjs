@@ -193,12 +193,13 @@ await scene('03-watch-asks', { viewport: WATCH }, async (page, context) => {
   await zoomOn(page, page.getByTestId('watch-face'), { fill: 0.9, max: 1.35 });
   await pause(page, 5000);
   await zoomOut(page);
-  await page.getByTestId('typed').fill('I am well thank you, I slept nicely'); await pause(page, 1500);
+  await page.getByTestId('typed').fill('Yes, all done, thank you. I slept nicely too'); await pause(page, 1500);
   const asked = await watchText(page).textContent();
   await page.getByTestId('typed').press('Enter');
   await watchText(page).filter({ hasNotText: asked ?? '' }).waitFor({ timeout: 60000 }).catch(() => null);
   mark('answered');
-  await pause(page, 3000);
+  // The model reads the answer first (one request at a time on this machine); then Ada talks.
+  await pause(page, 9000);
   // Then Ada talks to IRA, and IRA answers back: the instant acknowledgement, then the model's words.
   const before = await page.evaluate(() => (window.__spoken ?? []).length);
   await page.getByTestId('typed').fill('I think I will sit in the garden this afternoon'); await pause(page, 1500);

@@ -1126,7 +1126,7 @@ were reviewed at full size before merging.
 
 ## D-073 Only a loaded model is asked inside a turn; the browser watch speaks each sentence as it arrives (round 4, phase 3)
 
-**Found while recording the film against the real model on staging.** Four faults, each
+**Found while recording the film against the real model on staging.** Five faults, each
 now covered by a test that fails without its fix:
 
 1. **A cold chain never loaded.** Once Ollama had unloaded the primary (keep-alive ended,
@@ -1153,3 +1153,11 @@ now covered by a test that fails without its fix:
    the first turn then asked for 1024 and Ollama loaded it again ("runner options changed"),
    longer than the turn could wait. **Choice:** every request, the warm one included, sends
    the same load options (`num_ctx`, and `num_thread` when set).
+5. **Three seconds was too short for a real turn's first token.** The round 4 evaluation's
+   prompts are short; a talk turn for a person with a care record is about 270 tokens, read
+   again in full on every turn (Gemma 4's sliding window leaves Ollama no prompt cache), and
+   its first token came after 3 to 6 s on four cores, so the 3-second budget handed every turn
+   to the set lines. **Choice:** the primary's first-token budget is 8 s
+   (`IRA_CARE_MODEL_FIRST_TOKEN_S`). The person has already heard the acknowledgement at once;
+   measured on staging after these fixes, the model's first sentence follows in 3.5 to 5.5 s.
+
