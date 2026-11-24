@@ -125,3 +125,6 @@ supracloud-jarvis/.venv/
 
 # The classifier encoder is fetched, not committed (scripts/training/fetch_encoder.py)
 supracloud-jarvis/ira/care/models/encoder/
+
+# The phone app exported for the web by scripts/demo/apps.sh: built, never committed.
+mobile/.web-demo/

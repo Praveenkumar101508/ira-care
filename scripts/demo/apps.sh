@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The carer dashboard (http://localhost:3000, with /simulator) and the family app on the
+# The carer dashboard (http://localhost:3000, with the browser watch at /watch and its presenter controls at /presenter) and the family app on the
 # web (http://localhost:8081), built for the demo. Stop with Ctrl-C.
 set -euo pipefail
 cd "$(dirname "$0")/../.."

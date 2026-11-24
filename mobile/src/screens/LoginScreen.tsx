@@ -17,6 +17,7 @@ export function LoginScreen({ defaultBaseUrl, onLoggedIn, onJoin }: { defaultBas
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [advanced, setAdvanced] = useState(false);
 
   const submit = async () => {
     setBusy(true); setError('');
@@ -37,12 +38,13 @@ export function LoginScreen({ defaultBaseUrl, onLoggedIn, onJoin }: { defaultBas
     <Screen title="IRA CARE">
       <Card>
         <Muted>Sign in with the account your care circle gave you.</Muted>
-        <TextInput style={styles.input} placeholder="Server address" accessibilityLabel="Server address" autoCapitalize="none" value={baseUrl} onChangeText={setBaseUrl} testID="server" />
         <TextInput style={styles.input} placeholder="Username" accessibilityLabel="Username" autoCapitalize="none" value={username} onChangeText={setUsername} testID="username" />
         <TextInput style={styles.input} placeholder="Password" accessibilityLabel="Password" secureTextEntry value={password} onChangeText={setPassword} testID="password" />
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <BigButton label={busy ? 'Signing in…' : 'Sign in'} onPress={submit} disabled={busy || !username || !password} testID="sign-in" />
         {onJoin ? <BigButton label="I have an invitation link" color={colors.muted} onPress={onJoin} testID="open-join" /> : null}
+        <Text onPress={() => setAdvanced((v) => !v)} accessibilityRole="button" accessibilityLabel="Advanced" style={{ color: colors.muted, marginTop: 12 }} testID="advanced">Advanced</Text>
+        {advanced ? <TextInput style={styles.input} placeholder="Care server" accessibilityLabel="Care server" autoCapitalize="none" value={baseUrl} onChangeText={setBaseUrl} testID="server" /> : null}
       </Card>
       <View style={{ height: 8 }} />
       <Muted>Family see alerts and summaries. Conversations stay private unless the person agrees.</Muted>

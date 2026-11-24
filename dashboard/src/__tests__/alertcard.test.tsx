@@ -62,8 +62,8 @@ test('push attempts show the delivery state the service reported', () => {
     { id: 't3', tier: 2, channel: 'push', outcome: 'skipped', detail: '', attempted_at: new Date().toISOString(), delivery: 'no phone registered' },
   ] }} personName="P" busy={false} onAcknowledge={() => {}} onResolve={() => {}} />);
   const text = screen.getByTestId('delivery').textContent ?? '';
-  expect(text).toContain('Tier 1 phone: delivered');
-  expect(text).toContain('Tier 2 phone: no phone registered');
+  expect(text).toContain('Called first phone: delivered');
+  expect(text).toContain('Called second phone: no phone registered');
   expect(text).not.toContain('sms');
 });
 

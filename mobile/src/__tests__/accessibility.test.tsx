@@ -21,7 +21,12 @@ test('screens have a header and text scales with the system setting', () => {
 });
 
 test('every text field on the sign-in screen has an accessibility label', () => {
-  const tree = renderer.create(<LoginScreen defaultBaseUrl="http://care.invalid" onLoggedIn={() => {}} />).toJSON() as Node;
+  const r = renderer.create(<LoginScreen defaultBaseUrl="http://care.invalid" onLoggedIn={() => {}} />);
+  // the care server field is behind "Advanced", closed by default: open it so every field is on screen
+  const advanced = all(r.toJSON() as Node).find((n) => n.props.testID === 'advanced');
+  expect(advanced).toBeTruthy();
+  renderer.act(() => { (advanced!.props.onPress as () => void)(); });
+  const tree = r.toJSON() as Node;
   const inputs = all(tree).filter((n) => ['server', 'username', 'password'].includes(String(n.props.testID)));
   expect(inputs).toHaveLength(3);
   for (const i of inputs) expect(typeof i.props.accessibilityLabel).toBe('string');

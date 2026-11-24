@@ -1,12 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Api } from '@/lib/api';
 import { loadSession, saveSession, type StoredSession } from '@/lib/session';
 import type { OpsStatus } from '@/lib/types';
 
+/** The role in a person's words, not the workspace's. */
+export function roleWords(role: string): string {
+  return role === 'workspace_admin' ? 'care manager' : role === 'viewer' ? 'viewer' : 'team member';
+}
+
 export function TopBar() {
+  const pathname = usePathname();
   const [session, setSession] = useState<StoredSession | null>(null);
   const [ops, setOps] = useState<OpsStatus | null>(null);
   useEffect(() => { setSession(loadSession()); }, []);
@@ -18,6 +25,8 @@ export function TopBar() {
     const t = setInterval(poll, 60_000);
     return () => clearInterval(t);
   }, [session]);
+  // The watch is a watch: no dashboard header around it.
+  if (pathname?.startsWith('/watch')) return null;
   return (
     <>
     {ops?.monitoring_paused ? (
@@ -34,7 +43,7 @@ export function TopBar() {
             <Link href="/alerts">Alerts</Link>
         {session.role === 'workspace_admin' ? <Link href="/billing">Plan</Link> : null}
           </nav>
-          <span className="muted" style={{ marginLeft: 'auto' }}>{session.workspaceName} · {session.role.replace('_', ' ')}</span>
+          <span className="muted who">{session.workspaceName} · {roleWords(session.role)}</span>
           <button className="grey" onClick={() => { saveSession(null); window.location.href = '/login'; }}>Sign out</button>
         </>
       ) : null}

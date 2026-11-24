@@ -859,3 +859,40 @@ and weekly reports now carry the visits (done, missed, late, tasks, outcomes, ha
 reminders (confirmed, skipped, unanswered; a dose confirmed in two steps) and what IRA
 remembers, each line a summary by IRA and never the person's words; a report still refuses
 to say a diagnosis.
+
+## D-063 One product look, and nothing a developer wrote on any screen (round 3, phase 12)
+
+One design system (`docs/design/DESIGN_SYSTEM.md`): the dashboard's CSS tokens are the phone
+theme's values (light and dark; the dashboard follows the system setting, the phone the
+person's synced setting), the same radii, spacing, pills, buttons and 40 px targets. The watch
+in the browser moved from `/simulator` to `/watch`: a round black screen inside the phase-9
+case with the red help button, the words IRA says, I'm OK, Help and Talk to IRA, on a clean
+page without the dashboard header, paired by the code typed on the face. Everything a
+presenter needs (server, device key, the demonstration's hardware: a heart rate, no movement,
+a fall, taking the watch off; the location sent with an SOS; what the watch said and heard)
+lives on `/presenter`, which drives the watch in another tab of the same browser over a
+BroadcastChannel and is never in a recording. `/simulator` redirects to `/watch`.
+
+Developer words left the screens: "tier N" became "called first / second / last" and "family
+and carers told"; the server address sits behind "Advanced", closed by default, on every
+sign-in screen; the access log names roles and what was looked at in words, not identifiers
+and table names; the demonstration people are Ada Hartley and Bert Lowe (made up), the
+organisation "Lowbridge Care", with no "Demo" label anywhere. Two static tests
+(`dashboard/src/__tests__/no_developer_words.test.ts`, `mobile/src/__tests__/no_developer_words.test.ts`)
+fail the build if a visible string in any page, component, screen or shell contains API,
+token, "tier N", JSON, inject, simulator, "Demo Person", a raw identifier word or an address;
+the presenter page is outside the rule.
+
+Every screen was captured at phone (390 × 844, 2×) and desktop (1280 × 800) by
+`scripts/screens/capture.mjs` into `docs/screens/` and reviewed. The review found and fixed:
+the dashboard header overflowing a phone; the watch page carrying the dashboard header; five
+person-record tabs wider than a phone (tables now scroll inside their card); the phone app's
+record tabs overflowing (they wrap); the overview route crashing on an untyped timestamp
+parameter (a phase-11 defect the screenshots caught); the access log listing every entry
+with raw role names (now the latest 100, in words); and "workspace admin" in the header
+(now "care manager"). Not changed: the watch keeps saying "This is now resolved." while the
+server reports a closed SOS, as the real watch does.
+
+Rejected: a separate "demo mode" switch on the watch page (the controls would still be one
+tap away in a recording); hiding the presenter behind a password (it is a local page with no
+secrets, and a password would be one more thing to type on stage).

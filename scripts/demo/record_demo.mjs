@@ -1,5 +1,7 @@
 // Record the IRA CARE demo with Playwright: screenshots and a video of the
-// watch simulator, the carer dashboard and the family app on the web.
+// browser watch, the carer dashboard and the family app on the web. The
+// presenter's controls (/presenter) run in a second tab whose video is thrown
+// away, so the recording shows only what a person would see.
 //
 //   node scripts/demo/record_demo.mjs
 //
@@ -26,7 +28,7 @@ const personA = info.people[0];
 mkdirSync(join(OUT, 'raw'), { recursive: true });
 
 // A clean slate for the recording: resolve whatever the scripted scenarios left open, so the
-// simulator's own heart-rate question and fall are what the viewer sees.
+// watch's own heart-rate question and fall are what the viewer sees.
 {
   const form = new URLSearchParams({ email: manager.email, password: manager.password });
   const r = await fetch(`${API}/auth/cloud/login`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: form.toString() });
@@ -50,8 +52,9 @@ await page.goto(`${DASH}/login`);
 await page.waitForLoadState('networkidle');
 // Typed before the page has hydrated, values sit in the DOM but not in React's state and the
 // button stays disabled; so type, check, and type again until the page is live.
+await page.getByText('Advanced').click();
 for (let attempt = 0; attempt < 12; attempt++) {
-  await page.getByLabel('Server').fill(API);
+  await page.getByLabel('Care server').fill(API);
   await page.getByLabel('Username').fill(manager.email);
   await page.getByLabel('Password').fill(manager.password);
   if (!(await page.getByRole('button', { name: /sign in/i }).isDisabled())) break;
@@ -63,27 +66,35 @@ await pause(1200); await shot('01-dashboard-people');
 await page.goto(`${DASH}/people/${personA.id}?tab=home`); await pause(1500); await shot('02-dashboard-home-record');
 await page.goto(`${DASH}/people/${personA.id}?tab=timeline`); await pause(1500); await shot('03-dashboard-timeline');
 
-// 2. The watch simulator: paste the device token, inject a heart rate, see the question, answer I'm OK.
-await page.goto(`${DASH}/simulator`);
+// 2. The watch in the browser (/watch), driven from the presenter tab: the device key goes in
+//    there, a heart rate is sent, the watch asks, the person answers I'm OK, talks, falls, asks for help.
+await page.goto(`${DASH}/watch`);
 await page.waitForLoadState('networkidle');
+const presenter = await context.newPage();
+await presenter.goto(`${DASH}/presenter`);
+await presenter.waitForLoadState('networkidle');
 for (let attempt = 0; attempt < 12; attempt++) {
-  await page.getByTestId('token').fill(personA.device_token);
-  await pause(600);
-  if ((await page.getByTestId('watch-face').textContent())?.includes('All well') && (await page.locator('text=not paired').count()) === 0) break;
+  await presenter.getByTestId('token').fill(personA.device_token);
+  await pause(800);
+  if ((await page.getByTestId('watch-face').textContent())?.includes('All well')) break;
 }
-await pause(2500); await shot('04-simulator-paired');
-await page.getByTestId('inject-heart').click();
-await pause(4000); await shot('05-simulator-are-you-ok');
+await page.bringToFront();
+await pause(2500); await shot('04-watch-paired');
+await presenter.getByTestId('inject-heart').click();
+await pause(4000); await shot('05-watch-are-you-ok');
 await page.getByTestId('ok').click(); await pause(1500);
-await page.getByTestId('typed').fill("what's on today?"); await page.getByTestId('send').click(); await pause(3000); await shot('06-simulator-talk');
-await page.getByTestId('inject-fall').click(); await pause(4000); await shot('07-simulator-fall-countdown');
-await page.getByTestId('help').click(); await pause(2500); await shot('08-simulator-help-sent');
+await page.getByTestId('typed').fill("what's on today?"); await page.getByTestId('typed').press('Enter'); await pause(3000); await shot('06-watch-talk');
+await presenter.getByTestId('inject-fall').click(); await pause(4000); await shot('07-watch-fall-countdown');
+await page.getByTestId('help').click(); await pause(2500); await shot('08-watch-help-sent');
+const presenterVideo = await presenter.video()?.path();
+await presenter.close();
 
 // 3. Dashboard alerts: the open SOS with whereabouts.
 await page.goto(`${DASH}/alerts`); await pause(2000); await shot('09-dashboard-alerts');
 
 // 4. The family app on the web: sign in as the family member, alerts, I'm on my way.
 await page.goto(FAMILY); await page.waitForLoadState('networkidle'); await pause(2500);
+await page.getByTestId('advanced').click();
 for (let attempt = 0; attempt < 12; attempt++) {
   await page.getByTestId('server').fill(API);
   await page.getByTestId('username').fill(family.email);
@@ -101,5 +112,6 @@ if (await ack.count()) { await ack.click(); await pause(2500); await shot('12-fa
 
 await context.close();
 await browser.close();
-const vids = readdirSync(join(OUT, 'raw')).filter((f) => f.endsWith('.webm'));
+const presenterFile = presenterVideo ? presenterVideo.split('/').pop() : '';
+const vids = readdirSync(join(OUT, 'raw')).filter((f) => f.endsWith('.webm') && f !== presenterFile);
 if (vids.length) { renameSync(join(OUT, 'raw', vids[0]), join(OUT, 'raw', 'demo.webm')); console.log('video', join(OUT, 'raw', 'demo.webm')); }

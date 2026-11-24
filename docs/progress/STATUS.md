@@ -47,12 +47,27 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-8 | watch-platform-layer | `feat/watch-platform-layer` | Merged (pull request 28) |
 | R3-9 | hardware-blueprint | `feat/hardware-blueprint` | Merged (pull request 29) |
 | R3-10 | one-mobile-app | `feat/one-mobile-app` | Merged (pull request 30) |
-| R3-11 | dashboard-care-record | `feat/dashboard-care-record` | Built and tested locally; pull request to follow |
-| R3-12 | clean-product-ui | `feat/clean-product-ui` | not started |
+| R3-11 | dashboard-care-record | `feat/dashboard-care-record` | Merged (pull request 31) |
+| R3-12 | clean-product-ui | `feat/clean-product-ui` | Built, screenshots reviewed, tested locally; pull request to follow |
 | R3-13 | founder-demo-data | `feat/founder-demo-data` | not started |
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | not started |
 | R3-15 | cost-cuts | `ci/cost-cuts` | not started |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 12 (clean-product-ui), measured locally (24 November 2026)
+
+- The browser watch split into `/watch` (what the person sees) and `/presenter` (what a demo
+  needs), joined by a BroadcastChannel; `/simulator` redirects. Design system written down
+  in `docs/design/DESIGN_SYSTEM.md`; dashboard tokens equal the phone theme's, dark mode added.
+- Developer-words tests: dashboard (pages and components) and phone (screens and shell) pass
+  with the words they forbid listed in each file. Dashboard: 32 tests, type check and lint
+  clean. Phone: 43 tests.
+- `scripts/screens/capture.mjs` took 60 screenshots (30 screens × phone and desktop) against
+  the demo stack (demo database, second Redis, demo API, dashboard build, phone web export).
+  First pass found seven flaws (D-063), all fixed; second pass: no phone screenshot wider than
+  390 px, every screen reviewed by eye. `docs/screens` is 17 MB.
+- The wearer's own phone experience is not in the screenshots: the demo seed has no circle
+  member with the relationship "self" yet (phase 13 adds one).
 
 ## Round 3, phase 11 (dashboard-care-record), measured locally (24 November 2026)
 

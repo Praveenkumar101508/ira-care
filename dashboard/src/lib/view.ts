@@ -184,3 +184,12 @@ export function headline(status: { open_alerts: { severity: string; status: stri
   if (nextVisit) parts.push(nextVisit.status === 'arrived' ? `${nextVisit.carer_name || 'a carer'} is there now` : `${nextVisit.carer_name || 'a carer'} due at ${nextVisit.planned_start.slice(11, 16)}`);
   return parts.length ? 'All well: ' + parts.join(', ') : 'All well';
 }
+
+
+/** The escalation tier in words a reader understands: who in the circle is being reached. */
+export function circleWords(tier: number): string {
+  return tier <= 1 ? 'Called first' : tier === 2 ? 'Called second' : 'Called last';
+}
+export function reachWords(tier: number): string {
+  return tier <= 0 ? 'nobody told yet' : tier === 1 ? 'family and carers told' : tier === 2 ? 'care team told' : 'everyone told';
+}
