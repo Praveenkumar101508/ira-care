@@ -100,3 +100,24 @@ test('a visit line says who, when, what and how many tasks were done', () => {
   expect(visitLine({ ...visit, status: 'departed', outcome: 'all_well', handover: 'Ate well.' })).toBe('Sravani, 10:00 to 11:00. Outcome: All well; 1 of 2 tasks done. Handover: Ate well.');
   expect(visitLine({ ...visit, carer_name: '', tasks: [], purpose: '' })).toBe('A carer, 10:00 to 11:00.');
 });
+
+import { freshness, headline } from '@/lib/view';
+
+test('a reading says when it was recorded and received, and is called stale or unavailable plainly', () => {
+  const now = new Date('2026-11-24T10:00:00Z');
+  expect(freshness(undefined, 30, now)).toEqual({ state: 'unavailable', words: 'No reading yet' });
+  const fresh = freshness({ recorded_at: '2026-11-24T09:58:00Z', received_at: '2026-11-24T09:59:00Z' }, 30, now);
+  expect(fresh.state).toBe('fresh'); expect(fresh.words).toContain('Recorded 2 min ago'); expect(fresh.words).toContain('received 1 min ago');
+  const late = freshness({ recorded_at: '2026-11-24T09:00:00Z', received_at: '2026-11-24T09:45:00Z' }, 30, now);
+  expect(late.state).toBe('stale'); expect(late.words).toContain('45 min after it was recorded');
+});
+
+test('the headline reads the alerts first, then the watch, the last check-in and the next visit', () => {
+  const now = new Date('2026-11-24T10:00:00Z');
+  const base = { open_alerts: [], devices: [{ last_sync_at: '2026-11-24T09:55:00Z', on_wrist: true }], last_checkin: { status: 'answered', scheduled_at: '2026-11-24T09:30:00Z' } };
+  expect(headline({ ...base, open_alerts: [{ severity: 'sos', status: 'open' }] }, null, now)).toBe('1 alert waiting for someone');
+  expect(headline({ ...base, open_alerts: [{ severity: 'sos', status: 'acknowledged' }] }, null, now)).toBe('Someone is on their way');
+  expect(headline(base, { carer_name: 'Sravani', planned_start: '2026-11-24T11:00:00+00:00', status: 'planned' }, now)).toBe('All well: last check-in answered 30 min ago, Sravani due at 11:00');
+  expect(headline({ ...base, devices: [{ last_sync_at: '2026-11-24T07:00:00Z', on_wrist: true }] }, null, now)).toContain('watch last synced 3 h ago');
+  expect(headline({ ...base, devices: [] }, null, now)).toContain('no watch paired');
+});

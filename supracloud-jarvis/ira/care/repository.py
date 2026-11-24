@@ -162,6 +162,23 @@ async def open_access_notes(principal: Principal, alert_id: uuid.UUID) -> Option
                 "emergency_summary": person["emergency_summary"], "home_address": person["home_address"]}
 
 
+async def read_access_notes(principal: Principal, person_id: uuid.UUID) -> Optional[dict]:
+    """The access notes (key safe, door, pets) on the person's profile, for a
+    manager of the care organisation only, outside any alert. Every reading is
+    written to the access log; None when the person does not exist."""
+    from . import accessnotes, audit, authz
+    async with workspace_connection(principal) as conn:
+        person = await conn.fetchrow("SELECT * FROM care_people WHERE id = $1", person_id)
+        if person is None:
+            return None
+        if not authz.can_manage(principal):
+            return {"allowed": False}
+        text = accessnotes.use_notes(dict(person), lambda t: t, tenant_id=principal.tenant_id)
+        await audit.record_access(conn, principal, person_id=person_id, resource_kind="access_notes",
+                                  resource_id=person_id, action="view", detail={"from": "profile", "characters": len(text)})
+        return {"allowed": True, "access_notes": text, "home_address": person["home_address"], "emergency_summary": person["emergency_summary"]}
+
+
 async def erase_person(principal: Principal, person_id: uuid.UUID) -> bool:
     """Delete the person and, by cascade, everything recorded about them.
 
@@ -463,7 +480,7 @@ async def fetch_vitals(conn, person_id: uuid.UUID, *, kind: Optional[str], since
 async def latest_vitals(conn, person_id: uuid.UUID) -> list[dict]:
     return _ds(await conn.fetch(
         """
-        SELECT DISTINCT ON (kind) kind, value, unit, recorded_at
+        SELECT DISTINCT ON (kind) kind, value, unit, recorded_at, received_at, source
           FROM care_vitals WHERE person_id = $1
          ORDER BY kind, recorded_at DESC
         """, person_id))

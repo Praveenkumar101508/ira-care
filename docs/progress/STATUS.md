@@ -46,13 +46,22 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-7 | ira-personal | `feat/ira-personal` | Merged (pull request 27) |
 | R3-8 | watch-platform-layer | `feat/watch-platform-layer` | Merged (pull request 28) |
 | R3-9 | hardware-blueprint | `feat/hardware-blueprint` | Merged (pull request 29) |
-| R3-10 | one-mobile-app | `feat/one-mobile-app` | Built and tested locally; pull request to follow |
-| R3-11 | dashboard-care-record | `feat/dashboard-care-record` | not started |
+| R3-10 | one-mobile-app | `feat/one-mobile-app` | Merged (pull request 30) |
+| R3-11 | dashboard-care-record | `feat/dashboard-care-record` | Built and tested locally; pull request to follow |
 | R3-12 | clean-product-ui | `feat/clean-product-ui` | not started |
 | R3-13 | founder-demo-data | `feat/founder-demo-data` | not started |
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | not started |
 | R3-15 | cost-cuts | `ci/cost-cuts` | not started |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 11 (dashboard-care-record), measured locally (24 November 2026)
+
+- `GET /overview` (`care/overview.py`), `GET /people/{id}/access-notes` (managers, logged),
+  richer daily and weekly reports (visits, reminders, what IRA remembers).
+- Dashboard: the overview page and the ten-tab person record; type check, lint and 31 tests
+  (2 new: a reading's freshness in plain words; the record's headline).
+- Server: 3 tests in `test_care_record_db.py` (the overview's reasons; entry instructions for
+  managers only with the access log; the report's new content with no quoted words).
 
 ## Round 3, phase 10 (one-mobile-app), measured locally (24 November 2026)
 

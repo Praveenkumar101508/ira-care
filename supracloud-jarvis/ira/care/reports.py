@@ -36,7 +36,11 @@ ALERT_WORDS = {
     "heart_rate_outside_range": "heart rate outside the set range", "off_wrist_during_check": "no answer and watch off the wrist",
     "missed_checkins": "several check-ins missed in a row", "off_wrist": "watch off the wrist", "low_battery": "watch battery low",
     "sensor_permission_off": "sensor permission switched off", "no_sync": "watch not synced", "manual": "raised by a carer",
+    "off_wrist_night": "watch off the wrist overnight", "suspected_fall": "suspected fall", "concerning_phrase": "said something that needed a check",
+    "visit_late": "a planned visit was late", "visit_missed": "a planned visit did not happen",
 }
+VISIT_OUTCOME_WORDS = {"all_well": "all well", "concern_noted": "a concern was noted", "needed_help": "needed help",
+                       "not_at_home": "not at home", "declined": "declined the visit", "other": "other"}
 
 
 @dataclass
@@ -67,6 +71,9 @@ class ReportData:
     medication_events: list = field(default_factory=list)
     settings: Optional[dict] = None
     device: Optional[dict] = None
+    visits: list = field(default_factory=list)
+    reminders: list = field(default_factory=list)
+    memory: list = field(default_factory=list)
 
 
 def _tz(name: str) -> ZoneInfo:
@@ -99,7 +106,56 @@ async def gather(conn, person: dict, period: Period) -> ReportData:
     data.settings = dict(s) if s else None
     d = await conn.fetchrow("SELECT * FROM care_devices WHERE person_id = $1 AND status = 'paired' ORDER BY last_seen_at DESC NULLS LAST LIMIT 1", pid)
     data.device = dict(d) if d else None
+    # Phase 11: the visits, the reminders and what IRA remembers (summaries only) belong in the record too.
+    data.visits = [dict(r) for r in await conn.fetch(
+        "SELECT v.*, (SELECT count(*) FROM care_visit_tasks t WHERE t.visit_id = v.id) AS tasks, "
+        "(SELECT count(*) FROM care_visit_tasks t WHERE t.visit_id = v.id AND t.done) AS tasks_done "
+        "FROM care_visits v WHERE v.person_id = $1 AND v.planned_start >= $2 AND v.planned_start < $3 ORDER BY v.planned_start", pid, a, b)]
+    data.reminders = [dict(r) for r in await conn.fetch(
+        "SELECT * FROM care_reminders WHERE person_id = $1 AND due_at >= $2 AND due_at < $3 ORDER BY due_at", pid, a, b)]
+    data.memory = [dict(r) for r in await conn.fetch(
+        "SELECT day, summary, exchanges, edited_by FROM care_conversation_memory WHERE person_id = $1 AND day >= $2 AND day <= $3 ORDER BY day",
+        pid, period.start, period.end)]
     return data
+
+
+def summarise_visits(visits: list) -> dict:
+    out = {"planned": len(visits), "done": 0, "missed": 0, "late": 0, "cancelled": 0, "outcomes": {}, "handovers": [], "tasks": 0, "tasks_done": 0}
+    for v in visits:
+        st = v["status"]
+        if st == "departed":
+            out["done"] += 1
+            out["outcomes"][v["outcome"]] = out["outcomes"].get(v["outcome"], 0) + 1
+            if v.get("handover"):
+                out["handovers"].append({"at": v["departed_at"].isoformat() if v.get("departed_at") else None,
+                                         "carer": v.get("carer_name") or "a carer", "handover": v["handover"][:400]})
+        elif st == "missed":
+            out["missed"] += 1
+        elif st == "cancelled":
+            out["cancelled"] += 1
+        if v.get("late_alerted_at"):
+            out["late"] += 1
+        out["tasks"] += int(v.get("tasks") or 0)
+        out["tasks_done"] += int(v.get("tasks_done") or 0)
+    return out
+
+
+def summarise_reminders(reminders: list) -> dict:
+    out = {"set": len(reminders), "confirmed": 0, "skipped": 0, "missed": 0, "medication": 0, "medication_confirmed": 0, "hydration": 0, "hydration_confirmed": 0}
+    for r in reminders:
+        if r["status"] == "confirmed":
+            out["confirmed"] += 1
+        elif r["status"] == "skipped":
+            out["skipped"] += 1
+        elif r["status"] == "missed":
+            out["missed"] += 1
+        if r["kind"] == "medication":
+            out["medication"] += 1
+            out["medication_confirmed"] += int(r["status"] == "confirmed")
+        if r["kind"] == "hydration":
+            out["hydration"] += 1
+            out["hydration_confirmed"] += int(r["status"] == "confirmed")
+    return out
 
 
 # ── Summaries (pure) ─────────────────────────────────────────────────────────
@@ -160,6 +216,7 @@ def summarise_alerts(alerts: list, acknowledgements: list) -> list[dict]:
             "at": a["opened_at"].isoformat(), "kind": a["kind"], "words": ALERT_WORDS.get(a["kind"], a["kind"].replace("_", " ")),
             "severity": a["severity"], "status": a["status"], "tier": a["current_tier"],
             "acknowledged_by": (k or {}).get("display_name"), "acknowledged_at": k["acknowledged_at"].isoformat() if k else None,
+            "outcome": a.get("outcome") or "", "summary_by": "IRA",
         })
     return out
 
@@ -196,15 +253,42 @@ def render_daily(data: ReportData) -> tuple[str, str, dict]:
         lines.append(f"Watch now: battery {d.get('battery_percent') if d.get('battery_percent') is not None else 'unknown'} %, "
                      f"{'on' if d.get('on_wrist') else 'not on' if d.get('on_wrist') is False else 'unknown whether on'} the wrist, "
                      f"sensor permission {'on' if d.get('background_sensor_permission') else 'OFF' if d.get('background_sensor_permission') is False else 'unknown'}.")
+    v = summarise_visits(data.visits)
+    if v["planned"]:
+        words = f"Visits: {v['planned']} planned, {v['done']} done"
+        if v["missed"]:
+            words += f", {v['missed']} did not happen"
+        if v["late"]:
+            words += f", {v['late']} started late"
+        if v["tasks"]:
+            words += f"; {v['tasks_done']} of {v['tasks']} planned tasks done"
+        if v["outcomes"]:
+            words += "; outcomes: " + ", ".join(f"{VISIT_OUTCOME_WORDS.get(k, k)} ({n})" for k, n in v["outcomes"].items())
+        lines.append(words + ".")
+        for h in v["handovers"]:
+            lines.append(f"  Handover from {h['carer']}: {h['handover']}")
+    rm = summarise_reminders(data.reminders)
+    if rm["set"]:
+        lines.append(f"Reminders: {rm['set']} due, {rm['confirmed']} confirmed, {rm['skipped']} skipped, {rm['missed']} unanswered"
+                     + (f"; medication {rm['medication_confirmed']} of {rm['medication']} confirmed in two steps" if rm["medication"] else "")
+                     + (f"; drinks {rm['hydration_confirmed']} of {rm['hydration']}" if rm["hydration"] else "") + ".")
     if alerts:
         lines.append("")
         lines.append(f"Alerts ({len(alerts)}):")
         for a in alerts:
             who = f" acknowledged by {a['acknowledged_by']}" if a["acknowledged_by"] else ""
-            lines.append(f"  - {a['at'][11:16]} {a['words']} ({a['severity']}, reached tier {a['tier']}, now {a['status']}{who})")
+            outcome = f", outcome {a['outcome'].replace('_', ' ')}" if a.get("outcome") else ""
+            lines.append(f"  - {a['at'][11:16]} {a['words']} ({a['severity']}, reached tier {a['tier']}, now {a['status']}{who}{outcome})")
     else:
         lines.append("")
         lines.append("Alerts: none.")
+    if data.memory:
+        lines.append("")
+        lines.append("What IRA remembers (summary by IRA, never the person's words):")
+        for m in data.memory:
+            for ln in (m["summary"] or "").split("\n")[:6]:
+                if ln.strip():
+                    lines.append(f"  - {ln.strip()}" + (" (edited by the " + m["edited_by"] + ")" if m.get("edited_by") else ""))
     if c["notable"]:
         lines.append("")
         lines.append("Worth a look (from the check-in summaries):")
@@ -212,7 +296,8 @@ def render_daily(data: ReportData) -> tuple[str, str, dict]:
             lines.append(f"  - {n['at'][11:16]} {n['summary']}")
     text = "\n".join(lines)
     assert no_diagnosis_words(text), "a report must describe, never diagnose"
-    body = {"readings": r, "checkins": c, "medication": m, "alerts": alerts, "device": _public_device(data.device)}
+    body = {"readings": r, "checkins": c, "medication": m, "alerts": alerts, "device": _public_device(data.device),
+            "visits": v, "reminders": rm, "memory": [{"day": x["day"].isoformat(), "summary": x["summary"], "edited_by": x.get("edited_by") or ""} for x in data.memory]}
     return lines[0], text, body
 
 
@@ -229,10 +314,13 @@ def render_weekly(data: ReportData, days: list[ReportData]) -> tuple[str, str, d
         total_answered += c["answered"]; total_missed += c["missed"]
         m = summarise_medication(d.medications, d.medication_events)
         alerts = summarise_alerts(d.alerts, d.acknowledgements)
-        per_day.append({"day": d.period.start.isoformat(), "checkins": c, "medication": m, "alerts": alerts})
+        vv = summarise_visits(d.visits)
+        per_day.append({"day": d.period.start.isoformat(), "checkins": c, "medication": m, "alerts": alerts, "visits": vv})
         words = f"{d.period.start.strftime('%A')}: {c['answered']} of {c['asked']} check-ins answered"
         if m["doses_recorded"]:
             words += f", {m['taken']} dose(s) confirmed"
+        if vv["planned"]:
+            words += f", {vv['done']} of {vv['planned']} visit(s) made" + (f" ({vv['missed']} did not happen)" if vv["missed"] else "")
         if alerts:
             words += f", {len(alerts)} alert(s): " + "; ".join(a["words"] + (" (someone went)" if a["acknowledged_by"] else "") for a in alerts)
         lines.append(words + ".")
@@ -242,12 +330,18 @@ def render_weekly(data: ReportData, days: list[ReportData]) -> tuple[str, str, d
     if r["heart_rate_readings"]:
         lines.append(f"Heart rate readings stayed between {r['heart_rate_min']} and {r['heart_rate_max']} "
                      f"(range set by the carer: {r['range']}).")
+    vw = summarise_visits(data.visits)
+    if vw["handovers"]:
+        lines.append("")
+        lines.append("Handovers from the carers this week:")
+        for h in vw["handovers"][-5:]:
+            lines.append(f"  - {h['carer']}: {h['handover']}")
     lines.append("")
     lines.append("This report has summaries only. What the person said in their own words is private, "
                  "and shown in the app only with their recorded consent.")
     text = "\n".join(lines)
     assert no_diagnosis_words(text), "a report must describe, never diagnose"
-    return lines[0], text, {"days": per_day, "readings": r, "answered": total_answered, "missed": total_missed}
+    return lines[0], text, {"days": per_day, "readings": r, "answered": total_answered, "missed": total_missed, "visits": vw}
 
 
 def _public_device(d: Optional[dict]) -> Optional[dict]:

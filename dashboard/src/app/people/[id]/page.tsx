@@ -11,15 +11,16 @@ import type {
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, InvitationOut, Medication, Memory, MedicationEvent, Person, PersonStatus, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitOutcome, CommunicationProfile,
 } from '@/lib/types';
 import { VISIT_OUTCOME_WORDS } from '@/lib/types';
-import { VISIT_WORDS, byDay, checkinCounts, series, sortAlerts, timeAgo, timeline, visitLine } from '@/lib/view';
+import { VISIT_WORDS, byDay, checkinCounts, freshness, headline, series, sortAlerts, timeAgo, timeline, visitLine } from '@/lib/view';
 
-const TABS = ['timeline', 'visits', 'readings', 'routines', 'medication', 'circle', 'home', 'watch', 'settings', 'consent', 'conversation', 'reports', 'search', 'access'] as const;
+const TABS = ['overview', 'profile', 'health', 'care', 'timeline', 'alerts', 'ira', 'reports', 'search', 'access'] as const;
+const TAB_WORDS: Record<Tab, string> = { overview: 'Overview', profile: 'Profile', health: 'Health and wellbeing', care: 'Visits and care plan', timeline: 'Timeline', alerts: 'Alerts', ira: 'IRA', reports: 'Reports', search: 'Search', access: 'Access' };
 type Tab = (typeof TABS)[number];
 
 export default function PersonPage() {
   const { id } = useParams<{ id: string }>();
   const search = useSearchParams();
-  const tab = (search.get('tab') as Tab | null) ?? 'timeline';
+  const tab = (search.get('tab') as Tab | null) ?? 'overview';
   const { api, session, ready } = useApi();
   const manage = canManage(session);
 
@@ -40,6 +41,7 @@ export default function PersonPage() {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [profile, setProfile] = useState<CommunicationProfile | null>(null);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [entry, setEntry] = useState<{ access_notes: string } | 'refused' | null>(null);
   const [query, setQuery] = useState('');
   const [found, setFound] = useState<SearchResponse | null>(null);
   const [pairing, setPairing] = useState<Device | null>(null);
@@ -55,7 +57,7 @@ export default function PersonPage() {
       ]);
       setStatus(s); setAlerts(a); setCheckins(c); setVitals(v); setRoutines(r); setMeds(m); setMedEvents(me); setCircle(ci); setSettings(se); setConsents(co); setVisits(vi);
       setError('');
-      if (tab === 'conversation') {
+      if (tab === 'ira' || tab === 'overview') {
         setMemory(await api.memory(id));
         setProfile(await api.profile(id));
         setReminders(await api.reminders(id));
@@ -80,15 +82,71 @@ export default function PersonPage() {
   return (
     <>
       <h2>{name} <span className="muted" style={{ fontSize: 14 }}>{person.display_name} · {person.timezone} · {person.status}</span></h2>
+      <p data-testid="headline" style={{ fontSize: 18, margin: '0 0 8px' }}>{headline(status, visits.find((v) => v.status === 'arrived') ?? visits.filter((v) => (v.status === 'planned' || v.status === 'late') && new Date(v.planned_end) > new Date()).sort((x, y) => x.planned_start.localeCompare(y.planned_start))[0] ?? null)}</p>
       <div className="card row">
         <span><strong>Watch:</strong> {device ? `${device.status}, battery ${device.battery_percent ?? '?'} %, ${device.on_wrist === false ? 'off the wrist' : 'on the wrist'}, synced ${timeAgo(device.last_sync_at)}${device.background_sensor_permission === false ? ', sensor permission OFF' : ''}` : 'none paired'}</span>
         <span><strong>Check-ins (last 200):</strong> {counts.answered} answered, {counts.missed} missed, {counts.skippedQuiet} at night</span>
         <span><strong>Open alerts:</strong> {status.open_alerts.length}</span>
       </div>
       <nav className="tabs" aria-label="Sections of this person's record">
-        {TABS.filter((t) => t !== 'access' || manage).map((t) => <Link key={t} href={`/people/${id}?tab=${t}`} className={t === tab ? 'on' : ''}>{t[0].toUpperCase() + t.slice(1)}</Link>)}
+        {TABS.filter((t) => t !== 'access' || manage).map((t) => <Link key={t} href={`/people/${id}?tab=${t}`} className={t === tab ? 'on' : ''} aria-current={t === tab ? 'page' : undefined}>{TAB_WORDS[t]}</Link>)}
       </nav>
       {error ? <p className="error">{error}</p> : null}
+
+      {tab === 'overview' && (
+        <div className="grid" data-testid="overview-tab">
+          <div className="card"><strong>The watch</strong>
+            <div>{device ? `${device.status}, battery ${device.battery_percent ?? '?'} %, ${device.on_wrist === false ? 'off the wrist' : device.on_wrist === true ? 'on the wrist' : 'wrist unknown'}` : 'None paired'}</div>
+            <div className="muted">Last sync {timeAgo(device?.last_sync_at)}{device?.background_sensor_permission === false ? ' · sensor permission OFF' : ''}</div>
+          </div>
+          <div className="card"><strong>Latest readings</strong>
+            {status.latest_readings.length === 0 ? <div className="muted">No readings yet.</div> : status.latest_readings.map((r) => {
+              const f = freshness(r as Reading & { received_at?: string | null }, Math.max(30, (settings?.reading_upload_interval_s ?? 60) / 60 * 3));
+              return <div key={r.kind}><span className={`pill ${f.state === 'fresh' ? 'ok' : f.state === 'stale' ? 'urgent' : 'grey'}`}>{f.state}</span> {r.kind.replace('_', ' ')} {Math.round(r.value)}{r.unit ? ` ${r.unit}` : ''} <span className="muted">· {f.words}</span></div>;
+            })}
+          </div>
+          <div className="card"><strong>Last check-in</strong>
+            {status.last_checkin ? <div>{status.last_checkin.question_kind} · {status.last_checkin.status} · {timeAgo(status.last_checkin.scheduled_at)}{status.last_checkin.answer_summary ? <div className="muted">{status.last_checkin.answer_summary}</div> : null}</div> : <div className="muted">None yet.</div>}
+            <div className="muted">Last 200: {counts.answered} answered, {counts.missed} missed, {counts.skippedQuiet} at night</div>
+          </div>
+          <div className="card"><strong>Visits</strong>
+            {(() => { const v = visits.find((x) => x.status === 'arrived') ?? visits.filter((x) => (x.status === 'planned' || x.status === 'late') && new Date(x.planned_end) > new Date()).sort((x, y) => x.planned_start.localeCompare(y.planned_start))[0]; return v ? <div>{VISIT_WORDS[v.status]}: {visitLine(v)}</div> : <div className="muted">No visit planned.</div>; })()}
+            <div className="muted">{visits.filter((v) => v.status === 'departed').length} done, {visits.filter((v) => v.status === 'missed').length} did not happen (loaded)</div>
+          </div>
+          <div className="card"><strong>Alerts</strong>
+            {status.open_alerts.length === 0 ? <div className="muted">None open.</div> : status.open_alerts.map((a) => <div key={a.id}><span className={`pill ${a.severity}`}>{a.severity.toUpperCase()}</span> {a.kind.replace(/_/g, ' ')} · {a.status} · {timeAgo(a.opened_at)}</div>)}
+            <Link href={`/people/${id}?tab=alerts`}>All alerts, with delivery and outcomes</Link>
+          </div>
+          <div className="card"><strong>What IRA remembers today</strong>
+            {memory[0] ? <div style={{ whiteSpace: 'pre-line' }}>{memory[0].summary}</div> : <div className="muted">Nothing yet. Summaries by IRA, never the person&apos;s words.</div>}
+            {visits.filter((v) => v.status === 'departed' && v.handover)[0] ? <div className="muted">Last handover: {visits.filter((v) => v.status === 'departed' && v.handover)[0].handover}</div> : null}
+          </div>
+        </div>
+      )}
+
+      {tab === 'alerts' && (
+        <>
+          <p className="muted">Every alert for {name}, newest first: who was told and whether the phone received it, the follow-up deadline, and the outcome.</p>
+          {sortAlerts(alerts).map((a) => (
+            <AlertCard key={a.id} alert={a} personName={name} person={person} busy={busy}
+              onAccessNotes={(x) => api!.accessNotes(x.id)}
+              onAcknowledge={(x) => { void act(() => api!.acknowledge(x.id, 'from the dashboard')); }}
+              onArrived={(x) => { void act(() => api!.acknowledge(x.id, 'from the dashboard', 'arrived')); }}
+              onResolve={(x, outcome, resolution) => { void act(() => api!.resolve(x.id, resolution, outcome)); }} />
+          ))}
+          {alerts.length === 0 ? <p className="muted">No alerts recorded.</p> : null}
+        </>
+      )}
+
+      {tab === 'profile' && (
+        <div className="card">
+          <strong>Entry instructions (key safe, door, pets)</strong>
+          <p className="muted">Shown here to managers only, and every reading is written to the access log. During an alert, the people called see them on the alert itself.</p>
+          {manage ? (entry === null ? <button className="grey" disabled={busy} onClick={() => { api!.profileAccessNotes(id).then((n) => setEntry({ access_notes: n.access_notes })).catch(() => setEntry('refused')); }}>Show entry instructions</button>
+            : entry === 'refused' ? <p className="muted">Not available to this account.</p>
+            : <p data-testid="entry-instructions">{entry.access_notes || 'None recorded.'} <button className="grey" onClick={() => setEntry(null)}>Hide</button></p>) : <p className="muted">Only a manager may read them here.</p>}
+        </div>
+      )}
 
       {tab === 'timeline' && (
         <>
@@ -120,7 +178,7 @@ export default function PersonPage() {
         </>
       )}
 
-      {tab === 'visits' && (
+      {tab === 'care' && (
         <>
           {visits.filter((v) => v.status !== 'departed' && v.status !== 'cancelled').map((v) => (
             <div className="card" key={v.id}>
@@ -148,16 +206,24 @@ export default function PersonPage() {
         </>
       )}
 
-      {tab === 'readings' && (
+      {tab === 'health' && (
         <div className="grid">
-          {['heart_rate', 'steps', 'movement', 'on_wrist', 'battery'].map((k) => (
-            <div className="card" key={k}><Sparkline points={series(vitals, k)} label={k.replace('_', ' ')} /></div>
-          ))}
+          {['heart_rate', 'steps', 'movement', 'on_wrist', 'battery', 'skin_temperature'].map((k) => {
+            const latest = status.latest_readings.find((r) => r.kind === k) as (Reading & { received_at?: string | null }) | undefined;
+            const f = freshness(latest, Math.max(30, (settings?.reading_upload_interval_s ?? 60) / 60 * 3));
+            return (
+              <div className="card" key={k} data-testid={`reading-${k}`}>
+                <div className="row"><strong>{k.replace('_', ' ')}</strong> <span className={`pill ${f.state === 'fresh' ? 'ok' : f.state === 'stale' ? 'urgent' : 'grey'}`}>{f.state}</span></div>
+                <div>{latest ? `${Math.round(latest.value)}${latest.unit ? ` ${latest.unit}` : ''}` : 'Unavailable'} <span className="muted">· {f.words}</span></div>
+                {series(vitals, k).length > 1 ? <Sparkline points={series(vitals, k)} label={k.replace('_', ' ')} /> : null}
+              </div>
+            );
+          })}
           {settings ? <div className="card"><strong>Range set for this person</strong><div className="muted">Heart rate {settings.heart_rate_min ?? 'not set'} to {settings.heart_rate_max ?? 'not set'}. Set by a carer or clinician; there is no built-in range.</div></div> : null}
         </div>
       )}
 
-      {tab === 'routines' && (
+      {tab === 'care' && (
         <div className="card">
           <table><thead><tr><th>Routine</th><th>Kind</th><th>Time</th><th>Days</th></tr></thead><tbody>
             {routines.map((r) => <tr key={r.id}><td>{r.name}</td><td>{r.kind}</td><td>{r.time_of_day?.slice(0, 5) ?? '-'}</td><td>{r.days_of_week.join(' ')}</td></tr>)}
@@ -166,7 +232,7 @@ export default function PersonPage() {
         </div>
       )}
 
-      {tab === 'medication' && (
+      {tab === 'care' && (
         <>
           <div className="card">
             <table><thead><tr><th>Medication</th><th>Dose</th><th>Times</th></tr></thead><tbody>
@@ -183,7 +249,7 @@ export default function PersonPage() {
         </>
       )}
 
-      {tab === 'circle' && (
+      {tab === 'profile' && (
         <div className="card">
           <table><thead><tr><th>Name</th><th>Role</th><th>Tier</th><th>Phone</th><th>Active</th></tr></thead><tbody>
             {circle.map((m) => <tr key={m.id}><td>{m.display_name}{m.relationship ? ` (${m.relationship})` : ''}</td><td>{m.role.replace('_', ' ')}</td><td>{m.tier}</td><td>{m.phone}</td><td>{m.active ? 'yes' : 'no'}</td></tr>)}
@@ -199,7 +265,7 @@ export default function PersonPage() {
         </div>
       )}
 
-      {tab === 'watch' ? (
+      {tab === 'health' ? (
         <div className="card">
           <strong>Pair a watch, step by step</strong>
           <ol>
@@ -214,11 +280,11 @@ export default function PersonPage() {
         </div>
       ) : null}
 
-      {tab === 'home' ? <HomeForm person={person} manage={manage} onSave={(b) => act(() => api!.updateHome(id, b))} /> : null}
+      {tab === 'profile' ? <HomeForm person={person} manage={manage} onSave={(b) => act(() => api!.updateHome(id, b))} /> : null}
 
-      {tab === 'settings' && settings ? <SettingsForm settings={settings} manage={manage} onSave={(s) => act(() => api!.putSettings(id, s))} /> : null}
+      {tab === 'care' && settings ? <SettingsForm settings={settings} manage={manage} onSave={(s) => act(() => api!.putSettings(id, s))} /> : null}
 
-      {tab === 'consent' && consents ? (
+      {tab === 'profile' && consents ? (
         <div className="card">
           <p>Family see alerts and summaries. The person&apos;s words are shown to a role only under a recorded consent.</p>
           <ul>
@@ -234,13 +300,13 @@ export default function PersonPage() {
         </div>
       ) : null}
 
-      {tab === 'conversation' && profile ? (
+      {tab === 'ira' && profile ? (
         <ProfileForm profile={profile} circle={circle} onSave={(b) => act(() => api!.putProfile(id, b))} busy={busy} />
       ) : null}
-      {tab === 'conversation' && (
+      {tab === 'ira' && (
         <RemindersCard reminders={reminders} busy={busy} onAdd={(t, d) => act(() => api!.addReminder(id, t, d))} onAct={(r, a) => act(() => api!.actOnReminder(r, a))} />
       )}
-      {tab === 'conversation' && (
+      {tab === 'ira' && (
         <div className="card">
           <strong>What IRA remembers (summaries, never the person&apos;s words)</strong>
           <p className="muted">The person or their representative can change or clear any day. An edited day is marked.</p>
@@ -251,7 +317,7 @@ export default function PersonPage() {
           )}
         </div>
       )}
-      {tab === 'conversation' && (
+      {tab === 'ira' && (
         <div className="card">
           {transcripts === 'refused' ? <p>Transcripts are private. They can be read only with the person&apos;s recorded consent for your role in their care circle. This attempt was written to the access log.</p> : null}
           {Array.isArray(transcripts) ? (

@@ -153,3 +153,34 @@ export function timeline(checkins: Checkin[], visits: Visit[], alerts: Alert[]):
   }
   return out.sort((x, y) => y.at.localeCompare(x.at));
 }
+
+
+/** A reading's freshness, said plainly: when it was recorded, when it reached us, and whether it is stale. */
+export type Freshness = { state: 'fresh' | 'stale' | 'unavailable'; words: string };
+export function freshness(reading: Pick<Reading, 'recorded_at'> & { received_at?: string | null } | undefined, staleAfterMinutes: number, now = new Date()): Freshness {
+  if (!reading) return { state: 'unavailable', words: 'No reading yet' };
+  const recorded = new Date(reading.recorded_at).getTime();
+  if (Number.isNaN(recorded)) return { state: 'unavailable', words: 'No reading yet' };
+  const ageMin = (now.getTime() - recorded) / 60000;
+  const received = reading.received_at ? ` · received ${timeAgo(reading.received_at, now)}` : '';
+  const lag = reading.received_at ? Math.round((new Date(reading.received_at).getTime() - recorded) / 60000) : 0;
+  const lagWords = lag >= 2 ? ` (${lag} min after it was recorded)` : '';
+  if (ageMin > staleAfterMinutes) return { state: 'stale', words: `Stale: recorded ${timeAgo(reading.recorded_at, now)}${received}${lagWords}` };
+  return { state: 'fresh', words: `Recorded ${timeAgo(reading.recorded_at, now)}${received}${lagWords}` };
+}
+
+/** The headline of a person's record: one line a coordinator reads first. */
+export function headline(status: { open_alerts: { severity: string; status: string }[]; devices: { last_sync_at: string | null; on_wrist: boolean | null }[]; last_checkin: { status: string; scheduled_at: string } | null }, nextVisit?: { carer_name: string; planned_start: string; status: string } | null, now = new Date()): string {
+  const open = status.open_alerts.filter((a) => a.status === 'open' || a.status === 'escalating');
+  if (open.length) return `${open.length} alert${open.length > 1 ? 's' : ''} waiting for someone`;
+  const acked = status.open_alerts.filter((a) => a.status === 'acknowledged');
+  if (acked.length) return 'Someone is on their way';
+  const parts: string[] = [];
+  const d = status.devices[0];
+  if (!d) parts.push('no watch paired');
+  else if (!d.last_sync_at || (now.getTime() - new Date(d.last_sync_at).getTime()) > 60 * 60000) parts.push(`watch last synced ${timeAgo(d.last_sync_at, now)}`);
+  else if (d.on_wrist === false) parts.push('watch off the wrist');
+  if (status.last_checkin) parts.push(`last check-in ${status.last_checkin.status} ${timeAgo(status.last_checkin.scheduled_at, now)}`);
+  if (nextVisit) parts.push(nextVisit.status === 'arrived' ? `${nextVisit.carer_name || 'a carer'} is there now` : `${nextVisit.carer_name || 'a carer'} due at ${nextVisit.planned_start.slice(11, 16)}`);
+  return parts.length ? 'All well: ' + parts.join(', ') : 'All well';
+}
