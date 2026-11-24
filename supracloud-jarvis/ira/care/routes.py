@@ -854,6 +854,18 @@ async def get_alert(alert_id: uuid.UUID, p: Principal = Depends(require_workspac
     return alert
 
 
+@router.get("/people/{person_id}/access-notes")
+async def person_access_notes(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    """The profile's entry instructions, for a manager only, every reading logged."""
+    ensure_can_read(p)
+    out = await repo.read_access_notes(p, person_id)
+    if out is None:
+        raise _not_found("Person not found.")
+    if not out.get("allowed"):
+        raise HTTPException(status_code=403, detail="Entry instructions on the profile are shown to managers only; during an alert, tier 1 and 2 recipients see them on the alert.")
+    return out
+
+
 @router.get("/alerts/{alert_id}/access-notes")
 async def alert_access_notes(alert_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     """Key safe, door, pets: for tier 1 and 2 recipients while the alert is open.
@@ -1151,6 +1163,16 @@ async def search_history(person_id: uuid.UUID, q: str = Query(..., min_length=1,
 
 
 # ── Operations ───────────────────────────────────────────────────────────────
+
+@router.get("/overview")
+async def overview(p: Principal = Depends(require_workspace_principal)):
+    """The live overview for the care team: who needs attention, visits due or
+    overdue, alerts awaiting a response, stale watches (care/overview.py)."""
+    ensure_can_read(p)
+    from . import overview as ov
+    async with workspace_connection(p) as conn:
+        return await ov.build(conn)
+
 
 @router.get("/ops/status")
 async def ops_status(p: Principal = Depends(require_workspace_principal)):

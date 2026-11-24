@@ -60,6 +60,18 @@ export interface Visit {
 }
 export interface VisitCreate { planned_start: string; planned_end: string; carer_member_id?: string | null; carer_name?: string; purpose?: string; tasks?: string[] }
 export interface VisitDepart { outcome: Exclude<VisitOutcome, ''>; notes: string; handover: string; tasks_done: string[] }
+export interface OverviewAlert {
+  id: string; person_id: string; person_name: string; kind: string; severity: 'notice' | 'urgent' | 'sos'; status: string; opened_at: string;
+  current_tier: number; acknowledged_at: string | null; follow_up_due_at: string | null; follow_up_asked_at: string | null; re_escalations: number;
+  responder: string | null; awaiting_response: boolean; follow_up_overdue: boolean; arrived: boolean;
+}
+export interface OverviewVisit { id: string; person_id: string; person_name: string; carer_name: string; planned_start: string; planned_end: string; status: string; arrived_at: string | null; state: 'overdue' | 'in_progress' | 'due_soon' | 'planned' }
+export interface Overview {
+  now: string; people: number;
+  attention: { person_id: string; person_name: string; reasons: string[] }[];
+  visits: OverviewVisit[]; alerts: OverviewAlert[];
+  stale_watches: { device_id: string; person_id: string; person_name: string; reasons: string[]; last_sync_at: string | null; battery_percent: number | null }[];
+}
 export interface Routine { id: string; name: string; kind: string; time_of_day: string | null; days_of_week: number[]; active: boolean }
 export interface Medication { id: string; name: string; dose: string; times: string[]; notes: string; active: boolean }
 export interface MedicationEvent { id: string; medication_id: string; due_at: string; status: string; confirmed_via: string }
@@ -76,7 +88,7 @@ export interface SafetySettings {
   no_movement_window_s: number; movement_floor_steps: number; off_wrist_alert_minutes: number;
   battery_alert_percent: number; sync_alert_minutes: number; missed_checkins_before_escalation: number; ack_wait_minutes: number;
   ask_first_wait_s: number; heart_rate_confirm_readings: number; heart_rate_confirm_seconds: number;
-  night_off_wrist_minutes: number; usual_wake_time: string; wake_grace_minutes: number; visit_late_minutes?: number; hydration_every_minutes?: number;
+  night_off_wrist_minutes: number; usual_wake_time: string; wake_grace_minutes: number; visit_late_minutes?: number; hydration_every_minutes?: number; reading_upload_interval_s?: number; follow_up_minutes?: number; follow_up_grace_minutes?: number;
   fall_detection_enabled: boolean; fall_countdown_s: number; fall_impact_g: number; fall_still_seconds: number; fall_still_threshold_g: number;
 }
 export interface OpsStatus { monitoring_paused: boolean; stale_after_s: number; checked_at: string; jobs: Record<string, { last_run_at: string | null; age_s: number | null; stale: boolean }> }

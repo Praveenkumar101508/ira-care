@@ -838,3 +838,24 @@ phone (`POST /people/{id}/help`) opens the same SOS the watch would, marked "pho
 confirmation step. A photo wallpaper is kept on the server only (the phone's secure store is
 too small for it); everything else is also cached on the phone so the app looks right before
 the server answers. Account erasure removes the appearance with the account.
+
+## D-062 The dashboard is a care record, read in the order a coordinator needs it (round 3, phase 11)
+
+The overview answers four questions at a glance, live (`GET /overview`, refreshed every 30 s):
+who needs attention now and why (an alert waiting for someone; a responder who said they were
+coming and has not arrived; a visit that is late or did not happen; no check-in answered
+since the usual wake time), which visits are due or overdue, which alerts await a response and
+who is on the way, and which watches to check (not synced within the person's setting, off
+the wrist, low battery, sensor permission off). The person's record opens on a one-line
+headline (alerts first, then the watch, the last check-in and the next visit) and ten tabs:
+overview, profile (address and, for managers only, the entry instructions behind a button
+whose every reading is written to the access log; during an alert the people called see them
+on the alert instead), health and wellbeing (each reading with when it was recorded and when
+it reached the server, and called fresh, stale or unavailable in those words), visits and care
+plan, the live timeline with the source of every line, alerts with delivery state, follow-up
+deadline and outcome, IRA (how IRA speaks, reminders, what IRA remembers, the person's own
+words only under consent, and the carers' handovers), reports, search and access. The daily
+and weekly reports now carry the visits (done, missed, late, tasks, outcomes, handovers), the
+reminders (confirmed, skipped, unanswered; a dose confirmed in two steps) and what IRA
+remembers, each line a summary by IRA and never the person's words; a report still refuses
+to say a diagnosis.
