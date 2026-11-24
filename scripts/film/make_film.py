@@ -15,6 +15,7 @@ docs/hardware/renders/*.png. Needs ffmpeg with libass and the piper command (PIP
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -52,6 +53,7 @@ def dur(path: Path) -> float:
 
 def speak(text: str, out: Path, ira: bool = False) -> Path:
     """One sentence as a 48 kHz mono WAV; IRA's lines a little higher and quicker than the narrator."""
+    out = out.with_name(f"{out.stem}_{hashlib.sha1(text.encode()).hexdigest()[:10]}.wav")   # cached by its words
     if out.exists() and out.stat().st_size > 0:
         return out
     tmp = out.with_suffix(".raw.wav")
@@ -62,8 +64,16 @@ def speak(text: str, out: Path, ira: bool = False) -> Path:
     return out
 
 
-def sentences(words: str) -> list[str]:
-    return [s.strip() for s in re.split(r"(?<=[.!?])\s+", words.strip()) if s.strip()]
+def sentences(words: str) -> list[tuple[str | None, str]]:
+    """The narration's sentences; one that starts with {mark} is not spoken before that moment."""
+    out = []
+    for s in re.split(r"(?<=[.!?])\s+", words.strip()):
+        m = re.match(r"\{([\w-]+)\}\s*(.*)", s.strip())
+        if m:
+            out.append((m.group(1), m.group(2)))
+        elif s.strip():
+            out.append((None, s.strip()))
+    return out
 
 
 def narration_rows() -> list[dict]:
@@ -75,7 +85,7 @@ def narration_rows() -> list[dict]:
     return rows
 
 
-def plan_audio(n: int, words: str, said: list[dict]) -> tuple[list[dict], float]:
+def plan_audio(n: int, words: str, said: list[dict], marks: dict[str, float] | None = None) -> tuple[list[dict], float]:
     """Place IRA's lines where they happened and the narrator's sentences in the gaps between them."""
     items = []
     busy = []
@@ -90,9 +100,11 @@ def plan_audio(n: int, words: str, said: list[dict]) -> tuple[list[dict], float]
         busy.append((start, end))
         items.append({"wav": wav, "start": start, "end": end, "text": s["text"], "ira": True})
     t = LEAD
-    for i, s in enumerate(sentences(words)):
+    for i, (anchor, s) in enumerate(sentences(words)):
         wav = speak(s, WORK / f"n{n:02d}_{i:02d}.wav")
         d = dur(wav)
+        if anchor:
+            t = max(t, (marks or {}).get(anchor, t))
         moved = True
         while moved:
             moved = False
@@ -152,13 +164,13 @@ def video_for(row: dict, length: float) -> Path:
         per = length / len(pngs)
         args, chains = [], []
         for k, p in enumerate(pngs):
-            args += ["-loop", "1", "-t", f"{per:.3f}", "-i", str(p)]
+            args += ["-loop", "1", "-framerate", str(FPS), "-t", f"{per:.3f}", "-i", str(p)]
             frames = int(per * FPS)
             chains.append(f"[{k}:v]scale=1440:1080,zoompan=z='1+0.06*on/{frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1440x1080:fps={FPS},pad={W}:{H}:(ow-iw)/2:0:color={PAPER},setsar=1[p{k}]")
         graph = ";".join(chains) + ";" + "".join(f"[p{k}]" for k in range(len(pngs))) + f"concat=n={len(pngs)}:v=1:a=0,format=yuv420p[v]"
         run(*args, "-filter_complex", graph, "-map", "[v]", *enc, str(out))
     elif row["scene"].lower().startswith("closing"):
-        card(out, length, "IRA CARE", ["Built by Praveen Kamineti and Sravani Perni.", "Open source: github.com/Praveenkumar101508/ira-care"])
+        card(out, length, "IRA CARE", ["Built by Praveen Kamineti and Sravani Perni.", "Open models, on the care team's own machine."])
     elif rec:
         phone = RAW / f"{rec[0].stem}-phone.webm"
         if phone.exists():
@@ -189,9 +201,12 @@ def main() -> int:
         # The film's cut starts at the scene's 'start' mark, if it has one.
         start = next((m["t"] for m in meta.get("marks", []) if m["what"] == "start"), 0.0)
         said = [{**s, "t": s["t"] - start} for s in meta.get("said", []) if s["t"] >= start]
+        marks = {m["what"]: m["t"] - start for m in meta.get("marks", [])}
         row["start"] = start
-        items, speech_end = plan_audio(n, row["words"], said)
-        length = max(row["seconds"], speech_end + 1.2)
+        items, speech_end = plan_audio(n, row["words"], said, marks)
+        # A recorded scene runs as long as what was recorded (or its speech, if longer); the
+        # table's seconds are for the scenes made here (title, turntable, renders, closing).
+        length = speech_end + 1.2 if rec else max(row["seconds"], speech_end + 1.2)
         if rec:
             length = max(length, min(MAX_SCENE, dur(rec[0]) - start))
         if row["scene"].lower().startswith("the watch, turning"):
@@ -201,7 +216,7 @@ def main() -> int:
         audio = WORK / f"a{n:02d}.wav"
         mix(items, length, audio)
         scenes.append({"n": n, "scene": row["scene"], "length": length, "video": video, "audio": audio, "items": items})
-        print(f"scene {n:2d} {row['scene'][:40]:40s} {length:6.1f} s  {sum(1 for i in items if i['ira'])} IRA lines")
+        print(f"scene {n:2d} {row['scene'][:40]:40s} {length:6.1f} s  speech ends {speech_end:5.1f} s  {sum(1 for i in items if i['ira'])} IRA lines")
 
     # One pass: cross-fade every scene into the next, video and sound together, and burn in the captions.
     starts, t = [], 0.0
