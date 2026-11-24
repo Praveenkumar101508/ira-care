@@ -41,6 +41,8 @@ async def _setup(client, fam, *, hr=(45, 130), fall=True) -> dict:
     body = {k: v for k, v in s.items() if k not in ("person_id", "tenant_id", "workspace_id", "set_by", "updated_at")}
     body["heart_rate_min"], body["heart_rate_max"] = hr
     body["fall_detection_enabled"] = fall
+    # No quiet hours for this test person: an ordinary check-in is asked whatever the wall clock says.
+    body["quiet_start"], body["quiet_end"] = "00:00", "00:00"
     r = await client.put(f"{C}/people/{person['id']}/settings", json=body)
     assert r.status_code == 200, r.text
     r = await client.post(f"{C}/people/{person['id']}/devices", json={"platform": "wearos"})

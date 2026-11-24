@@ -674,3 +674,25 @@ help, taken to hospital, false alarm, other); the dashboard has an outcome form 
 family app two outcome buttons. Two responders at once are safe: the status change is one
 atomic update, both acknowledgements are kept, and a second close at the same moment
 returns the alert as the first close left it.
+
+## D-056 No hosted model API, ever (round 3, phase 4)
+
+The inherited model layer carried a "Deep Intelligence Mode": with `IRA_ALLOW_EXTERNAL_API`,
+`IRA_EXTERNAL_API_PROVIDER` and `IRA_EXTERNAL_API_MODEL` set and an executor registered by
+the host, a hard question could be sent to an external frontier model for paid tokens. IRA
+CARE never does that: the person's words stay on the operator's machine. The path is closed
+in `reasoning/api_consent.py`: an approval is recorded and stays local, no executor can be
+registered, a hand-built external decision is refused at execution, the two provider
+settings do nothing, and the consent message says so. `IRA_ALLOW_EXTERNAL_API` keeps its
+other meaning (ordinary web fetches in the research and browser tools, which are not model
+calls). The nine tests that proved the old gate now prove the closed path. The care
+conversation runs on a chain of two free open-weight models served by Ollama on the same
+machine (`IRA_CARE_MODEL=ollama`, the default; `IRA_CARE_MODEL_PRIMARY` then
+`IRA_CARE_MODEL_SECONDARY`, then the set questions), chosen in `docs/MODEL_CHOICE.md` by
+quality on the 150-turn evaluation set first and first-sentence latency on CPU second:
+`gemma4:12b` (quality 0.86, 10 s to the first sentence on 4 cores) then `gemma4:e4b` (0.78,
+4.6 s). `gemma4:26b-a4b` did not fit in 16 GB. The rules alone score 0.97 on the same set,
+because the set measures what the rules guarantee; the model adds the reading of free text. The
+keyword red-flag rules run on every answer whatever the model says, and the evaluation set
+found three phrasings they missed ("had a fall", "chest hurts", "heart attack"), which they
+now catch; it also found that "remind me to ring Sravani" was read as a call, which is fixed.

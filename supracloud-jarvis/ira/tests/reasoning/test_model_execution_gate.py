@@ -1,10 +1,13 @@
 """M2 — the external execution gate.
 
-Proves Deep Intelligence Mode cannot reach the network without (a) an approved
+IRA CARE (D-056): there is no hosted model API. These tests prove that no
+approval, no environment variable and no registered executor can make a model
+call leave the machine. Formerly they proved the gate needed (a) an approved
 external decision, (b) the IRA_ALLOW_EXTERNAL_API master switch, and (c) an
 explicitly registered executor. Local decisions always run locally.
 """
 import pytest
+from dataclasses import replace
 
 from reasoning.model_availability import ModelAvailability
 from reasoning.model_profiles import reload_config
@@ -40,39 +43,35 @@ def test_local_decision_runs_locally():
     assert out.startswith("local:")
 
 
-def test_external_decision_without_executor_raises():
+def test_an_approved_decision_stays_local_and_an_external_one_cannot_run():
+    """D-056: there is no hosted model. Approval changes nothing; a hand-built
+    external decision is refused at execution time whatever the environment says."""
     env = {"IRA_ALLOW_EXTERNAL_API": "true"}
     d = route(VERY_HARD, env=env, availability=UNKNOWN)
-    ext = apply_consent(d, approved=True, env=env)
-    assert ext.provider == "external"
+    final = apply_consent(d, approved=True, env=env)
+    assert final.provider == "local" and "no hosted model" in final.reason
+    forged = replace(final, provider="external")
     with pytest.raises(ExternalExecutorNotConfigured):
-        run_decision(ext, local_runner=_local_runner, env=env)
+        run_decision(forged, local_runner=_local_runner, env=env)
 
 
-def test_external_decision_blocked_when_master_switch_off():
-    # Even with an executor registered, master switch off blocks execution.
-    register_external_executor(lambda d, s, p: "EXTERNAL CALLED")
-    env = {"IRA_ALLOW_EXTERNAL_API": "true"}
-    d = route(VERY_HARD, env=env, availability=UNKNOWN)
-    ext = apply_consent(d, approved=True, env=env)
-    # Now run with the master switch OFF.
+def test_registering_an_external_executor_is_refused():
     with pytest.raises(ExternalExecutorNotConfigured):
-        run_decision(ext, local_runner=_local_runner, env={"IRA_ALLOW_EXTERNAL_API": "false"})
+        register_external_executor(lambda d, s, p: "EXTERNAL CALLED")
+    clear_external_executor()   # harmless, kept for older callers
 
 
-def test_external_decision_runs_only_with_executor_and_switch():
-    calls = []
-    register_external_executor(lambda d, s, p: calls.append(d.selected_model) or "EXTERNAL OK")
-    env = {"IRA_ALLOW_EXTERNAL_API": "true", "IRA_EXTERNAL_API_MODEL": "acme-frontier"}
-    d = route(VERY_HARD, env=env, availability=UNKNOWN)
-    ext = apply_consent(d, approved=True, env=env)
-    out = run_decision(ext, local_runner=_local_runner, env=env)
-    assert out == "EXTERNAL OK"
-    assert calls == ["acme-frontier"]
+def test_no_environment_turns_an_external_model_on():
+    for env in ({}, {"IRA_ALLOW_EXTERNAL_API": "true"},
+                {"IRA_ALLOW_EXTERNAL_API": "true", "IRA_EXTERNAL_API_MODEL": "acme-frontier", "IRA_EXTERNAL_API_PROVIDER": "acme"}):
+        d = route(VERY_HARD, env=env, availability=UNKNOWN)
+        final = apply_consent(d, approved=True, env=env)
+        assert final.provider == "local"
+        assert final.selected_model == d.selected_model, "the local model is the answer, not a safety net"
+        assert run_decision(final, local_runner=_local_runner, env=env).startswith("local:")
 
 
-def test_declined_decision_runs_locally_even_with_executor():
-    register_external_executor(lambda d, s, p: "EXTERNAL CALLED")
+def test_declined_decision_runs_locally():
     env = {"IRA_ALLOW_EXTERNAL_API": "true"}
     d = route(VERY_HARD, env=env, availability=UNKNOWN)
     final = apply_consent(d, approved=False, env=env)  # user said "Local only"

@@ -28,7 +28,7 @@ is the hand-over.
 | `mobile/` | The family and patient phone app (Expo, TypeScript) | Type check and tests |
 | `dashboard/` | The carer dashboard (Next.js, TypeScript) | Type check, tests and build |
 | `IRA_CLOUD_REGISTRATION_ENABLED` (setting) | Opens `/care/signup` (off by default: no sign-ups). `IRA_PAYMENT_PROVIDER` stays unset unless billing is configured; care plans carry no price | Setting |
-| `IRA_CARE_MODEL` (setting) | `local` (default: IRA's model layer, a small local model), `fake` (tests and CI) or `off` (templates only); `IRA_CARE_MODEL_FIRST_SENTENCE_S` is the budget before the template takes over (4) | Setting |
+| `IRA_CARE_MODEL` (setting) | `ollama` (default: two free open-weight models served on the same machine, `IRA_CARE_MODEL_PRIMARY` then `IRA_CARE_MODEL_SECONDARY`, then the set questions; `docs/MODEL_CHOICE.md`), `fake` (tests and CI) or `off` (templates only); `IRA_CARE_MODEL_FIRST_SENTENCE_S` is the budget before the set question takes over (12). No hosted model API exists. | Setting |
 | `deploy/` and `docs/DEPLOY.md` | Containers for the server, worker and dashboard, HTTPS through Caddy, nightly encrypted backups with a restore proved in CI, and the step-by-step guide for one UK-region machine; `scripts/soak_24h.py` is the accelerated day for 200 people | Deployment |
 | `docs/DEVICE_SETUP.md` | Pairing a watch, permissions, fall detection in IRA CARE and the watch maker's own as a second layer | Document |
 | `scripts/demo/` and `docs/demo/` | The hardware-free demo: seed, demo API, scripted scenarios, the recording, and `DEMO_SCRIPT.md` for a presenter; the watch simulator is `/simulator` on the dashboard | Demo |
@@ -76,6 +76,11 @@ A Galaxy Watch with LTE for device testing; the vendor sensor-SDK partner reques
 release; text and call provider keys (the adapter stays off without them); a
 monitoring-centre contract for tier 3; regulatory advice before sale. See
 [docs/progress/FINAL_REPORT.md](docs/progress/FINAL_REPORT.md).
+
+## Who builds it
+
+- Praveen Kamineti ([Praveenkumar101508](https://github.com/Praveenkumar101508))
+- Sravani Perni ([sravaniperni](https://github.com/sravaniperni))
 
 ## Licence
 

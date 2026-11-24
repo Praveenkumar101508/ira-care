@@ -73,7 +73,8 @@ def test_approve_without_master_switch_stays_local():
     assert "disabled by config" in final.reason
 
 
-def test_approve_with_master_switch_goes_external():
+def test_approve_with_master_switch_still_stays_local():
+    """D-056: the switch used to open an external frontier model. Nothing does now."""
     env = {
         "IRA_ALLOW_EXTERNAL_API": "true",
         "IRA_EXTERNAL_API_PROVIDER": "acme-labs",
@@ -81,11 +82,10 @@ def test_approve_with_master_switch_goes_external():
     }
     d = _hard(env=env)
     final = apply_consent(d, approved=True, env=env)
-    assert final.provider == "external"
-    assert final.selected_model == "acme-frontier"
-    assert final.estimated_cost_level == "high"
-    # The local model is retained as a safety net.
-    assert final.fallback_model == "deepseek-r1:14b"
+    assert final.provider == "local"
+    assert final.selected_model == d.selected_model
+    assert final.estimated_cost_level != "high"
+    assert "no hosted model" in final.reason
 
 
 def test_external_never_used_without_calling_apply_consent():
@@ -96,9 +96,8 @@ def test_external_never_used_without_calling_apply_consent():
     assert d.provider == "local"
 
 
-def test_consent_message_is_actionable():
+def test_consent_message_offers_nothing_external():
     msg = consent_message()
     assert msg == CONSENT_MESSAGE
-    assert "Deep Intelligence Mode" in msg
-    assert "Approve" in msg
+    assert "Deep Intelligence Mode" not in msg and "paid" in msg and "stay here" in msg
     assert "Local only" in msg

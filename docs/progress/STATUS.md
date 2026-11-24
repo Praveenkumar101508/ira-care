@@ -40,7 +40,7 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-1 | trustworthy-sos | `fix/trustworthy-sos` | not started |
 | R3-2 | care-push-isolation | `fix/care-push-isolation` | not started |
 | R3-3 | responder-follow-up | `fix/responder-follow-up` | not started |
-| R3-4 | private-model | `feat/private-model` | not started |
+| R3-4 | private-model | `feat/private-model` | Built, measured (five models benchmarked on CPU) and tested locally; pull request to follow |
 | R3-5 | own-models | `feat/own-models` | not started |
 | R3-6 | scheduled-care | `feat/scheduled-care` | not started |
 | R3-7 | ira-personal | `feat/ira-personal` | not started |
@@ -53,6 +53,17 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | not started |
 | R3-15 | cost-cuts | `ci/cost-cuts` | not started |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 4 (private-model), measured locally (23 November 2026)
+
+- The hosted model path is closed (`reasoning/api_consent.py`; 9 tests). IRA's words come from
+  Ollama on the same machine: `gemma4:12b` then `gemma4:e4b`, then the set questions.
+- Benchmark on 4 vCPU / 15.7 GB, no GPU, 150 turns each: gemma4:12b quality 0.86, first
+  sentence p50 10.0 s; gemma4:e4b 0.78, 4.6 s; qwen3.5:9b 0.78, 6.5 s; qwen3.5:4b 0.73, 4.4 s
+  (2 fallbacks); gemma4:26b-a4b did not load in 16 GB; rules alone 0.97. Red-flag recall 1.00
+  everywhere (the rules decide). `docs/MODEL_CHOICE.md`, `docs/evidence/eval/*.json`.
+- The eval set found three red-flag phrasings the rules missed and one reminder read as a
+  call; all four are fixed in the rules and covered by tests.
 
 ## Round 3, phase 0 (remove-demo-state), measured locally (23 November 2026)
 

@@ -1,0 +1,12 @@
+{
+  "model": "ollama:gemma4:26b-a4b",
+  "model_name": "gemma4:26b-a4b",
+  "measured_at": "2026-11-23T23:32:52+00:00",
+  "status": "could not run",
+  "reason": "The 18 GB model did not fit this machine's 15.7 GB of memory: Ollama's llama-server was killed by the kernel while loading (serve log 23:11:40, 'client connection closed before llama-server finished loading' then 'llama-server terminated: signal: killed'). No turns were scored. A 16 GB deployment cannot serve this model.",
+  "hardware": {
+    "memory_gb": 15.7,
+    "cores": 4,
+    "gpu": "none (CPU only)"
+  }
+}
