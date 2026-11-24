@@ -22,7 +22,7 @@ const FAMILY = process.env.FAMILY_URL ?? 'http://localhost:8081';
 const OUT = process.env.DEMO_OUT ?? 'docs/demo';
 const info = JSON.parse(readFileSync('.demo/demo.local.json', 'utf8'));
 const manager = info.logins.find((l) => l.role === 'workspace_admin');
-const family = info.logins.find((l) => l.role === 'member');
+const family = info.logins.find((l) => l.key === 'family') ?? info.logins.find((l) => l.role === 'member');
 const personA = info.people[0];
 
 mkdirSync(join(OUT, 'raw'), { recursive: true });

@@ -1,6 +1,6 @@
 # Every screen, phone and desktop
 
-Taken by `scripts/screens/capture.mjs` against the demo stack (phase 12, 24 November 2026), after the review in D-063. The wearer's own phone experience needs a circle member whose relationship is "self"; the demo seed has none yet (phase 13 adds one).
+Taken by `scripts/screens/capture.mjs` against the demo stack. The wearer's own phone experience is Ada Hartley's account (a circle member whose relationship is "self").
 
 | Screen | Phone (390 × 844) | Desktop (1280 × 800) |
 |---|---|---|
@@ -34,3 +34,7 @@ Taken by `scripts/screens/capture.mjs` against the demo stack (phase 12, 24 Nove
 | app-family-care | ![phone](app-family-care.phone.png) | ![desktop](app-family-care.desktop.png) |
 | app-family-alerts | ![phone](app-family-alerts.phone.png) | ![desktop](app-family-alerts.desktop.png) |
 | app-family-settings | ![phone](app-family-settings.phone.png) | ![desktop](app-family-settings.desktop.png) |
+| app-wearer-home | ![phone](app-wearer-home.phone.png) | ![desktop](app-wearer-home.desktop.png) |
+| app-wearer-care | ![phone](app-wearer-care.phone.png) | ![desktop](app-wearer-care.desktop.png) |
+| app-wearer-alerts | ![phone](app-wearer-alerts.phone.png) | ![desktop](app-wearer-alerts.desktop.png) |
+| app-wearer-settings | ![phone](app-wearer-settings.phone.png) | ![desktop](app-wearer-settings.desktop.png) |

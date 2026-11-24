@@ -19,7 +19,8 @@ const FAMILY = process.env.FAMILY_URL ?? 'http://localhost:8081';
 const OUT = process.env.SCREENS_OUT ?? 'docs/screens';
 const info = JSON.parse(readFileSync('.demo/demo.local.json', 'utf8'));
 const manager = info.logins.find((l) => l.role === 'workspace_admin');
-const family = info.logins.find((l) => l.role === 'member');
+const family = info.logins.find((l) => l.key === 'family') ?? info.logins.find((l) => l.role === 'member');
+const wearer = info.logins.find((l) => l.key === 'wearer');
 const person = info.people[0];
 mkdirSync(OUT, { recursive: true });
 
@@ -83,7 +84,7 @@ for (const [size, viewport] of Object.entries(SIZES)) {
   await presenter.close();
 
   // The phone app on the web: sign in as the care manager (carer experience), then the family member.
-  for (const [who, login] of [['carer', manager], ['family', family]]) {
+  for (const [who, login] of [['carer', manager], ['family', family], ...(wearer ? [['wearer', wearer]] : [])]) {
     const ctx2 = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, deviceScaleFactor: viewport.deviceScaleFactor, isMobile: viewport.isMobile, hasTouch: viewport.hasTouch });
     const app = await ctx2.newPage();
     await app.goto(FAMILY); await app.waitForLoadState('networkidle'); await pause(app, 2500);
@@ -108,5 +109,5 @@ for (const [size, viewport] of Object.entries(SIZES)) {
 }
 await browser.close();
 const rows = [...new Set(taken.map((t) => t.name))].map((n) => `| ${n} | ![phone](${n}.phone.png) | ![desktop](${n}.desktop.png) |`);
-writeFileSync(join(OUT, 'INDEX.md'), `# Every screen, phone and desktop\n\nTaken by \`scripts/screens/capture.mjs\` against the demo stack. The wearer's own phone experience needs a circle member whose relationship is "self"; the demo seed has none yet (phase 13 adds one).\n\n| Screen | Phone (390 × 844) | Desktop (1280 × 800) |\n|---|---|---|\n${rows.join('\n')}\n`);
+writeFileSync(join(OUT, 'INDEX.md'), `# Every screen, phone and desktop\n\nTaken by \`scripts/screens/capture.mjs\` against the demo stack. The wearer's own phone experience is Ada Hartley's account (a circle member whose relationship is "self").\n\n| Screen | Phone (390 × 844) | Desktop (1280 × 800) |\n|---|---|---|\n${rows.join('\n')}\n`);
 console.log('screens:', taken.length);

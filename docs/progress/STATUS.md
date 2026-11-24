@@ -48,11 +48,19 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-9 | hardware-blueprint | `feat/hardware-blueprint` | Merged (pull request 29) |
 | R3-10 | one-mobile-app | `feat/one-mobile-app` | Merged (pull request 30) |
 | R3-11 | dashboard-care-record | `feat/dashboard-care-record` | Merged (pull request 31) |
-| R3-12 | clean-product-ui | `feat/clean-product-ui` | Built, screenshots reviewed, tested locally; pull request to follow |
-| R3-13 | founder-demo-data | `feat/founder-demo-data` | not started |
+| R3-12 | clean-product-ui | `feat/clean-product-ui` | Merged (pull request 32) |
+| R3-13 | founder-demo-data | `feat/founder-demo-data` | Built and tested locally; pull request to follow |
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | not started |
 | R3-15 | cost-cuts | `ci/cost-cuts` | not started |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 13 (founder-demo-data), measured locally (24 November 2026)
+
+- The seed creates four accounts (Praveen Kamineti, coordinator; Sravani Perni, family; Ada
+  Hartley, the wearer; a read-only viewer) and the two made-up people with their circles;
+  it ran against the local demo database. `test_demo_data_rules.py`: 6 tests pass.
+- `scripts/screens/capture.mjs` retook 68 screenshots (34 screens × phone and desktop),
+  none wider than the phone; the wearer's home, care, alerts and settings screens are new.
 
 ## Round 3, phase 12 (clean-product-ui), measured locally (24 November 2026)
 

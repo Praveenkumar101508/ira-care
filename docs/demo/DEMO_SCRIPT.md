@@ -19,16 +19,16 @@ them to the terminal and writes them for the local scripts to `.demo/demo.local.
 
 | Tab | Address | Sign in as |
 | --- | --- | --- |
-| Carer dashboard | http://localhost:3000 | the demo manager |
+| Carer dashboard | http://localhost:3000 | Praveen Kamineti (care coordinator) |
 | The watch in the browser | http://localhost:3000/watch | the pairing code or the device key, entered on the presenter page |
 | Presenter controls (never on screen in a recording) | http://localhost:3000/presenter | the device key from the seed output |
-| Family app (web) | http://localhost:8081 | the demo family member |
+| Family app (web) | http://localhost:8081 | Sravani Perni (family), or Ada Hartley for the wearer's own phone |
 
 ## Minute 0 to 1: who is being looked after
 
-Dashboard, **People**. Two obviously fake people: "Demo Person A" (lives alone, a morning
-tablet, lunch at 12:30) and "Demo Person B". Open A. The Watch line shows the simulated
-watch: battery, on the wrist, last sync. The **Home** tab has the fake address, the home
+Dashboard, **People**. Two made-up people: Ada Hartley (lives alone, morning tablets,
+lunch at 12:30) and Bert Lowe. Open Ada. The Watch line shows the simulated
+watch: battery, on the wrist, last sync. The **Profile** tab has the made-up address, the home
 coordinates and the emergency information. Say: *this is free text the carer controls;
 there are no condition fields of our own.*
 

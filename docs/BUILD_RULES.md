@@ -48,6 +48,14 @@ or the tool used. No commit trailer that credits a co-author or a generating too
 
 1. No secrets, real phone numbers, real names or real health data anywhere in the
    repository. Test data is obviously fake.
+   **Demonstration data** (the demo seed, the scenarios, the recording, the screenshots and
+   the demo script) names only the two people who build IRA CARE, Praveen Kamineti (the
+   care coordinator or carer) and Sravani Perni (family), as real people. The people being
+   looked after are made up and keep one consistent name each (Ada Hartley, Bert Lowe).
+   E-mail addresses are at example.com, telephone numbers are in the UK range reserved for
+   fiction (07700 900000 to 07700 900999, written +447700900xxx), and addresses are in a
+   town that does not exist (Lowbridge). `supracloud-jarvis/ira/tests/test_demo_data_rules.py`
+   fails if the demonstration files break this.
 2. New tables carry a tenant (and where appropriate a workspace) column, FORCE row-level
    security, a rollback file, an entry in the tenancy classification manifest and an
    erasure rule. The existing ratchet tests enforce each of these.
