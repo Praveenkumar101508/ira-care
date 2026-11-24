@@ -205,6 +205,14 @@ jobs:
           echo "## Backend database tests" >> "$GITHUB_STEP_SUMMARY"
           grep -E "^(FAILED|ERROR) |[0-9]+ (passed|failed)" database-tests.log | tail -80 | tee -a "$GITHUB_STEP_SUMMARY" || true
 
+  docs-truth:
+    name: Readiness tells the truth
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/check_docs_truth.py
+
   secrets:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest

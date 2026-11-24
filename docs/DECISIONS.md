@@ -998,3 +998,26 @@ Rejected: path filters in the workflow's `on:` block (GitHub then reports no che
 for a skipped required job, which blocks merging or, worse, invites marking the job
 non-required); a nightly schedule instead of per-push runs on `main` (a broken `main` would
 be found hours late); a larger or self-hosted runner (paid, or the owner's machine).
+
+## D-068 Every readiness row is in one of three states, and CI checks it (round 3, phase 16)
+
+A readiness row used to say things like "built", "should work" or "tested in CI", which a
+reader could not act on. Every row of `docs/READINESS.md` now carries exactly one of three
+states, and `scripts/check_docs_truth.py` fails CI (job "Readiness tells the truth") if a row
+says anything else or names a proof file that is not in the repository:
+
+- **works (proved by …)**: an automated test, a recorded run or a measured number, named in
+  the row, that anyone can run or open.
+- **needs hardware (…)**: built and unit-tested, never run on the real device; the row says
+  which device.
+- **needs the owner (…)**: only the owner can do it (an account, a key, a review by a
+  qualified person, a machine with a domain name); the row says what.
+
+A row that is partly one state and partly another is split into two rows. The same check
+runs over the tables of `docs/progress/FINAL_REPORT.md`. The sweep also corrected states that
+had gone stale as pull requests merged (round 1 and round 2 rows in `docs/progress/STATUS.md`
+still read "open" or "stacked") and recorded in the final report why the two tests that fail
+on the build machine fail (D-004; the egress guard needs a name server).
+
+Rejected: a fourth state such as "partly works" (it is the state that let rows go vague);
+checking only `READINESS.md` (the final report makes the same kind of claim and is read more).

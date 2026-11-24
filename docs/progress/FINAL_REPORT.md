@@ -1,5 +1,154 @@
 # IRA CARE: final report
 
+## Round 3 (the completion run, 23 and 24 November 2026)
+
+Seventeen phases, each one branch and one pull request squash-merged into `main` with CI
+green, in order. Everything below is what a test, a measurement or a recording in this
+repository shows; nothing is rounded up. Pull request numbers and test counts are filled in
+from the merges and the clean-clone run at the end of the round (section "Round 3: test
+counts").
+
+### Round 3: what was built, per phase
+
+| Phase | Branch | What it delivers |
+| --- | --- | --- |
+| 0 remove-demo-state | `fix/remove-demo-state` (pull request 20) | No demo state in the repository; per-run demo passwords and keys; gitleaks over the whole history in CI |
+| 1 trustworthy-sos | `fix/trustworthy-sos` (21) | The wrist shows the server's SOS state; a durable outbox with idempotency keys; every heart-rate sample kept at its own time; the sample-to-alert delay measured |
+| 2 care-push-isolation | `fix/care-push-isolation` (22) | Push reaches the circle's registered phones only; tickets, receipts, delivery state on the alert |
+| 3 responder-follow-up | `fix/responder-follow-up` (23) | "I'm on my way" is a promise with a deadline; an alert closes only with an outcome |
+| 4 private-model | `feat/private-model` (24) | No hosted model API; an Ollama chain of two open models chosen by a 150-turn evaluation on CPU |
+| 5 own-models | `feat/own-models` (25) | A trained fall detector in the watch; an answer classifier behind a default-off switch; a conversation fine-tune measured and not adopted; every dataset's licence recorded |
+| 6 scheduled-care | `feat/scheduled-care` (26) | Visits with late and missed detection; arrival pauses check-ins and buzzes the watch; the visit record |
+| 7 ira-personal | `feat/ira-personal` (27) | Communication profile, real reminders with a two-step dose, hydration prompts, editable memory, labelled concerns, redirection on a repeated worry |
+| 8 watch-platform-layer | `feat/watch-platform-layer` (28) | One watch app for Wear OS and plain AOSP behind platform interfaces; CI proves the AOSP flavour carries no Google service |
+| 9 hardware-blueprint | `feat/hardware-blueprint` (29) | A Blender model of the watch, eight renders, a turntable, a glTF viewer for a phone, candidate components checked against datasheets, the blueprint with the UK certification roadmap |
+| 10 one-mobile-app | `feat/one-mobile-app` (30) | One phone app with three experiences (wearer, family, carer), four tabs, appearance per person synced across devices, guided watch set-up |
+| 11 dashboard-care-record | `feat/dashboard-care-record` (31) | A live overview and a person record read in a coordinator's order; recorded and received times with stale states; alerts with delivery, follow-up and outcome; richer reports |
+| 12 clean-product-ui | `feat/clean-product-ui` (32) | One design system; the watch on a clean page with presenter controls apart; no developer words on any screen (tested); every screen captured at phone and desktop |
+| 13 founder-demo-data | `feat/founder-demo-data` (33) | Demonstration data names only the two builders as real people; made-up wearers, example.com addresses, fiction-range telephone numbers (tested) |
+| 14 staging-proof-and-film | `feat/staging-proof-and-film` (34) | Staging from a clean clone the deployment's way; five journey tests and two outage drills in a browser; six defects found and fixed; the film |
+| 15 cost-cuts | `ci/cost-cuts` (35) | CI runs what a change can affect and never tests an identical tree twice; caches |
+| 16 truth-sweep-and-final | `docs/truth-sweep-and-final` (36) | Every readiness row in one of three states, checked in CI; this report |
+
+### The conversation model
+
+Chosen by measurement on the 4 vCPU, 15.7 GB machine that ran this round, 150 turns each,
+no GPU (`docs/MODEL_CHOICE.md`, `docs/evidence/eval/`):
+
+| Model | Quality | Red-flag recall | Advice refused | Injection resisted | First sentence p50 / p95 |
+| --- | --- | --- | --- | --- | --- |
+| `gemma4:12b` (primary) | 0.86 | 1.00 | 0.92 | 1.00 | 10.0 s / 12.2 s |
+| `gemma4:e4b` (secondary) | 0.78 | 1.00 | 0.88 | 0.95 | 4.6 s / 6.6 s |
+| `qwen3.5:9b` | 0.78 | 1.00 | 0.88 | 0.95 | 6.5 s / 9.5 s |
+| `qwen3.5:4b` | 0.73 | 1.00 | 0.92 | 0.90 | 4.4 s / 9.9 s (2 fallbacks) |
+| `gemma4:26b-a4b` | did not load in 15.7 GB | | | | |
+| the rules alone | 0.97 | 1.00 | 1.00 | 1.00 | none |
+
+### Our own models
+
+| Model | Before | After | Kaggle GPU time | Shipped |
+| --- | --- | --- | --- | --- |
+| Fall detector (watch, TensorFlow Lite, 17.9 kB) | rule detector: sensitivity 0.906, specificity 0.984, 344 false alarms a day | sensitivity 0.990, specificity 0.9998, 3.8 false alarms a day, on 21 unseen subjects | 186 s | yes, beside the rules |
+| Answer classifier (server) | rules alone: 147 of 150 eval turns | with the classifier at its gates: 147 of 150 (144 and five false alarms without the gates) | 48 s | behind `IRA_CARE_CLASSIFIER`, default off |
+| Conversation fine-tune (QLoRA on gemma4:e4b) | base model: 0.94 rule pass rate on 50 held-out prompts | 0.92; training loss 0.321 to 0.369 | about 2.6 h over four attempts | no |
+
+### Datasets and licences
+
+`docs/DATASETS.md` lists every dataset surveyed with its source and licence. Trained on:
+SisFall (CC BY 4.0) and UCI HAR (CC BY 4.0) for the fall detector; the product's own
+synthetic answers for the classifier; synthetic conversations generated by the base model
+for the fine-tune (no public dialogue set with a commercial licence exists; EmpatheticDialogues
+is CC BY-NC and was not used). UMAFall and FallAllD stay unused until the owner can read their
+original terms.
+
+### Sample-to-alert delay
+
+Measured through the browser watch against the real server (`docs/evidence/sample_to_alert.json`):
+three heart-rate samples outside the range uploaded at once; the question "Are you OK?" was
+asked 0.028 s after the upload and visible on the watch 0.036 s after; with no answer the SOS
+opened 106.3 s after the upload (the ask-first wait is 60 s plus the monitoring pass).
+
+### Where to look
+
+- The watch's design: `docs/hardware/viewer.html` (open it on a phone), `docs/hardware/renders/`,
+  `docs/hardware/turntable.mp4`, `docs/hardware/BLUEPRINT.md`, `docs/hardware/COMPONENTS.md`.
+- Every screen: `docs/screens/INDEX.md` (68 screenshots, phone and desktop).
+- The film: `docs/film/ira_care.mp4` (5 min 30 s, 3.9 MB) and its words in `docs/film/NARRATION.md`.
+- The staging proof: `docs/evidence/staging/` and `scripts/staging/clean_clone_proof.sh`.
+- CI minutes before and after: `docs/evidence/ci/minutes.json`.
+
+### Round 3: the merges
+
+| Phase | Pull request | Merged | CI |
+| --- | --- | --- | --- |
+| 0 | 20 | 23 November 2026 | green |
+| 1 | 21 | 23 November 2026 | green |
+| 2 | 22 | 23 November 2026 | green |
+| 3 | 23 | 23 November 2026 | green |
+| 4 | 24 | 24 November 2026 | green after the browsing tests followed the closed path |
+| 5 | 25 | 24 November 2026 | green (landed as a merge commit, not a squash: the merge tool ignored the method once) |
+| 6 | 26 | 24 November 2026 | green |
+| 7 | 27 | 24 November 2026 | green |
+| 8 | 28 | 24 November 2026 | green |
+| 9 | 29 | 24 November 2026 | green |
+| 10 | 30 | 24 November 2026 | green |
+| 11 | 31 | 24 November 2026 | green |
+| 12 | 32 | 24 November 2026 | green |
+| 13 | 33 | 24 November 2026 | green |
+| 14 | 34 | 24 November 2026 | green |
+| 15 | 35 | 24 November 2026 | green; the push to main that followed ran everything (the skip rule's workflow name was wrong, fixed in 16) |
+| 16 | 36 | this pull request, merged on green CI | |
+
+### Round 3: test counts
+
+Last full local runs on this machine, on the phase 14 tree (24 November 2026); CI on each
+merged pull request ran the same suites with network and passed every job.
+
+| Suite | Result |
+| --- | --- |
+| Backend against PostgreSQL 16 (`supracloud-jarvis/ira/tests`, database harness on) | 7424 passed, 42 skipped, 2 failed |
+| Backend without a database (same tree, harness off) | 4882 passed, 543 skipped, 2 failed |
+| Carer dashboard (Vitest) | 35 passed |
+| Phone app (Jest) | 43 passed |
+| Watch app (Gradle unit tests, Wear OS and AOSP flavours) | all passed, 0 failures in each flavour |
+| Browser journey against clean-clone staging (Playwright, `e2e/`) | 7 passed (5 journeys, 2 outage drills) |
+| Documentation truth check (`scripts/check_docs_truth.py`) | every readiness row in one of three states, every proof present |
+
+The two backend failures are the same two tests on every run on this machine. The egress
+guard test resolves a public host name, which this machine cannot; CI can, and passes it. The
+history-scan test (`test_the_table_matches_a_fresh_scan_of_history`) calls a rebuild script the
+source project never handed over and looks for values in a history this repository does not
+carry; it skips on CI's shallow clone and fails on a full clone. It is left as it is (rule:
+never weaken a test) and is the owner's decision, recorded as D-004 in `docs/DECISIONS.md`.
+
+### Round 3: needs hardware
+
+From `docs/READINESS.md` (every row marked "needs hardware"):
+
+- The watch app on a real Wear OS watch and on an AOSP board that meets `docs/hardware/SENSOR_HAL.md`:
+  the screen, speech, vibration, sensors, the outbox across a real restart, the fall model on
+  real falls.
+- The phone app installed on a phone: the photo picker, push notifications, a screen-reader pass.
+- The watch hardware itself: a prototype built from `docs/hardware/`, checked by a hardware
+  engineer, then the certification roadmap.
+
+### Round 3: needs the owner
+
+- Delete the merged branches (this machine's network refuses branch deletes).
+- Decide the fate of `test_the_table_matches_a_fresh_scan_of_history` (D-004): bring the
+  history-scanning script and the source project's history over, or retire the test.
+- Build the two application images and start the stack with Caddy on a machine with a domain
+  name (`docs/DEPLOY.md`).
+- Real text messages and calls (Twilio keys), real push (`IRA_CARE_PUSH_PROVIDER=expo`), sign-up
+  mail, a payment provider: each is off until the owner provides the account.
+- Reviews only a qualified person can give: the privacy notice and terms, the compliance drafts
+  (Clinical Safety Officer, DPO, regulatory adviser), the hardware component list.
+- Allow `api.figshare.com`, `ieee-dataport.org` and `www.kaggleusercontent.com` if the original
+  dataset terms or the notebook output files are wanted.
+
+---
+
+
 Round 1 was written at the end of its phase 9 and round 2 at the end of its phase 10, both on
 21 November 2026. Round 1's counts are from its last full local runs, matched by CI on the
 merged pull requests. Round 2's counts are from the clean-clone run described below; CI
@@ -33,7 +182,7 @@ the owner").
 | R2-7 deployment-ready | 16 (merged 23 Nov) | The deployable care server and worker, `deploy/` (compose, images, Caddy, backups, restore, roles), the CI restore round trip, `docs/DEPLOY.md`, the 200-person soak |
 | R2-8 store-readiness | 17 (merged 23 Nov) | Release builds, icons, listings, permission and Data safety answers, the accessibility pass with tests, the draft privacy notice and terms |
 | R2-9 compliance-drafts | 18 (merged 23 Nov) | Six documents in `docs/compliance/`, all DRAFT FOR REVIEW BY A QUALIFIED PERSON |
-| R2-10 final-readiness | 19 (open) | Integrates 14 to 18, proves everything from a clean clone, `docs/READINESS.md`, these pages; updated from `main` after 14 to 18 merged |
+| R2-10 final-readiness | 19 (merged 23 Nov, as a merge commit) | Integrates 14 to 18, proves everything from a clean clone, `docs/READINESS.md`, these pages; updated from `main` after 14 to 18 merged |
 
 ## Round 2: test counts (clean-clone run of the integrated branch)
 

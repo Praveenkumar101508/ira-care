@@ -7,15 +7,15 @@ say where it stopped.
 
 | # | Phase | Branch | State |
 | --- | --- | --- | --- |
-| 1 | ci-and-build-rules | `feat/ci-and-build-rules` | Pull request 1 open; inherited tests retired (D-007) |
-| 2 | care-data-model | `feat/care-data-model` | Built and tested locally; pull request stacked on phase 1 until phase 1 merges |
-| 3 | checkin-engine | `feat/checkin-engine` | Built and tested locally; stacked on phase 2 |
-| 4 | monitoring-and-escalation | `feat/monitoring-and-escalation` | Built and tested locally; stacked on phase 3 |
-| 5 | watch-app | `feat/watch-app` | Built; unit tests pass; stacked on phase 4; not yet run on a real watch |
-| 6 | family-app | `feat/family-app` | Built; type check and tests pass; stacked on phase 5; not yet run on a phone |
-| 7 | carer-dashboard | `feat/carer-dashboard` | Built; type check, tests and production build pass; stacked on phase 6 |
-| 8 | reports-and-history | `feat/reports-and-history` | Built and tested locally; stacked on phase 7 |
-| 9 | hardening | `feat/hardening` | Built and tested locally; stacked on phase 8 |
+| 1 | ci-and-build-rules | `feat/ci-and-build-rules` | Merged (pull request 1) |
+| 2 | care-data-model | `feat/care-data-model` | Merged (pull request 2) |
+| 3 | checkin-engine | `feat/checkin-engine` | Merged (pull request 3) |
+| 4 | monitoring-and-escalation | `feat/monitoring-and-escalation` | Merged (pull request 4) |
+| 5 | watch-app | `feat/watch-app` | Merged (pull request 5) |
+| 6 | family-app | `feat/family-app` | Merged (pull request 6) |
+| 7 | carer-dashboard | `feat/carer-dashboard` | Merged (pull request 7) |
+| 8 | reports-and-history | `feat/reports-and-history` | Merged (pull request 8) |
+| 9 | hardening | `feat/hardening` | Merged (pull request 9) |
 
 Round 1 is merged to `main`. Round 2:
 
@@ -30,7 +30,7 @@ Round 1 is merged to `main`. Round 2:
 | R2-7 | deployment-ready | `feat/deployment-ready` | Merged (pull request 16) |
 | R2-8 | store-readiness | `feat/store-readiness` | Merged (pull request 17) |
 | R2-9 | compliance-drafts | `docs/compliance-drafts` | Merged (pull request 18) |
-| R2-10 | final-readiness | `feat/final-readiness` | Integrates 14 to 18; proved from a clean clone; pull request 19 open |
+| R2-10 | final-readiness | `feat/final-readiness` | Merged (pull request 19, as a merge commit) |
 
 Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion run):
 
@@ -51,18 +51,36 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-12 | clean-product-ui | `feat/clean-product-ui` | Merged (pull request 32) |
 | R3-13 | founder-demo-data | `feat/founder-demo-data` | Merged (pull request 33) |
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | Merged (pull request 34) |
-| R3-15 | cost-cuts | `ci/cost-cuts` | Built; the after-numbers come from its own pull request's run; pull request to follow |
-| R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+| R3-15 | cost-cuts | `ci/cost-cuts` | Merged (pull request 35) |
+| R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | Built; truth check passes; pull request to follow |
 
 ## Round 3, phase 15 (cost-cuts), measured from the Actions API (24 November 2026)
 
 - Before: run 45305028277 (the push to `main` after pull request 24) billed 21.1 minutes
   across eight jobs; with the pull request's own run, 42.2 minutes a phase.
-- After: `scripts/ci/changed_areas.sh` and `scripts/ci/already_tested.sh` tried locally (a
-  pull-request diff against `main` and a push diff both report the areas; an unknown base
-  reports everything). The workflow parses. The measured minutes after the change are
-  filled into `docs/evidence/ci/minutes.json` from the phase 15 pull request's run and the
-  push that merges it.
+- After, pull request 35's own run (45394100905): 19.3 minutes of job time across the same
+  eight jobs (the change touches the workflow and `scripts/ci`, which count as shared, so
+  every area ran); a client-only or backend-only change runs less.
+- After, the push to `main` that merged it (45396148725): the heavy jobs did not skip.
+  `scripts/ci/already_tested.sh` built the workflow name from `GITHUB_WORKFLOW_REF` in the
+  wrong order (it kept the branch name, not the file name), the Actions API answered 404 and
+  the script, as designed for any doubt, ran everything. Phase 16 corrects the order; the
+  corrected script, run on a checkout of that `main` commit against the real API, answers
+  `already_tested=true` and names pull request 35's head. The first run that can show the
+  skip on `main` is the push that merges pull request 36. Details in
+  `docs/evidence/ci/minutes.json`.
+
+## Round 3, phase 16 (truth-sweep-and-final), measured locally (24 November 2026)
+
+- `python3 scripts/check_docs_truth.py`: every row of `docs/READINESS.md` is in one of the
+  three states and every proof file named in a row exists (75 rows). The same script runs in
+  CI as the job "Readiness tells the truth".
+- Stale states corrected: round 1 rows (nine phases) and R2-10 in this file still read
+  "open" or "stacked" although merged; the final report's round 2 table said pull request 19
+  was open.
+- Repository scan for assistant or tool names over every tracked file and every commit
+  message of round 3: none. Authors on `main`: Praveen Kamineti's account only, with Sravani
+  Perni as co-author on every round 3 commit from phase 4 on.
 
 ## Round 3, phase 14 (staging-proof-and-film), measured locally (24 November 2026)
 
