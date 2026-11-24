@@ -179,6 +179,19 @@ class OllamaModel:
             r.raise_for_status()
         return time.monotonic() - t0
 
+    async def loaded(self) -> Optional[bool]:
+        """Is this model in memory now? Asks Ollama's `/api/ps` (a few milliseconds);
+        None when Ollama cannot say, so the caller tries the model as before."""
+        import httpx
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(2.0, connect=1.0), transport=self._transport) as client:
+                r = await client.get(f"{self.base_url}/api/ps")
+                r.raise_for_status()
+                names = {m.get("name") or m.get("model") for m in (r.json().get("models") or [])}
+        except Exception:  # noqa: BLE001 - unknown is not the same as cold
+            return None
+        return self.name in names
+
 
 class ChainModel:
     """The chosen model, then the second model, then (by the callers) the set
@@ -193,6 +206,7 @@ class ChainModel:
         self.first_token_s = first_token_s if first_token_s is not None else first_token_budget_s()
         self.name = self.models[0].name
         self.last_error: str = ""
+        self._warming: Optional[asyncio.Task] = None
 
     async def warm(self) -> float:
         """Load the primary only: on a 16 GB machine the second model would
@@ -200,6 +214,33 @@ class ChainModel:
         first = self.models[0]
         warm = getattr(first, "warm", None)
         return await warm() if warm else 0.0
+
+    async def _ready(self, model) -> bool:
+        """Only a model already in memory is asked (D-073). Starting a cold one
+        inside a turn's few seconds aborts its load when the turn gives up, and
+        the next model's load pushes the first out again: neither ever loads.
+        A cold chain answers from the set lines at once and loads its primary
+        in the background, whole, for the next turn."""
+        loaded = getattr(model, "loaded", None)
+        if loaded is None:
+            return True
+        state = await loaded()
+        if state is not False:
+            return True
+        self.last_error = f"{model.name}: not loaded"
+        self._warm_in_background()
+        return False
+
+    def _warm_in_background(self) -> None:
+        if self._warming is not None and not self._warming.done():
+            return
+
+        async def warm() -> None:
+            try:
+                await self.warm()
+            except Exception as exc:  # noqa: BLE001 - the next turn will try again
+                logger.info("care conversation: background load failed (%s)", exc)
+        self._warming = asyncio.create_task(warm())
 
     @property
     def first_sentence_budget(self) -> float:
@@ -209,6 +250,8 @@ class ChainModel:
     async def stream(self, messages, *, max_tokens, temperature):
         last: Optional[BaseException] = None
         for model in self.models:
+            if not await self._ready(model):
+                continue
             it = model.stream(messages, max_tokens=max_tokens, temperature=temperature).__aiter__()
             try:
                 first = await asyncio.wait_for(it.__anext__(), timeout=self.first_token_s)
@@ -230,6 +273,8 @@ class ChainModel:
     async def complete_json(self, messages, *, max_tokens):
         last: Optional[BaseException] = None
         for model in self.models:
+            if not await self._ready(model):
+                continue
             try:
                 out = await asyncio.wait_for(model.complete_json(messages, max_tokens=max_tokens),
                                              timeout=self.first_token_s * 3)

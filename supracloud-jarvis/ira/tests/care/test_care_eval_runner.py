@@ -124,3 +124,67 @@ async def test_warming_loads_the_model_with_an_empty_request_and_the_chain_warms
     await conv.ChainModel([first, second]).warm()
     assert [path for path, _ in seen] == ["/api/generate", "/api/generate"] and seen[-1][1]["model"] == "gemma4:e4b"
     assert first._options(10, 0.5) == {"num_predict": 10, "temperature": 0.5, "num_ctx": 768, "num_thread": 3}
+
+
+class _Stub:
+    """A model that says whether it is loaded, and records what was asked of it."""
+
+    def __init__(self, name: str, loaded):
+        self.name, self._loaded, self.asked, self.warmed = name, loaded, 0, 0
+
+    async def loaded(self):
+        return self._loaded
+
+    async def warm(self) -> float:
+        self.warmed += 1
+        self._loaded = True
+        return 0.0
+
+    async def stream(self, messages, *, max_tokens, temperature):
+        self.asked += 1
+        yield f"{self.name} speaks."
+
+    async def complete_json(self, messages, *, max_tokens):
+        self.asked += 1
+        return '{"ok": true}'
+
+
+async def test_a_cold_chain_never_starts_a_load_inside_a_turn_and_loads_its_primary_in_the_background():
+    # Found while recording the round 4 film: the primary's load, started inside a turn, was
+    # aborted when the turn gave up; the second model's load then pushed it out; neither loaded.
+    import asyncio
+    import pytest as _pytest
+    first, second = _Stub("gemma4:e4b", False), _Stub("gemma4:e2b", False)
+    chain = conv.ChainModel([first, second], first_token_s=1.0)
+    with _pytest.raises(RuntimeError, match="not loaded"):
+        [t async for t in chain.stream([], max_tokens=10, temperature=0.1)]
+    assert first.asked == 0 and second.asked == 0
+    await asyncio.sleep(0)
+    assert first.warmed == 1 and second.warmed == 0
+    # the next turn finds the primary loaded and it answers
+    assert "".join([t async for t in chain.stream([], max_tokens=10, temperature=0.1)]) == "gemma4:e4b speaks."
+    assert chain.name == "gemma4:e4b"
+
+
+async def test_a_loaded_second_model_answers_while_the_primary_loads_and_unknown_means_try():
+    import asyncio
+    first, second = _Stub("gemma4:e4b", False), _Stub("gemma4:e2b", True)
+    chain = conv.ChainModel([first, second], first_token_s=1.0)
+    assert await chain.complete_json([], max_tokens=10) == '{"ok": true}' and chain.name == "gemma4:e2b"
+    await asyncio.sleep(0)
+    assert first.asked == 0 and first.warmed == 1
+    unknown = conv.ChainModel([_Stub("gemma4:e4b", None)], first_token_s=1.0)
+    assert "".join([t async for t in unknown.stream([], max_tokens=10, temperature=0.1)]) == "gemma4:e4b speaks."
+
+
+async def test_the_ollama_adapter_reads_what_is_loaded_from_ps():
+    import httpx
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/api/ps"
+        return httpx.Response(200, json={"models": [{"name": "gemma4:e4b", "model": "gemma4:e4b"}]})
+    t = httpx.MockTransport(handler)
+    assert await conv.OllamaModel("gemma4:e4b", "http://ollama.test", transport=t).loaded() is True
+    assert await conv.OllamaModel("gemma4:e2b", "http://ollama.test", transport=t).loaded() is False
+    down = httpx.MockTransport(lambda r: httpx.Response(500))
+    assert await conv.OllamaModel("gemma4:e4b", "http://ollama.test", transport=down).loaded() is None

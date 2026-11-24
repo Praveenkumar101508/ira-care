@@ -79,6 +79,8 @@ def plan_audio(n: int, words: str, said: list[dict]) -> tuple[list[dict], float]
     """Place IRA's lines where they happened and the narrator's sentences in the gaps between them."""
     items = []
     busy = []
+    # The watch can ask the same question twice in a moment (two polls); it is heard once.
+    said = [s for k, s in enumerate(said) if not any(p["text"] == s["text"] and s["t"] - p["t"] < 5 for p in said[:k])]
     for i, s in enumerate(said):
         wav = speak(s["text"], WORK / f"ira{n:02d}_{i:02d}.wav", ira=True)
         start = max(0.0, s["t"])

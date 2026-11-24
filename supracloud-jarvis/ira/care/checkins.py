@@ -204,9 +204,17 @@ def question_text(choice: QuestionChoice, preferred_name: str, *, time_of_day: O
         q = options[0]
     if choice.kind in ("morning", "safety"):
         return q.format(name=name)
-    q = q.format(subject=(choice.subject or "").lower(), follow_up_short=_short(choice.follow_up),
+    q = q.format(subject=_subject(choice.subject), follow_up_short=_short(choice.follow_up),
                  custom=custom or "How are you?", name=name)
     return f"{greeting} {q}".strip()
+
+
+_LEADING_WORD = re.compile(r"^(the|your|my|a|an)\s+", re.IGNORECASE)
+
+
+def _subject(name: Optional[str]) -> str:
+    """A medication or routine's name as it reads after "your": "The evening tablet" is "evening tablet"."""
+    return _LEADING_WORD.sub("", (name or "").strip()).lower()
 
 
 def _short(text: Optional[str]) -> str:

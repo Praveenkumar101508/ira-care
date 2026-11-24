@@ -3,8 +3,9 @@
 //   node scripts/film/record_scenes.mjs
 //
 // Expects IRA_CARE_API, DASHBOARD_URL, FAMILY_URL and IRA_DEMO_INFO (as the staging script
-// exports them) and writes, for each scene, docs/film/raw/<scene>.webm (1080 pixels high: the
-// pages are drawn at 1.5 times their size) and <scene>.json: when IRA spoke on the watch and
+// exports them) and writes, for each scene, docs/film/raw/<scene>.webm (1080 pixels high: each
+// page is laid out at two thirds of that and drawn at 1.5 times, with CSS zoom, because the
+// video recorder ignores the device pixel ratio) and <scene>.json: when IRA spoke on the watch and
 // what it said (the real words, caught from the watch page's own speech call), and the zooms.
 // The presenter page drives the watch from a second tab whose video is discarded; recordings
 // show only what a person would see. The SOS scene records the watch and Sravani's phone at
@@ -27,11 +28,11 @@ const family = info.logins.find((l) => l.key === 'family') ?? info.logins.find((
 const ada = info.people[0];
 mkdirSync(OUT, { recursive: true });
 /** Pages are laid out at these sizes and drawn 1.5 times larger: 1280 x 720 becomes 1920 x 1080. */
-const DPR = 1.5;
+const ZOOM = 1.5;
 const DESK = { width: 1280, height: 720 };
 const WATCH = { width: 720, height: 720 };
 const PHONE = { width: 390, height: 720 };
-const px = (v) => ({ width: Math.round(v.width * DPR), height: Math.round(v.height * DPR) });
+const px = (v) => ({ width: Math.round(v.width * ZOOM), height: Math.round(v.height * ZOOM) });
 const pause = (p, ms) => p.waitForTimeout(ms);
 
 async function api(login) {
@@ -62,6 +63,18 @@ const CATCH_SPEECH = () => {
   const synth = window.speechSynthesis;
   const fake = { speak: (u) => window.__spoken.push({ at: Date.now(), text: u.text }), cancel: () => {}, pause: () => {}, resume: () => {}, getVoices: () => (synth ? synth.getVoices() : []), speaking: false, pending: false };
   Object.defineProperty(window, 'speechSynthesis', { value: fake, configurable: true });
+};
+
+/** Draw the page at ZOOM times its layout size (the window is ZOOM times larger). Runs in the page. */
+const DRAW_LARGER = (zoom) => {
+  const apply = () => {
+    if (!document.body || !document.head) { requestAnimationFrame(apply); return; }
+    document.body.style.zoom = String(zoom);
+    const css = document.createElement('style');
+    css.textContent = `.watch-page { min-height: calc(100vh / ${zoom}) !important; }`;
+    document.head.appendChild(css);
+  };
+  apply();
 };
 
 const browser = await chromium.launch();
@@ -98,8 +111,9 @@ async function scene(name, opts, fn) {
   if (ONLY.length && !ONLY.includes(name)) return;
   const dir = join(OUT, `_${name}`); rmSync(dir, { recursive: true, force: true });
   const vp = opts.viewport ?? DESK;
-  const context = await browser.newContext({ viewport: vp, deviceScaleFactor: DPR, isMobile: opts.isMobile, hasTouch: opts.isMobile, recordVideo: { dir, size: px(vp) } });
+  const context = await browser.newContext({ viewport: px(vp), isMobile: opts.isMobile, hasTouch: opts.isMobile, recordVideo: { dir, size: px(vp) } });
   await context.addInitScript(CATCH_SPEECH);
+  await context.addInitScript(DRAW_LARGER, ZOOM);
   marks = [];
   const page = await context.newPage();
   sceneStart = Date.now();
@@ -124,7 +138,8 @@ async function scene(name, opts, fn) {
 /** A second recorded page in the same scene (another device), started at the same moment. */
 async function secondDevice(name, vp, isMobile, extra) {
   const dir = join(OUT, `_${name}`); rmSync(dir, { recursive: true, force: true });
-  const ctx = await browser.newContext({ viewport: vp, deviceScaleFactor: DPR, isMobile, hasTouch: isMobile, recordVideo: { dir, size: px(vp) } });
+  const ctx = await browser.newContext({ viewport: px(vp), isMobile, hasTouch: isMobile, recordVideo: { dir, size: px(vp) } });
+  await ctx.addInitScript(DRAW_LARGER, ZOOM);
   const page = await ctx.newPage();
   const offset = (Date.now() - sceneStart) / 1000;
   extra.push({ close: async () => { const v = await page.video()?.path(); await ctx.close(); if (v && existsSync(v)) renameSync(v, join(OUT, `${name}.webm`)); writeFileSync(join(OUT, `${name}.offset`), String(offset.toFixed(2))); rmSync(dir, { recursive: true, force: true }); } });
@@ -172,8 +187,14 @@ await scene('03-watch-asks', { viewport: WATCH }, async (page, context) => {
   const asked = await watchText(page).textContent();
   await page.getByTestId('typed').press('Enter');
   await watchText(page).filter({ hasNotText: asked ?? '' }).waitFor({ timeout: 60000 }).catch(() => null);
-  mark('reply');
-  await pause(page, 8000);
+  mark('answered');
+  await pause(page, 3000);
+  // Then Ada talks to IRA, and IRA answers back: the instant acknowledgement, then the model's words.
+  const before = await page.evaluate(() => (window.__spoken ?? []).length);
+  await page.getByTestId('typed').fill('I think I will sit in the garden this afternoon'); await pause(page, 1500);
+  await page.getByTestId('typed').press('Enter'); mark('talk');
+  await page.waitForFunction((n) => (window.__spoken ?? []).length >= n + 2, before, { timeout: 60000 }).catch(() => null);
+  await pause(page, 7000);
   await presenter.close();
 });
 // 04. A heart rate outside the range: IRA asks first.
