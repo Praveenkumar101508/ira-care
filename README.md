@@ -77,6 +77,11 @@ release; text and call provider keys (the adapter stays off without them); a
 monitoring-centre contract for tier 3; regulatory advice before sale. See
 [docs/progress/FINAL_REPORT.md](docs/progress/FINAL_REPORT.md).
 
+## Who builds it
+
+- Praveen Kamineti ([Praveenkumar101508](https://github.com/Praveenkumar101508))
+- Sravani Perni ([sravaniperni](https://github.com/sravaniperni))
+
 ## Licence
 
 Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

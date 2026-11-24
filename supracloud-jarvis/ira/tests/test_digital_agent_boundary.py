@@ -148,15 +148,17 @@ def chromium(monkeypatch):
     return launched
 
 
-async def test_browsing_launches_when_both_switches_are_on(chromium, monkeypatch):
-    """The control: with browsing allowed the stand-in browser is launched."""
+async def test_browsing_launches_nothing_even_when_both_switches_are_on(chromium, monkeypatch):
+    """D-056: the product never browses for the person. The old master switch and the
+    browsing capability together no longer launch a browser; the answer says why."""
     from config import get_settings
     from utils.browser_tools import browse_and_summarize_website
 
     monkeypatch.setenv("IRA_ALLOW_EXTERNAL_API", "true")
     monkeypatch.setattr(get_settings(), "browser_agent_enabled", True, raising=False)
-    await browse_and_summarize_website("https://example.com", "what is here")
-    assert chromium == ["chromium"]
+    result = await browse_and_summarize_website("https://example.com", "what is here")
+    assert chromium == []
+    assert result.get("error")
 
 
 @pytest.mark.parametrize("egress, capability", [("false", True), ("true", False)],

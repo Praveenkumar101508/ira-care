@@ -321,58 +321,46 @@ async def test_city_code_llm_fallback(monkeypatch):
     assert await bat._city_code("Xyzville") is None
 
 
-# ── Provider fallback chain ───────────────────────────────────────────────────
+# ── Provider fallback chain, behind the closed gate (D-056) ──────────────────
+# The product never browses the web for the person: `browsing_allowed()` is
+# always false, so the Kayak → Skyscanner → DuckDuckGo chain must never start,
+# whatever the old switches say. These tests prove the chain stays unreached.
 
-async def test_fallback_chain_reaches_duckduckgo(monkeypatch):
+async def _never_fetch(url, settle_ms=0):
+    raise AssertionError(f"the browser was asked to fetch {url} although browsing is closed")
+
+
+async def test_fallback_chain_is_never_reached(monkeypatch):
     async def fake_codes(city):
         return {"london": "LON", "hyderabad": "HYD"}.get(city.strip().lower())
     monkeypatch.setattr(bat, "_city_code", fake_codes)
-
-    async def fake_fetch(url, settle_ms=0):
-        if "duckduckgo" in url:
-            return "Flights from London to Hyderabad from £412 with Air India, 1 stop, 11h."
-        raise TimeoutError("blocked")
-    monkeypatch.setattr(bat, "_fetch_page_text", fake_fetch)
-
-    async def fake_extract(text, o, d):
-        return [{"airline": "Air India", "price": "412 pounds",
-                 "duration": "11h", "stops": "1 stop"}]
-    monkeypatch.setattr(bat, "_llm_extract_options", fake_extract)
+    monkeypatch.setattr(bat, "_fetch_page_text", _never_fetch)
+    monkeypatch.setenv("IRA_ALLOW_EXTERNAL_API", "true")
 
     result = await bat.search_flights("London", "Hyderabad", "2026-08-05", "2026-08-19")
-    assert result["source"] == "duckduckgo"
-    assert len(result["options"]) == 1
+    assert result["error"] == "browsing_blocked"
+    assert "options" not in result and "source" not in result
+    assert result["params"]["origin"] == "London" and result["params"]["return_date"] == "2026-08-19"
 
 
-async def test_all_providers_fail_graceful(monkeypatch):
-    async def fake_codes(city):
-        return "LON" if "london" in city.lower() else "HYD"
-    monkeypatch.setattr(bat, "_city_code", fake_codes)
-
-    async def always_blocked(url, settle_ms=0):
-        raise TimeoutError("blocked")
-    monkeypatch.setattr(bat, "_fetch_page_text", always_blocked)
-
+async def test_blocked_browsing_is_said_honestly(monkeypatch):
+    """The spoken line names the real reason, not a generic "no results"."""
+    monkeypatch.setattr(bat, "_fetch_page_text", _never_fetch)
     result = await bat.search_flights("London", "Hyderabad", "2026-08-05")
-    assert result["error"] == "no_results"
-    assert result["spoken"] == bat.NO_RESULTS_SPOKEN
+    assert result["error"] == "browsing_blocked"
+    assert result["spoken"] == bat._BROWSING_BLOCKED_SPOKEN
+    assert result["spoken"] != bat.NO_RESULTS_SPOKEN
+    assert result["detail"]
 
 
-async def test_bot_blocked_page_falls_through(monkeypatch):
-    async def fake_codes(city):
-        return "LON" if "london" in city.lower() else "HYD"
-    monkeypatch.setattr(bat, "_city_code", fake_codes)
-
+async def test_no_provider_is_contacted_even_by_name(monkeypatch):
     calls = []
 
-    async def fake_fetch(url, settle_ms=0):
+    async def record(url, settle_ms=0):
         calls.append(url)
-        if "kayak" in url:
-            return "Please verify you are a human. Press & hold."
-        raise TimeoutError("blocked")
-    monkeypatch.setattr(bat, "_fetch_page_text", fake_fetch)
+        return "Please verify you are a human. Press & hold."
+    monkeypatch.setattr(bat, "_fetch_page_text", record)
 
     result = await bat.search_flights("London", "Hyderabad", "2026-08-05")
-    assert result.get("error") == "no_results"
-    assert any("kayak" in u for u in calls)
-    assert any("duckduckgo" in u for u in calls)   # chain continued past the block
+    assert result.get("error") == "browsing_blocked"
+    assert calls == []
