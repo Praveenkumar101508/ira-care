@@ -52,7 +52,31 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-13 | founder-demo-data | `feat/founder-demo-data` | Merged (pull request 33) |
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | Merged (pull request 34) |
 | R3-15 | cost-cuts | `ci/cost-cuts` | Merged (pull request 35) |
-| R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | Built; truth check passes; pull request to follow |
+| R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | Merged (pull request 36) |
+
+Round 3 is merged to `main` (pull requests 20 to 36). Round 4 (the polish):
+
+| # | Phase | Branch | State |
+| --- | --- | --- | --- |
+| R4-1 | fast-conversation | `feat/fast-conversation` | Pull request 37; CI green |
+| R4-2 | watch-design-renders | `fix/watch-design-renders` | Not started |
+| R4-3 | demo-film-polish | `feat/demo-film-polish` | Not started |
+| R4-4 | polish-final | `docs/polish-final` | Not started |
+
+## Round 4, phase 1 (fast-conversation), measured locally (24 November 2026)
+
+- 4 vCPU Xeon 2.10 GHz, 15.7 GB, no GPU, Ollama 0.40.18. 162-turn evaluation on the round 4
+  code: `gemma4:e4b` quality 0.909, red-flag recall 1.00, first words 0.0 s (server side),
+  first sentence 2.8 s p50, 5.9 s p95; `gemma4:e2b` 0.882, 1.9 s; `gemma4:12b` 0.895, 10.5 s;
+  `gemma4:e4b-it-qat` 0.844, 2.0 s; `qwen3.5:2b` 0.834, 1.6 s. Chosen: `gemma4:e4b`, then
+  `gemma4:e2b` (`docs/MODEL_CHOICE.md`, D-069 to D-071).
+- Variants on `gemma4:e4b`: round 3 code cold 15.4 s to the first sentence, kept loaded 5.1 s,
+  shorter prompt 4.0 s, context 1024 3.5 s, acknowledgement 0.0 s to the first words.
+- Negative controls: the acknowledgement removed (2 tests fail), `keep_alive` dropped from the
+  request (1 fails), nothing prepared ahead (the database test fails), the warm job not
+  registered (the job list refuses it). Each restored before committing.
+- Local suites: the care conversation, eval runner, worker jobs and server tests (77 passed);
+  the check-in database suite against PostgreSQL 16 (8 passed); dashboard Vitest passed.
 
 ## Round 3, phase 15 (cost-cuts), measured from the Actions API (24 November 2026)
 

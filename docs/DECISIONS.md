@@ -1021,3 +1021,80 @@ on the build machine fail (D-004; the egress guard needs a name server).
 
 Rejected: a fourth state such as "partly works" (it is the state that let rows go vague);
 checking only `READINESS.md` (the final report makes the same kind of claim and is read more).
+
+## D-069 The conversation model stays loaded, is asked less, and the faster model leads (round 4, phase 1)
+
+Round 3 measured about 10 s to IRA's first sentence with `gemma4:12b` and 4.6 s with
+`gemma4:e4b` on the 4 vCPU deployment machine. Round 4 set a target of first spoken words
+within 1.5 s (p50) and the first full sentence within 3 s (p50) on the same machine, with
+red-flag recall still 1.00 and quality within 0.03 of the best measured model. What was
+measured and what was kept is in `docs/MODEL_CHOICE.md` ("Round 4"); the decisions are:
+
+1. **The model is kept loaded.** Every Ollama request carries `keep_alive`
+   (`IRA_CARE_MODEL_KEEP_ALIVE`, 30 minutes), the care server loads the primary at start, and
+   the worker's `care_model_warm` job touches it every ten minutes. A cold load cost 12 to
+   16 s on the first turn after a quiet spell; now no turn pays it.
+2. **One model loaded at a time** (`OLLAMA_MAX_LOADED_MODELS=1` in the compose file). With
+   three models resident the kernel killed Ollama's model server twice on the 16 GB
+   machine. The secondary loads only when the chain falls back, which costs one load on
+   that turn; the worker warms only the primary.
+3. **A shorter prompt and a smaller context window** (`IRA_CARE_MODEL_NUM_CTX`, 1024). Gemma 4
+   uses sliding-window attention, so Ollama cannot reuse the previous turn's prompt cache and
+   every prompt token is processed again at roughly 100 tokens a second on four cores. The
+   system prompt is shorter, the memory handed to the model is capped at 240 characters and
+   each context line at three items, and the language is named in words ("British English")
+   rather than as a code.
+4. **The faster model is primary where quality allows.** The 162-turn evaluation was re-run
+   for every candidate on the new prompt; the chain is chosen on quality first within the
+   0.03 band, then latency. The chosen pair is in `care/conversation.py` (`DEFAULT_PRIMARY`,
+   `DEFAULT_SECONDARY`) and in the compose file.
+5. **Sentences reach the client as they are spoken.** The talk route used to collect the
+   whole reply and only then write the sentence lines; it now writes each sentence the moment
+   the guard passes it, so the watch speaks the first sentence while the model composes the
+   second.
+6. The Ollama image in the compose file moves from 0.13.0 to 0.40.18: Gemma 4 needs 0.30.9
+   or later, and the staging proof ran against 0.40 on this machine.
+
+Measured and not kept: `num_thread` 4 (no better at the median, worse at the 95th
+percentile); the quantisation-aware 4-bit build `gemma4:e4b-it-qat` (2.0 s to the first
+sentence, but quality 0.844, 0.065 below the best, outside the band); `qwen3.5:2b` as the
+secondary (quality 0.834; it writes the mood words as a string, so no answer fitted the form).
+No quantisation below 4 bits is published for these models in Ollama's library. Rejected
+without measuring: a hosted model API (D-056 stands).
+
+## D-070 An instant acknowledgement from the rules, spoken before the model's first sentence (round 4, phase 1)
+
+A person who has just spoken should hear something within a second or so, the way a
+listener says "mm" before answering. The model's first sentence takes two to four seconds on
+four CPU cores whatever the prompt, so when the model path is taken the rules choose one
+short line and the watch speaks it at once: "Let me think, Ada." for a question, "I see, Ada."
+or "I'm listening, Ada." for something said, "I'm here, Ada." when the words carry worry. The
+model's sentences follow. The lines say nothing about the content, so they can never be wrong,
+never carry a question, and never replace a rule reply (a call, the day's plan, the tablets, a
+reminder, a red flag: those are instant already). The acknowledgement is spoken before the
+reply and recorded in the transcript as part of what IRA said, but it is not one of the reply's
+sentences: the guard, the eval's sentence counts and the "two or three sentences" limit apply
+to the model's words alone. `IRA_CARE_INSTANT_ACK=off` switches it off.
+
+Rejected: speaking the model's first clause at a comma (an unfinished sentence read aloud by
+a synthesiser sounds like a stutter, and it would make the sentence count depend on
+punctuation); a fixed single line (repeated every turn it grates; four variants per kind, chosen
+at random, do not).
+
+## D-071 Scheduled check-in questions are composed a few minutes before they are due (round 4, phase 1)
+
+The watch collects a due check-in and the server composes its question from the person's
+context with the model, which took the model's seconds before the watch could speak. The
+scheduler's pass (every minute) now composes the question of any check-in due within the next
+five minutes and keeps the words on the row while it is still "scheduled"; when the watch
+collects it, the prepared words are asked at once (`prepared: true` in the response). The
+choice of question is made for the scheduled time, not the time of composing, so a dose due at
+ten is asked about at ten whether the words were composed at five to or at ten. Safety
+questions ("Are you OK?"), the morning check and reminder questions keep their own words and
+need no preparation. A check-in the scheduler did not reach in time (the worker was down, the
+watch asked early) is composed on collection exactly as before.
+
+Rejected: a new column for the prepared words (the row's `question_text` is empty until the
+question is composed, so an empty text already says "not yet prepared", and a prepared row
+still reads correctly in every report); preparing every check-in at scheduling time (fifteen
+to twenty minutes early the context can change: a dose confirmed, a visit started).

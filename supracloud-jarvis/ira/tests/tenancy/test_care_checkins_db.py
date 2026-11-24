@@ -248,3 +248,44 @@ async def test_the_whole_cycle_runs_over_every_tenant(client, families, pool):
     out = await cycle.run_cycle_once(dt.datetime(2026, 11, 21, 10, 0, tzinfo=UTC), rng=random.Random(1))
     assert out.errors == 0 and out.scheduled >= 2
     assert len(await _rows(pool, a, pa["id"])) == 1 and len(await _rows(pool, b, pb["id"])) == 1
+
+
+async def test_the_question_is_prepared_a_few_minutes_early_and_asked_in_those_words_at_once(client, families, pool, monkeypatch):
+    """Round 4: the scheduler composes the next check-in's question up to five
+    minutes before it is due, so the watch speaks it the moment it is due."""
+    from care import conversation as conv
+    fam = families["a"]
+    person = await _setup(client, fam, med_time="08:00")
+    p, device = _principal(fam), _device(person)
+    now = dt.datetime(2026, 11, 21, 7, 40, tzinfo=UTC)
+    await cycle.run_workspace(p, now, rng=random.Random(1))
+    row = (await _rows(pool, fam, person["id"]))[0]
+    assert row["status"] == "scheduled" and row["question_text"] == ""
+    due = row["scheduled_at"]
+    # Too early: nothing is prepared. Within five minutes: the words are composed and kept.
+    out = await cycle.run_workspace(p, due - dt.timedelta(minutes=6), rng=random.Random(2))
+    assert out.prepared == 0 and (await _rows(pool, fam, person["id"]))[0]["question_text"] == ""
+    composed = conv.FakeModel()
+    conv.use_model(composed)
+    try:
+        out = await cycle.run_workspace(p, due - dt.timedelta(minutes=4), rng=random.Random(3))
+        assert out.prepared == 1
+        prepared = (await _rows(pool, fam, person["id"]))[0]
+        assert prepared["status"] == "scheduled" and "blue tablet" in prepared["question_text"].lower()
+        assert prepared["question_kind"] == "medication" and prepared["question_source"] == "model"
+        calls_before = len(composed.calls)
+        # A second pass does not compose it again.
+        out = await cycle.run_workspace(p, due - dt.timedelta(minutes=2), rng=random.Random(4))
+        assert out.prepared == 0 and len(composed.calls) == calls_before
+        # Due: the watch gets the prepared words without waiting on the model.
+        asked = await cycle.due_checkin(p, device, due + dt.timedelta(seconds=5), rng=random.Random(5))
+        assert asked["prepared"] is True and asked["question_text"] == prepared["question_text"]
+        assert asked["status"] == "asked" and asked["question_source"] == "model" and len(composed.calls) == calls_before
+    finally:
+        conv.use_model(None)
+    # The answer is still read against the medication the prepared question named.
+    answered = await cycle.record_answer(p, device, asked["id"], "Yes, taken", via="voice", now=due + dt.timedelta(seconds=40))
+    assert answered["said"] == "yes"
+    client.act_as(fam, "admin", "workspace_admin")
+    r = await client.get(f"{C}/people/{person['id']}/medication-events")
+    assert [e["status"] for e in r.json()["events"]] == ["taken"]

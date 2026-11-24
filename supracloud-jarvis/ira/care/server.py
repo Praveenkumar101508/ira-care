@@ -15,6 +15,7 @@ the dashboard and the API from one host name.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -40,6 +41,9 @@ async def lifespan(app: FastAPI):
     from utils.redis_client import close_redis, init_redis
     await init_pool()
     await init_redis()
+    # The conversation model loads now, not when the first person speaks (round 4).
+    from care.conversation import warm_configured_model
+    asyncio.get_running_loop().create_task(warm_configured_model())
     scheduler = None
     if jobs_in_api():
         from worker.scheduler import build_scheduler

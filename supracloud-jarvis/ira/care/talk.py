@@ -3,6 +3,7 @@ transcript rows (under the existing consent rules), the rolling memory, and
 what happens when the person says something that needs a check right now."""
 from __future__ import annotations
 
+import asyncio
 import dataclasses
 import datetime as dt
 import json
@@ -153,15 +154,22 @@ async def exchange(principal: Principal, person_id: uuid.UUID, text: str, *, sou
             pending_reminder = (_what, due_local.astimezone(dt.timezone.utc))
         else:
             pending_reminder = None
-    spoken: list[str] = []
-    turn = await conv.talk(text, ctx, recent=recent, on_sentence=spoken.append)
-    for s in turn.sentences:
-        yield {"sentence": s}
+    # Sentences are handed to the client as they are spoken: the acknowledgement
+    # at once, then each of the model's sentences as it completes (round 4).
+    queue: asyncio.Queue = asyncio.Queue()
+    task = asyncio.ensure_future(conv.talk(text, ctx, recent=recent, on_sentence=queue.put_nowait))
+    task.add_done_callback(lambda _t: queue.put_nowait(None))
+    while True:
+        item = await queue.get()
+        if item is None:
+            break
+        yield {"sentence": item}
+    turn = await task
     action = dict(turn.action) if turn.action else None
     async with workspace_connection(principal) as conn:
         await conn.execute(
             "INSERT INTO care_transcripts (person_id, checkin_id, speaker, text) VALUES ($1, NULL, 'companion', $2)",
-            person_id, " ".join(turn.sentences)[:8000])
+            person_id, " ".join(turn.spoken)[:8000])
         day = rules.local_now(now, person["timezone"]).date()
         notes = [f"Talked ({source}): {_note_for(turn, text)}"]
         if action and action.get("kind") == "reminder" and pending_reminder is not None:

@@ -100,5 +100,27 @@ async def test_the_ollama_adapter_streams_lines_and_asks_for_json():
     text = "".join([t async for t in m.stream([{"role": "user", "content": "hi"}], max_tokens=40, temperature=0.4)])
     assert text == "Hello Ada."
     assert seen[0]["model"] == "gemma4:e4b" and seen[0]["options"]["num_predict"] == 40 and seen[0]["think"] is False
+    # Round 4: the model is asked to stay loaded, and the turn is given a small context window.
+    assert seen[0]["keep_alive"] == conv.DEFAULT_KEEP_ALIVE and seen[0]["options"]["num_ctx"] == conv.DEFAULT_NUM_CTX
+    assert "num_thread" not in seen[0]["options"]
     out = await m.complete_json([{"role": "user", "content": "hi"}], max_tokens=40)
     assert json.loads(out) == {"wellbeing": "good"} and seen[1]["format"] == "json"
+
+
+async def test_warming_loads_the_model_with_an_empty_request_and_the_chain_warms_only_its_primary(monkeypatch):
+    import httpx
+    seen = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append((request.url.path, json.loads(request.content)))
+        return httpx.Response(200, json={"done": True})
+    monkeypatch.setenv("IRA_CARE_MODEL_KEEP_ALIVE", "45m")
+    monkeypatch.setenv("IRA_CARE_MODEL_NUM_CTX", "768")
+    monkeypatch.setenv("IRA_CARE_MODEL_THREADS", "3")
+    first = conv.OllamaModel("gemma4:e4b", "http://ollama.test", transport=httpx.MockTransport(handler))
+    second = conv.OllamaModel("qwen3.5:2b", "http://ollama.test", transport=httpx.MockTransport(handler))
+    took = await first.warm()
+    assert took >= 0 and seen == [("/api/generate", {"model": "gemma4:e4b", "keep_alive": "45m"})]
+    await conv.ChainModel([first, second]).warm()
+    assert [path for path, _ in seen] == ["/api/generate", "/api/generate"] and seen[-1][1]["model"] == "gemma4:e4b"
+    assert first._options(10, 0.5) == {"num_predict": 10, "temperature": 0.5, "num_ctx": 768, "num_thread": 3}

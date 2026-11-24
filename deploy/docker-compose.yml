@@ -22,8 +22,8 @@ x-care-env: &care-env
   # machine (docs/MODEL_CHOICE.md). No hosted model API exists in this product.
   IRA_CARE_MODEL: ${IRA_CARE_MODEL:-ollama}
   IRA_CARE_OLLAMA_URL: http://ollama:11434
-  IRA_CARE_MODEL_PRIMARY: ${IRA_CARE_MODEL_PRIMARY:-gemma4:12b}
-  IRA_CARE_MODEL_SECONDARY: ${IRA_CARE_MODEL_SECONDARY:-gemma4:e4b}
+  IRA_CARE_MODEL_PRIMARY: ${IRA_CARE_MODEL_PRIMARY:-gemma4:e4b}
+  IRA_CARE_MODEL_SECONDARY: ${IRA_CARE_MODEL_SECONDARY:-gemma4:e2b}
   # The small red-flag and answer classifier (CPU): a third reading beside the rules and the model;
   # the stricter one wins. The encoder is in the image; the heads are in the repository.
   IRA_CARE_CLASSIFIER: ${IRA_CARE_CLASSIFIER:-off}
@@ -32,7 +32,7 @@ x-care-env: &care-env
   IRA_MAIL_TRANSPORT: ${IRA_MAIL_TRANSPORT:-null}
   IRA_PAYMENT_PROVIDER: ${IRA_PAYMENT_PROVIDER:-}
   IRA_CARE_SMS_PROVIDER: ${IRA_CARE_SMS_PROVIDER:-log}
-  IRA_WORKER_JOBS: care_checkins,care_monitoring,care_reports,care_retention
+  IRA_WORKER_JOBS: care_checkins,care_monitoring,care_reports,care_retention,care_model_warm
   IRA_LEDGER_JOURNAL_DIR: /var/lib/ira/ledger
 
 services:
@@ -70,12 +70,15 @@ services:
     # The model server. CPU only by default: the chosen models need about 10 GB of memory
     # between them (docs/DEPLOY.md, section 1). The models are pulled once by ollama-pull
     # and kept in the volume.
-    image: ollama/ollama:0.13.0
+    image: ollama/ollama:0.40.18
     restart: unless-stopped
     environment:
+      # One model loaded at a time: on a 16 GB machine two of the chosen models side by side
+      # had the kernel kill the model server (round 4, D-069). The worker's care_model_warm job
+      # keeps the primary loaded; the secondary loads only when the chain falls back.
       OLLAMA_KEEP_ALIVE: 30m
       OLLAMA_NUM_PARALLEL: "1"
-      OLLAMA_MAX_LOADED_MODELS: "2"
+      OLLAMA_MAX_LOADED_MODELS: "1"
     volumes:
       - ollama:/root/.ollama
     expose: ["11434"]
@@ -87,12 +90,12 @@ services:
 
   ollama-pull:
     # Pulls the two models on first start (idempotent), then exits.
-    image: ollama/ollama:0.13.0
+    image: ollama/ollama:0.40.18
     restart: "no"
     environment:
       OLLAMA_HOST: http://ollama:11434
     entrypoint: ["/bin/sh", "-c"]
-    command: ["ollama pull ${IRA_CARE_MODEL_PRIMARY:-gemma4:12b} && ollama pull ${IRA_CARE_MODEL_SECONDARY:-gemma4:e4b}"]
+    command: ["ollama pull ${IRA_CARE_MODEL_PRIMARY:-gemma4:e4b} && ollama pull ${IRA_CARE_MODEL_SECONDARY:-gemma4:e2b}"]
     depends_on:
       ollama: { condition: service_healthy }
 
