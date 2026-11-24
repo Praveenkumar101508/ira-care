@@ -1098,3 +1098,28 @@ Rejected: a new column for the prepared words (the row's `question_text` is empt
 question is composed, so an empty text already says "not yet prepared", and a prepared row
 still reads correctly in every report); preparing every check-in at scheduling time (fifteen
 to twenty minutes early the context can change: a dose confirmed, a visit started).
+
+## D-072 One product look for the watch, and an exploded view built from the real stack (round 4, phase 2)
+
+**Choice.** The watch has one finish wherever it appears: a graphite case (`#2B2E33`, darker
+`#1C1F22` for the bezel and back), a coral Help button (`#E2574C`), a slate strap (`#2F3A44`)
+and the app's own colours on the screen (I'm OK green, Help red, Talk to IRA blue on black).
+The colours live once, in `LOOK` in `scripts/hardware/build_watch.py`; `parts.json` carries
+them to the viewer and `dashboard/src/app/globals.css` uses the same values for the browser
+watch. The exploded view is computed from each layer's real height: from the back cover up,
+every layer sits 7 mm above the top of the one below, so nothing hides inside the case; the
+order is cover glass, display, display frame, case with buttons, logic board, battery, sensor
+board, back cover. The same offsets go into `parts.json` (`explode_mm`) so the viewer explodes
+identically. Labels are drawn after rendering, dark text on pale panels, with a leader line
+that ends in a dot placed on the top face of the part it names; the strap, clasp and floor are
+left out of that one view. Lighting is softer (key 14 W, fill 5 W, rim 10 W, exposure -0.3) so
+the graphite reads as metal rather than a washed-out grey. The turntable is 20 seconds.
+
+**Why.** The round 3 renders mixed a bright steel case, a pure red button and labels whose
+lines ended on the wrong parts, with the logic board inside the case. A single look and a stack
+derived from geometry make every image agree with the others and with the description in
+`docs/hardware/BLUEPRINT.md`.
+
+**Checked.** Every render, the turntable frames and the viewer (headless Chromium, exploded)
+were reviewed at full size before merging.
+

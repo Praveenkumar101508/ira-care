@@ -92,8 +92,10 @@ const rim = new THREE.DirectionalLight(0xffffff, 1.0); rim.position.set(0.1, 0.5
 const root = new THREE.Group(); root.rotation.x = -Math.PI / 2; scene.add(root);  // Blender's Z-up to three's Y-up is handled by glTF; the group lets us orbit nicely
 const parts = []; // {mesh, layer, index, home}
 const layerIndex = Object.fromEntries(LAYERS.map((l, i) => [l, i]));
+// how far each layer rises when exploded, in mm, from scripts/hardware/build_watch.py: every layer
+// sits a few millimetres above the top of the one below, so the case never hides the logic board
+const EXPLODE_MM = PARTS.explode_mm || {};
 let explodeAmount = 0;
-const EXPLODE_STEP = 0.0065; // 6.5 mm per layer, in metres
 
 function setup(gltf) {
   const model = gltf.scene;
@@ -121,7 +123,8 @@ function applyExplode() {
   for (const p of parts) {
     if (p.layer === 'Strap' || p.layer === 'Clasp') continue;
     p.mesh.position.copy(p.home);
-    p.mesh.position.y += p.index * EXPLODE_STEP * explodeAmount;   // glTF is Y-up: Blender's Z became Y
+    // the top layer rises most, so the stack keeps its order in the air (LAYERS is read top to bottom)
+    p.mesh.position.y += (EXPLODE_MM[p.layer] || 0) * 0.001 * explodeAmount;   // glTF is Y-up: Blender's Z became Y
   }
   document.getElementById('explodeValue').textContent = Math.round(explodeAmount * 100) + '%';
 }

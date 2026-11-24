@@ -59,7 +59,7 @@ Round 3 is merged to `main` (pull requests 20 to 36). Round 4 (the polish):
 | # | Phase | Branch | State |
 | --- | --- | --- | --- |
 | R4-1 | fast-conversation | `feat/fast-conversation` | Pull request 37; CI green |
-| R4-2 | watch-design-renders | `fix/watch-design-renders` | Not started |
+| R4-2 | watch-design-renders | `fix/watch-design-renders` | Pull request 38; CI green |
 | R4-3 | demo-film-polish | `feat/demo-film-polish` | Not started |
 | R4-4 | polish-final | `docs/polish-final` | Not started |
 
