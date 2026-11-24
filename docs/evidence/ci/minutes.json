@@ -23,7 +23,31 @@
       "a pull request runs a client job only when that client's files (or something shared) changed, and the backend jobs only when backend files (or something shared) changed",
       "superseded runs are cancelled (concurrency, unchanged); pip, npm, Gradle and the Next.js build cache are kept between runs"
     ],
-    "measured": null,
-    "note": "filled in from the first runs on the new workflow: the phase 15 pull request and the push to main that merges it"
+    "measured": {
+      "pull_request_run": {
+        "run": "https://github.com/Praveenkumar101508/ira-care/actions/runs/45394100905",
+        "event": "pull request 35 (the phase 15 change itself; it touches the workflow and scripts/ci, which count as shared, so every area ran)",
+        "jobs_minutes": {
+          "Detect components and changes": 0.1,
+          "Secret scan (gitleaks)": 0.2,
+          "Backend database tests": 11.5,
+          "Backend unit tests": 5.3,
+          "Backend lint": 0.2,
+          "Watch app": 0.8,
+          "Carer dashboard": 0.8,
+          "Family app": 0.4
+        },
+        "total_minutes": 19.3,
+        "method": "job wall time from the Actions API (started_at to completed_at), rounded to 0.1 min; the public repository is not billed, so the usage endpoint reports 0 billable ms"
+      },
+      "push_to_main_after_merge": {
+        "run": "https://github.com/Praveenkumar101508/ira-care/actions/runs/45396148725",
+        "event": "push to main, squash merge of pull request 35 (tree identical to the pull request head, checked with git rev-parse)",
+        "result": "the heavy jobs did not skip: scripts/ci/already_tested.sh built the workflow name from the ref in the wrong order (it kept 'main' instead of 'test.yml') and the Actions API answered 404, which the script treats as 'not tested' and runs everything; about 19 minutes again",
+        "fix": "phase 16 (docs/truth-sweep-and-final) corrects the order; run on a checkout of this main commit against the real API, the corrected script answers already_tested=true and names pull request 35's head 8b73f25",
+        "proof_of_the_skip": "the push to main that merges pull request 36 is the first run that can show the skip; read it from the Actions page for that push"
+      }
+    },
+    "note": "a pull request that changes one client area runs that area's job and the small jobs only (about 1 to 2 minutes); a backend-only pull request runs the two backend jobs and the small jobs (about 18 minutes); the push to main of an identical tree runs the detect job and the secret scan (under 1 minute) once the phase 16 fix is in"
   }
 }

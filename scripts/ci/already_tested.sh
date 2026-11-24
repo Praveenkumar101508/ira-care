@@ -9,7 +9,9 @@
 # answers false and the full run happens.
 set -uo pipefail
 tree=$(git rev-parse HEAD^{tree})
-repo="${GITHUB_REPOSITORY:-}"; wf="${GITHUB_WORKFLOW_REF##*/}"; wf="${wf%%@*}"
+# GITHUB_WORKFLOW_REF is "owner/repo/.github/workflows/test.yml@refs/heads/main": drop the ref
+# first, then take the file name. (The other order keeps the branch name and the API answers 404.)
+repo="${GITHUB_REPOSITORY:-}"; wf="${GITHUB_WORKFLOW_REF%%@*}"; wf="${wf##*/}"
 [ -n "$repo" ] && [ -n "${GH_TOKEN:-}" ] || { echo "already_tested=false"; exit 0; }
 shas=$(curl -fsS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
   "https://api.github.com/repos/$repo/actions/workflows/$wf/runs?event=pull_request&status=success&per_page=30" \

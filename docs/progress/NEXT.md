@@ -1,29 +1,37 @@
 # IRA CARE: next step
 
-**Round 3 (the completion run) is in progress.** Phases and their state are in
-`STATUS.md` (table "Round 3"). Phases 0 to 14 are merged (pull requests 20 to 34). Phase 15 is
-built on its branch; next: its pull request, CI and squash-merge, then R3-16.
+**Round 3 (the completion run) is complete.** Phases 0 to 15 are merged (pull requests 20
+to 35) and phase 16 is pull request 36, which merges on green CI. The state of every phase
+is in `STATUS.md` (table "Round 3"); what was built, measured and left for the owner is in
+`FINAL_REPORT.md` (section "Round 3").
 
-Owner actions found so far in round 3:
+Owner actions from round 3, in order of use:
 
 1. Delete the merged branches `fix/remove-demo-state`, `fix/trustworthy-sos`,
    `fix/care-push-isolation`, `fix/responder-follow-up`, `feat/private-model`, `feat/own-models`,
    `feat/scheduled-care`, `feat/ira-personal`, `feat/watch-platform-layer`, `feat/hardware-blueprint`,
    `feat/one-mobile-app`, `feat/dashboard-care-record`, `feat/clean-product-ui`,
-   `feat/founder-demo-data` and `feat/staging-proof-and-film` (this machine's network refuses
-   branch deletes).
-1. Allow `api.figshare.com`, `ieee-dataport.org` and `www.kaggleusercontent.com` on the
-   environment if the original terms of UMAFall and FallAllD or the notebook output files
-   are wanted; nothing shipped depends on them.
-2. A hardware engineer verifies the rows of `docs/hardware/COMPONENTS.md` marked not verified
-   (those manufacturers' sites refuse automated readers) and a regulatory adviser reviews
-   `docs/hardware/BLUEPRINT.md` section 8 before any submission.
-3. If the SisFall mirror or IEEE DataPort sets are wanted locally, allow `api.figshare.com`
-   and `ieee-dataport.org`; to download Kaggle kernel output files directly, allow
-   `www.kaggleusercontent.com` (the session read kernel logs through the API instead).
-4. Build the two application images and start the stack with Caddy on a machine with a
+   `feat/founder-demo-data`, `feat/staging-proof-and-film`, `ci/cost-cuts` and, once pull
+   request 36 is merged, `docs/truth-sweep-and-final` (this machine's network refuses branch
+   deletes).
+2. Read the Actions run for the push that merges pull request 36: it is the first run that
+   can show the heavy jobs skipping on `main` for an identical tree (phase 15's rule, fixed in
+   phase 16; `docs/evidence/ci/minutes.json`).
+3. Build the two application images and start the stack with Caddy on a machine with a
    domain name (`docs/DEPLOY.md`); this machine could not build images, so staging ran
    everything the images run from the same files instead.
+4. A hardware engineer verifies the rows of `docs/hardware/COMPONENTS.md` marked not verified
+   (those manufacturers' sites refuse automated readers) and a regulatory adviser reviews
+   `docs/hardware/BLUEPRINT.md` section 8 before any submission.
+5. Decide the fate of `test_the_table_matches_a_fresh_scan_of_history` (D-004): bring the
+   history-scanning script and the source project's history over, or retire the test.
+6. Allow `api.figshare.com`, `ieee-dataport.org` and `www.kaggleusercontent.com` on the
+   environment only if the original terms of UMAFall and FallAllD, the SisFall mirror or the
+   Kaggle notebook output files are wanted; nothing shipped depends on them.
+7. Then the "needs the owner" rows of `docs/READINESS.md`: devices, keys, reviews.
+
+To continue in a new session: read `docs/progress/STATUS.md`, this file, `docs/BUILD_RULES.md`
+and `docs/DECISIONS.md`, then carry on with the same rules.
 
 ---
 
