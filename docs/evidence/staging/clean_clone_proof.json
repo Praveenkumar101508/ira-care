@@ -1,0 +1,105 @@
+{
+  "measured_at": "2026-11-24T09:47:45+00:00",
+  "revision": "77e555446bffadc31f45df538a1ec3d04afdf943",
+  "machine": "Linux-6.18.44-fc-v819-x86_64-with-glibc2.39",
+  "result": "passed",
+  "total_seconds": 192,
+  "steps": [
+    {
+      "step": "clone",
+      "status": "ok",
+      "seconds": 0,
+      "note": ""
+    },
+    {
+      "step": "env",
+      "status": "ok",
+      "seconds": 0,
+      "note": "deploy/.env written with fresh secrets"
+    },
+    {
+      "step": "compose-up",
+      "status": "ok",
+      "seconds": 12,
+      "note": ""
+    },
+    {
+      "step": "pip-install",
+      "status": "ok",
+      "seconds": 0,
+      "note": ""
+    },
+    {
+      "step": "migrate",
+      "status": "ok",
+      "seconds": 1,
+      "note": ""
+    },
+    {
+      "step": "api-up",
+      "status": "ok",
+      "seconds": 3,
+      "note": "care.server on :8010"
+    },
+    {
+      "step": "worker-up",
+      "status": "ok",
+      "seconds": 62,
+      "note": ""
+    },
+    {
+      "step": "dashboard-install",
+      "status": "ok",
+      "seconds": 9,
+      "note": ""
+    },
+    {
+      "step": "dashboard-build",
+      "status": "ok",
+      "seconds": 32,
+      "note": ""
+    },
+    {
+      "step": "dashboard-up",
+      "status": "ok",
+      "seconds": 1,
+      "note": ""
+    },
+    {
+      "step": "app-install",
+      "status": "ok",
+      "seconds": 7,
+      "note": ""
+    },
+    {
+      "step": "app-export",
+      "status": "ok",
+      "seconds": 4,
+      "note": ""
+    },
+    {
+      "step": "app-up",
+      "status": "ok",
+      "seconds": 0,
+      "note": ""
+    },
+    {
+      "step": "seed",
+      "status": "ok",
+      "seconds": 2,
+      "note": ""
+    },
+    {
+      "step": "e2e-install",
+      "status": "ok",
+      "seconds": 1,
+      "note": ""
+    },
+    {
+      "step": "e2e",
+      "status": "ok",
+      "seconds": 51,
+      "note": ""
+    }
+  ]
+}

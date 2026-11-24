@@ -49,10 +49,26 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-10 | one-mobile-app | `feat/one-mobile-app` | Merged (pull request 30) |
 | R3-11 | dashboard-care-record | `feat/dashboard-care-record` | Merged (pull request 31) |
 | R3-12 | clean-product-ui | `feat/clean-product-ui` | Merged (pull request 32) |
-| R3-13 | founder-demo-data | `feat/founder-demo-data` | Built and tested locally; pull request to follow |
-| R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | not started |
+| R3-13 | founder-demo-data | `feat/founder-demo-data` | Merged (pull request 33) |
+| R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | Built and proved locally (clean-clone staging, 7 browser tests, film); pull request to follow |
 | R3-15 | cost-cuts | `ci/cost-cuts` | not started |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 14 (staging-proof-and-film), measured locally (24 November 2026)
+
+- `scripts/staging/clean_clone_proof.sh`: 16 steps, 181 s from `git clone` to the last browser
+  test (compose up 11 s, migrations 2 s, server up 2 s, worker healthy 63 s, dashboard build
+  25 s, phone export 4 s, seed 2 s, browser tests 51 s). Seven browser tests passed: five
+  journey tests and two outage drills.
+- Outage timings (`docs/evidence/staging/outages.json`): Redis stopped, server unhealthy
+  within the first check (under 0.5 s), the watch's help press answered "Sending…" at once,
+  the request visible to the care team within the first check after Redis returned;
+  PostgreSQL stopped, unhealthy within the first check, healthy 0.5 s after it returned.
+- Six defects found by the proof and fixed (D-066), three of them with new tests
+  (`test_care_server.py`, `test_care_sos_db.py`, `dashboard/src/__tests__/face.test.ts`).
+- The film `docs/film/ira_care.mp4`: 5 minutes 30 seconds, 1280 × 720, 3.9 MB; nine scenes (the
+  turntable, six recorded from the staging stack, the hardware renders) with the narration of
+  `docs/film/NARRATION.md` spoken by Piper's `en_GB-cori-high` voice.
 
 ## Round 3, phase 13 (founder-demo-data), measured locally (24 November 2026)
 

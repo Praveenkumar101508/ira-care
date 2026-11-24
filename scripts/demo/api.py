@@ -89,7 +89,7 @@ def create_demo_app() -> FastAPI:
     # Outermost, so the browser preflight for the demo origins is answered here.
     app.add_middleware(CORSMiddleware, allow_origins=DEMO_ORIGINS, allow_credentials=True,
                        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
-                       allow_headers=["Authorization", "Content-Type", "X-Workspace-ID", "X-Device-Token"])
+                       allow_headers=["Authorization", "Content-Type", "X-Workspace-ID", "X-Device-Token", "X-Idempotency-Key"])
     app.add_middleware(RequestContextMiddleware)
     return app
 

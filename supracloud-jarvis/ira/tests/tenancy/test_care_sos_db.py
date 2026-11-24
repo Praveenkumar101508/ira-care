@@ -283,3 +283,32 @@ async def test_a_question_already_out_stops_a_second_alert_of_the_same_kind(clie
     client.act_as(fam, "member", "member")
     alerts = (await client.get(f"{C}/alerts", params={"person_id": p["id"], "open_only": "false"})).json()["alerts"]
     assert [a["kind"] for a in alerts] == ["heart_rate_outside_range"]
+
+
+async def test_pressing_help_while_asked_settles_the_question(client, families):
+    """Found by the staging proof (round 3, phase 14): after Help during "Are you OK?",
+    the watch was offered the same question again. Help is the answer: the alert opens,
+    the safety check-in is recorded as answered by the button, and nothing is due."""
+    import datetime as _dt
+    from care import repository as repo
+    fam = families["a"]
+    p = await _setup(client, fam)
+    jp, device = p["jp"], p["device"]
+    now = _dt.datetime(2026, 11, 23, 14, 0, tzinfo=UTC)
+    report = {"readings": [{"kind": "heart_rate", "value": v, "unit": "bpm", "recorded_at": now + _dt.timedelta(seconds=60 * i)}
+                           for i, v in enumerate((160, 165, 170))], "battery_percent": 70, "on_wrist": True,
+              "background_sensor_permission": True, "now": now + _dt.timedelta(seconds=120)}
+    out = await repo.record_report(jp, device, report)
+    assert out["safety_check"]["kind"] == "heart_rate_outside_range"
+    assert (await client.get(f"{C}/devices/me/checkins/due", headers=p["h"])).json()["checkin"] is not None
+    r = await client.post(f"{C}/devices/me/help", json={"via": "button"}, headers={**p["h"], sos.IDEMPOTENCY_HEADER: "help-while-asked"})
+    assert r.status_code == 201, r.text
+    assert r.json()["status"] == "open" and r.json()["sos"]["state"] == "received"
+    assert (await client.get(f"{C}/devices/me/checkins/due", headers=p["h"])).json()["checkin"] is None
+    client.act_as(fam, "member", "member")
+    checkins = (await client.get(f"{C}/people/{p['id']}/checkins", params={"limit": 10})).json()["checkins"]
+    safety = [c for c in checkins if c["question_kind"] == "safety"]
+    assert safety and safety[0]["status"] == "answered"
+    async with workspace_connection(jp) as conn:
+        via = await conn.fetchval("SELECT answered_via FROM care_checkins WHERE id = $1", uuid.UUID(safety[0]["id"]))
+    assert via == "button"
