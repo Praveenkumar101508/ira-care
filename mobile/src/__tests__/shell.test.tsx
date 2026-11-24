@@ -60,6 +60,18 @@ test('family see the alert that needs someone first, with I\'m on my way, and ca
   expect(byId(tree, 'card-watch')).toBeTruthy();
 });
 
+test("the urgent banner's I'm on my way button has readable words, and the banner names the alert", () => {
+  const r = mount(<HomeTab d={data({ experience: 'family', alerts: [open] })} a={actions()} />);
+  const tree = r.toJSON() as Node;
+  const flat = (s: unknown) => Object.assign({}, ...([] as object[]).concat(s as object[]).flat(Infinity as 1)) as { backgroundColor?: string; color?: string };
+  const button = byId(tree, 'home-on-my-way')!;
+  const label = all(button).find((n) => n.type === 'Text')!;
+  expect(text(button)).toContain("I'm on my way");
+  const hex = (v?: string) => { const h = (v ?? '').toLowerCase().replace('#', ''); return h.length === 3 ? h.split('').map((x) => x + x).join('') : h; };
+  expect(hex(flat(label.props.style).color)).not.toBe(hex(flat(button.props.style).backgroundColor));
+  expect(text(byId(tree, 'urgent-banner'))).toContain('Asked for help');
+});
+
 test("a carer sees today's visits with I've arrived, and the last handover", () => {
   const a = actions();
   const today = { ...visit, planned_start: new Date().toISOString().slice(0, 11) + '10:00:00+00:00', planned_end: new Date().toISOString().slice(0, 11) + '11:00:00+00:00' };

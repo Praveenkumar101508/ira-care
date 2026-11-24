@@ -233,7 +233,7 @@ async def plan_summary(principal: Principal) -> dict:
         "usage": {"care_people": people, "care_circle_members": members},
         "plans": [dict(p, limits=json.loads(p["limits"]) if isinstance(p["limits"], str) else (p["limits"] or {})) for p in plans],
         "payment_provider": (os.getenv("IRA_PAYMENT_PROVIDER") or "off"),
-        "note": "No price is set on the care plans; checkout answers PRICE_NOT_CONFIGURED until the owner prices them.",
+        "note": "No price is set on the care plans yet, so nobody can be asked to pay until the owner sets one.",
     }
 
 

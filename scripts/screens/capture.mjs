@@ -8,6 +8,13 @@
 // from scripts/demo/seed_demo.py. Writes docs/screens/<screen>.<phone|desktop>.png
 // and docs/screens/INDEX.md. The presenter page is captured too, under its own
 // name, so a reviewer can see it; it is never part of a recording.
+//
+// Each size starts clean. Taking the phone screens leaves alerts open on the
+// demo server (the heart-rate readings and the fall), and the watch shows any
+// open alert as "Help request received." over everything else, so before each
+// size the care manager resolves every open alert through the API, and the
+// script waits until the watch says "All well" before that screen (a
+// just-resolved alert shows "This is now resolved." for a minute first).
 import { createRequire } from 'node:module';
 const { chromium } = createRequire(import.meta.url)('playwright');
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -23,6 +30,37 @@ const family = info.logins.find((l) => l.key === 'family') ?? info.logins.find((
 const wearer = info.logins.find((l) => l.key === 'wearer');
 const person = info.people[0];
 mkdirSync(OUT, { recursive: true });
+
+/** Resolve every open alert in the demo organisation, as the care manager would. */
+let managerToken = null; // signed in once: the sign-in route allows five a minute, and the screens use four of them
+async function closeOpenAlerts() {
+  const headers = async (fresh = false) => {
+    if (!managerToken || fresh) {
+      const login = await fetch(`${API}/auth/cloud/login`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ email: manager.email, password: manager.password }).toString() });
+      if (!login.ok) throw new Error(`The care manager could not sign in to close open alerts (${login.status}).`);
+      managerToken = (await login.json()).access_token;
+    }
+    return { Authorization: `Bearer ${managerToken}`, 'X-Workspace-ID': info.workspace_id, 'Content-Type': 'application/json' };
+  };
+  let h = await headers();
+  if ((await fetch(`${API}/api/v1/care/ops/status`, { headers: h })).status === 401) h = await headers(true);
+  const list = await fetch(`${API}/api/v1/care/alerts?open_only=true&limit=500`, { headers: h });
+  if (!list.ok) throw new Error(`Could not list open alerts (${list.status}).`);
+  const { alerts } = await list.json();
+  for (const a of alerts) {
+    const r = await fetch(`${API}/api/v1/care/alerts/${a.id}/resolve`, { method: 'POST', headers: h, body: JSON.stringify({ resolution: 'Closed before taking the screens.', outcome: 'other' }) });
+    if (!r.ok && r.status !== 404) throw new Error(`Could not resolve alert ${a.id} (${r.status}).`);
+  }
+  // A stack started a moment ago has not run its care jobs yet, and every dashboard page would say
+  // "Monitoring paused". Wait (up to three minutes) for the first pass of the jobs.
+  for (let waited = 0; ; waited += 5000) {
+    const ops = await fetch(`${API}/api/v1/care/ops/status`, { headers: h });
+    if (ops.ok && !(await ops.json()).monitoring_paused) break;
+    if (waited >= 180_000) throw new Error('The care jobs have not run; every dashboard page would say "Monitoring paused".');
+    await new Promise((r) => setTimeout(r, 5000));
+  }
+  console.log(`closed ${alerts.length} open alert(s)${alerts.length ? ': ' + alerts.map((a) => `${a.kind} (${a.status})`).join(', ') : ''}`);
+}
 
 const SIZES = { phone: { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true }, desktop: { width: 1280, height: 800, deviceScaleFactor: 1 } };
 const taken = [];
@@ -51,6 +89,7 @@ async function dashboardSignIn(page, login) {
 }
 
 for (const [size, viewport] of Object.entries(SIZES)) {
+  await closeOpenAlerts();
   const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, deviceScaleFactor: viewport.deviceScaleFactor, isMobile: viewport.isMobile, hasTouch: viewport.hasTouch });
   const page = await context.newPage();
 
@@ -75,13 +114,34 @@ for (const [size, viewport] of Object.entries(SIZES)) {
     await pause(page, 800);
     if ((await page.getByTestId('watch-face').textContent())?.includes('All well')) break;
   }
-  await page.bringToFront(); await pause(page, 1500); await shot(page, 'watch-all-well', size);
-  await presenter.getByTestId('inject-heart').click(); await pause(page, 4000); await shot(page, 'watch-question', size);
+  await page.bringToFront(); await pause(page, 1500);
+  let face = '';
+  for (let waited = 0; waited < 90_000; waited += 2000) {
+    face = (await page.getByTestId('watch-text').textContent())?.trim() ?? '';
+    if (face === 'All well') break;
+    await pause(page, 2000);
+  }
+  if (face !== 'All well') throw new Error(`The watch says "${face}" before the all-well screen (${size}); the demo is not clean.`);
+  await shot(page, 'watch-all-well', size);
+  const notHelpWords = async (screen) => {
+    const words = (await page.getByTestId('watch-text').textContent())?.trim() ?? '';
+    if (/^(Help request|Sending|Waiting for connection)|is on the way\.$|has arrived\.$/.test(words)) throw new Error(`The watch shows "${words}" on the ${screen} screen (${size}).`);
+  };
+  await presenter.getByTestId('inject-heart').click(); await pause(page, 4000); await notHelpWords('question'); await shot(page, 'watch-question', size);
   await page.getByTestId('ok').click(); await pause(page, 1500);
-  await presenter.getByTestId('inject-fall').click(); await pause(page, 3000); await shot(page, 'watch-fall', size);
+  await presenter.getByTestId('inject-fall').click(); await pause(page, 3000); await notHelpWords('fall'); await shot(page, 'watch-fall', size);
   await page.getByTestId('ok').click(); await pause(page, 1000);
   await presenter.bringToFront(); await pause(presenter, 500); await shot(presenter, 'presenter', size);
+  // Back to a normal heart rate, as the wrist would report next: with the last reading still out of
+  // range the server opens a fresh heart-rate alert part way through the app screens below.
+  await presenter.getByRole('spinbutton').first().fill('72');
+  await presenter.getByTestId('inject-heart').click(); await pause(presenter, 3000);
   await presenter.close();
+
+  // The watch screens raise a heart-rate alert and a fall; close what is still open so the app
+  // screens below show one consistent state rather than an alert opening part way through.
+  await page.close();
+  await closeOpenAlerts();
 
   // The phone app on the web: sign in as the care manager (carer experience), then the family member.
   for (const [who, login] of [['carer', manager], ['family', family], ...(wearer ? [['wearer', wearer]] : [])]) {
