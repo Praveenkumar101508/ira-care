@@ -1,0 +1,29 @@
+{
+  "what": "GitHub Actions minutes per workflow run, billed per job on ubuntu-latest, before and after the round 3 phase 15 rules (scripts/ci/changed_areas.sh, scripts/ci/already_tested.sh, caches).",
+  "before": {
+    "run": "https://github.com/Praveenkumar101508/ira-care/actions/runs/45305028277",
+    "event": "push to main after pull request 24 (an identical tree had just passed as the pull request)",
+    "jobs_minutes": {
+      "Detect components": 0.2,
+      "Secret scan (gitleaks)": 0.1,
+      "Backend database tests": 13.0,
+      "Backend unit tests": 5.7,
+      "Backend lint": 0.2,
+      "Watch app": 0.8,
+      "Carer dashboard": 0.7,
+      "Family app": 0.4
+    },
+    "total_minutes": 21.1,
+    "per_phase_minutes": 42.2,
+    "note": "every phase ran the whole workflow twice: once on the pull request and once more on the push to main"
+  },
+  "after": {
+    "rules": [
+      "a push to main whose tree already passed as a pull request head runs only the detect job and the secret scan",
+      "a pull request runs a client job only when that client's files (or something shared) changed, and the backend jobs only when backend files (or something shared) changed",
+      "superseded runs are cancelled (concurrency, unchanged); pip, npm, Gradle and the Next.js build cache are kept between runs"
+    ],
+    "measured": null,
+    "note": "filled in from the first runs on the new workflow: the phase 15 pull request and the push to main that merges it"
+  }
+}

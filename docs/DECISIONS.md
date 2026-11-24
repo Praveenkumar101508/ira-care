@@ -967,3 +967,34 @@ MIT, with the `en_GB-cori-high` voice whose training data is public domain; H.26
 Rejected: faking the stack with the demo API (`scripts/demo/api.py` allows browser origins
 the real server does not; the proof must run `care.server`); a screen recording made by hand
 (it could not be remade, and it would not have found the six defects).
+
+## D-067 CI runs what a change can affect, and never runs an identical tree twice (round 3, phase 15)
+
+Before this phase every pull request and every push to `main` ran the whole workflow: about
+21 billed minutes a run (the database suite 13, the unit suite 6, the three client jobs and
+the small jobs the rest), so about 42 minutes a phase, half of them spent re-testing on
+`main` the very tree that had just passed as the pull request
+(`docs/evidence/ci/minutes.json`). Three rules now apply, none of which removes a test:
+
+1. **Change detection inside the workflow** (`scripts/ci/changed_areas.sh`): the detect job
+   lists the files the event changed; a client job runs when its directory (or something
+   shared: the workflow, the CI scripts, the migrations, the deploy files) changed, and the
+   backend jobs run when backend files or something shared changed. A documentation-only
+   change runs the detect job and the secret scan. An unknown base (a new branch, a force
+   push) counts as "everything changed".
+2. **An identical tree is not tested twice** (`scripts/ci/already_tested.sh`): on a push to
+   `main`, the detect job asks the Actions API for the last thirty successful pull-request
+   runs and compares their heads' trees with the pushed commit's tree. A squash merge of a
+   pull request that was up to date with `main` has the same tree, so the heavy jobs skip;
+   any difference, doubt or API error runs them all.
+3. **Caches**: pip (now also for lint), npm, Gradle, and the Next.js build cache.
+
+Superseded runs were already cancelled (`concurrency`). The expected cost is about 21
+minutes per phase instead of 42, less when a pull request touches one area. The measured
+numbers after the change are recorded in `docs/evidence/ci/minutes.json` from the first runs
+on the new workflow (the phase 15 pull request and the push that merges it).
+
+Rejected: path filters in the workflow's `on:` block (GitHub then reports no check at all
+for a skipped required job, which blocks merging or, worse, invites marking the job
+non-required); a nightly schedule instead of per-push runs on `main` (a broken `main` would
+be found hours late); a larger or self-hosted runner (paid, or the owner's machine).
