@@ -26,7 +26,7 @@ from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
-from . import audit, checkin_cycle, consent, history, onboarding, ops, push, reports, repository as repo, schemas, sos
+from . import audit, checkin_cycle, consent, history, onboarding, ops, push, reports, repository as repo, schemas, sos, visits
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 router = APIRouter(prefix="/care", tags=["care"])
@@ -345,6 +345,16 @@ async def device_me(d: tuple[Principal, dict] = Depends(require_device)):
     return out
 
 
+@router.post("/devices/me/visits/{visit_id}/acknowledge")
+async def device_visit_acknowledge(visit_id: uuid.UUID, d: tuple[Principal, dict] = Depends(require_device)):
+    """The watch showed "[Name] is here" and the person saw it."""
+    principal, device = d
+    row = await visits.acknowledge_from_device(principal, device, visit_id)
+    if row is None:
+        raise _not_found("No visit in progress with that id.")
+    return {"visit_id": row["id"], "acknowledged_at": row["acknowledged_at"]}
+
+
 @router.get("/devices/me/sos")
 async def device_sos(d: tuple[Principal, dict] = Depends(require_device)):
     """The true state of the person's SOS, for the wrist: received, on the way
@@ -514,6 +524,103 @@ async def ask_now(person_id: uuid.UUID, body: schemas.AskNow, p: Principal = Dep
     row = await checkin_cycle.ask_now(p, person_id, kind=body.kind, custom_text=body.text)
     if row is None:
         raise _not_found("Person not found.")
+    return row
+
+
+# ── Scheduled visits (109) ───────────────────────────────────────────────────
+
+@router.post("/people/{person_id}/visits", status_code=201)
+async def create_visit(person_id: uuid.UUID, body: schemas.VisitCreate, p: Principal = Depends(require_workspace_principal)):
+    """Plan a visit: who, when, what for, which tasks."""
+    ensure_can_act(p)
+    row = await visits.create(p, person_id, body.model_dump())
+    if row is None:
+        raise _not_found("Person or circle member not found.")
+    return row
+
+
+@router.get("/people/{person_id}/visits")
+async def list_visits(person_id: uuid.UUID, since: Optional[dt.datetime] = Query(None),
+                      until: Optional[dt.datetime] = Query(None), limit: int = Query(100, ge=1, le=1000),
+                      p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+    rows = await visits.list_for_person(p, person_id, since=since, until=until, limit=limit)
+    return {"visits": rows, "count": len(rows)}
+
+
+@router.get("/visits/{visit_id}")
+async def get_visit(visit_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    row = await visits.get(p, visit_id)
+    if row is None:
+        raise _not_found("Visit not found.")
+    return row
+
+
+@router.patch("/visits/{visit_id}")
+async def update_visit(visit_id: uuid.UUID, body: schemas.VisitUpdate, p: Principal = Depends(require_workspace_principal)):
+    """Move or re-describe a planned visit. A visit that has started does not move."""
+    ensure_can_act(p)
+    changes = body.model_dump(exclude_none=True)
+    if "planned_start" in changes and "planned_end" in changes and changes["planned_end"] <= changes["planned_start"]:
+        raise HTTPException(status_code=422, detail="planned_end must be after planned_start")
+    row = await visits.update(p, visit_id, changes)
+    if row is None:
+        raise _not_found("Visit not found.")
+    return row
+
+
+@router.post("/visits/{visit_id}/arrive")
+async def arrive_visit(visit_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    """The carer is with the person: the watch says so, check-ins pause, any
+    late or missed alert for this visit closes."""
+    ensure_can_act(p)
+    row = await visits.arrive(p, visit_id)
+    if row is None:
+        raise _not_found("Visit not found.")
+    return row
+
+
+@router.post("/visits/{visit_id}/depart")
+async def depart_visit(visit_id: uuid.UUID, body: schemas.VisitDepart, p: Principal = Depends(require_workspace_principal)):
+    """The carer leaves: outcome, notes, handover and the tasks done."""
+    ensure_can_act(p)
+    row = await visits.depart(p, visit_id, body.model_dump())
+    if row is None:
+        raise _not_found("Visit not found.")
+    if row["status"] != "departed":
+        raise HTTPException(status_code=409, detail="Only a visit with a recorded arrival can be departed.")
+    return row
+
+
+@router.post("/visits/{visit_id}/cancel")
+async def cancel_visit(visit_id: uuid.UUID, body: schemas.VisitCancel, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_act(p)
+    row = await visits.cancel(p, visit_id, body.note)
+    if row is None:
+        raise _not_found("Visit not found.")
+    return row
+
+
+@router.post("/visits/{visit_id}/tasks", status_code=201)
+async def add_visit_task(visit_id: uuid.UUID, body: schemas.VisitTaskCreate, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_act(p)
+    row = await visits.add_task(p, visit_id, body.title)
+    if row is None:
+        raise _not_found("Visit not found or already finished.")
+    return row
+
+
+@router.patch("/visits/{visit_id}/tasks/{task_id}")
+async def set_visit_task(visit_id: uuid.UUID, task_id: uuid.UUID, body: schemas.VisitTaskUpdate,
+                         p: Principal = Depends(require_workspace_principal)):
+    ensure_can_act(p)
+    row = await visits.set_task(p, visit_id, task_id, done=body.done, note=body.note)
+    if row is None:
+        raise _not_found("Task not found.")
     return row
 
 

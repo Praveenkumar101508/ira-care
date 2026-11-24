@@ -85,7 +85,15 @@ def _name(ack: dict, responders: dict) -> str:
 
 async def current(conn, person_id) -> dict:
     """The newest unresolved SOS for the person, or the most recently closed one
-    within the last ten minutes (so the watch sees the closing), or idle."""
+    within the last ten minutes (so the watch sees the closing), or idle. Beside
+    it, under `visit`, what the wrist shows about carers' visits (care/visits.py)."""
+    state = await _sos_state(conn, person_id)
+    from . import visits
+    state["visit"] = await visits.state_for_person(conn, person_id)
+    return state
+
+
+async def _sos_state(conn, person_id) -> dict:
     alert = await conn.fetchrow(
         """
         SELECT * FROM care_alerts

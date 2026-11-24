@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { CareClient } from '../api/client';
 import { ApiError } from '../api/client';
-import type { Checkin, CircleMember, ConsentList, Device, Person, PersonStatus, Report } from '../api/types';
+import type { Checkin, CircleMember, ConsentList, Device, Person, PersonStatus, Report, Visit, VisitOutcome } from '../api/types';
+import { VISIT_OUTCOMES, VISIT_OUTCOME_WORDS, currentVisit, visitActions, visitTitle } from '../model/visits';
 import { alertTitle } from '../model/alerts';
 import { deviceSummary, readingLabel, telLink, timeAgo } from '../model/format';
 import { BigButton, Card, Muted, Screen, colors } from '../ui';
 
-type Tab = 'status' | 'history' | 'reports' | 'contacts' | 'consent';
+type Tab = 'status' | 'visits' | 'history' | 'reports' | 'contacts' | 'consent';
 
 export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair }: {
   client: CareClient; person: Person; canManage: boolean; onBack: () => void; onTalk?: () => void; onPair?: () => void;
@@ -20,20 +21,25 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
   const [consents, setConsents] = useState<ConsentList | null>(null);
   const [pairing, setPairing] = useState<Device | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
+  const [visits, setVisits] = useState<Visit[]>([]);
+  const [handover, setHandover] = useState('');
+  const [outcome, setOutcome] = useState<VisitOutcome>('all_well');
   const [error, setError] = useState('');
 
   const load = async () => {
     setError('');
     try {
-      const [s, c, m, k, rp] = await Promise.all([
+      const [s, c, m, k, rp, vs] = await Promise.all([
         client.status(person.id), client.checkins(person.id), client.circle(person.id), client.consents(person.id), client.reports(person.id),
+        client.visits(person.id),
       ]);
-      setStatus(s); setCheckins(c.checkins); setAnswersIncluded(c.answers_included); setCircle(m); setConsents(k); setReports(rp);
+      setStatus(s); setCheckins(c.checkins); setAnswersIncluded(c.answers_included); setCircle(m); setConsents(k); setReports(rp); setVisits(vs);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Could not load.');
     }
   };
   useEffect(() => { void load(); }, [person.id]);
+  const act = async (fn: () => Promise<unknown>) => { try { await fn(); await load(); } catch (e) { setError(e instanceof ApiError ? e.message : 'Failed.'); } };
 
   const name = person.preferred_name || person.display_name;
   const personPhone = circle.find((m) => m.relationship.toLowerCase() === 'self')?.phone ?? '';
@@ -42,7 +48,7 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
   return (
     <Screen title={name}>
       <View style={styles.tabs}>
-        {(['status', 'history', 'reports', 'contacts', 'consent'] as Tab[]).map((t) => (
+        {(['status', 'visits', 'history', 'reports', 'contacts', 'consent'] as Tab[]).map((t) => (
           <Text key={t} onPress={() => setTab(t)} style={[styles.tab, tab === t && styles.tabOn]} testID={`tab-${t}`}>
             {t[0].toUpperCase() + t.slice(1)}
           </Text>
@@ -90,6 +96,46 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
                 <Text selectable style={styles.code}>{pairing.pairing_code}</Text>
               </Card>
             ) : null}
+          </>
+        )}
+        {tab === 'visits' && (
+          <>
+            {(() => {
+              const v = currentVisit(visits);
+              if (!v) return <Muted>No visit planned. Visits are planned from the dashboard.</Muted>;
+              const acts = visitActions(v);
+              return (
+                <Card>
+                  <Text style={styles.h} testID="visit-current">{visitTitle(v)}</Text>
+                  {v.purpose ? <Muted>{v.purpose}</Muted> : null}
+                  {v.tasks.map((t) => <Text key={t.id} style={styles.line}>{t.done ? '☑' : '☐'} {t.title}</Text>)}
+                  {acts.includes('arrive') ? (
+                    <BigButton label="I've arrived" testID="visit-arrive" hint="Tells the watch and the circle you are with them. Check-ins pause while you are here."
+                      onPress={() => { void act(() => client.arrive(v.id)); }} />
+                  ) : null}
+                  {acts.includes('depart') ? (
+                    <>
+                      <Text style={styles.h}>Leaving: what happened?</Text>
+                      <View style={styles.tabs}>
+                        {VISIT_OUTCOMES.map((o) => (
+                          <Text key={o} onPress={() => setOutcome(o)} style={[styles.tab, outcome === o && styles.tabOn]} testID={`visit-outcome-${o}`}>{VISIT_OUTCOME_WORDS[o]}</Text>
+                        ))}
+                      </View>
+                      <TextInput value={handover} onChangeText={setHandover} placeholder="Handover for the next carer (optional)" multiline
+                        style={styles.input} testID="visit-handover" accessibilityLabel="Handover for the next carer" />
+                      <BigButton label="I'm leaving" testID="visit-depart" color={colors.notice} hint="Records the outcome, the handover and which tasks were done."
+                        onPress={() => { void act(() => client.depart(v.id, { outcome, notes: '', handover, tasks_done: v.tasks.filter((t) => t.done).map((t) => t.id) })); setHandover(''); }} />
+                    </>
+                  ) : null}
+                </Card>
+              );
+            })()}
+            {visits.filter((v) => v.status === 'departed').slice(0, 10).map((v) => (
+              <Card key={v.id}>
+                <Text style={styles.line}>{visitTitle(v)}</Text>
+                <Muted>{VISIT_OUTCOME_WORDS[v.outcome as VisitOutcome] ?? v.outcome}{v.handover ? ` · Handover: ${v.handover}` : ''}</Muted>
+              </Card>
+            ))}
           </>
         )}
         {tab === 'history' && (
@@ -163,6 +209,7 @@ const styles = StyleSheet.create({
   tabs: { flexDirection: 'row', gap: 8, marginBottom: 10 },
   tab: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: colors.card, color: colors.muted, borderWidth: 1, borderColor: colors.border },
   tabOn: { backgroundColor: colors.notice, color: '#fff', borderColor: colors.notice },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 10, minHeight: 60, color: colors.text, marginVertical: 8 },
   h: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 4 },
   line: { fontSize: 15, color: colors.text, marginTop: 2 },
   quote: { fontSize: 15, color: colors.text, fontStyle: 'italic', marginTop: 4 },

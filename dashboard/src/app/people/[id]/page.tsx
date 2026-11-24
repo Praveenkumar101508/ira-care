@@ -8,11 +8,12 @@ import { Sparkline } from '@/components/Sparkline';
 import { canManage, useApi } from '@/components/useApi';
 import { ApiError, type Reading } from '@/lib/api';
 import type {
-  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, InvitationOut, Medication, Memory, MedicationEvent, Person, PersonStatus, Report, Routine, SafetySettings, SearchResponse, Transcript,
+  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, InvitationOut, Medication, Memory, MedicationEvent, Person, PersonStatus, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitOutcome,
 } from '@/lib/types';
-import { byDay, checkinCounts, series, sortAlerts, timeAgo } from '@/lib/view';
+import { VISIT_OUTCOME_WORDS } from '@/lib/types';
+import { VISIT_WORDS, byDay, checkinCounts, series, sortAlerts, timeAgo, timeline, visitLine } from '@/lib/view';
 
-const TABS = ['timeline', 'readings', 'routines', 'medication', 'circle', 'home', 'watch', 'settings', 'consent', 'conversation', 'reports', 'search', 'access'] as const;
+const TABS = ['timeline', 'visits', 'readings', 'routines', 'medication', 'circle', 'home', 'watch', 'settings', 'consent', 'conversation', 'reports', 'search', 'access'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function PersonPage() {
@@ -36,6 +37,7 @@ export default function PersonPage() {
   const [transcripts, setTranscripts] = useState<Transcript[] | 'refused' | null>(null);
   const [access, setAccess] = useState<AccessEntry[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
+  const [visits, setVisits] = useState<Visit[]>([]);
   const [query, setQuery] = useState('');
   const [found, setFound] = useState<SearchResponse | null>(null);
   const [pairing, setPairing] = useState<Device | null>(null);
@@ -45,11 +47,11 @@ export default function PersonPage() {
   const load = useCallback(async () => {
     if (!api) return;
     try {
-      const [s, a, c, v, r, m, me, ci, se, co] = await Promise.all([
+      const [s, a, c, v, r, m, me, ci, se, co, vi] = await Promise.all([
         api.status(id), api.alerts(false, id), api.checkins(id), api.vitals(id), api.routines(id), api.medications(id),
-        api.medicationEvents(id), api.circle(id), api.settings(id), api.consents(id),
+        api.medicationEvents(id), api.circle(id), api.settings(id), api.consents(id), api.visits(id),
       ]);
-      setStatus(s); setAlerts(a); setCheckins(c); setVitals(v); setRoutines(r); setMeds(m); setMedEvents(me); setCircle(ci); setSettings(se); setConsents(co);
+      setStatus(s); setAlerts(a); setCheckins(c); setVitals(v); setRoutines(r); setMeds(m); setMedEvents(me); setCircle(ci); setSettings(se); setConsents(co); setVisits(vi);
       setError('');
       if (tab === 'conversation') {
         setMemory(await api.memory(id));
@@ -92,22 +94,53 @@ export default function PersonPage() {
               onAcknowledge={(x) => { void act(() => api!.acknowledge(x.id, 'from the dashboard')); }}
               onResolve={(x, outcome, resolution) => { void act(() => api!.resolve(x.id, resolution, outcome)); }} />
           ))}
-          {byDay(checkins.checkins, 'scheduled_at').map(({ day, items }) => (
+          {byDay(timeline(checkins.checkins, visits, alerts), 'at').map(({ day, items }) => (
             <div className="card" key={day}>
               <strong>{day}</strong>
               <table><tbody>
-                {items.map((c) => (
-                  <tr key={c.id}>
-                    <td className="muted">{c.scheduled_at.slice(11, 16)}</td>
-                    <td>{c.question_kind}{c.question_source === 'model' ? <span className="muted"> · composed</span> : null}</td>
-                    <td><span className={`pill ${c.status === 'answered' ? 'ok' : c.status === 'missed' ? 'urgent' : 'grey'}`}>{c.status}</span></td>
-                    <td>{c.answer_summary}{checkins.answers_included && c.answer_text ? <em className="muted"> “{c.answer_text}”</em> : null}</td>
+                {items.map((e) => (
+                  <tr key={e.id}>
+                    <td className="muted">{e.at.slice(11, 16)}</td>
+                    <td><span className="pill grey" title="Where this line came from">{e.source}</span></td>
+                    <td>{e.title}</td>
+                    <td><span className={`pill ${e.tone}`}>{e.detail.split(':')[0]}</span></td>
+                    <td>{e.detail.includes(':') ? e.detail.slice(e.detail.indexOf(':') + 1).trim() : ''}
+                      {e.kind === 'checkin' && checkins.answers_included ? (() => { const c = checkins.checkins.find((x) => `c-${x.id}` === e.id); return c?.answer_text ? <em className="muted"> “{c.answer_text}”</em> : null; })() : null}
+                    </td>
                   </tr>
                 ))}
               </tbody></table>
             </div>
           ))}
           {!checkins.answers_included ? <p className="muted">Summaries only: the person&apos;s own words need their recorded consent for your role.</p> : null}
+        </>
+      )}
+
+      {tab === 'visits' && (
+        <>
+          {visits.filter((v) => v.status !== 'departed' && v.status !== 'cancelled').map((v) => (
+            <div className="card" key={v.id}>
+              <strong>{VISIT_WORDS[v.status]}</strong> <span className="muted">{v.planned_start.slice(0, 10)}</span>
+              <div>{visitLine(v)}</div>
+              {v.tasks.length ? <ul>{v.tasks.map((t) => <li key={t.id}>{t.done ? '☑' : '☐'} {t.title}</li>)}</ul> : null}
+              <div className="row">
+                {v.status !== 'arrived' ? <button disabled={busy} onClick={() => act(() => api!.arrive(v.id))}>Carer has arrived</button> : null}
+                {v.status === 'arrived' ? <DepartForm busy={busy} tasks={v.tasks.map((t) => t.id)} onDepart={(b) => act(() => api!.depart(v.id, b))} /> : null}
+                {v.status !== 'arrived' ? <button disabled={busy} onClick={() => act(() => api!.cancelVisit(v.id, 'Cancelled from the dashboard'))}>Cancel</button> : null}
+              </div>
+            </div>
+          ))}
+          <PlanVisit circle={circle} onPlan={(b) => act(() => api!.planVisit(id, b))} busy={busy} />
+          <div className="card">
+            <strong>Past visits</strong>
+            <table><thead><tr><th>When</th><th>Carer</th><th>Outcome</th><th>Tasks</th><th>Handover</th></tr></thead><tbody>
+              {visits.filter((v) => v.status === 'departed' || v.status === 'cancelled' || v.status === 'missed').map((v) => (
+                <tr key={v.id}><td className="muted">{v.planned_start.slice(0, 16).replace('T', ' ')}</td><td>{v.carer_name || '-'}</td>
+                  <td>{v.status === 'departed' ? VISIT_OUTCOME_WORDS[v.outcome as Exclude<VisitOutcome, ''>] ?? v.outcome : VISIT_WORDS[v.status]}</td>
+                  <td>{v.tasks.filter((t) => t.done).length}/{v.tasks.length}</td><td>{v.handover}</td></tr>
+              ))}
+            </tbody></table>
+          </div>
         </>
       )}
 
@@ -394,9 +427,55 @@ function SettingsForm({ settings, manage, onSave }: { settings: SafetySettings; 
           {' '}· countdown (s) {num('fall_countdown_s')}
         </td></tr>
         <tr><td>Fall thresholds: impact (g) / still for (s) / movement above (g)</td><td>{num('fall_impact_g')} / {num('fall_still_seconds')} / {num('fall_still_threshold_g')}<span className="muted"> · settings, not medical claims; accuracy on real devices is unmeasured</span></td></tr>
+        <tr><td>A planned visit counts as late with no arrival after (min)</td><td>{num('visit_late_minutes')}<span className="muted"> · a notice to the coordinator and an extra check-in; missed at the window&apos;s end is an alert</span></td></tr>
         <tr><td>Usual wake time / morning check after (min)</td><td><input type="time" value={s.usual_wake_time.slice(0, 5)} disabled={!manage} onChange={(e) => setS({ ...s, usual_wake_time: e.target.value })} /> / {num('wake_grace_minutes')}</td></tr>
       </tbody></table>
       {manage ? <button type="submit">Save settings</button> : <p className="muted">Only an administrator may change these.</p>}
+    </form>
+  );
+}
+
+
+function PlanVisit({ circle, onPlan, busy }: { circle: CircleMember[]; onPlan: (b: { planned_start: string; planned_end: string; carer_member_id: string | null; carer_name: string; purpose: string; tasks: string[] }) => void; busy: boolean }) {
+  const [start, setStart] = useState('');
+  const [end, setEnd] = useState('');
+  const [member, setMember] = useState('');
+  const [purpose, setPurpose] = useState('');
+  const [tasks, setTasks] = useState('');
+  const carers = circle.filter((m) => m.active !== false);
+  return (
+    <form className="card" onSubmit={(e) => {
+      e.preventDefault();
+      if (!start || !end) return;
+      const chosen = carers.find((m) => m.id === member);
+      onPlan({ planned_start: new Date(start).toISOString(), planned_end: new Date(end).toISOString(), carer_member_id: member || null,
+        carer_name: chosen?.display_name ?? '', purpose, tasks: tasks.split('\n').map((t) => t.trim()).filter(Boolean) });
+      setStart(''); setEnd(''); setPurpose(''); setTasks('');
+    }}>
+      <strong>Plan a visit</strong>
+      <div className="row">
+        <label>From <input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} required /></label>
+        <label>To <input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} required /></label>
+        <label>Carer <select value={member} onChange={(e) => setMember(e.target.value)}><option value="">Not chosen yet</option>{carers.map((m) => <option key={m.id} value={m.id}>{m.display_name}</option>)}</select></label>
+      </div>
+      <label>Purpose <input value={purpose} onChange={(e) => setPurpose(e.target.value)} maxLength={200} /></label>
+      <label>Tasks, one per line <textarea value={tasks} onChange={(e) => setTasks(e.target.value)} rows={3} /></label>
+      <button type="submit" disabled={busy}>Plan the visit</button>
+      <p className="muted">With no arrival, the server marks the visit late after the set minutes (a notice) and missed at the window&apos;s end (an alert), and IRA asks the person an extra check-in.</p>
+    </form>
+  );
+}
+
+function DepartForm({ busy, tasks, onDepart }: { busy: boolean; tasks: string[]; onDepart: (b: { outcome: Exclude<VisitOutcome, ''>; notes: string; handover: string; tasks_done: string[] }) => void }) {
+  const [outcome, setOutcome] = useState<Exclude<VisitOutcome, ''>>('all_well');
+  const [handover, setHandover] = useState('');
+  const [notes, setNotes] = useState('');
+  return (
+    <form className="row" onSubmit={(e) => { e.preventDefault(); onDepart({ outcome, notes, handover, tasks_done: tasks }); }}>
+      <label>Outcome <select value={outcome} onChange={(e) => setOutcome(e.target.value as Exclude<VisitOutcome, ''>)}>{(Object.keys(VISIT_OUTCOME_WORDS) as Exclude<VisitOutcome, ''>[]).map((o) => <option key={o} value={o}>{VISIT_OUTCOME_WORDS[o]}</option>)}</select></label>
+      <label>Notes <input value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={4000} /></label>
+      <label>Handover <input value={handover} onChange={(e) => setHandover(e.target.value)} maxLength={4000} /></label>
+      <button type="submit" disabled={busy}>Carer has left: record the visit</button>
     </form>
   );
 }

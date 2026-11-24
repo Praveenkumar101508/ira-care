@@ -41,6 +41,7 @@ import care.ira.watch.R
 import care.ira.watch.api.ApiOutcome
 import care.ira.watch.BuildConfig
 import care.ira.watch.outbox.SosState
+import care.ira.watch.outbox.VisitState
 import care.ira.watch.pairing.PairingStore
 import care.ira.watch.service.CareDependencies
 import care.ira.watch.service.CareForegroundService
@@ -71,7 +72,7 @@ class MainActivity : ComponentActivity() {
                     !status.permissionGranted -> PermissionScreen(deps)
                     else -> HomeScreen(
                         question = status.question, listening = status.listening,
-                        lastAnswer = status.lastAnswer, sos = status.sos, online = status.online,
+                        lastAnswer = status.lastAnswer, sos = status.sos, online = status.online, visit = status.visit,
                         fallCountdown = status.fallCountdown,
                         onOk = { CareForegroundService.send(this, CareForegroundService.ACTION_OK) },
                         onHelp = { CareForegroundService.send(this, CareForegroundService.ACTION_HELP) },
@@ -155,7 +156,7 @@ class MainActivity : ComponentActivity() {
 fun HomeScreen(
     question: String?, listening: Boolean, lastAnswer: String?, sos: SosState, online: Boolean,
     onOk: () -> Unit, onHelp: () -> Unit, fallCountdown: Int? = null,
-    onTalk: () -> Unit = {}, talking: Boolean = false,
+    onTalk: () -> Unit = {}, talking: Boolean = false, visit: VisitState = VisitState.None,
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(10.dp),
@@ -168,6 +169,7 @@ fun HomeScreen(
                 sos.text() != null -> sos.text()!!
                 question != null -> question
                 lastAnswer != null -> "Thank you."
+                visit.text() != null -> visit.text()!!
                 else -> "All well"
             },
             fontSize = 16.sp, textAlign = TextAlign.Center,

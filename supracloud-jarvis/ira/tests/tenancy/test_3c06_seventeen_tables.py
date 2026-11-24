@@ -81,6 +81,7 @@ WORKSPACE_SCOPED = (
     "care_acknowledgements", "care_routines", "care_medications",
     "care_medication_events", "care_transcripts", "care_consents", "care_access_log",
     "care_reports", "care_conversation_memory", "care_device_events", "care_push_tokens", "care_push_tickets",
+    "care_visits", "care_visit_tasks",
 )
 
 
@@ -179,6 +180,8 @@ SPECS: dict[str, Spec] = {
     "care_push_tokens": Spec(columns={"user_id": "user", "token": "text"},
                              parents=(("care_people", "person_id"), ("care_circle_members", "member_id"))),
     "care_push_tickets": Spec(parents=(("care_alerts", "alert_id"),)),
+    "care_visits": Spec(columns={"planned_start": "now", "planned_end": "later"}, parents=(("care_people", "person_id"),)),
+    "care_visit_tasks": Spec(columns={"title": "text"}, parents=(("care_visits", "visit_id"),)),
 }
 
 
@@ -208,6 +211,8 @@ def _value(kind: str, run: str, handle, actor):
         return "{}"
     if kind == "now":
         return "__now__"
+    if kind == "later":
+        return "__later__"
     if kind == "bool":
         return True
     if kind == "date":
@@ -246,6 +251,9 @@ async def _insert(conn, table: str, run: str, actor, *, handle=None, extra=None)
         cols.append(name)
         if value == "__now__":
             vals.append("now()")
+            continue
+        if value == "__later__":
+            vals.append("now() + interval '1 hour'")
             continue
         params.append(value)
         vals.append(f"${len(params)}"

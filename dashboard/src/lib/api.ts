@@ -1,6 +1,6 @@
 import type { AlertOutcome,
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, Person,
-  AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, WorkspaceList,
+  AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitCreate, VisitDepart, WorkspaceList,
 } from './types';
 
 export class ApiError extends Error {
@@ -44,6 +44,11 @@ export class Api {
   vitals(id: string, kind?: string, limit = 500) { return this.req<{ vitals: Reading[] }>('GET', `/api/v1/care/people/${id}/vitals?limit=${limit}${kind ? `&kind=${kind}` : ''}`).then((o) => o.vitals); }
   checkins(id: string) { return this.req<{ checkins: Checkin[]; answers_included: boolean }>('GET', `/api/v1/care/people/${id}/checkins?limit=200`); }
   transcripts(id: string) { return this.req<{ transcripts: Transcript[] }>('GET', `/api/v1/care/people/${id}/transcripts?limit=500`).then((o) => o.transcripts); }
+  visits(id: string) { return this.req<{ visits: Visit[] }>('GET', `/api/v1/care/people/${id}/visits?limit=200`).then((o) => o.visits); }
+  planVisit(id: string, body: VisitCreate) { return this.req<Visit>('POST', `/api/v1/care/people/${id}/visits`, body); }
+  arrive(visitId: string) { return this.req<Visit>('POST', `/api/v1/care/visits/${visitId}/arrive`, {}); }
+  depart(visitId: string, body: VisitDepart) { return this.req<Visit>('POST', `/api/v1/care/visits/${visitId}/depart`, body); }
+  cancelVisit(visitId: string, note = '') { return this.req<Visit>('POST', `/api/v1/care/visits/${visitId}/cancel`, { note }); }
   routines(id: string) { return this.req<{ routines: Routine[] }>('GET', `/api/v1/care/people/${id}/routines`).then((o) => o.routines); }
   addRoutine(id: string, body: { name: string; kind: string; time_of_day: string | null }) { return this.req<Routine>('POST', `/api/v1/care/people/${id}/routines`, body); }
   medications(id: string) { return this.req<{ medications: Medication[] }>('GET', `/api/v1/care/people/${id}/medications`).then((o) => o.medications); }

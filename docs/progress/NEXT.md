@@ -1,15 +1,14 @@
 # IRA CARE: next step
 
 **Round 3 (the completion run) is in progress.** Phases and their state are in
-`STATUS.md` (table "Round 3"). Phases 0 to 4 are merged (pull requests 20 to 24). Phase 5
-is built and tested; next is its pull request, CI and squash-merge, then phases 6 to 13
-(built on their branches) in order, each rebased on the new `main`, then R3-14
-`feat/staging-proof-and-film`.
+`STATUS.md` (table "Round 3"). Phases 0 to 5 are merged (pull requests 20 to 25). Phase 6
+is pull request 26; next are phases 7 to 13 (built on their branches) in order, each
+rebased on the new `main`, then R3-14 `feat/staging-proof-and-film`.
 
 Owner actions found so far in round 3:
 
 1. Delete the merged branches `fix/remove-demo-state`, `fix/trustworthy-sos`,
-   `fix/care-push-isolation`, `fix/responder-follow-up`, `feat/private-model` (this
+   `fix/care-push-isolation`, `fix/responder-follow-up`, `feat/private-model`, `feat/own-models` (this
    machine's network refuses branch deletes).
 2. Allow `api.figshare.com`, `ieee-dataport.org` and `www.kaggleusercontent.com` on the
    environment if the original terms of UMAFall and FallAllD or the notebook output files

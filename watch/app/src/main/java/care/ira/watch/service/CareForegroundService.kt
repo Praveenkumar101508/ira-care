@@ -115,6 +115,7 @@ class CareForegroundService : LifecycleService() {
         var wait = 2_000L
         while (currentCoroutineIsActive()) {
             if (!deps.pairing.isPaired) { delay(POLL_MS); continue }
+            deps.onCarerArrived = { id -> vibrate(); if (id != null) deps.api.acknowledgeVisit(id) }
             when (val out = deps.api.sosStream { deps.applyServerSos(it) }) {
                 is ApiOutcome.Ok -> wait = 2_000L
                 is ApiOutcome.Unauthorised -> deps.onUnauthorised()

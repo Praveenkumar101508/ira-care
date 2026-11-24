@@ -50,6 +50,7 @@ security/dev-baseline.ndjson
 
 # Dependencies
 node_modules/
+node_modules
 __pycache__/
 *.pyc
 *.tsbuildinfo

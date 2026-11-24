@@ -41,8 +41,8 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-2 | care-push-isolation | `fix/care-push-isolation` | Merged (pull request 22) |
 | R3-3 | responder-follow-up | `fix/responder-follow-up` | Merged (pull request 23) |
 | R3-4 | private-model | `feat/private-model` | Merged (pull request 24) |
-| R3-5 | own-models | `feat/own-models` | Built and tested locally; fall model shipped, classifier default off, fine-tune not adopted; pull request to follow |
-| R3-6 | scheduled-care | `feat/scheduled-care` | not started |
+| R3-5 | own-models | `feat/own-models` | Merged (pull request 25) |
+| R3-6 | scheduled-care | `feat/scheduled-care` | Built and tested locally; pull request 26 open |
 | R3-7 | ira-personal | `feat/ira-personal` | not started |
 | R3-8 | watch-platform-layer | `feat/watch-platform-layer` | not started |
 | R3-9 | hardware-blueprint | `feat/hardware-blueprint` | not started |
@@ -53,6 +53,23 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | not started |
 | R3-15 | cost-cuts | `ci/cost-cuts` | not started |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 6 (scheduled-care), measured locally (23 November 2026)
+
+- Migration 109: `care_visits` and `care_visit_tasks` under forced row-level security
+  (146 to 148 tables in the manifest), `visit_late_minutes` (default 15), alert kinds
+  `visit_late` (notice) and `visit_missed` (urgent). The rollback refuses while any visit
+  records an arrival or an outcome (proved in `test_care_visits_db.py`).
+- Server: 4 rule tests and 4 database tests pass against a fresh PostgreSQL 16 as `ira_app`
+  (late at +15 min with a notice push and an extra check-in; missed at the window's end with
+  an urgent alert at tier 1; arrival closes the alert, the watch reads "here", a due
+  check-in is pushed ten minutes; departure records outcome, tasks and handover; a second
+  family gets 404; rollback refusal). The related tenancy, manifest and erasure suites:
+  386 passed.
+- The watch acknowledges a carer's arrival: a vibration, then `POST /devices/me/visits/{id}/acknowledge` (recorded once).
+- Dashboard: type check, 29 tests (timeline sources and visit lines added) and lint pass.
+  Phone: type check and 24 tests (visit model added) pass. Watch: `VisitStateTest` 3 pass
+  beside the outbox tests; the screen itself needs hardware.
 
 ## Round 3, phase 5 (own-models), measured on Kaggle and locally (23 and 24 November 2026)
 

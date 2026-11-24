@@ -94,6 +94,15 @@ export interface Checkin {
   answer_text: string;
 }
 
+export type VisitStatus = 'planned' | 'late' | 'arrived' | 'departed' | 'missed' | 'cancelled';
+export type VisitOutcome = 'all_well' | 'concern_noted' | 'needed_help' | 'not_at_home' | 'declined' | 'other';
+export interface VisitTask { id: string; title: string; done: boolean; done_at: string | null; note: string }
+export interface Visit {
+  id: string; person_id: string; carer_name: string; planned_start: string; planned_end: string; purpose: string;
+  status: VisitStatus; arrived_at: string | null; departed_at: string | null; outcome: VisitOutcome | '';
+  notes: string; handover: string; tasks: VisitTask[];
+}
+
 export interface PersonStatus {
   person: Person;
   devices: Device[];

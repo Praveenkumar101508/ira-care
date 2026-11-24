@@ -68,3 +68,35 @@ test('check-in counts and day buckets', () => {
   expect(days.map((d) => d.day)).toEqual(['2026-11-22', '2026-11-21', '2026-11-20']);
   expect(days[1].items).toHaveLength(2);
 });
+
+import type { Visit } from '@/lib/types';
+import { timeline, visitLine } from '@/lib/view';
+
+const visit: Visit = {
+  id: 'v1', person_id: 'p1', carer_member_id: null, carer_name: 'Sravani', planned_start: '2026-11-23T10:00:00+00:00',
+  planned_end: '2026-11-23T11:00:00+00:00', purpose: 'Morning visit', status: 'planned', arrived_at: null, departed_at: null,
+  outcome: '', notes: '', handover: '', created_at: '2026-11-22T09:00:00+00:00', updated_at: '2026-11-22T09:00:00+00:00',
+  tasks: [{ id: 't1', visit_id: 'v1', title: 'Breakfast', position: 0, done: true, done_at: null, note: '' },
+    { id: 't2', visit_id: 'v1', title: 'Medication', position: 1, done: false, done_at: null, note: '' }],
+};
+const checkin: Checkin = {
+  id: 'c1', scheduled_at: '2026-11-23T09:30:00+00:00', asked_at: '2026-11-23T09:30:00+00:00', status: 'answered', question_kind: 'wellbeing',
+  question_text: 'How are you?', answered_at: '2026-11-23T09:31:00+00:00', answer_summary: 'Said they were well.', answer_text: '', answered_via: 'voice',
+};
+
+test('the timeline names the source of every line and sorts newest first', () => {
+  const missed = { ...visit, id: 'v2', status: 'missed' as const, planned_start: '2026-11-23T14:00:00+00:00', planned_end: '2026-11-23T15:00:00+00:00' };
+  const closed = { ...base, id: 'a1', kind: 'help_requested', severity: 'sos' as const, status: 'resolved' as const, resolved_at: '2026-11-23T12:00:00+00:00', outcome: 'all_well' as const };
+  const open = { ...base, id: 'a2', status: 'open' as const };
+  const rows = timeline([checkin], [visit, missed], [closed, open]);
+  expect(rows.map((r) => r.id)).toEqual(['v-v2', 'a-a1', 'v-v1', 'c-c1']);
+  expect(rows.map((r) => r.source)).toEqual(['server', 'watch', 'carer', 'watch']);
+  expect(rows.find((r) => r.id === 'v-v2')?.tone).toBe('urgent');
+  expect(rows.some((r) => r.id === 'a-a2')).toBe(false);
+});
+
+test('a visit line says who, when, what and how many tasks were done', () => {
+  expect(visitLine(visit)).toBe('Sravani, 10:00 to 11:00: Morning visit; 1 of 2 tasks done.');
+  expect(visitLine({ ...visit, status: 'departed', outcome: 'all_well', handover: 'Ate well.' })).toBe('Sravani, 10:00 to 11:00. Outcome: All well; 1 of 2 tasks done. Handover: Ate well.');
+  expect(visitLine({ ...visit, carer_name: '', tasks: [], purpose: '' })).toBe('A carer, 10:00 to 11:00.');
+});

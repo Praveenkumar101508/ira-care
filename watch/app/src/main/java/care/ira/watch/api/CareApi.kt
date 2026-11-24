@@ -105,6 +105,17 @@ data class SosStateDto(
     @SerialName("responder_name") val responderName: String? = null,
     val kind: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null,
+    /** Carers' visits, from the server (109): none, expected, late, or here. */
+    val visit: VisitStateDto? = null,
+)
+
+@Serializable
+data class VisitStateDto(
+    val state: String = "none",
+    @SerialName("carer_name") val carerName: String? = null,
+    @SerialName("visit_id") val visitId: String? = null,
+    @SerialName("planned_start") val plannedStart: String? = null,
+    val since: String? = null,
 )
 
 @Serializable
@@ -262,6 +273,10 @@ class CareApi(
 
     fun answer(checkinId: String, answer: CheckinAnswer): ApiOutcome<Unit> =
         post("/api/v1/care/devices/me/checkins/$checkinId/answer", json.encodeToString(answer)).map { }
+
+    /** The wrist showed "[Name] is here" (109): the person saw it. */
+    fun acknowledgeVisit(visitId: String): ApiOutcome<Unit> =
+        post("/api/v1/care/devices/me/visits/$visitId/acknowledge", "{}").map { }
 
     fun missed(checkinId: String): ApiOutcome<Unit> =
         post("/api/v1/care/devices/me/checkins/$checkinId/missed", "{}").map { }
