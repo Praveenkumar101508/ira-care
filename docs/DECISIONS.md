@@ -1161,3 +1161,36 @@ now covered by a test that fails without its fix:
    (`IRA_CARE_MODEL_FIRST_TOKEN_S`). The person has already heard the acknowledgement at once;
    measured on staging after these fixes, the model's first sentence follows in 3.5 to 5.5 s.
 
+## D-074 A GPU profile: gemma4:12b then gemma4:e4b, both loaded, measured on Kaggle's free GPU (24 November 2026)
+
+**Asked for.** The owner chose the GPU option and asked for it to be set up with Kaggle.
+
+**What Kaggle is used for, and what not.** Kaggle's free GPU measures the profile; it does not
+run it. A Kaggle session ends after at most twelve hours, has a weekly GPU quota, and accepts no
+incoming connection, so the watch and the apps could reach it only through a third-party tunnel
+with its own account and key (against "no paid services, no secrets"); and every conversation
+would leave the care team's machine (against the privacy promise, D-056). The profile runs on
+the care team's own server with an NVIDIA GPU.
+
+**Choice.** `deploy/compose.gpu.yml`, added to the compose command, gives the model server the
+GPU, keeps the models loaded side by side (`OLLAMA_MAX_LOADED_MODELS=2`) and makes the chain
+`gemma4:12b` then `gemma4:e4b`, chosen by their own settings (`IRA_CARE_GPU_MODEL_PRIMARY`,
+`IRA_CARE_GPU_MODEL_SECONDARY`) so a `.env` written for the CPU does not carry its models over.
+Without the file the stack is the CPU stack, unchanged.
+
+**Measured.** The backend's own code (uploaded to Kaggle as a private dataset by
+`scripts/training/run_kaggle.py gpu_eval`) played the 162-turn evaluation through
+`care.conversation` on a Tesla T4 with Ollama 0.40.18, every candidate loaded with the turn's own
+context; three passes for the 12B chain, `gemma4:12b` and `gemma4:e4b`, two for the rest
+(`docs/evidence/eval/gpu/`). Red-flag recall was 1.00 in every pass. The 12B-then-E4B chain had
+the best quality (0.903 on average: 0.896, 0.904, 0.910) and read check-in answers right 12 of
+15 times in every pass, against 9 for the E4B-then-E2B chain and 8 to 9 for `gemma4:e4b` alone;
+its first sentence came at 0.92 s at the median and 1.14 s at the 95th percentile (averages of
+the passes).
+
+**Why not the faster chain.** The round 4 rule on the CPU took the fastest model within 0.03 of
+the best, because the CPU missed the time targets; the E4B-then-E2B chain (0.895, 0.27 s) is
+within that band. On the GPU every candidate meets every time target with room to spare (the
+first words come from the rules at once in either case), so time no longer separates them and
+the reading of check-in answers does: it is what the care record and the alerts are built on.
+

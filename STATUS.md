@@ -60,9 +60,11 @@ text-to-speech.
 - **No vendor sensor SDK.** Needs partner approval; the sensor source is an interface for it.
 - **No text messages or calls are sent.** Needs provider keys; without them the provider logs.
 - **No monitoring centre.** Needs a contract; tier 3 shows the family "call 999 now".
-- **No GPU.** The open models run on the server's CPU (`gemma4:e4b`, then `gemma4:e2b`, then
-  the set lines; no hosted model API). A whole talk turn's first sentence takes 3.5 to 5.5 s on
-  four cores; a small GPU server would bring it well under a second (`docs/MODEL_CHOICE.md`).
+- **No GPU server yet.** By default the open models run on the server's CPU (`gemma4:e4b`, then
+  `gemma4:e2b`, then the set lines; no hosted model API); a whole talk turn's first sentence
+  takes 3.5 to 5.5 s on four cores. The GPU profile (`deploy/compose.gpu.yml`, D-074) is built
+  and measured on Kaggle's Tesla T4 (quality 0.903, first sentence 0.92 s on the evaluation
+  set); it needs a server with an NVIDIA GPU of 16 GB or more, which only the owner can rent.
 - **One inherited test** fails on a full local clone and skips in CI (DECISIONS D-004).
 
 ## Verification

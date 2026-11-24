@@ -238,6 +238,33 @@ second, and even `gemma4:12b`, the best reader of check-in answers, has its firs
 within about a second. Quality is the same on either (the same weights); only the time
 changes. A T4 is a 2018 data-centre card; the cards below are newer.
 
+### The GPU profile, measured with the product's own code (D-074)
+
+The table above times prompts. To choose the GPU profile, the backend's own code ran the whole
+162-turn evaluation through `care.conversation` on Kaggle's Tesla T4 (Ollama 0.40.18, every
+model loaded with the turn's own context of 1024 tokens; `scripts/training/kaggle_gpu_eval.py`,
+`scripts/training/run_kaggle.py gpu_eval`). Each row is the average of its passes; every report
+is in `docs/evidence/eval/gpu/` (pass 1 from the first kernel run, passes 2 and 3 from the
+second, labelled run1 and run2 inside).
+
+| Configuration | Passes | Quality (each pass) | Red-flag recall | Check-in answers read right, of 15 | First sentence p50 / p95 |
+| --- | --- | --- | --- | --- | --- |
+| **`gemma4:12b` then `gemma4:e4b` (chosen)** | 3 | **0.903** (0.896, 0.904, 0.910) | 1.00 | **12, 12, 12** | 0.92 s / 1.14 s |
+| `gemma4:e4b` then `gemma4:e2b` | 2 | 0.895 (0.893, 0.897) | 1.00 | 9, 9 | 0.27 s / 0.43 s |
+| `gemma4:e4b` alone | 3 | 0.891 (0.891, 0.895, 0.888) | 1.00 | 8, 8, 9 | 0.23 s / 0.39 s |
+| `gemma4:12b` alone | 3 | 0.885 (0.869, 0.890, 0.896) | 1.00 | 8, 9, 12 | 0.88 s / 1.10 s |
+| `gemma4:e2b` alone | 2 | 0.875 (0.871, 0.878) | 1.00 | 8, 8 | 0.16 s / 0.23 s |
+
+The first words are the rules' acknowledgement in every configuration (0.0 s on the server).
+One pass of 15 check-in answers was too few to choose on (the first pass alone had `gemma4:12b`
+below `gemma4:e4b`), so the deciding configurations ran three times. On the CPU the faster model
+within 0.03 of the best was chosen because the CPU missed the time targets; on the GPU every
+configuration meets them, so the chain that reads check-in answers best is the GPU profile:
+`deploy/compose.gpu.yml`, `docs/DEPLOY.md` ("With a GPU"). Against the CPU profile on the
+deployment machine (0.909 on one pass, first sentence 2.8 s on the evaluation set and 3.5 to
+5.5 s on a whole talk turn), the GPU profile reads check-in answers better and answers about
+four times sooner on the evaluation set.
+
 Each figure below was read elsewhere, as it says.
 
 - **Why the CPU is the limit.** On four cores, `gemma4:e4b` processes the prompt at about

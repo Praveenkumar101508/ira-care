@@ -13,7 +13,7 @@ step is reversible. Ready to host is not hosted: this has been built and checked
   Ollama on this machine (`gemma4:e4b`, 6.6 GB on disk, about 7 GB of memory when loaded;
   `gemma4:e2b`, 4.6 GB on disk, loaded only when the chain falls back, one at a time;
   docs/MODEL_CHOICE.md has the measured quality and speed on 4 CPU cores: the first words at
-  once, the first sentence in about 3 s).
+  once, the model's first sentence 3.5 to 5.5 s on a whole talk turn).
   A GPU is not needed; one makes replies faster.
 - A DNS name (for example `care.example.org`) pointing at the machine's address. Caddy
   obtains the HTTPS certificate for that name by itself once port 80 is reachable.
@@ -22,6 +22,34 @@ step is reversible. Ready to host is not hosted: this has been built and checked
 - Data stays on the machine: PostgreSQL, Redis, the ledger journal and the backups are
   Docker volumes on its disk. Choosing a UK region keeps the data in the UK; nothing in the
   stack sends it elsewhere unless you configure an SMS, mail or payment provider.
+
+### With a GPU
+
+With an NVIDIA GPU of 16 GB or more (for example a dedicated server with an RTX 4000 SFF Ada
+20 GB, or a cloud instance with an L4 24 GB; prices with sources in `docs/MODEL_CHOICE.md`),
+IRA uses the larger model that reads check-in answers best, `gemma4:12b`, with `gemma4:e4b`
+loaded beside it, and the model's part of a turn takes about a second instead of several
+(measured on Kaggle's Tesla T4: `docs/MODEL_CHOICE.md`, "The GPU profile"; D-074).
+
+1. Install the NVIDIA driver for the card, then the NVIDIA Container Toolkit
+   (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html),
+   and restart Docker. `docker run --rm --gpus all ubuntu nvidia-smi` must list the card.
+2. Start the stack with the GPU file added to every compose command:
+
+   ```bash
+   docker compose -f deploy/docker-compose.yml -f deploy/compose.gpu.yml --env-file deploy/.env up -d --build
+   ```
+
+   The model server then uses the GPU and keeps both models loaded
+   (`OLLAMA_MAX_LOADED_MODELS=2`); `ollama-pull` fetches `gemma4:12b` (about 8 GB) and
+   `gemma4:e4b`. The models are chosen by `IRA_CARE_GPU_MODEL_PRIMARY` and
+   `IRA_CARE_GPU_MODEL_SECONDARY` in `deploy/.env`, so the CPU settings stay as they are.
+3. Check: `docker compose exec ollama ollama ps` lists both models with `100% GPU`.
+
+Without `deploy/compose.gpu.yml` the stack runs on the CPU exactly as above. Kaggle's free
+GPU was used to measure this profile, not to run it: a Kaggle session ends after hours, has
+a weekly quota and accepts no connections from the watch or the apps, and the conversations
+must stay on the care team's own machine.
 
 ## 2. Get the code
 

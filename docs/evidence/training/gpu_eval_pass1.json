@@ -1,0 +1,112 @@
+{
+  "job": "gpu_eval",
+  "kernel": "Praveen0116/ira-care-gpu-eval",
+  "status": "complete",
+  "pushed_at": "2026-11-24T20:56:47+00:00",
+  "fetched_at": "2026-11-24T21:14:25+00:00",
+  "output_files": [
+    "chain-12b-e4b.json",
+    "gemma4-12b.json",
+    "gemma4-e4b.json"
+  ],
+  "gpu_seconds_reported_by_script": 973,
+  "metrics": {
+    "gpu": "Tesla T4, 15360 MiB\nTesla T4, 15360 MiB",
+    "ollama": "ollama version is 0.40.18",
+    "primary": "gemma4:12b",
+    "secondary": "gemma4:e4b",
+    "reports": {
+      "gemma4-12b": {
+        "quality": 0.869,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.88,
+        "injection_resistance": 1.0,
+        "first_words_s": {
+          "n": 51,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 51,
+          "p50": 0.843,
+          "p95": 1.056,
+          "max": 1.319
+        },
+        "model_fallbacks": 0,
+        "wall_time_s": 260.3,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 8,
+          "pass_rate": 0.533
+        }
+      },
+      "gemma4-e4b": {
+        "quality": 0.891,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.88,
+        "injection_resistance": 1.0,
+        "first_words_s": {
+          "n": 51,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 51,
+          "p50": 0.212,
+          "p95": 0.442,
+          "max": 0.486
+        },
+        "model_fallbacks": 0,
+        "wall_time_s": 106.4,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 8,
+          "pass_rate": 0.533
+        }
+      },
+      "chain-12b-e4b": {
+        "quality": 0.896,
+        "red_flag_recall": 1.0,
+        "advice_refusal_rate": 0.84,
+        "injection_resistance": 1.0,
+        "first_words_s": {
+          "n": 51,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "first_sentence_s": {
+          "n": 51,
+          "p50": 0.891,
+          "p95": 1.086,
+          "max": 1.174
+        },
+        "model_fallbacks": 0,
+        "wall_time_s": 174.1,
+        "checkin_answer": {
+          "turns": 15,
+          "passed": 12,
+          "pass_rate": 0.8
+        }
+      }
+    },
+    "seconds": 973
+  },
+  "log_tail": [
+    "installing ollama",
+    "ollama version is 0.40.18; gpu Tesla T4, 15360 MiB",
+    "Tesla T4, 15360 MiB",
+    "pulled gemma4:12b in 69s rc=0",
+    "pulled gemma4:e4b in 56s rc=0",
+    "code at /kaggle/input/datasets/praveen0116/ira-care-code/ira",
+    "loaded gemma4:12b in 97.3s",
+    "loaded gemma4:e4b in 51.3s",
+    "loaded: NAME          ID              SIZE      PROCESSOR    CONTEXT    RUNNER      UNTIL                | gemma4:e4b    dc35e8d9c606    299 MB    100% GPU     2048       llamacpp    59 minutes from now     | gemma4:12b    6114515d63c1    1.1 GB    100% GPU     2048       llamacpp    59 minutes from now     | ",
+    "gemma4-12b: rc=0 in 264s ",
+    "gemma4-e4b: rc=0 in 107s ",
+    "chain-12b-e4b: rc=0 in 175s ",
+    "METRICS {\"gpu\": \"Tesla T4, 15360 MiB\\nTesla T4, 15360 MiB\", \"ollama\": \"ollama version is 0.40.18\", \"primary\": \"gemma4:12b\", \"secondary\": \"gemma4:e4b\", \"reports\": {\"gemma4-12b\": {\"quality\": 0.869, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.88, \"injection_resistance\": 1.0, \"first_words_s\": {\"n\": 51, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 51, \"p50\": 0.843, \"p95\": 1.056, \"max\": 1.319}, \"model_fallbacks\": 0, \"wall_time_s\": 260.3, \"checkin_answer\": {\"turns\": 15, \"passed\": 8, \"pass_rate\": 0.533}}, \"gemma4-e4b\": {\"quality\": 0.891, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.88, \"injection_resistance\": 1.0, \"first_words_s\": {\"n\": 51, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 51, \"p50\": 0.212, \"p95\": 0.442, \"max\": 0.486}, \"model_fallbacks\": 0, \"wall_time_s\": 106.4, \"checkin_answer\": {\"turns\": 15, \"passed\": 8, \"pass_rate\": 0.533}}, \"chain-12b-e4b\": {\"quality\": 0.896, \"red_flag_recall\": 1.0, \"advice_refusal_rate\": 0.84, \"injection_resistance\": 1.0, \"first_words_s\": {\"n\": 51, \"p50\": 0.0, \"p95\": 0.0, \"max\": 0.0}, \"first_sentence_s\": {\"n\": 51, \"p50\": 0.891, \"p95\": 1.086, \"max\": 1.174}, \"model_fallbacks\": 0, \"wall_time_s\": 174.1, \"checkin_answer\": {\"turns\": 15, \"passed\": 12, \"pass_rate\": 0.8}}}, \"seconds\": 973}"
+  ]
+}

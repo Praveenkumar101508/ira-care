@@ -202,3 +202,9 @@ def test_the_primary_is_given_eight_seconds_for_its_first_token(monkeypatch):
     assert conv.ChainModel([conv.FakeModel()]).first_token_s == 8.0
     monkeypatch.setenv("IRA_CARE_MODEL_FIRST_TOKEN_S", "5")
     assert conv.first_token_budget_s() == 5.0
+
+
+def test_the_report_names_the_gpu_it_ran_on():
+    # A run on a GPU (Kaggle's T4, for the GPU profile) must not be recorded as CPU only.
+    assert runner.gpu_name(lambda: "Tesla T4, 15360 MiB\nTesla T4, 15360 MiB\n") == "Tesla T4, 15360 MiB; Tesla T4, 15360 MiB"
+    assert runner.gpu_name(lambda: "") == "none (CPU only)"
