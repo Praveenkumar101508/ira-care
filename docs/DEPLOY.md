@@ -10,9 +10,10 @@ step is reversible. Ready to host is not hosted: this has been built and checked
 - Ubuntu 24.04 LTS, **4 vCPU, 16 GB memory, 80 GB disk**, in a UK region of the provider you
   choose. Open ports 22 (SSH, your address only), 80 and 443. The memory and the disk are
   for the conversation model: IRA's words come from two free open-weight models served by
-  Ollama on this machine (`gemma4:12b`, 8.0 GB on disk, about 9 GB of memory when loaded;
-  `gemma4:e4b`, 6.6 GB on disk, about 7 GB loaded, one at a time; docs/MODEL_CHOICE.md has the
-  measured quality and speed on 4 CPU cores: about 10 s to the first sentence). Without the model, 2 vCPU and 4 GB are enough (`IRA_CARE_MODEL=off`).
+  Ollama on this machine (`gemma4:e4b`, 6.6 GB on disk, about 7 GB of memory when loaded;
+  `gemma4:e2b`, 4.6 GB on disk, loaded only when the chain falls back, one at a time;
+  docs/MODEL_CHOICE.md has the measured quality and speed on 4 CPU cores: the first words at
+  once, the first sentence in about 3 s).
   A GPU is not needed; one makes replies faster.
 - A DNS name (for example `care.example.org`) pointing at the machine's address. Caddy
   obtains the HTTPS certificate for that name by itself once port 80 is reachable.
@@ -46,7 +47,7 @@ cp .env.example .env
 | `IRA_CONNECTOR_ENCRYPTION_KEY` | 32 random bytes, base64. Seals the access notes (and connector credentials). Losing it loses the notes. | `python3 -c "import base64,os;print(base64.b64encode(os.urandom(32)).decode())"` |
 | `IRA_CARE_MODEL` | `ollama` (the default: the two free open-weight models served on this machine, then the set questions), `off` (templates only) or `fake` (demos and CI). There is no hosted model API in this product. | leave unset |
 | `IRA_CARE_CLASSIFIER` | `on` runs the small trained answer classifier on the CPU beside the keyword rules and the model; it may only add a signal, never remove one. Default `off`: on the 150-turn eval it equalled the rules (docs/evidence/training/classifier_eval.json). | `off` |
-| `IRA_CARE_MODEL_PRIMARY`, `IRA_CARE_MODEL_SECONDARY` | The chain: the chosen model, then the second. `docs/MODEL_CHOICE.md` says why these two. The `ollama-pull` service pulls them on first start. | `gemma4:12b`, `gemma4:e4b` |
+| `IRA_CARE_MODEL_PRIMARY`, `IRA_CARE_MODEL_SECONDARY` | The chain: the chosen model, then the second. `docs/MODEL_CHOICE.md` says why these two. The `ollama-pull` service pulls them on first start. | `gemma4:e4b`, `gemma4:e2b` |
 | `IRA_CARE_MODEL_KEEP_ALIVE`, `IRA_CARE_MODEL_NUM_CTX`, `IRA_CARE_MODEL_THREADS` | How long Ollama keeps the model loaded after a turn (the worker's `care_model_warm` job touches it every ten minutes, so it never unloads while the worker runs), the context window a turn is given, and the thread count (unset: Ollama's choice). Round 4, D-069. | `30m`, `1024`, unset |
 | `IRA_CARE_INSTANT_ACK` | The short line the rules speak at once ("I see, Ada.") while the model composes the reply (D-070). `off` to silence it. | `on` |
 | `IRA_CARE_OPS_PHONE` | Who is told when the care jobs stop. Log-only until an SMS provider is configured. | your on-call number |

@@ -245,7 +245,7 @@ class ChainModel:
 
 #: The free open-weight models the chain uses by default (docs/MODEL_CHOICE.md, round 4).
 DEFAULT_PRIMARY = "gemma4:e4b"
-DEFAULT_SECONDARY = "qwen3.5:2b"
+DEFAULT_SECONDARY = "gemma4:e2b"
 FIRST_TOKEN_S = 3.0
 #: How long Ollama keeps a model loaded after a turn, and the context window a turn is given.
 DEFAULT_KEEP_ALIVE = "30m"

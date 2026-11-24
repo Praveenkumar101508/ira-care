@@ -22,8 +22,8 @@ x-care-env: &care-env
   # machine (docs/MODEL_CHOICE.md). No hosted model API exists in this product.
   IRA_CARE_MODEL: ${IRA_CARE_MODEL:-ollama}
   IRA_CARE_OLLAMA_URL: http://ollama:11434
-  IRA_CARE_MODEL_PRIMARY: ${IRA_CARE_MODEL_PRIMARY:-gemma4:12b}
-  IRA_CARE_MODEL_SECONDARY: ${IRA_CARE_MODEL_SECONDARY:-gemma4:e4b}
+  IRA_CARE_MODEL_PRIMARY: ${IRA_CARE_MODEL_PRIMARY:-gemma4:e4b}
+  IRA_CARE_MODEL_SECONDARY: ${IRA_CARE_MODEL_SECONDARY:-gemma4:e2b}
   # The small red-flag and answer classifier (CPU): a third reading beside the rules and the model;
   # the stricter one wins. The encoder is in the image; the heads are in the repository.
   IRA_CARE_CLASSIFIER: ${IRA_CARE_CLASSIFIER:-off}
@@ -95,7 +95,7 @@ services:
     environment:
       OLLAMA_HOST: http://ollama:11434
     entrypoint: ["/bin/sh", "-c"]
-    command: ["ollama pull ${IRA_CARE_MODEL_PRIMARY:-gemma4:e4b} && ollama pull ${IRA_CARE_MODEL_SECONDARY:-qwen3.5:2b}"]
+    command: ["ollama pull ${IRA_CARE_MODEL_PRIMARY:-gemma4:e4b} && ollama pull ${IRA_CARE_MODEL_SECONDARY:-gemma4:e2b}"]
     depends_on:
       ollama: { condition: service_healthy }
 
