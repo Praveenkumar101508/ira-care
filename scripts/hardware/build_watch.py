@@ -80,8 +80,32 @@ PARTS = {
     "Dock": ("the charging dock: a weighted puck with a magnetic cradle, the watch drops into place", "charging without aligning anything"),
 }
 
-LAYERS = ["Cover glass", "Display", "Display frame", "Bezel ring", "Case", "Help button", "Side button", "Logic board",
-          "Battery", "Sensor board", "Back cover", "Strap", "Clasp"]
+#: The stack, read top to bottom. The exploded view and the viewer lift the top layer
+#: most, so the parts keep this order in the air (round 4: the earlier order was inverted,
+#: which put the labels on the wrong parts). The bezel ring and both buttons travel with
+#: the case; the strap and clasp stay where they are.
+LAYERS = ["Cover glass", "Display", "Display frame", "Case", "Logic board", "Battery", "Sensor board", "Back cover",
+          "Strap", "Clasp"]
+EXPLODED_LAYERS = [n for n in LAYERS if n not in ("Strap", "Clasp")]
+
+#: One product look, shared with the browser watch in the dashboard (dashboard/src/app/globals.css,
+#: the `.watch-*` rules) and the phone's theme: a graphite case, a coral Help button, the app's
+#: own colours on the screen. sRGB hex; Blender wants linear (see `srgb`).
+LOOK = {
+    "graphite": "#2B2E33", "graphite_dark": "#1C1F22", "coral": "#E2574C", "strap": "#2F3A44",
+    "screen_bg": "#000000", "ok": "#2E7D32", "sos": "#B3261E", "talk": "#2F5D8A", "dock": "#FAF8F4",
+    "ink": "#1F2A24", "muted": "#9FB0A8", "paper": "#FAF8F4", "line": "#E1DED8",
+}
+
+
+def srgb(hex_colour: str, alpha: float = 1.0):
+    """#RRGGBB (sRGB) to Blender's linear RGBA."""
+    h = hex_colour.lstrip("#")
+    out = []
+    for i in (0, 2, 4):
+        c = int(h[i:i + 2], 16) / 255.0
+        out.append(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4)
+    return (*out, alpha)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -127,23 +151,23 @@ MATS = {}
 
 
 def materials(screen_png):
-    MATS["steel"] = material("Steel 316L", (0.78, 0.78, 0.76, 1), metallic=1.0, roughness=0.28)
-    MATS["steel_dark"] = material("Steel brushed", (0.55, 0.56, 0.57, 1), metallic=1.0, roughness=0.42)
+    MATS["steel"] = material("Graphite case", srgb(LOOK["graphite"]), metallic=0.9, roughness=0.34)
+    MATS["steel_dark"] = material("Graphite brushed", srgb(LOOK["graphite_dark"]), metallic=0.85, roughness=0.45)
     MATS["glass"] = material("Sapphire", (1, 1, 1, 1), metallic=0.0, roughness=0.02, transmission=1.0, ior=1.76)
-    MATS["screen"] = material("Display", (0.02, 0.02, 0.02, 1), roughness=0.3, emission=screen_png, emission_strength=1.6)
+    MATS["screen"] = material("Display", (0.02, 0.02, 0.02, 1), roughness=0.3, emission=screen_png, emission_strength=2.2)
     MATS["black"] = material("Black polymer", (0.02, 0.02, 0.022, 1), roughness=0.55)
-    MATS["red"] = material("Help red", (0.70, 0.08, 0.07, 1), roughness=0.45)
+    MATS["red"] = material("Help coral", srgb(LOOK["coral"]), roughness=0.4)
     MATS["pcb"] = material("Board", (0.05, 0.22, 0.10, 1), roughness=0.6)
     MATS["chip"] = material("Chip", (0.04, 0.04, 0.045, 1), roughness=0.35, metallic=0.1)
     MATS["silver"] = material("Shield can", (0.72, 0.72, 0.74, 1), metallic=1.0, roughness=0.5)
     MATS["battery"] = material("Battery pouch", (0.62, 0.63, 0.66, 1), metallic=0.9, roughness=0.6)
     MATS["copper"] = material("Copper coil", (0.80, 0.45, 0.25, 1), metallic=1.0, roughness=0.4)
-    MATS["silicone"] = material("Medical silicone", (0.14, 0.27, 0.33, 1), roughness=0.8)
-    MATS["dock"] = material("Dock polymer", (0.90, 0.88, 0.84, 1), roughness=0.6)
+    MATS["silicone"] = material("Medical silicone", srgb(LOOK["strap"]), roughness=0.8)
+    MATS["dock"] = material("Dock polymer", srgb(LOOK["dock"]), roughness=0.6)
     MATS["skin"] = material("Skin", (0.76, 0.56, 0.45, 1), roughness=0.75, subsurface=0.08)
     MATS["window"] = material("Sensor window", (0.05, 0.05, 0.06, 1), roughness=0.05, transmission=0.6, ior=1.5)
-    MATS["label"] = material("Label", (0.06, 0.07, 0.08, 1), roughness=0.9)
-    MATS["floor"] = material("Floor", (0.62, 0.63, 0.65, 1), roughness=0.95)
+    MATS["label"] = material("Label", srgb(LOOK["ink"]), roughness=0.9)
+    MATS["floor"] = material("Floor", srgb(LOOK["line"]), roughness=0.95)
 
 
 def name_part(obj, name, layer=None, group=None):
@@ -270,7 +294,7 @@ def build_watch():
     cb.width = P["case_bevel"] * MM
     cb.segments = 8
     parts.append(case)
-    parts.append(ring("Bezel ring", r - 0.3, P["glass_diameter"] / 2 + 0.2, 1.2, H - 0.6, MATS["steel_dark"]))
+    parts.append(ring("Bezel ring", r - 0.3, P["glass_diameter"] / 2 + 0.2, 1.2, H - 0.6, MATS["steel_dark"], layer="Case", group="Case"))
     # lugs
     for sgn in (-1, 1):
         parts.append(box("Case", (P["lug_width"] + 4, 6.0, 5.0), (0, sgn * (r + 1.5), 4.5), MATS["steel"], bevel=1.0, layer="Case", group="Case"))
@@ -278,7 +302,7 @@ def build_watch():
     for nm, size, ang, mat in (("Help button", P["help_button"], math.radians(25), MATS["red"]), ("Side button", P["side_button"], math.radians(-25), MATS["steel_dark"])):
         x = (r + size[1] / 2 - 0.8) * math.cos(ang)
         y = (r + size[1] / 2 - 0.8) * math.sin(ang)
-        parts.append(box(nm, (size[1], size[0], size[2]), (x, y, H * 0.55), mat, bevel=0.8, rot=(0, 0, ang)))
+        parts.append(box(nm, (size[1], size[0], size[2]), (x, y, H * 0.55), mat, bevel=0.8, rot=(0, 0, ang), layer="Case", group="Case"))
     # strap: a band round the wrist (a torus stretched to the strap's width), the part
     # under the case removed, split at the bottom for the magnetic clasp
     wrist_r = P["wrist_diameter"] / 2 + P["strap_thickness"] / 2 + 0.6
@@ -326,24 +350,63 @@ def build_wrist():
     return w
 
 
+# ── The screen image ─────────────────────────────────────────────────────────
+
+def make_screen_png(path, *, size=1024, time_text="10:32", words="All well", note="Sravani is coming at 11:00."):
+    """The watch's home screen as the browser watch draws it (dashboard/src/app/watch):
+    the time, a line of words, a note, and the three keys in the app's colours."""
+    from PIL import Image, ImageDraw, ImageFont
+    im = Image.new("RGB", (size, size), LOOK["screen_bg"])
+    d = ImageDraw.Draw(im)
+    bold = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    book = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+
+    def font(f, px):
+        try:
+            return ImageFont.truetype(f, px)
+        except OSError:
+            return ImageFont.load_default()
+
+    def centred(text, y, f, fill):
+        tw = d.textlength(text, font=f)
+        d.text(((size - tw) / 2, y), text, font=f, fill=fill)
+    centred(time_text, size * 0.14, font(book, int(size * 0.062)), LOOK["muted"])
+    centred(words, size * 0.22, font(bold, int(size * 0.10)), "#FFFFFF")
+    centred(note, size * 0.335, font(book, int(size * 0.052)), LOOK["muted"])
+    keys = (("I'm OK", LOOK["ok"]), ("Help", LOOK["sos"]), ("Talk to IRA", LOOK["talk"]))
+    kw, kh, gap = size * 0.58, size * 0.11, size * 0.03
+    y = size * 0.46
+    for text, colour in keys:
+        x0 = (size - kw) / 2
+        d.rounded_rectangle([x0, y, x0 + kw, y + kh], radius=kh / 2, fill=colour)
+        f = font(bold, int(size * 0.058))
+        tw = d.textlength(text, font=f)
+        d.text(((size - tw) / 2, y + kh * 0.22), text, font=f, fill="#FFFFFF")
+        y += kh + gap
+    im.save(path)
+    return path
+
+
 # ── Scene, cameras, lights ───────────────────────────────────────────────────
 
 def lights():
-    for nm, loc, energy, size in (("Key", (0.25, -0.25, 0.35), 45, 0.45), ("Fill", (-0.35, -0.15, 0.25), 18, 0.8), ("Rim", (0.1, 0.35, 0.3), 30, 0.4)):
+    """A soft studio: a large key from the front left, a weaker fill, a rim from behind,
+    and a dim grey world. The earlier set-up (45 W key, bright world) blew the case out
+    to white (round 4)."""
+    for nm, loc, energy, size in (("Key", (-0.20, -0.30, 0.38), 14, 0.9), ("Fill", (0.40, -0.20, 0.20), 5, 1.2), ("Rim", (0.10, 0.40, 0.30), 10, 0.6)):
         ld = bpy.data.lights.new(nm, "AREA")
         ld.energy = energy
         ld.size = size
         lo = bpy.data.objects.new(nm, ld)
         bpy.context.scene.collection.objects.link(lo)
         lo.location = loc
-        lo.rotation_euler = Vector((0, 0, 0)).rotation_difference(Vector((0, 0, 1))).to_euler()
         look_at(lo, Vector((0, 0, 0.006)))
     world = bpy.data.worlds.new("World")
     bpy.context.scene.world = world
     world.use_nodes = True
     bg = world.node_tree.nodes["Background"]
-    bg.inputs["Color"].default_value = (0.75, 0.78, 0.82, 1)
-    bg.inputs["Strength"].default_value = 0.35
+    bg.inputs["Color"].default_value = (0.55, 0.57, 0.60, 1)
+    bg.inputs["Strength"].default_value = 0.6
 
 
 def floor(z=-0.0005, size=2.0):
@@ -381,6 +444,7 @@ def render_setup(samples, res):
     s.render.resolution_percentage = 100
     s.render.film_transparent = False
     s.view_settings.view_transform = "AgX" if "AgX" in [i.identifier for i in s.view_settings.bl_rna.properties["view_transform"].enum_items] else "Filmic"
+    s.view_settings.exposure = -0.3
     s.render.image_settings.file_format = "PNG"
 
 
@@ -395,40 +459,61 @@ def render(cam, path):
 # ── Views ────────────────────────────────────────────────────────────────────
 
 def explode(parts, amount_mm):
-    """Lift each layer by its order times the amount, keeping groups with their layer."""
-    order = {n: i for i, n in enumerate(LAYERS)}
+    """Lift each layer by its distance from the bottom of the stack times the
+    amount, so the cover glass rises most and the back cover least and the
+    parts keep their order in the air. Groups travel with their layer."""
+    order = {n: len(EXPLODED_LAYERS) - 1 - i for i, n in enumerate(EXPLODED_LAYERS)}
     for o in parts:
         layer = o.get("layer") or o.name
-        if layer in ("Strap", "Clasp"):
+        if layer not in order:
             continue
-        k = order.get(layer, 0)
+        k = order[layer]
         o.location.z += k * amount_mm * MM
         o["explode_z"] = k * amount_mm
 
 
-def label(text, at, size_mm=2.6):
-    bpy.ops.object.text_add(location=tuple(v * MM for v in at))
-    t = bpy.context.active_object
-    t.data.body = text
-    t.data.size = size_mm * MM
-    t.data.extrude = 0.1 * MM
-    t.data.align_x = "LEFT"
-    t.rotation_euler = (math.radians(90), 0, 0)
-    t.data.materials.append(MATS["label"])
-    t.name = "Label " + text
-    return t
+def anchor_2d(cam, point_world):
+    """Where a world point lands in the rendered image, in pixels (origin top left)."""
+    from bpy_extras.object_utils import world_to_camera_view
+    s = bpy.context.scene
+    v = world_to_camera_view(s, cam, Vector(point_world))
+    return (v.x * s.render.resolution_x, (1.0 - v.y) * s.render.resolution_y)
 
 
-def leader(a, b):
-    a, b = Vector([v * MM for v in a]), Vector([v * MM for v in b])
-    mid = (a + b) / 2
-    d = b - a
-    bpy.ops.mesh.primitive_cylinder_add(vertices=8, radius=0.22 * MM, depth=d.length, location=mid)
-    c = bpy.context.active_object
-    c.rotation_euler = d.to_track_quat("Z", "Y").to_euler()
-    c.data.materials.append(MATS["label"])
-    c.name = "Leader"
-    return c
+def draw_labels(png_path, labels, *, font_px=38):
+    """Draw the exploded view's labels over the render: dark ink on a pale panel, a
+    leader line from the panel to a dot on the part itself. Done in 2D after the
+    render so the text is always sharp and legible whatever the lighting (round 4).
+    `labels` is a list of (text, (x_part, y_part), side) with pixel anchors."""
+    from PIL import Image, ImageDraw, ImageFont
+    im = Image.open(png_path).convert("RGBA")
+    draw = ImageDraw.Draw(im)
+    w, h = im.size
+    font_file = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    try:
+        font = ImageFont.truetype(font_file, font_px)
+    except OSError:
+        font = ImageFont.load_default()
+    ink, paper, line = LOOK["ink"], LOOK["paper"], LOOK["line"]
+    margin = int(w * 0.035)
+    for text, (px, py), side in labels:
+        tw = draw.textlength(text, font=font)
+        th = font_px * 1.25
+        pad = int(font_px * 0.45)
+        if side > 0:
+            x0 = w - margin - tw - 2 * pad
+        else:
+            x0 = margin
+        y0 = py - th / 2 - pad / 2
+        x1, y1 = x0 + tw + 2 * pad, y0 + th + pad
+        # leader: from the panel's inner edge to a dot on the part
+        start = (x0 if side > 0 else x1, (y0 + y1) / 2)
+        draw.line([start, (px, py)], fill=ink, width=max(3, font_px // 12))
+        r = max(6, font_px // 5)
+        draw.ellipse([px - r, py - r, px + r, py + r], fill=LOOK["coral"], outline=ink, width=2)
+        draw.rounded_rectangle([x0, y0, x1, y1], radius=pad, fill=paper, outline=line, width=2)
+        draw.text((x0 + pad, y0 + pad / 2), text, font=font, fill=ink)
+    im.convert("RGB").save(png_path)
 
 
 def section(parts):
@@ -489,7 +574,7 @@ def main():
     out = os.path.abspath(args.out)
     renders = os.path.join(out, "renders")
     os.makedirs(renders, exist_ok=True)
-    screen = args.screen or os.path.join(renders, "screen_home.png")
+    screen = args.screen or make_screen_png(os.path.join(renders, "screen_home.png"))
     wanted = set(args.only.split(",")) if args.only else {"hero", "front", "side", "back", "exploded", "section", "wrist_dock", "turntable"}
     samples, res, vres, fps = (16, (640, 480), (320, 320), 6) if args.quick else (96, (1600, 1200), (540, 540), 15)
 
@@ -527,25 +612,30 @@ def main():
         for o in band:
             o.hide_render = False
         fl.hide_render = False
-    # exploded view with labelled parts
+    # exploded view, labelled after the render (draw_labels)
     if "exploded" in wanted:
         originals = {o.name: o.location.copy() for o in parts}
-        explode(parts, 8.0)
+        explode(parts, 9.0)
+        bpy.context.view_layer.update()
         labels = []
-        for i, nm in enumerate([n for n in LAYERS if n not in ("Strap", "Clasp")]):
+        for i, nm in enumerate(EXPLODED_LAYERS):
             objs = [o for o in parts if (o.get("layer") or o.name) == nm and o.name.startswith(nm)]
             if not objs:
                 continue
-            z = objs[0].location.z / MM
+            o = objs[0]
+            # the part's own extent (a board, a battery, a ring) at its centre height
+            radius = max(o.dimensions.x, o.dimensions.y) / 2 * 0.72
             side = 1 if i % 2 == 0 else -1
-            x_text = side * 31.0
-            labels.append(label(nm, (x_text if side > 0 else x_text - 4.0 * 0.55 * len(nm), -2.0, z - 1.8), size_mm=4.0))
-            labels.append(leader((side * (P["case_diameter"] / 2 - 4), 0, z), (x_text - (1.0 if side > 0 else 2.0), 0, z)))
-        render(cams["exploded"], os.path.join(renders, "exploded.png"))
-        for t in labels:
-            bpy.data.objects.remove(t)
+            zc = o.location.z + (o.dimensions.z / 2 if nm == "Case" else 0.0)
+            point = (side * radius * 0.82, -radius * 0.45, zc)
+            text = "Case with buttons" if nm == "Case" else nm
+            labels.append((text, anchor_2d(cams["exploded"], point), side))
+        path = os.path.join(renders, "exploded.png")
+        render(cams["exploded"], path)
+        draw_labels(path, labels, font_px=max(18, res[0] // 42))
         for o in parts:
             o.location = originals[o.name]
+        bpy.context.view_layer.update()
     if "section" in wanted:
         cutter = section(parts)
         render(cams["section"], os.path.join(renders, "section.png"))
