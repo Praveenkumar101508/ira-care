@@ -24,6 +24,9 @@ x-care-env: &care-env
   IRA_CARE_OLLAMA_URL: http://ollama:11434
   IRA_CARE_MODEL_PRIMARY: ${IRA_CARE_MODEL_PRIMARY:-gemma4:12b}
   IRA_CARE_MODEL_SECONDARY: ${IRA_CARE_MODEL_SECONDARY:-gemma4:e4b}
+  # The small red-flag and answer classifier (CPU): a third reading beside the rules and the model;
+  # the stricter one wins. The encoder is in the image; the heads are in the repository.
+  IRA_CARE_CLASSIFIER: ${IRA_CARE_CLASSIFIER:-off}
   IRA_CARE_OPS_PHONE: ${IRA_CARE_OPS_PHONE:-}
   IRA_CLOUD_REGISTRATION_ENABLED: ${IRA_CLOUD_REGISTRATION_ENABLED:-false}
   IRA_MAIL_TRANSPORT: ${IRA_MAIL_TRANSPORT:-null}

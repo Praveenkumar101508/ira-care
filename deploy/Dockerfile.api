@@ -9,8 +9,12 @@ WORKDIR /app
 # The care server needs the backend's runtime libraries, not the full server's
 # model stack (torch, the embedding model): requirements-test.txt is that set.
 COPY supracloud-jarvis/ira/requirements-test.txt ./requirements.txt
-RUN pip install -r requirements.txt psutil==6.1.0
+RUN pip install -r requirements.txt psutil==6.1.0 onnxruntime==1.20.1 tokenizers==0.21.0
 COPY supracloud-jarvis/ira /app
+# The small red-flag classifier's public text encoder (Apache-2.0), fetched at build time so
+# the running server needs no network for it (docs/MODEL_CHOICE.md).
+COPY scripts/training/fetch_encoder.py /tmp/fetch_encoder.py
+RUN python /tmp/fetch_encoder.py --dest /app/care/models/encoder && rm /tmp/fetch_encoder.py
 COPY supracloud-jarvis/postgres /app/postgres-migrations
 COPY deploy/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh && chown -R ira:ira /app

@@ -1,0 +1,20 @@
+{
+ "threshold": 0.9,
+ "mean": [
+  0.08424167335033417,
+  -0.6421049237251282,
+  -0.06680910289287567,
+  1.033887505531311
+ ],
+ "std": [
+  0.4803329408168793,
+  0.5780677795410156,
+  0.4553775489330292,
+  0.35225069522857666
+ ],
+ "windowSamples": 200,
+ "rateHz": 50,
+ "trained_on": "SisFall (Zenodo 22212281, CC BY 4.0) and UCI HAR (CC BY 4.0), subject split; see docs/evidence/training/fall.json",
+ "held_out_sensitivity": 0.9904,
+ "held_out_specificity": 0.9998
+}

@@ -1,0 +1,184 @@
+{
+  "job": "fall",
+  "kernel": "Praveen0116/ira-care-fall-model-training",
+  "status": "complete",
+  "pushed_at": "2026-11-23T21:17:11+00:00",
+  "fetched_at": "2026-11-23T22:04:58+00:00",
+  "output_files": [
+    "SisFall.zip",
+    "har.zip",
+    "ira_fall_model.tflite"
+  ],
+  "gpu_seconds_reported_by_script": 186.4,
+  "metrics": {
+    "data": {
+      "sisfall": "Zenodo 22212281, CC BY 4.0, 200 Hz resampled to 50 Hz, ADXL345 only",
+      "uci_har": "UCI 240, CC BY 4.0, 50 Hz, negatives only",
+      "train_windows": 6924,
+      "train_falls": 1275,
+      "test_windows": 6243,
+      "test_falls": 523,
+      "train_subjects": [
+        "SA01",
+        "SA02",
+        "SA03",
+        "SA04",
+        "SA05",
+        "SA06",
+        "SA07",
+        "SA08",
+        "SA09",
+        "SA10",
+        "SA11",
+        "SA12",
+        "SA13",
+        "SA14",
+        "SA15",
+        "SA16",
+        "SA17"
+      ],
+      "test_subjects": [
+        "SA18",
+        "SA19",
+        "SA20",
+        "SA21",
+        "SA22",
+        "SA23",
+        "SE01",
+        "SE02",
+        "SE03",
+        "SE04",
+        "SE05",
+        "SE06",
+        "SE07",
+        "SE08",
+        "SE09",
+        "SE10",
+        "SE11",
+        "SE12",
+        "SE13",
+        "SE14",
+        "SE15"
+      ],
+      "window_s": 4,
+      "rate_hz": 50
+    },
+    "model": {
+      "params": 6705,
+      "epochs": 30,
+      "tflite_bytes": 17864,
+      "threshold": 0.9,
+      "normalisation_mean": [
+        0.08424167335033417,
+        -0.6421049237251282,
+        -0.06680910289287567,
+        1.033887505531311
+      ],
+      "normalisation_std": [
+        0.4803329408168793,
+        0.5780677795410156,
+        0.4553775489330292,
+        0.35225069522857666
+      ],
+      "tflite_agrees_with_keras_on_200_windows": 200
+    },
+    "model_results": {
+      "chosen": {
+        "tp": 518,
+        "fn": 5,
+        "fp": 1,
+        "tn": 5719,
+        "sensitivity": 0.9904,
+        "specificity": 0.9998,
+        "false_alarms_per_day": 3.78
+      },
+      "by_threshold": {
+        "0.5": {
+          "tp": 518,
+          "fn": 5,
+          "fp": 2,
+          "tn": 5718,
+          "sensitivity": 0.9904,
+          "specificity": 0.9997,
+          "false_alarms_per_day": 7.55
+        },
+        "0.7": {
+          "tp": 518,
+          "fn": 5,
+          "fp": 2,
+          "tn": 5718,
+          "sensitivity": 0.9904,
+          "specificity": 0.9997,
+          "false_alarms_per_day": 7.55
+        },
+        "0.9": {
+          "tp": 518,
+          "fn": 5,
+          "fp": 1,
+          "tn": 5719,
+          "sensitivity": 0.9904,
+          "specificity": 0.9998,
+          "false_alarms_per_day": 3.78
+        }
+      }
+    },
+    "rule_detector_on_same_windows": {
+      "tp": 474,
+      "fn": 49,
+      "fp": 91,
+      "tn": 5629,
+      "sensitivity": 0.9063,
+      "specificity": 0.9841,
+      "false_alarms_per_day": 343.64
+    },
+    "impact_only_rule": {
+      "tp": 490,
+      "fn": 33,
+      "fp": 540,
+      "tn": 5180,
+      "sensitivity": 0.9369,
+      "specificity": 0.9056,
+      "false_alarms_per_day": 2039.16
+    },
+    "synthetic_cases": {
+      "table_drops_flagged_by_model": "5/10",
+      "table_drops_flagged_by_rule": "10/10",
+      "not_worn_flagged_by_model": "0/10",
+      "note": "the watch gates both detectors with its off-body sensor: nothing fires when the watch is known to be off the wrist"
+    },
+    "gpu": "[PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU'), PhysicalDevice(name='/physical_device:GPU:1', device_type='GPU')]",
+    "seconds": 186.4
+  },
+  "log_tail": [
+    "downloading https://zenodo.org/records/22212281/files/SisFall.zip?download=1",
+    "SisFall files: 4505",
+    "SisFall windows: 11695 (falls 1798, activities 9897), subjects 38",
+    "downloading https://archive.ics.uci.edu/static/public/240/human+activity+recognition+using+smartphones.zip",
+    "UCI HAR windows (negatives from 30 other people): 1472",
+    "train windows 6924 (falls 1275), test windows 6243 (falls 523); test subjects [np.str_('SA18'), np.str_('SA19'), np.str_('SA20'), np.str_('SA21'), np.str_('SA22'), np.str_('SA23'), np.str_('SE01'), np.str_('SE02'), np.str_('SE03'), np.str_('SE04'), np.str_('SE05'), np.str_('SE06'), np.str_('SE07'), np.str_('SE08'), np.str_('SE09'), np.str_('SE10'), np.str_('SE11'), np.str_('SE12'), np.str_('SE13'), np.str_('SE14'), np.str_('SE15')]",
+    "GPU: [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU'), PhysicalDevice(name='/physical_device:GPU:1', device_type='GPU')]",
+    "trained 30 epochs, params 6705",
+    "Saved artifact at '/tmp/tmp88weo9k4'. The following endpoints are available:",
+    "",
+    "* Endpoint 'serve'",
+    "  args_0 (POSITIONAL_ONLY): TensorSpec(shape=(None, 200, 4), dtype=tf.float32, name='keras_tensor')",
+    "Output Type:",
+    "  TensorSpec(shape=(None, 1), dtype=tf.float32, name=None)",
+    "Captures:",
+    "  133813238877072: TensorSpec(shape=(), dtype=tf.resource, name=None)",
+    "  133813224667856: TensorSpec(shape=(), dtype=tf.resource, name=None)",
+    "  133813224668624: TensorSpec(shape=(), dtype=tf.resource, name=None)",
+    "  133813224668432: TensorSpec(shape=(), dtype=tf.resource, name=None)",
+    "  133813224668048: TensorSpec(shape=(), dtype=tf.resource, name=None)",
+    "  133813224668240: TensorSpec(shape=(), dtype=tf.resource, name=None)",
+    "  133813224669008: TensorSpec(shape=(), dtype=tf.resource, name=None)",
+    "  133813224667664: TensorSpec(shape=(), dtype=tf.resource, name=None)",
+    "  133813223817680: TensorSpec(shape=(), dtype=tf.resource, name=None)",
+    "  133813223818640: TensorSpec(shape=(), dtype=tf.resource, name=None)",
+    "METRICS {\"data\": {\"sisfall\": \"Zenodo 22212281, CC BY 4.0, 200 Hz resampled to 50 Hz, ADXL345 only\", \"uci_har\": \"UCI 240, CC BY 4.0, 50 Hz, negatives only\", \"train_windows\": 6924, \"train_falls\": 1275, \"test_windows\": 6243, \"test_falls\": 523, \"train_subjects\": [\"SA01\", \"SA02\", \"SA03\", \"SA04\", \"SA05\", \"SA06\", \"SA07\", \"SA08\", \"SA09\", \"SA10\", \"SA11\", \"SA12\", \"SA13\", \"SA14\", \"SA15\", \"SA16\", \"SA17\"], \"test_subjects\": [\"SA18\", \"SA19\", \"SA20\", \"SA21\", \"SA22\", \"SA23\", \"SE01\", \"SE02\", \"SE03\", \"SE04\", \"SE05\", \"SE06\", \"SE07\", \"SE08\", \"SE09\", \"SE10\", \"SE11\", \"SE12\", \"SE13\", \"SE14\", \"SE15\"], \"window_s\": 4, \"rate_hz\": 50}, \"model\": {\"params\": 6705, \"epochs\": 30, \"tflite_bytes\": 17864, \"threshold\": 0.9, \"normalisation_mean\": [0.08424167335033417, -0.6421049237251282, -0.06680910289287567, 1.033887505531311], \"normalisation_std\": [0.4803329408168793, 0.5780677795410156, 0.4553775489330292, 0.35225069522857666], \"tflite_agrees_with_keras_on_200_windows\": 200}, \"model_results\": {\"chosen\": {\"tp\": 518, \"fn\": 5, \"fp\": 1, \"tn\": 5719, \"sensitivity\": 0.9904, \"specificity\": 0.9998, \"false_alarms_per_day\": 3.78}, \"by_threshold\": {\"0.5\": {\"tp\": 518, \"fn\": 5, \"fp\": 2, \"tn\": 5718, \"sensitivity\": 0.9904, \"specificity\": 0.9997, \"false_alarms_per_day\": 7.55}, \"0.7\": {\"tp\": 518, \"fn\": 5, \"fp\": 2, \"tn\": 5718, \"sensitivity\": 0.9904, \"specificity\": 0.9997, \"false_alarms_per_day\": 7.55}, \"0.9\": {\"tp\": 518, \"fn\": 5, \"fp\": 1, \"tn\": 5719, \"sensitivity\": 0.9904, \"specificity\": 0.9998, \"false_alarms_per_day\": 3.78}}}, \"rule_detector_on_same_windows\": {\"tp\": 474, \"fn\": 49, \"fp\": 91, \"tn\": 5629, \"sensitivity\": 0.9063, \"specificity\": 0.9841, \"false_alarms_per_day\": 343.64}, \"impact_only_rule\": {\"tp\": 490, \"fn\": 33, \"fp\": 540, \"tn\": 5180, \"sensitivity\": 0.9369, \"specificity\": 0.9056, \"false_alarms_per_day\": 2039.16}, \"synthetic_cases\": {\"table_drops_flagged_by_model\": \"5/10\", \"table_drops_flagged_by_rule\": \"10/10\", \"not_worn_flagged_by_model\": \"0/10\", \"note\": \"the watch gates both detectors with its off-body sensor: nothing fires when the watch is known to be off the wrist\"}, \"gpu\": \"[PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU'), PhysicalDevice(name='/physical_device:GPU:1', device_type='GPU')]\", \"seconds\": 186.4}",
+    "Uploading Model https://kaggle.com/models/owner/ira-care-fall-model/tfLite/v1 ...",
+    "Model 'ira-care-fall-model' does not exist or access is forbidden for user 'owner'. Creating or handling Model...",
+    "KAGGLE_MODEL_UPLOAD_SKIPPED BackendError: Permission 'models.create' was denied",
+    "DONE in 188 s"
+  ]
+}
