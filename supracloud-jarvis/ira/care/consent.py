@@ -32,6 +32,8 @@ CONSENT_FOR_ROLE: Mapping[str, str] = {
 CONSENT_KINDS = frozenset({
     "transcripts_family", "transcripts_carer", "transcripts_organisation",
     "health_data_family", "data_retention",
+    # IRA may use the familiar topics and topics to avoid in the communication profile (110).
+    "topics",
 })
 
 #: Months of history kept when no consent record names a retention period.

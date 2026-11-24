@@ -14,12 +14,20 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 /** Something that can say a sentence aloud. The real one wraps Android's TextToSpeech. */
 interface Speaker {
     suspend fun speak(text: String, louder: Boolean)
+    /** The person's pace (care/personal.py): 0.8 slow, 0.9 normal. */
+    fun setRate(rate: Float) {}
     fun shutdown() {}
 }
 
 class AndroidSpeaker(private val context: Context) : Speaker {
     private var tts: TextToSpeech? = null
     private var ready = false
+    private var rate = 0.9f
+
+    override fun setRate(rate: Float) {
+        this.rate = rate.coerceIn(0.6f, 1.2f)
+        tts?.setSpeechRate(this.rate)
+    }
 
     private fun engine(): TextToSpeech {
         tts?.let { return it }
@@ -29,7 +37,7 @@ class AndroidSpeaker(private val context: Context) : Speaker {
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build(),
         )
         created.language = Locale.UK
-        created.setSpeechRate(0.9f)   // a little slower than default: easier to follow
+        created.setSpeechRate(rate)   // the person's pace; a little slower than default by default
         tts = created
         return created
     }

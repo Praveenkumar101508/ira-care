@@ -103,6 +103,18 @@ export interface Visit {
   notes: string; handover: string; tasks: VisitTask[];
 }
 
+export interface CommunicationProfile {
+  person_id?: string; pace: 'slow' | 'normal'; prompting_level: 'light' | 'standard' | 'full';
+  voice_on: boolean; touch_on: boolean; vibration_on: boolean; topics_avoid: string[]; familiar_topics: string[];
+  redirect_member_id: string | null; redirect_name?: string | null; topics_consented?: boolean; updated_by_role?: string; updated_at?: string | null;
+}
+export type ReminderStatus = 'pending' | 'asked' | 'confirming' | 'confirmed' | 'snoozed' | 'skipped' | 'missed' | 'cancelled';
+export interface Reminder {
+  id: string; person_id: string; kind: 'reminder' | 'medication' | 'hydration'; text: string; medication_id: string | null;
+  due_at: string; status: ReminderStatus; snoozed_until: string | null; source: string; asked_count: number; done_at: string | null;
+}
+export interface Memory { day: string; summary: string; exchanges: number; updated_at: string; edited_at?: string | null; edited_by?: string }
+
 export interface PersonStatus {
   person: Person;
   devices: Device[];

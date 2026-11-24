@@ -198,7 +198,11 @@ class CareForegroundService : LifecycleService() {
             val now = deps.clock.nowMillis()
             // Ordinary readings go up every `reading_upload_interval_s` (60 s by default, the carer's setting).
             if (now - lastUpload >= deps.readingSettings.uploadIntervalS * 1000L) { lastUpload = now; syncNow() }
-            if (fallCountdown.state is FallCountdown.State.Counting) performFall(fallCountdown.tick())
+            controller.configure(deps.profile.repeatAfterS, deps.profile.repeats)
+            if (fallCountdown.state is FallCountdown.State.Counting) {
+                performFall(fallCountdown.tick())
+                listenDuringFall()
+            }
             perform(controller.tick())
             if (controller.openCheckinId() == null && now - lastPoll >= POLL_MS) {
                 lastPoll = now
@@ -223,9 +227,10 @@ class CareForegroundService : LifecycleService() {
             when (action) {
                 is CheckinController.Action.Speak -> {
                     deps.status.value = deps.status.value.copy(question = action.text)
-                    deps.speaker.speak(action.text, action.louder)
+                    // Voice off in the person's profile: the words stay on the screen; a louder (safety) question is still spoken.
+                    if (deps.profile.voice || action.louder) deps.speaker.speak(action.text, action.louder)
                 }
-                CheckinController.Action.Vibrate -> vibrate()
+                CheckinController.Action.Vibrate -> if (deps.profile.vibration) vibrate()
                 CheckinController.Action.Listen -> startListening()
                 is CheckinController.Action.ReportRepeated -> deps.api.repeated(action.checkinId)
                 is CheckinController.Action.ReportAnswer -> {
@@ -296,6 +301,15 @@ class CareForegroundService : LifecycleService() {
         deps.status.value = deps.status.value.copy(talking = false, question = null)
     }
 
+    /** During a fall countdown the watch also listens: "I'm OK" ends it, "help" asks now (care/personal, phase 7). */
+    private fun listenDuringFall() {
+        if (listening?.isActive == true) return
+        listening = lifecycleScope.launch(Dispatchers.IO) {
+            val heard = deps.listener.listen(FALL_LISTEN_MS)
+            if (fallCountdown.state is FallCountdown.State.Counting) performFall(fallCountdown.heard(heard))
+        }
+    }
+
     private fun startListening() {
         listening?.cancel()
         listening = lifecycleScope.launch(Dispatchers.IO) {
@@ -348,6 +362,7 @@ class CareForegroundService : LifecycleService() {
         const val ACTION_TALK = "care.ira.watch.TALK"
         const val POLL_MS = 60_000L
         const val TICK_MS = 5_000L
+        const val FALL_LISTEN_MS = 4_000L
         const val LISTEN_MS = 20_000L
 
         fun start(context: Context) {

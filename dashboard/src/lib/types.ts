@@ -32,7 +32,17 @@ export interface Alert {
 }
 export interface Attempt { id: string; tier: number; channel: string; outcome: string; detail: string; attempted_at: string; delivery?: string; delivered_at?: string | null }
 export interface Acknowledgement { id: string; kind: string; note: string; acknowledged_at: string }
-export interface Memory { day: string; summary: string; exchanges: number; updated_at: string }
+export interface Memory { day: string; summary: string; exchanges: number; updated_at: string; edited_at?: string | null; edited_by?: string }
+export interface CommunicationProfile {
+  person_id?: string; pace: 'slow' | 'normal'; prompting_level: 'light' | 'standard' | 'full'; voice_on: boolean; touch_on: boolean; vibration_on: boolean;
+  topics_avoid: string[]; familiar_topics: string[]; redirect_member_id: string | null; redirect_name?: string | null; topics_consented?: boolean;
+  updated_by_role?: string; updated_at?: string | null;
+}
+export type ReminderStatus = 'pending' | 'asked' | 'confirming' | 'confirmed' | 'snoozed' | 'skipped' | 'missed' | 'cancelled';
+export interface Reminder {
+  id: string; person_id: string; kind: 'reminder' | 'medication' | 'hydration'; text: string; medication_id: string | null; due_at: string;
+  status: ReminderStatus; snoozed_until: string | null; source: string; asked_count: number; done_at: string | null; created_at: string;
+}
 export interface Checkin {
   id: string; scheduled_at: string; asked_at: string | null; status: string; question_kind: string; question_source?: 'template' | 'model';
   question_text: string; answered_at: string | null; answer_summary: string; answer_text: string; answered_via: string;
@@ -66,7 +76,7 @@ export interface SafetySettings {
   no_movement_window_s: number; movement_floor_steps: number; off_wrist_alert_minutes: number;
   battery_alert_percent: number; sync_alert_minutes: number; missed_checkins_before_escalation: number; ack_wait_minutes: number;
   ask_first_wait_s: number; heart_rate_confirm_readings: number; heart_rate_confirm_seconds: number;
-  night_off_wrist_minutes: number; usual_wake_time: string; wake_grace_minutes: number; visit_late_minutes?: number;
+  night_off_wrist_minutes: number; usual_wake_time: string; wake_grace_minutes: number; visit_late_minutes?: number; hydration_every_minutes?: number;
   fall_detection_enabled: boolean; fall_countdown_s: number; fall_impact_g: number; fall_still_seconds: number; fall_still_threshold_g: number;
 }
 export interface OpsStatus { monitoring_paused: boolean; stale_after_s: number; checked_at: string; jobs: Record<string, { last_run_at: string | null; age_s: number | null; stale: boolean }> }

@@ -39,3 +39,30 @@ class FallCountdownTest {
         assertTrue(c.suspectedFall(5.0, 20, 30).isEmpty())
     }
 }
+
+class FallCountdownVoiceTest {
+    private val clock = FakeClock(1_000_000L)
+    private val c = FallCountdown(clock)
+
+    @Test
+    fun `saying I'm OK during the countdown ends it like the button`() {
+        c.suspectedFall(3.0, 20, 30)
+        assertEquals(listOf(FallCountdown.Action.ReportFallOk), c.heard("I'm okay, I just dropped my cup"))
+        assertEquals(FallCountdown.State.Idle, c.state)
+    }
+
+    @Test
+    fun `saying help asks for help now`() {
+        c.suspectedFall(3.0, 20, 30)
+        assertEquals(listOf(FallCountdown.Action.RequestHelp), c.heard("help me"))
+    }
+
+    @Test
+    fun `other words, silence, and words outside a countdown change nothing`() {
+        assertTrue(c.heard("I'm fine").isEmpty())
+        c.suspectedFall(3.0, 20, 30)
+        assertTrue(c.heard("what was that noise").isEmpty())
+        assertTrue(c.heard(null).isEmpty())
+        assertEquals(30, c.secondsLeft)
+    }
+}

@@ -3,6 +3,7 @@ transcript rows (under the existing consent rules), the rolling memory, and
 what happens when the person says something that needs a check right now."""
 from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 import json
 import uuid
@@ -58,7 +59,13 @@ async def build_context(conn, person: dict, now: dt.datetime, *, for_talk: bool 
     doses = [f"{r['name']} at {r['due_at'].astimezone(tz_now.tzinfo).strftime('%H:%M')}: {r['status']}" for r in await conn.fetch(
         "SELECT m.name, e.due_at, e.status FROM care_medication_events e JOIN care_medications m ON m.id = e.medication_id "
         "WHERE e.person_id = $1 AND e.due_at >= $2 ORDER BY e.due_at", person["id"], day_start)]
-    return conv.TalkContext(**base, contacts=contacts, doses_today=doses)
+    from . import personal
+    profile = await personal.get_profile(conn, person["id"])
+    consented = profile.get("topics_consented", False)
+    return conv.TalkContext(**base, contacts=contacts, doses_today=doses,
+                            familiar_topics=tuple(profile.get("familiar_topics") or ()) if consented else (),
+                            topics_avoid=tuple(profile.get("topics_avoid") or ()) if consented else (),
+                            redirect_name=profile.get("redirect_name"))
 
 
 # ── Memory ───────────────────────────────────────────────────────────────────
@@ -92,17 +99,23 @@ async def remember(conn, person_id, day: dt.date, notes: list[str]) -> None:
 async def memory_for(principal: Principal, person_id: uuid.UUID, days: int = 7) -> list[dict]:
     async with workspace_connection(principal) as conn:
         return [dict(r) for r in await conn.fetch(
-            "SELECT day, summary, exchanges, updated_at FROM care_conversation_memory WHERE person_id = $1 "
+            "SELECT day, summary, exchanges, updated_at, edited_at, edited_by FROM care_conversation_memory WHERE person_id = $1 "
             "ORDER BY day DESC LIMIT $2", person_id, days)]
 
 
 # ── The exchange ─────────────────────────────────────────────────────────────
 
-async def concern(conn, person: dict, settings: dict, text_kind: str, now: dt.datetime) -> Optional[dict]:
-    """A concerning phrase: ask first, then the escalation chain (D-034)."""
-    obs = Observation(CONCERNING, SOS,
-                      "The person said something that needs a check right now. The person is being asked if they are OK.",
-                      {"heard_in": text_kind})
+async def concern(conn, person: dict, settings: dict, text_kind: str, now: dt.datetime,
+                  transcript_id=None) -> Optional[dict]:
+    """A concerning phrase: ask first, then the escalation chain (D-034). The
+    alert carries a summary by IRA, labelled as such and linked to the
+    transcript row it came from; the person's words stay in the transcript,
+    shown only under their consent (care/personal.py)."""
+    from . import personal
+    summary = "The person said something that needs a check right now. The person is being asked if they are OK."
+    obs = Observation(CONCERNING, SOS, summary,
+                      personal.concern_details(summary, person_name=person.get("preferred_name") or person["display_name"],
+                                               transcript_id=transcript_id, heard_in=text_kind))
     return await askfirst.start(conn, person, settings, obs, now)
 
 
@@ -123,10 +136,23 @@ async def exchange(principal: Principal, person_id: uuid.UUID, text: str, *, sou
         recent = [(r["speaker"], r["text"]) for r in reversed(await conn.fetch(
             "SELECT speaker, text FROM care_transcripts WHERE person_id = $1 AND checkin_id IS NULL "
             "ORDER BY created_at DESC LIMIT 6", person_id))]
+        transcript_id = None
         if text:
-            await conn.execute(
-                "INSERT INTO care_transcripts (person_id, checkin_id, speaker, text) VALUES ($1, NULL, 'person', $2)",
+            transcript_id = await conn.fetchval(
+                "INSERT INTO care_transcripts (person_id, checkin_id, speaker, text) VALUES ($1, NULL, 'person', $2) RETURNING id",
                 person_id, text)
+        # A timed reminder: the words are parsed on the person's clock, so "at three" is their three.
+        m = conv._REMIND.search(text) if text else None
+        if m and not conv.red_flag(text):
+            from . import personal
+            local_now = rules.local_now(now, person["timezone"])
+            _what, due_local, how = personal.parse_reminder(m.group(2).strip().strip(".") or "that", local_now)
+            ctx.reminder_due_words = ("in an hour" if how.startswith("default") else how if how.startswith("in ")
+                                      else f"at {due_local.strftime('%H:%M')}")
+            ctx = dataclasses.replace(ctx)
+            pending_reminder = (_what, due_local.astimezone(dt.timezone.utc))
+        else:
+            pending_reminder = None
     spoken: list[str] = []
     turn = await conv.talk(text, ctx, recent=recent, on_sentence=spoken.append)
     for s in turn.sentences:
@@ -138,11 +164,19 @@ async def exchange(principal: Principal, person_id: uuid.UUID, text: str, *, sou
             person_id, " ".join(turn.sentences)[:8000])
         day = rules.local_now(now, person["timezone"]).date()
         notes = [f"Talked ({source}): {_note_for(turn, text)}"]
-        if action and action.get("kind") == "reminder":
-            notes.append(f"Asked to be reminded about {action['text']}.")
+        if action and action.get("kind") == "reminder" and pending_reminder is not None:
+            what, due_utc = pending_reminder
+            reminder_id = await conn.fetchval(
+                "INSERT INTO care_reminders (person_id, kind, text, due_at, source) VALUES ($1, 'reminder', $2, $3, 'conversation') RETURNING id",
+                person_id, what[:200], due_utc)
+            action["reminder_id"] = str(reminder_id)
+            action["due_at"] = due_utc.isoformat()
+            notes.append(f"Asked to be reminded about {what} ({action.get('when', 'later')}).")
+        if action and action.get("kind") == "offer_contact":
+            notes.append(f"Repeated a worry; IRA offered to contact {action.get('name')}.")
         await remember(conn, person_id, day, notes)
         if turn.needs_help:
-            alert = await concern(conn, person, settings, "talk", now)
+            alert = await concern(conn, person, settings, "talk", now, transcript_id=transcript_id)
             action = {"kind": "safety_check", "alert_id": str(alert["id"]) if alert else None}
     yield {"done": True, "action": action, "source": turn.source, "needs_help": turn.needs_help}
 

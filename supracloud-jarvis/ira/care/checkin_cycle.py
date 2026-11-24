@@ -65,6 +65,7 @@ class CycleOutcome:
     skipped_quiet: int = 0
     missed: int = 0
     paused_for_visit: int = 0
+    reminders_asked: int = 0
     errors: int = 0
 
 
@@ -136,6 +137,12 @@ async def run_workspace(principal: Principal, now: dt.datetime, outcome: Optiona
 
 async def _advance_person(conn, person, settings, now, outcome: CycleOutcome, rng) -> None:
     tz = person["timezone"]
+    # Due reminders and hydration prompts become questions the watch asks (care/personal.py).
+    from . import personal
+    try:
+        outcome.reminders_asked += await personal.due_to_checkins(conn, dict(person), dict(settings), now)
+    except Exception as exc:  # noqa: BLE001 - the ordinary schedule must still run
+        logger.exception("care reminders: could not turn due reminders into check-ins (%s)", exc)
     open_rows = await conn.fetch(
         "SELECT * FROM care_checkins WHERE person_id = $1 AND status IN ('scheduled', 'asked', 'repeated') "
         "ORDER BY scheduled_at", person["id"])
@@ -162,6 +169,8 @@ async def _advance_person(conn, person, settings, now, outcome: CycleOutcome, rn
                 await conn.execute(
                     "UPDATE care_checkins SET status = 'missed', answer_summary = $2 WHERE id = $1",
                     c["id"], "Not delivered: the watch did not collect this check-in.")
+                if c["reminder_id"]:
+                    await personal.missed(conn, dict(c), now)
                 outcome.missed += 1
             else:
                 continue  # due; the watch will collect it
@@ -172,6 +181,8 @@ async def _advance_person(conn, person, settings, now, outcome: CycleOutcome, rn
                 await conn.execute(
                     "UPDATE care_checkins SET status = 'missed', answer_summary = $2 WHERE id = $1",
                     c["id"], "No answer.")
+                if c["reminder_id"]:
+                    await personal.missed(conn, dict(c), now)
                 outcome.missed += 1
             else:
                 continue
@@ -264,6 +275,14 @@ async def due_checkin(principal: Principal, device: dict, now: Optional[dt.datet
             return _public_checkin(dict(row))
         if settings and rules.in_quiet_hours(local.time(), settings["quiet_start"], settings["quiet_end"]):
             return None
+        if row["reminder_id"] is not None:
+            # A reminder's question is set when it comes due (care/personal.py); it is asked in those words.
+            row = await conn.fetchrow(
+                "UPDATE care_checkins SET status = 'asked', asked_at = $2 WHERE id = $1 RETURNING *", row["id"], now)
+            await conn.execute(
+                "INSERT INTO care_transcripts (person_id, checkin_id, speaker, text) VALUES ($1, $2, 'companion', $3)",
+                person_id, row["id"], row["question_text"])
+            return _public_checkin(dict(row))
         if row["question_kind"] == "morning":
             # The morning check keeps its own words and is not re-chosen.
             text = rules.question_text(rules.QuestionChoice("morning", "morning check"), person["preferred_name"] or person["display_name"],
@@ -304,6 +323,7 @@ async def due_checkin(principal: Principal, device: dict, now: Optional[dt.datet
 def _public_checkin(row: dict) -> dict:
     out = {k: row[k] for k in ("id", "person_id", "scheduled_at", "asked_at", "repeated_at", "status",
                                "question_kind", "question_text")}
+    out["reminder_id"] = row.get("reminder_id")
     out["question_source"] = row.get("question_source", "template")
     out["safety"] = row["question_kind"] == "safety"
     return out
@@ -357,6 +377,19 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
         reading = merged.reading
         if row["question_kind"] == "safety" and not (text or "").strip():
             reading = rules.AnswerReading(summary="Pressed I'm OK.", said="yes", signals=(), asked_for_help=False)
+        reminder_result = None
+        if row["reminder_id"] is not None:
+            from . import personal
+            reminder_result = await personal.apply_answer(conn, dict(row), text, now)
+            if reminder_result is not None:
+                said = reminder_result["said"]
+                what = reminder_result["reminder"].get("text") or "the reminder"
+                words = {"yes": f"Confirmed: {what}.", "later": f"Asked to be reminded later about {what}.",
+                         "skip": f"Said not today to {what}.", "unclear": f"Answer about {what} was unclear."}[said]
+                if reminder_result["next"] == "confirm":
+                    words = f"Said yes to {what}; asked once more to be sure."
+                reading = rules.AnswerReading(summary=words, said="yes" if said == "yes" else "no" if said == "skip" else "unclear",
+                                              signals=reading.signals, asked_for_help=reading.asked_for_help)
         row = await conn.fetchrow(
             "UPDATE care_checkins SET status = 'answered', answered_at = $2, answer_text = $3, "
             "answer_summary = $4, answered_via = $5 WHERE id = $1 RETURNING *",
@@ -365,7 +398,9 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
             await conn.execute(
                 "INSERT INTO care_transcripts (person_id, checkin_id, speaker, text) VALUES ($1, $2, 'person', $3)",
                 person_id, checkin_id, text[:8000])
-        if med is not None and reading.said in ("yes", "no"):
+        # A reminder's check-in records its dose through the two-step confirmation in
+        # `personal.apply_answer`, never through the schedule: one "yes" is not yet a dose.
+        if med is not None and reminder_result is None and reading.said in ("yes", "no"):
             due = _nearest_due(now, med, rules.local_now(now, (await conn.fetchrow(
                 "SELECT timezone FROM care_people WHERE id = $1", person_id))["timezone"]).tzinfo)
             if due is not None:
@@ -402,7 +437,17 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
     out.update({"answer_summary": reading.summary, "said": reading.said, "signals": list(reading.signals),
                 "asked_for_help": reading.asked_for_help, "structured": merged.structured.model_dump(),
                 "reading_source": merged.source, "safety_check": bool(merged.red_flag and row["question_kind"] != "safety")})
+    if reminder_result is not None:
+        from . import personal
+        name = await _preferred_name(principal, person_id)
+        out["reminder"] = reminder_result["reminder"]
+        out["reply"] = personal.confirmation_line(reminder_result, name)
     return out
+
+
+async def _preferred_name(principal: Principal, person_id) -> str:
+    async with workspace_connection(principal) as conn:
+        return await conn.fetchval("SELECT coalesce(nullif(preferred_name, ''), display_name) FROM care_people WHERE id = $1", person_id) or "there"
 
 
 async def _medication_asked_about(conn, person_id, question_text: str):
@@ -454,6 +499,9 @@ async def mark_missed(principal: Principal, device: dict, checkin_id: uuid.UUID,
             checkin_id, device["person_id"])
         if row is not None and row["question_kind"] == "safety":
             await askfirst.no_answer(conn, dict(row), now)
+        if row is not None and row["reminder_id"] is not None:
+            from . import personal
+            await personal.missed(conn, dict(row), now)
     return _public_checkin(dict(row)) if row else None
 
 

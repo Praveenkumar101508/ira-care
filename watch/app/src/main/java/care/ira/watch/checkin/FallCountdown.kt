@@ -69,6 +69,20 @@ class FallCountdown(private val clock: Clock) {
         return emptyList()
     }
 
+    /**
+     * The person spoke during the countdown. "I'm OK", "I'm fine", "I'm all right"
+     * end it as the button would; "help" asks for help now; anything else is
+     * ignored and the countdown runs on. Nothing else is inferred from words.
+     */
+    fun heard(text: String?): List<Action> {
+        if (state !is State.Counting || text.isNullOrBlank()) return emptyList()
+        return when {
+            HELP.containsMatchIn(text) -> helpPressed()
+            OK.containsMatchIn(text) -> okPressed()
+            else -> emptyList()
+        }
+    }
+
     fun okPressed(): List<Action> {
         if (state !is State.Counting) return emptyList()
         state = State.Idle
@@ -83,5 +97,7 @@ class FallCountdown(private val clock: Clock) {
 
     companion object {
         const val QUESTION = "It looks like you may have fallen. Are you OK? Tap I'm OK, or Help."
+        private val HELP = Regex("""\b(help|emergency|ambulance|can'?t get up|cant get up|hurt)\b""", RegexOption.IGNORE_CASE)
+        private val OK = Regex("""\b(i'?m (ok|okay|fine|all ?right|alright|good)|(ok|okay|fine|all ?right|alright)\b|yes|no problem|didn'?t fall|just dropped)""", RegexOption.IGNORE_CASE)
     }
 }

@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Linking, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { CareClient } from '../api/client';
 import { ApiError } from '../api/client';
-import type { Checkin, CircleMember, ConsentList, Device, Person, PersonStatus, Report, Visit, VisitOutcome } from '../api/types';
+import type { Checkin, CircleMember, CommunicationProfile, ConsentList, Device, Memory, Person, PersonStatus, Reminder, Report, Visit, VisitOutcome } from '../api/types';
+import { REMINDER_WORDS, reminderActions, reminderTitle } from '../model/reminders';
 import { VISIT_OUTCOMES, VISIT_OUTCOME_WORDS, currentVisit, visitActions, visitTitle } from '../model/visits';
 import { alertTitle } from '../model/alerts';
 import { deviceSummary, readingLabel, telLink, timeAgo } from '../model/format';
 import { BigButton, Card, Muted, Screen, colors } from '../ui';
 
-type Tab = 'status' | 'visits' | 'history' | 'reports' | 'contacts' | 'consent';
+type Tab = 'status' | 'visits' | 'ira' | 'history' | 'reports' | 'contacts' | 'consent';
 
 export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair }: {
   client: CareClient; person: Person; canManage: boolean; onBack: () => void; onTalk?: () => void; onPair?: () => void;
@@ -22,6 +23,11 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
   const [pairing, setPairing] = useState<Device | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
+  const [profile, setProfile] = useState<CommunicationProfile | null>(null);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [memory, setMemory] = useState<Memory[]>([]);
+  const [editingDay, setEditingDay] = useState<string | null>(null);
+  const [memoryText, setMemoryText] = useState('');
   const [handover, setHandover] = useState('');
   const [outcome, setOutcome] = useState<VisitOutcome>('all_well');
   const [error, setError] = useState('');
@@ -29,11 +35,12 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
   const load = async () => {
     setError('');
     try {
-      const [s, c, m, k, rp, vs] = await Promise.all([
+      const [s, c, m, k, rp, vs, pr, rm, me] = await Promise.all([
         client.status(person.id), client.checkins(person.id), client.circle(person.id), client.consents(person.id), client.reports(person.id),
-        client.visits(person.id),
+        client.visits(person.id), client.profile(person.id), client.reminders(person.id), client.memory(person.id),
       ]);
       setStatus(s); setCheckins(c.checkins); setAnswersIncluded(c.answers_included); setCircle(m); setConsents(k); setReports(rp); setVisits(vs);
+      setProfile(pr); setReminders(rm); setMemory(me);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Could not load.');
     }
@@ -48,7 +55,7 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
   return (
     <Screen title={name}>
       <View style={styles.tabs}>
-        {(['status', 'visits', 'history', 'reports', 'contacts', 'consent'] as Tab[]).map((t) => (
+        {(['status', 'visits', 'ira', 'history', 'reports', 'contacts', 'consent'] as Tab[]).map((t) => (
           <Text key={t} onPress={() => setTab(t)} style={[styles.tab, tab === t && styles.tabOn]} testID={`tab-${t}`}>
             {t[0].toUpperCase() + t.slice(1)}
           </Text>
@@ -136,6 +143,63 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
                 <Muted>{VISIT_OUTCOME_WORDS[v.outcome as VisitOutcome] ?? v.outcome}{v.handover ? ` · Handover: ${v.handover}` : ''}</Muted>
               </Card>
             ))}
+          </>
+        )}
+        {tab === 'ira' && profile && (
+          <>
+            <Card>
+              <Text style={styles.h}>How IRA speaks to {name}</Text>
+              <Muted>Set by {name} or their representative. Applied on the watch.</Muted>
+              <Text style={styles.line}>Pace</Text>
+              <View style={styles.tabs}>
+                {(['slow', 'normal'] as const).map((v) => <Text key={v} testID={`profile-pace-${v}`} onPress={() => setProfile({ ...profile, pace: v })} style={[styles.tab, profile.pace === v && styles.tabOn]}>{v === 'slow' ? 'Slow' : 'Normal'}</Text>)}
+              </View>
+              <Text style={styles.line}>Prompting</Text>
+              <View style={styles.tabs}>
+                {(['light', 'standard', 'full'] as const).map((v) => <Text key={v} testID={`profile-prompting-${v}`} onPress={() => setProfile({ ...profile, prompting_level: v })} style={[styles.tab, profile.prompting_level === v && styles.tabOn]}>{v[0].toUpperCase() + v.slice(1)}</Text>)}
+              </View>
+              <View style={styles.tabs}>
+                {(['voice_on', 'touch_on', 'vibration_on'] as const).map((k) => <Text key={k} testID={`profile-${k}`} onPress={() => setProfile({ ...profile, [k]: !profile[k] })} style={[styles.tab, profile[k] && styles.tabOn]}>{k.replace('_on', '')}</Text>)}
+              </View>
+              {profile.topics_consented ? (
+                <>
+                  <TextInput value={profile.familiar_topics.join(', ')} onChangeText={(t) => setProfile({ ...profile, familiar_topics: t.split(',').map((x) => x.trim()).filter(Boolean) })} placeholder="Familiar topics, comma separated" style={styles.input} accessibilityLabel="Familiar topics" />
+                  <TextInput value={profile.topics_avoid.join(', ')} onChangeText={(t) => setProfile({ ...profile, topics_avoid: t.split(',').map((x) => x.trim()).filter(Boolean) })} placeholder="Topics to avoid, comma separated" style={styles.input} accessibilityLabel="Topics to avoid" />
+                </>
+              ) : <Muted>Familiar topics and topics to avoid need the &quot;topics&quot; consent.</Muted>}
+              <BigButton label="Save how IRA speaks" testID="profile-save" color={colors.notice} onPress={() => { void act(() => client.putProfile(person.id, profile)); }} />
+            </Card>
+            <Card>
+              <Text style={styles.h}>Reminders</Text>
+              {reminders.length === 0 ? <Muted>None. Say &quot;remind me to…&quot; to IRA, or add one on the dashboard.</Muted> : null}
+              {reminders.slice(0, 10).map((r) => (
+                <View key={r.id}>
+                  <Text style={styles.line} testID={`reminder-${r.id}`}>{reminderTitle(r)} · {REMINDER_WORDS[r.status]}</Text>
+                  <View style={styles.tabs}>
+                    {reminderActions(r).map((a) => <Text key={a} testID={`reminder-${r.id}-${a}`} onPress={() => { void act(() => client.actOnReminder(r.id, a)); }} style={styles.tab}>{a === 'confirm' ? 'Done' : a === 'snooze' ? 'Later' : 'Skip'}</Text>)}
+                  </View>
+                </View>
+              ))}
+            </Card>
+            <Card>
+              <Text style={styles.h}>What IRA remembers</Text>
+              <Muted>Summaries by day, never {name}&apos;s words. {name} or their representative can change or clear any day.</Muted>
+              {memory.map((m) => (
+                <View key={m.day}>
+                  <Text style={styles.line}>{m.day}{m.edited_at ? ' · edited' : ''}</Text>
+                  {editingDay === m.day ? (
+                    <>
+                      <TextInput value={memoryText} onChangeText={setMemoryText} multiline style={styles.input} accessibilityLabel={`What IRA remembers for ${m.day}`} testID="memory-edit" />
+                      <BigButton label="Save" testID="memory-save" onPress={() => { void act(() => client.editMemory(person.id, m.day, memoryText)); setEditingDay(null); }} />
+                    </>
+                  ) : <Muted>{m.summary}</Muted>}
+                  <View style={styles.tabs}>
+                    <Text onPress={() => { setEditingDay(m.day); setMemoryText(m.summary); }} style={styles.tab} testID={`memory-change-${m.day}`}>Change</Text>
+                    <Text onPress={() => { void act(() => client.forgetMemory(person.id, m.day)); }} style={styles.tab} testID={`memory-clear-${m.day}`}>Clear this day</Text>
+                  </View>
+                </View>
+              ))}
+            </Card>
           </>
         )}
         {tab === 'history' && (

@@ -42,8 +42,8 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-3 | responder-follow-up | `fix/responder-follow-up` | Merged (pull request 23) |
 | R3-4 | private-model | `feat/private-model` | Merged (pull request 24) |
 | R3-5 | own-models | `feat/own-models` | Merged (pull request 25) |
-| R3-6 | scheduled-care | `feat/scheduled-care` | Built and tested locally; pull request 26 open |
-| R3-7 | ira-personal | `feat/ira-personal` | not started |
+| R3-6 | scheduled-care | `feat/scheduled-care` | Merged (pull request 26) |
+| R3-7 | ira-personal | `feat/ira-personal` | Built and tested locally; pull request to follow |
 | R3-8 | watch-platform-layer | `feat/watch-platform-layer` | not started |
 | R3-9 | hardware-blueprint | `feat/hardware-blueprint` | not started |
 | R3-10 | one-mobile-app | `feat/one-mobile-app` | not started |
@@ -53,6 +53,19 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | not started |
 | R3-15 | cost-cuts | `ci/cost-cuts` | not started |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 7 (ira-personal), measured locally (23 November 2026)
+
+- Migration 110: `care_communication_profiles`, `care_reminders` (148 to 150 tables),
+  `care_checkins.reminder_id`, the `topics` consent, memory edit marks, `hydration_every_minutes`.
+- Server: 8 rule tests and 4 database tests (profile and consent gating, a spoken reminder
+  asked at its time and ticked off, two-step dose confirmation and hydration, memory edited and
+  cleared by the representative with a carer refused, a concern alert labelled and linked).
+- The evaluation set grew from 150 to 162 turns (repeated worries, timed reminders); the rules
+  alone pass 159 of 162 (quality 0.966, red-flag recall 1.0), recorded in
+  `docs/evidence/eval/phase7_rules.json`.
+- Watch: 54 unit tests pass (voice during the fall countdown, profile prompting); phone 27,
+  dashboard 29 with type checks and lint.
 
 ## Round 3, phase 6 (scheduled-care), measured locally (23 November 2026)
 

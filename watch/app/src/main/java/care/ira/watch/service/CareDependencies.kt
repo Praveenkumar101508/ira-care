@@ -9,6 +9,7 @@ import care.ira.watch.core.Clock
 import care.ira.watch.pairing.PairingStore
 import care.ira.watch.queue.OfflineQueue
 import care.ira.watch.api.FallSettingsDto
+import care.ira.watch.api.ProfileDto
 import care.ira.watch.api.ReadingSettingsDto
 import care.ira.watch.api.SosStateDto
 import care.ira.watch.outbox.Outbox
@@ -77,6 +78,8 @@ class CareDependencies private constructor(context: Context) {
     @Volatile var fallSettings: FallSettingsDto = FallSettingsDto()
     /** The carer's heart-rate range and the upload interval, refreshed the same way. */
     @Volatile var readingSettings: ReadingSettingsDto = ReadingSettingsDto()
+    /** How IRA speaks to this person (pace, prompting, channels), from the server. */
+    @Volatile var profile: ProfileDto = ProfileDto()
     private val json = Json { ignoreUnknownKeys = true }
     val speaker: Speaker = AndroidSpeaker(context)
     val listener: Listener = AndroidListener(context)

@@ -26,7 +26,7 @@ from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
-from . import audit, checkin_cycle, consent, history, onboarding, ops, push, reports, repository as repo, schemas, sos, visits
+from . import audit, checkin_cycle, consent, history, onboarding, ops, personal, push, reports, repository as repo, schemas, sos, visits
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 router = APIRouter(prefix="/care", tags=["care"])
@@ -338,10 +338,12 @@ async def device_me(d: tuple[Principal, dict] = Depends(require_device)):
     async with workspace_connection(principal) as conn:
         settings = await conn.fetchrow("SELECT * FROM care_safety_settings WHERE person_id = $1", device["person_id"])
         state = await sos.current(conn, device["person_id"])
+        profile = await personal.get_profile(conn, device["person_id"])
     out = dict(device)
     out["fall"] = falls.watch_settings(dict(settings) if settings else {})
     out["readings"] = sos.watch_settings(dict(settings) if settings else {})
     out["sos"] = state
+    out["profile"] = personal.watch_profile(profile)
     return out
 
 
@@ -525,6 +527,94 @@ async def ask_now(person_id: uuid.UUID, body: schemas.AskNow, p: Principal = Dep
     if row is None:
         raise _not_found("Person not found.")
     return row
+
+
+# ── IRA, personal to the person (110) ────────────────────────────────────────
+
+async def _editor_role(conn, p: Principal, person_id: uuid.UUID) -> str:
+    members = [dict(r) for r in await conn.fetch(
+        "SELECT user_id, role, relationship FROM care_circle_members WHERE person_id = $1 AND active", person_id)]
+    return personal.role_for(p, members)
+
+
+@router.get("/people/{person_id}/profile")
+async def get_profile(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    """How IRA speaks to this person, and the topic lists (with consent)."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+        return await personal.get_profile(conn, person_id)
+
+
+@router.put("/people/{person_id}/profile")
+async def put_profile(person_id: uuid.UUID, body: schemas.CommunicationProfile, p: Principal = Depends(require_workspace_principal)):
+    """The person or their representative changes how IRA speaks to them."""
+    ensure_can_act(p)
+    async with workspace_connection(p) as conn:
+        role = await _editor_role(conn, p, person_id)
+    row = await personal.put_profile(p, person_id, body.model_dump(), role=role)
+    if row is None:
+        raise _not_found("Person or circle member not found.")
+    return row
+
+
+@router.get("/people/{person_id}/reminders")
+async def list_reminders(person_id: uuid.UUID, open_only: bool = False, limit: int = Query(100, ge=1, le=1000),
+                         p: Principal = Depends(require_workspace_principal)):
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+    rows = await personal.list_reminders(p, person_id, limit=limit, open_only=open_only)
+    return {"reminders": rows, "count": len(rows)}
+
+
+@router.post("/people/{person_id}/reminders", status_code=201)
+async def create_reminder(person_id: uuid.UUID, body: schemas.ReminderCreate, p: Principal = Depends(require_workspace_principal)):
+    """A carer or family member sets a reminder the watch will ask about at its time."""
+    ensure_can_act(p)
+    async with workspace_connection(p) as conn:
+        role = await _editor_role(conn, p, person_id)
+    row = await personal.create_reminder(p, person_id, body.model_dump(), source="family" if role in ("person", "representative") else "carer")
+    if row is None:
+        raise _not_found("Person not found.")
+    return row
+
+
+@router.post("/reminders/{reminder_id}/act")
+async def act_on_reminder(reminder_id: uuid.UUID, body: schemas.ReminderAction, p: Principal = Depends(require_workspace_principal)):
+    """Confirm, snooze, skip or cancel a reminder from the phone or the dashboard."""
+    ensure_can_act(p)
+    row = await personal.act_on_reminder(p, reminder_id, body.action, minutes=body.minutes)
+    if row is None:
+        raise _not_found("Reminder not found.")
+    return row
+
+
+@router.put("/people/{person_id}/memory/{day}")
+async def edit_memory(person_id: uuid.UUID, day: dt.date, body: schemas.MemoryEdit, p: Principal = Depends(require_workspace_principal)):
+    """The person or their representative changes what IRA remembers about a day."""
+    ensure_can_act(p)
+    async with workspace_connection(p) as conn:
+        role = await _editor_role(conn, p, person_id)
+        if role not in ("person", "representative", "admin"):
+            raise HTTPException(status_code=403, detail="Only the person, their representative or an administrator may change what IRA remembers.")
+    row = await personal.edit_memory(p, person_id, day, body.summary, role="person" if role == "person" else "representative")
+    if row is None:
+        raise _not_found("Person not found.")
+    return row
+
+
+@router.delete("/people/{person_id}/memory/{day}", status_code=204)
+async def forget_memory(person_id: uuid.UUID, day: dt.date, p: Principal = Depends(require_workspace_principal)):
+    ensure_can_act(p)
+    async with workspace_connection(p) as conn:
+        role = await _editor_role(conn, p, person_id)
+        if role not in ("person", "representative", "admin"):
+            raise HTTPException(status_code=403, detail="Only the person, their representative or an administrator may clear what IRA remembers.")
+    if not await personal.forget_day(p, person_id, day):
+        raise _not_found("Nothing remembered for that day.")
 
 
 # ── Scheduled visits (109) ───────────────────────────────────────────────────
