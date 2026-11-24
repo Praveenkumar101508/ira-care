@@ -46,8 +46,12 @@ def test_the_gate_refuses_with_a_403_and_an_explanation(external_off):
     assert "Nothing was sent off the device" in detail
 
 
-def test_the_gate_passes_when_the_switch_is_on(external_on):
-    require_external_provider("Image generation")   # must not raise
+def test_the_gate_stays_closed_even_when_the_switch_is_on(external_on):
+    """D-056: no paid hosted service, ever. The old switch no longer opens the gate."""
+    with pytest.raises(HTTPException) as info:
+        require_external_provider("Image generation")
+    assert info.value.status_code in (403, 503)
+    assert external_provider_allowed() is False
 
 
 def test_the_gate_fails_closed_when_the_setting_cannot_be_read(monkeypatch):
