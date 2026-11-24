@@ -1126,7 +1126,7 @@ were reviewed at full size before merging.
 
 ## D-073 Only a loaded model is asked inside a turn; the browser watch speaks each sentence as it arrives (round 4, phase 3)
 
-**Found while recording the film against the real model on staging.** Three faults, each
+**Found while recording the film against the real model on staging.** Four faults, each
 now covered by a test that fails without its fix:
 
 1. **A cold chain never loaded.** Once Ollama had unloaded the primary (keep-alive ended,
@@ -1148,3 +1148,8 @@ now covered by a test that fails without its fix:
 3. **"Have you taken your the evening tablet yet?"** A medication or routine whose name
    starts with "the", "your", "my", "a" or "an" read badly after "your". **Choice:** that
    word is dropped from the name when it is put into the question.
+4. **Warming the model made the first turn load it again.** Round 4's warm request (D-069)
+   sent only the model's name, so Ollama loaded it with its default context of 4096 tokens;
+   the first turn then asked for 1024 and Ollama loaded it again ("runner options changed"),
+   longer than the turn could wait. **Choice:** every request, the warm one included, sends
+   the same load options (`num_ctx`, and `num_thread` when set).

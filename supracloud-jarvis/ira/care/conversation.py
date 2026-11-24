@@ -130,12 +130,19 @@ class OllamaModel:
         self.timeout_s = timeout_s
         self._transport = transport   # tests hand in an httpx.MockTransport
 
-    def _options(self, max_tokens: int, temperature: float) -> dict:
-        opts = {"num_predict": max_tokens, "temperature": temperature, "num_ctx": context_window()}
+    @staticmethod
+    def _load_options() -> dict:
+        """The options that decide how the model is loaded. Every request must send the same
+        ones: a request with a different context size makes Ollama load the model again
+        ("runner options changed"), which takes longer than a turn may wait (D-073)."""
+        opts = {"num_ctx": context_window()}
         threads = _int_env("IRA_CARE_MODEL_THREADS")
         if threads:
             opts["num_thread"] = threads
         return opts
+
+    def _options(self, max_tokens: int, temperature: float) -> dict:
+        return {"num_predict": max_tokens, "temperature": temperature, **self._load_options()}
 
     def _body(self, messages, *, stream: bool, max_tokens: int, temperature: float) -> dict:
         # keep_alive: the model stays loaded between turns, so no turn pays the
@@ -173,7 +180,7 @@ class OllamaModel:
         Returns the seconds it took: about 0.05 s when it was already loaded."""
         import httpx
         t0 = time.monotonic()
-        body = {"model": self.name, "keep_alive": keep_alive()}
+        body = {"model": self.name, "keep_alive": keep_alive(), "options": self._load_options()}
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout_s, connect=5.0), transport=self._transport) as client:
             r = await client.post(f"{self.base_url}/api/generate", json=body)
             r.raise_for_status()

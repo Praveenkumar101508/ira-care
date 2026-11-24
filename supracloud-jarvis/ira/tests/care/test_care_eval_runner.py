@@ -120,7 +120,11 @@ async def test_warming_loads_the_model_with_an_empty_request_and_the_chain_warms
     first = conv.OllamaModel("gemma4:e4b", "http://ollama.test", transport=httpx.MockTransport(handler))
     second = conv.OllamaModel("qwen3.5:2b", "http://ollama.test", transport=httpx.MockTransport(handler))
     took = await first.warm()
-    assert took >= 0 and seen == [("/api/generate", {"model": "gemma4:e4b", "keep_alive": "45m"})]
+    # The warm request loads the model with the same context and threads as a turn, or the
+    # first turn would make Ollama load it again ("runner options changed"; D-073).
+    assert took >= 0 and seen == [("/api/generate", {"model": "gemma4:e4b", "keep_alive": "45m", "options": {"num_ctx": 768, "num_thread": 3}})]
+    turn = first._body([], stream=True, max_tokens=10, temperature=0.5)["options"]
+    assert {k: turn[k] for k in ("num_ctx", "num_thread")} == seen[0][1]["options"]
     await conv.ChainModel([first, second]).warm()
     assert [path for path, _ in seen] == ["/api/generate", "/api/generate"] and seen[-1][1]["model"] == "gemma4:e4b"
     assert first._options(10, 0.5) == {"num_predict": 10, "temperature": 0.5, "num_ctx": 768, "num_thread": 3}

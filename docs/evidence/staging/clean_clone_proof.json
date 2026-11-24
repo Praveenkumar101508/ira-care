@@ -1,14 +1,14 @@
 {
-  "measured_at": "2026-11-24T18:52:11+00:00",
-  "revision": "2706eab4c7a71e6ff44f30f17f23d13a99db2b9f",
+  "measured_at": "2026-11-24T19:31:42+00:00",
+  "revision": "fbe9dabe0c705e1883673904dafe0042581986d0",
   "machine": "Linux-6.18.44-fc-v819-x86_64-with-glibc2.39",
   "result": "passed",
-  "total_seconds": 145,
+  "total_seconds": 137,
   "steps": [
     {
       "step": "clone",
       "status": "ok",
-      "seconds": 0,
+      "seconds": 1,
       "note": ""
     },
     {
@@ -20,31 +20,31 @@
     {
       "step": "compose-up",
       "status": "ok",
-      "seconds": 12,
+      "seconds": 11,
       "note": ""
     },
     {
       "step": "pip-install",
       "status": "ok",
-      "seconds": 4,
+      "seconds": 2,
       "note": ""
     },
     {
       "step": "migrate",
       "status": "ok",
-      "seconds": 1,
+      "seconds": 2,
       "note": ""
     },
     {
       "step": "api-up",
       "status": "ok",
-      "seconds": 3,
+      "seconds": 5,
       "note": "care.server on :8010"
     },
     {
       "step": "worker-up",
       "status": "ok",
-      "seconds": 63,
+      "seconds": 62,
       "note": ""
     },
     {
@@ -74,19 +74,19 @@
     {
       "step": "app-export",
       "status": "ok",
-      "seconds": 9,
+      "seconds": 4,
       "note": ""
     },
     {
       "step": "app-up",
       "status": "ok",
-      "seconds": 1,
+      "seconds": 0,
       "note": ""
     },
     {
       "step": "seed",
       "status": "ok",
-      "seconds": 3,
+      "seconds": 2,
       "note": ""
     }
   ]
