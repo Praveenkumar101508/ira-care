@@ -1055,10 +1055,12 @@ measured and what was kept is in `docs/MODEL_CHOICE.md` ("Round 4"); the decisio
 6. The Ollama image in the compose file moves from 0.13.0 to 0.40.18: Gemma 4 needs 0.30.9
    or later, and the staging proof ran against 0.40 on this machine.
 
-Rejected: a hosted model API (D-056 stands); a quantisation below Q4_K_M (the models on
-Ollama's library at Q4_K_M are what was measured; a smaller quantisation of the same model was
-not faster on CPU in the first-token measurements, which are bound by prompt processing);
-more threads than cores.
+Measured and not kept: `num_thread` 4 (no better at the median, worse at the 95th
+percentile); the quantisation-aware 4-bit build `gemma4:e4b-it-qat` (2.0 s to the first
+sentence, but quality 0.844, 0.065 below the best, outside the band); `qwen3.5:2b` as the
+secondary (quality 0.834; it writes the mood words as a string, so no answer fitted the form).
+No quantisation below 4 bits is published for these models in Ollama's library. Rejected
+without measuring: a hosted model API (D-056 stands).
 
 ## D-070 An instant acknowledgement from the rules, spoken before the model's first sentence (round 4, phase 1)
 

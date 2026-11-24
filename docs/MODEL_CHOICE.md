@@ -1,5 +1,9 @@
 # Which model IRA talks with, and why
 
+**Round 4 changed the choice** to `gemma4:e4b` then `gemma4:e2b`, with the model kept loaded,
+a shorter prompt, an instant acknowledgement and prepared check-in questions: see "Round 4"
+at the end. The round 3 sections are kept as they were measured.
+
 Measured on 2026-11-23 with `scripts/eval_care_model.py` over the 150-turn
 evaluation set in `supracloud-jarvis/ira/tests/care/eval/turns.jsonl` (nine categories; the
 README beside it says how each is scored). Every candidate is a free open-weight model served
@@ -137,15 +141,58 @@ so the watch asks it the moment it is due with no model time at all.
 
 ### The numbers, every candidate on the round 4 code
 
-__ROUND4_TABLE__
+| Model (Ollama tag) | Quality | Red-flag recall | Advice refused | Injection resisted | Redirect | Check-in reading | First words s, p50 | First sentence s, p50 / p95 | Fallbacks | Minutes for 162 turns |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `gemma4:12b` | 0.895 | 1.00 | 0.92 | 1.00 | 0.92 | 0.73 | 0.0 | 10.5 / 12.8 | 0 | 31 |
+| `gemma4:e2b` | 0.882 | 1.00 | 0.92 | 0.95 | 0.77 | 0.53 | 0.0 | 1.9 / 3.5 | 0 | 10 |
+| `gemma4:e4b-it-qat` | 0.844 | 1.00 | 0.88 | 0.95 | 0.96 | 0.60 | 0.0 | 2.0 / 2.7 | 0 | 9 |
+| `gemma4:e4b` | 0.909 | 1.00 | 0.88 | 1.00 | 0.96 | 0.60 | 0.0 | 2.8 / 5.9 | 0 | 16 |
+| `qwen3.5:2b` | 0.834 | 1.00 | 0.88 | 1.00 | 0.96 | 0.00 | 0.0 | 1.6 / 2.4 | 1 | 6 |
+
+Every row ran the round 4 code with the acknowledgement on, on all 162 turns. Quality is the
+share of turns that pass every check in their category, weighted equally across categories, as
+in round 3. Red-flag recall is 1.00 for every row because the keyword rules run on every answer
+whatever the model says (D-056). Every model scores higher than in round 3 on the same weights
+(`gemma4:e4b` 0.779 then, 0.909 now; `gemma4:12b` 0.860 then, 0.895 now): the shorter prompt
+names the person to offer when someone sounds worried or low, and the redirect rate rose from
+0.05 to 0.96 for `gemma4:e4b`.
+
+- `qwen3.5:2b` read none of the 15 check-in answers: it writes the mood words as one string
+  ("fine thank you") where the form asks for a list, so every structured reading was refused
+  and the keyword rules alone were used (checked by hand on 24 November 2026).
+- `gemma4:e4b-it-qat`, the quantisation-aware 4-bit build of the same model, is the fastest
+  Gemma here (2.0 s), but its quality is 0.065 below the best.
 
 ### The choice
 
-__ROUND4_CHOICE__
+**Primary: `gemma4:e4b`. Secondary: `gemma4:e2b`.** Chosen as in round 3, quality first, then
+latency, now with the round 4 rule that a model may be at most 0.03 below the best measured.
+
+- `gemma4:e4b` is the best measured model on the round 4 code (0.909), with red-flag recall
+  1.00, every injection resisted, and the first sentence at 2.8 s p50 (5.9 s p95). With the
+  acknowledgement the first words are handed to the watch at once. Both targets are met:
+  first words within 1.5 s and the first sentence within 3 s, at the median.
+- `gemma4:e2b` (0.882) is the only other model inside the 0.03 band and the fastest of those
+  (1.9 s). It is the second model in the chain, loaded only when the primary has not started
+  inside the first-token budget.
+- `gemma4:12b` read check-in answers best (0.73 against 0.60) but takes 10.5 s to its first
+  sentence on four cores; it is the model to make primary on a machine with a GPU (below).
+- What is still slow: the 95th percentile of the first sentence (5.9 s) is above the 3 s
+  target, on long or emotional turns where the model writes a long first sentence. The
+  acknowledgement covers that wait; it does not shorten it. A check-in question never waits
+  on the model at all (D-071).
+
+What this means for the person: IRA answers at once with a short line, and the reply itself
+follows within about three seconds on the 4 vCPU machine `docs/DEPLOY.md` describes, against
+about ten seconds in round 3 (and fifteen after a quiet spell, when the model had unloaded).
 
 ### What a small GPU server would give
 
-Nothing below was measured here: this machine has no GPU. Each figure says where it was read.
+Nothing below was measured on this machine: it has no GPU. Each figure says where it was read.
+A measurement of the same prompts on Kaggle's free GPU is scripted
+(`scripts/training/kaggle_ollama_bench.py`, run with `scripts/training/run_kaggle.py gpu_bench`);
+on 24 November 2026 it waited over an hour in Kaggle's queue for a GPU, and its numbers are
+added here when it has run.
 The product does not need a GPU; one makes the model's part of a turn several times faster.
 
 - **Why the CPU is the limit.** On four cores, `gemma4:e4b` processes the prompt at about
