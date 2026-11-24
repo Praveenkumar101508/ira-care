@@ -168,7 +168,7 @@ def video_for(row: dict, length: float) -> Path:
                      f"color=c={PAPER}:s={W}x{H}:r={FPS}[bg];[bg][w]overlay=x=150:y=60:shortest=0[a];[a][p]overlay=x=W-w-190:y=60,format=yuv420p[v]")
             run("-i", str(rec[0]), "-i", str(phone), "-filter_complex", graph, "-map", "[v]", *enc, str(out))
         else:
-            run("-i", str(rec[0]), "-vf", fit(",tpad=stop_mode=clone:stop_duration=120,format=yuv420p"), *enc, str(out))
+            run("-ss", f"{row.get('start', 0.0):.2f}", "-i", str(rec[0]), "-vf", fit(",tpad=stop_mode=clone:stop_duration=120,format=yuv420p"), *enc, str(out))
     else:
         card(out, length, row["scene"], ["recording missing"])
     return out
@@ -186,10 +186,14 @@ def main() -> int:
         n = row["n"]
         rec = sorted(p for p in RAW.glob(f"{n:02d}-*.webm") if not p.stem.endswith("-phone"))
         meta = json.loads(rec[0].with_suffix(".json").read_text()) if rec and rec[0].with_suffix(".json").exists() else {}
-        items, speech_end = plan_audio(n, row["words"], meta.get("said", []))
+        # The film's cut starts at the scene's 'start' mark, if it has one.
+        start = next((m["t"] for m in meta.get("marks", []) if m["what"] == "start"), 0.0)
+        said = [{**s, "t": s["t"] - start} for s in meta.get("said", []) if s["t"] >= start]
+        row["start"] = start
+        items, speech_end = plan_audio(n, row["words"], said)
         length = max(row["seconds"], speech_end + 1.2)
         if rec:
-            length = max(length, min(MAX_SCENE, dur(rec[0])))
+            length = max(length, min(MAX_SCENE, dur(rec[0]) - start))
         if row["scene"].lower().startswith("the watch, turning"):
             length = max(length, dur(TURNTABLE))
         length = round(length, 2)

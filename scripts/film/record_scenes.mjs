@@ -7,6 +7,7 @@
 // page is laid out at two thirds of that and drawn at 1.5 times, with CSS zoom, because the
 // video recorder ignores the device pixel ratio) and <scene>.json: when IRA spoke on the watch and
 // what it said (the real words, caught from the watch page's own speech call), and the zooms.
+// A 'start' mark, when there is one, is where the film's cut of the scene begins.
 // The presenter page drives the watch from a second tab whose video is discarded; recordings
 // show only what a person would see. The SOS scene records the watch and Sravani's phone at
 // the same time (<scene>.webm and <scene>-phone.webm) so the film can show both side by side.
@@ -159,8 +160,17 @@ const deviceHeaders = { 'X-Device-Token': ada.device_token, 'Content-Type': 'app
 const dev = async (method, path, body) => { const r = await fetch(`${API}${path}`, { method, headers: deviceHeaders, body: body === undefined ? undefined : JSON.stringify(body) }); return r.ok ? r.json() : null; };
 /** A clean face before a watch scene: no question pending, and no SOS closed in the last ten minutes (the face would say so). */
 async function quietWatch() {
-  for (let i = 0; i < 5; i++) { const d = await dev('GET', '/api/v1/care/devices/me/checkins/due'); if (!d?.checkin) break; await dev('POST', `/api/v1/care/devices/me/checkins/${d.checkin.id}/answer`, { text: 'I am fine, thank you', via: 'voice' }); }
+  await answerDue();
   for (let i = 0; i < 70; i++) { const s = await dev('GET', '/api/v1/care/devices/me/sos'); if (!s || s.state === 'idle') return; await new Promise((r) => setTimeout(r, 10000)); }
+}
+/** Answer whatever the watch is asking, as Ada would: the tablet taken, lunch eaten, all well. */
+const ANSWERS = { medication: 'Yes, I have taken it', meal: 'Yes, I have eaten, thank you', safety: 'I am OK' };
+async function answerDue() {
+  for (let i = 0; i < 5; i++) {
+    const d = await dev('GET', '/api/v1/care/devices/me/checkins/due');
+    if (!d?.checkin) return;
+    await dev('POST', `/api/v1/care/devices/me/checkins/${d.checkin.id}/answer`, { text: ANSWERS[d.checkin.question_kind] ?? 'I am fine, thank you', via: 'voice' });
+  }
 }
 async function quietAlerts() {
   const open = await co('GET', '/api/v1/care/alerts?open_only=true&limit=100');
@@ -260,7 +270,12 @@ await scene('07-visit', { viewport: WATCH }, async (page, context) => {
   const start = new Date(Date.now() + 20 * 60 * 1000);
   visit = await co('POST', `/api/v1/care/people/${ada.id}/visits`, { planned_start: start.toISOString(), planned_end: new Date(start.getTime() + 3600000).toISOString(), carer_name: coordinator.name ?? 'Carer', tasks: ['Breakfast', 'Medication', 'A walk'] });
   const presenter = await pairWatch(page, context);
+  // A question due at this moment would cover the visit line: answer it, and start the film's cut after.
+  await answerDue();
+  await watchText(page).filter({ hasText: 'All well' }).waitFor({ timeout: 30000 }).catch(() => null);
   await page.locator('.watch-visit').waitFor({ timeout: 40000 }).catch(() => null);
+  mark('start');
+  await pause(page, 1500);
   mark('expected');
   await zoomOn(page, page.getByTestId('watch-face'), { fill: 0.9, max: 1.35 });
   await pause(page, 4000);
