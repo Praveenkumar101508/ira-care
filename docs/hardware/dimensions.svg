@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" font-family="system-ui, Helvetica, Arial, sans-serif" font-size="12">
+  <title>IRA CARE watch: dimensioned drawing (design intent, mm)</title>
+  <style>
+    .o { fill: none; stroke: #1f2a24; stroke-width: 1.6; }
+    .h { fill: #eef1f0; stroke: #1f2a24; stroke-width: 1.2; }
+    .d { stroke: #2f5d8a; stroke-width: 1; fill: none; }
+    .dt { fill: #2f5d8a; font-size: 12px; }
+    .t { fill: #1f2a24; }
+    .s { fill: #5b6b63; font-size: 11px; }
+    .red { fill: #e57373; stroke: #1f2a24; stroke-width: 1.2; }
+  </style>
+  <text x="20" y="28" font-size="18" font-weight="600" class="t">IRA CARE watch: dimensions (design intent, millimetres; scale 4:1)</text>
+  <text x="20" y="46" class="s">From scripts/hardware/build_watch.py parameters. Not a manufacturing drawing: to be confirmed by a hardware engineer.</text>
+
+  <!-- front view: 46 mm case = 184 px -->
+  <g transform="translate(150,290)">
+    <rect class="h" x="-60" y="-140" width="120" height="280" rx="6"/>   <!-- strap 22 mm wide = 88px? 22*4=88 -->
+    <circle class="o" r="92"/>
+    <circle class="o" r="80"/>
+    <circle class="o" r="70.6" stroke-dasharray="4 3"/>
+    <rect class="red" x="78" y="-52" width="18" height="44" rx="4" transform="rotate(-25)"/>
+    <rect class="h" x="80" y="18" width="12" height="26" rx="3" transform="rotate(25)"/>
+    <text x="0" y="-105" text-anchor="middle" class="t">Front</text>
+    <path class="d" d="M-92 110 L92 110"/><text x="0" y="126" text-anchor="middle" class="dt">⌀ 46.0 case</text>
+    <path class="d" d="M-80 -118 L80 -118"/><text x="0" y="-124" text-anchor="middle" class="dt">⌀ 40.0 cover glass</text>
+    <text x="0" y="4" text-anchor="middle" class="dt">⌀ 35.3 display (1.39 in, 466 × 466)</text>
+    <path class="d" d="M-115 -44 L-115 44"/><text x="-120" y="4" text-anchor="end" class="dt">22.0 strap</text>
+  </g>
+
+  <!-- side view: 12.6 mm height = 50.4 px -->
+  <g transform="translate(470,200)">
+    <text x="0" y="-70" text-anchor="middle" class="t">Side</text>
+    <rect class="o" x="-92" y="0" width="184" height="50.4" rx="8"/>
+    <path class="o" d="M-80 0 Q0 -14 80 0"/>
+    <rect class="red" x="92" y="12" width="18" height="44" rx="3" transform="translate(0,0)"/>
+    <rect class="h" x="-104" y="18" width="12" height="20" rx="3"/>
+    <path class="d" d="M-92 70 L92 70"/><text x="0" y="86" text-anchor="middle" class="dt">46.0</text>
+    <path class="d" d="M120 0 L120 50.4"/><text x="126" y="30" class="dt">12.6 height</text>
+    <path class="d" d="M-130 -14 L-130 0"/><text x="-136" y="-4" text-anchor="end" class="dt">0.6 glass dome</text>
+    <path class="d" d="M124 12 L124 56"/><text x="150" y="40" class="dt">11.0 Help button</text>
+  </g>
+
+  <!-- internal stack (section) : z from back -->
+  <g transform="translate(470,330)">
+    <text x="0" y="-8" text-anchor="middle" class="t">Internal stack, back to front (thickness)</text>
+    <g transform="translate(-92,0)">
+      <rect class="h" x="0" y="0"    width="184" height="5.6" /><text x="190" y="6" class="dt">back cover 1.4 (sensor window ⌀ 16, charging coil)</text>
+      <rect class="h" x="40" y="8"   width="104" height="3.2" /><text x="190" y="14" class="dt">sensor board 0.8 (PPG, skin temperature)</text>
+      <rect class="h" x="32" y="14"  width="120" height="18.4" /><text x="190" y="26" class="dt">battery 4.6 (30 × 24, about 400 mAh)</text>
+      <rect class="h" x="20" y="35"  width="144" height="4" /><text x="190" y="40" class="dt">logic board 1.0 (SoC, radios, eSIM, power, motion, microphones, speaker, motor)</text>
+      <rect class="h" x="14" y="52"  width="156" height="4" /><text x="190" y="57" class="dt">display frame 1.0</text>
+      <rect class="h" x="21" y="57"  width="142" height="3.2" /><text x="190" y="66" class="dt">display 0.8</text>
+      <rect class="h" x="12" y="62"  width="160" height="4" /><text x="190" y="75" class="dt">cover glass 1.0 (+0.6 dome)</text>
+      <path class="d" d="M-14 0 L-14 66"/><text x="-18" y="36" text-anchor="end" class="dt">12.6</text>
+    </g>
+  </g>
+
+  <!-- dock -->
+  <g transform="translate(150,500)">
+    <text x="0" y="-70" text-anchor="middle" class="t">Dock</text>
+    <rect class="o" x="-124" y="-64" width="248" height="64" rx="12"/>
+    <path class="d" d="M-124 14 L124 14"/><text x="0" y="30" text-anchor="middle" class="dt">⌀ 62.0 × 16.0 high, magnetic cradle for the case</text>
+  </g>
+  <text x="340" y="470" class="s">Weight target 48 g with strap (estimate). Strap length 110 mm closed, 22 mm wide, 2.6 mm thick, magnetic clasp.</text>
+  <text x="340" y="490" class="s">Buttons: Help 11.0 × 4.5 mm at the 2 o'clock position; side button 6.5 × 3.0 mm at 4 o'clock. Both sealed (IP68).</text>
+  <text x="340" y="510" class="s">Sensor window ⌀ 16.0 mm centred on the back; charging coil ⌀ 28 mm behind it.</text>
+</svg>

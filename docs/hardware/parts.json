@@ -1,0 +1,239 @@
+{
+ "layers": [
+  "Cover glass",
+  "Display",
+  "Display frame",
+  "Bezel ring",
+  "Case",
+  "Help button",
+  "Side button",
+  "Logic board",
+  "Battery",
+  "Sensor board",
+  "Back cover",
+  "Strap",
+  "Clasp"
+ ],
+ "parts": [
+  {
+   "name": "Back cover",
+   "layer": "Back cover",
+   "group": null,
+   "what": "the back of the case with the sensor window and the charging coil behind it",
+   "feature": "charging on the dock; IP68"
+  },
+  {
+   "name": "Charging coil",
+   "layer": "Back cover",
+   "group": "Back cover",
+   "what": "wireless charging receiver coil, magnet-aligned with the dock",
+   "feature": "charging without a plug for older hands"
+  },
+  {
+   "name": "Sensor board",
+   "layer": "Sensor board",
+   "group": null,
+   "what": "the board against the skin: optical heart-rate sensor, skin temperature, off-body detection",
+   "feature": "heart rate at its own time; off-wrist; skin temperature trend (planned)"
+  },
+  {
+   "name": "PPG module",
+   "layer": "Sensor board",
+   "group": "Sensor board",
+   "what": "the optical heart-rate sensor: green and red light through the window",
+   "feature": "heart-rate samples and the out-of-range alert"
+  },
+  {
+   "name": "Skin temperature sensor",
+   "layer": "Sensor board",
+   "group": "Sensor board",
+   "what": "a contact thermometer beside the optical window",
+   "feature": "the daily report (planned)"
+  },
+  {
+   "name": "Battery",
+   "layer": "Battery",
+   "group": null,
+   "what": "about 400 mAh curved lithium-polymer cell for a day and a night on one charge",
+   "feature": "24-hour wear; charged on the dock at the bedside"
+  },
+  {
+   "name": "Logic board",
+   "layer": "Logic board",
+   "group": null,
+   "what": "the main board: system-on-chip with LTE and VoLTE, GNSS, Wi-Fi, Bluetooth, eSIM, power management, memory",
+   "feature": "runs the IRA CARE app, talks to the server, holds the outbox"
+  },
+  {
+   "name": "SoC and modem",
+   "layer": "Logic board",
+   "group": "Logic board",
+   "what": "the wearable system-on-chip that runs AOSP and carries the LTE modem",
+   "feature": "the app, the conversation stream, calls to the circle"
+  },
+  {
+   "name": "Wi-Fi and Bluetooth",
+   "layer": "Logic board",
+   "group": "Logic board",
+   "what": "the Wi-Fi 5 and Bluetooth 5 radio for home use and pairing",
+   "feature": "readings upload at home; pairing"
+  },
+  {
+   "name": "GNSS",
+   "layer": "Logic board",
+   "group": "Logic board",
+   "what": "the satellite receiver, asked for one position only when help is needed",
+   "feature": "the SOS carries where the person is"
+  },
+  {
+   "name": "eSIM",
+   "layer": "Logic board",
+   "group": "Logic board",
+   "what": "the embedded SIM: the watch has its own line, no card to lose",
+   "feature": "LTE anywhere; VoLTE calls"
+  },
+  {
+   "name": "Power management",
+   "layer": "Logic board",
+   "group": "Logic board",
+   "what": "charges the battery from the dock and feeds every rail",
+   "feature": "charging, battery notice to the carer"
+  },
+  {
+   "name": "Motion sensor",
+   "layer": "Logic board",
+   "group": "Logic board",
+   "what": "6-axis accelerometer and gyroscope at 50 Hz with a FIFO: the fall detectors read it",
+   "feature": "suspected fall (rule and trained model); movement after a missed check-in"
+  },
+  {
+   "name": "Barometer",
+   "layer": "Logic board",
+   "group": "Logic board",
+   "what": "altitude change in the second before an impact (planned)",
+   "feature": "fall confidence"
+  },
+  {
+   "name": "Vibration motor",
+   "layer": "Logic board",
+   "group": "Logic board",
+   "what": "a linear actuator: a firm pattern for a question, a fall, a carer's arrival",
+   "feature": "haptics channel of the communication profile"
+  },
+  {
+   "name": "Speaker",
+   "layer": "Logic board",
+   "group": "Logic board",
+   "what": "a loud micro speaker behind the side grille",
+   "feature": "IRA speaks the question and the carer's name"
+  },
+  {
+   "name": "Microphones",
+   "layer": "Logic board",
+   "group": "Logic board",
+   "what": "two noise-suppressing microphones, one each side, so IRA hears a quiet voice in a kitchen",
+   "feature": "Talk to IRA; the check-in answer; 'I'm OK' and 'help' by voice"
+  },
+  {
+   "name": "Display frame",
+   "layer": "Display frame",
+   "group": null,
+   "what": "holds the display flat against the glass and seals the top of the case",
+   "feature": "IP68 sealing"
+  },
+  {
+   "name": "Display",
+   "layer": "Display",
+   "group": null,
+   "what": "1.39 inch round always-on display, 466 x 466: large words, the time, the carer coming",
+   "feature": "the home screen, the question, the fall countdown, 'Sravani is here'"
+  },
+  {
+   "name": "Cover glass",
+   "layer": "Cover glass",
+   "group": null,
+   "what": "sapphire-hard cover over the display, domed so a wet finger still slides",
+   "feature": "the whole screen; survives 24-hour wear and knocks"
+  },
+  {
+   "name": "Case",
+   "layer": "Case",
+   "group": null,
+   "what": "316L steel case, 46 mm, with two lugs for a 22 mm strap; the antenna runs in the slot",
+   "feature": "everything; LTE and GNSS antennas live in the case gap"
+  },
+  {
+   "name": "Bezel ring",
+   "layer": "Bezel ring",
+   "group": null,
+   "what": "a raised ring the finger can feel, so the Help button is found by touch",
+   "feature": "orientation without looking"
+  },
+  {
+   "name": "Help button",
+   "layer": "Help button",
+   "group": null,
+   "what": "a large tactile button on the side, red, 11 mm long: one press tells the family and carers",
+   "feature": "Help request (SOS) with location"
+  },
+  {
+   "name": "Side button",
+   "layer": "Side button",
+   "group": null,
+   "what": "a smaller button: I'm OK, and the menu",
+   "feature": "I'm OK during a check-in or a fall countdown"
+  },
+  {
+   "name": "Strap",
+   "layer": "Strap",
+   "group": null,
+   "what": "medical-grade silicone, 22 mm, soft, with a magnetic clasp that closes itself",
+   "feature": "fastening with one hand or with arthritis"
+  },
+  {
+   "name": "Clasp",
+   "layer": "Clasp",
+   "group": null,
+   "what": "the magnetic clasp: lay the two ends near each other and they close",
+   "feature": "fastening with one hand"
+  }
+ ],
+ "parameters_mm": {
+  "case_diameter": 46.0,
+  "case_height": 12.6,
+  "case_wall": 2.2,
+  "case_bevel": 1.6,
+  "glass_diameter": 40.0,
+  "glass_thickness": 1.0,
+  "glass_dome": 0.6,
+  "display_diameter": 35.3,
+  "display_thickness": 0.8,
+  "frame_thickness": 1.0,
+  "board_diameter": 36.0,
+  "board_thickness": 1.0,
+  "battery_w": 30.0,
+  "battery_d": 24.0,
+  "battery_h": 4.6,
+  "sensor_board_diameter": 22.0,
+  "sensor_board_thickness": 0.8,
+  "back_thickness": 1.4,
+  "sensor_window_diameter": 16.0,
+  "help_button": [
+   11.0,
+   4.5,
+   3.0
+  ],
+  "side_button": [
+   6.5,
+   3.0,
+   2.2
+  ],
+  "lug_width": 22.0,
+  "strap_width": 22.0,
+  "strap_thickness": 2.6,
+  "strap_length": 110.0,
+  "dock_diameter": 62.0,
+  "dock_height": 16.0,
+  "wrist_diameter": 58.0
+ }
+}
