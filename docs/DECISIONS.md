@@ -696,3 +696,24 @@ because the set measures what the rules guarantee; the model adds the reading of
 keyword red-flag rules run on every answer whatever the model says, and the evaluation set
 found three phrasings they missed ("had a fall", "chest hurts", "heart attack"), which they
 now catch; it also found that "remind me to ring Sravani" was read as a call, which is fixed.
+
+## D-065 A trained model ships only when it beats what was there (round 3, phase 5)
+
+Three of our own models were trained on Kaggle's free GPU from open starting points and
+commercially licensed data (`docs/DATASETS.md`, `docs/MODEL_CHOICE.md` "Our own models").
+The fall detector beats the rule detector on held-out subjects (sensitivity 0.990 against
+0.906, 3.8 false alarms a day against 344) and ships in the watch beside the rules, both
+gated by the off-body sensor. The answer classifier equals the rules on the 150-turn eval
+at its confidence gates and is worse without them, so it ships behind `IRA_CARE_CLASSIFIER`
+(default off). The conversation fine-tune (QLoRA on `gemma4:e4b`, 507 synthetic
+conversations) scored 0.92 against the base model's 0.94 on 50 held-out prompts and its
+training loss did not fall, so it is not adopted: the adapter stays in the private notebook
+output and nothing in the product refers to it. No public dialogue dataset with a commercial
+licence was found; EmpatheticDialogues and its re-uploads are non-commercial and were not
+used. Kaggle notebook outputs could not be downloaded from this machine
+(`www.kaggleusercontent.com` is not allowed), so the fall model travels as text in the
+notebook log and is reconstructed by `scripts/training/`.
+
+Rejected: shipping the fine-tune anyway "for warmth" (nothing measured it warmer, and the
+measured thing got worse); training on EmpatheticDialogues under a research reading of its
+licence (the rule is commercial use or nothing).

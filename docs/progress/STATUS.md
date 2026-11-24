@@ -36,12 +36,12 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 
 | # | Phase | Branch | State |
 | --- | --- | --- | --- |
-| R3-0 | remove-demo-state | `fix/remove-demo-state` | Built and proved locally; pull request to follow |
-| R3-1 | trustworthy-sos | `fix/trustworthy-sos` | not started |
-| R3-2 | care-push-isolation | `fix/care-push-isolation` | not started |
-| R3-3 | responder-follow-up | `fix/responder-follow-up` | not started |
-| R3-4 | private-model | `feat/private-model` | Built, measured (five models benchmarked on CPU) and tested locally; pull request to follow |
-| R3-5 | own-models | `feat/own-models` | not started |
+| R3-0 | remove-demo-state | `fix/remove-demo-state` | Merged (pull request 20) |
+| R3-1 | trustworthy-sos | `fix/trustworthy-sos` | Merged (pull request 21) |
+| R3-2 | care-push-isolation | `fix/care-push-isolation` | Merged (pull request 22) |
+| R3-3 | responder-follow-up | `fix/responder-follow-up` | Merged (pull request 23) |
+| R3-4 | private-model | `feat/private-model` | Merged (pull request 24) |
+| R3-5 | own-models | `feat/own-models` | Built and tested locally; fall model shipped, classifier default off, fine-tune not adopted; pull request to follow |
 | R3-6 | scheduled-care | `feat/scheduled-care` | not started |
 | R3-7 | ira-personal | `feat/ira-personal` | not started |
 | R3-8 | watch-platform-layer | `feat/watch-platform-layer` | not started |
@@ -53,6 +53,21 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | not started |
 | R3-15 | cost-cuts | `ci/cost-cuts` | not started |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 5 (own-models), measured on Kaggle and locally (23 and 24 November 2026)
+
+- Fall detector: trained in 186 GPU seconds on SisFall and UCI HAR; on 6,243 held-out windows
+  from 21 unseen subjects sensitivity 0.990, specificity 0.9998, 3.8 false alarms a day (the
+  rule detector on the same windows: 0.906, 0.984, 344 a day). The 17.9 kB TensorFlow Lite
+  file is in the watch's assets; `ModelFallDetectorTest` (5) and `FallDetectorTest` (5) pass.
+- Answer classifier: trained in 48 GPU seconds; equals the rules on the 150-turn eval at its
+  gates (147 of 150) and is worse without them (144, five false alarms). Ships default off.
+  `test_care_classifier.py`: 5 pass.
+- Conversation fine-tune: four Kaggle attempts (about 2.6 GPU hours); the fourth trained
+  (457 steps, 1,170 s) and scored 0.92 against the base model's 0.94 on 50 held-out prompts
+  with a loss that did not fall. Not adopted. The GGUF conversion of the merged weights also
+  failed in llama.cpp's tokenizer reader; it was not retried because the result would not
+  have shipped.
 
 ## Round 3, phase 4 (private-model), measured locally (23 November 2026)
 

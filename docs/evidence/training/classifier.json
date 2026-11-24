@@ -1,0 +1,72 @@
+{
+  "job": "classifier",
+  "kernel": "Praveen0116/ira-care-redflag-classifier",
+  "status": "complete",
+  "pushed_at": "2026-11-23T21:27:29+00:00",
+  "fetched_at": "2026-11-23T21:28:54+00:00",
+  "output_files": [],
+  "gpu_seconds_reported_by_script": 48.1,
+  "metrics": {
+    "encoder": "sentence-transformers/all-MiniLM-L6-v2",
+    "licence": "Apache-2.0",
+    "embedding_dim": 384,
+    "rows": 1120,
+    "train_rows": 896,
+    "test_rows": 224,
+    "heads": {
+      "needs_help": {
+        "train_accuracy": 0.93,
+        "test_accuracy": 0.875,
+        "test_recall": {
+          "no": 0.878,
+          "yes": 0.864
+        }
+      },
+      "pain": {
+        "train_accuracy": 0.963,
+        "test_accuracy": 0.929,
+        "test_recall": {
+          "no": 0.952,
+          "yes": 0.864
+        }
+      },
+      "wellbeing": {
+        "train_accuracy": 0.823,
+        "test_accuracy": 0.754,
+        "test_recall": {
+          "unknown": 0.872,
+          "good": 0.596,
+          "ok": 0.529,
+          "poor": 0.78
+        }
+      },
+      "said": {
+        "train_accuracy": 0.903,
+        "test_accuracy": 0.92,
+        "test_recall": {
+          "none": 0.935,
+          "yes": 1.0,
+          "no": 0.652,
+          "unclear": 1.0
+        }
+      },
+      "advice": {
+        "train_accuracy": 0.972,
+        "test_accuracy": 0.942,
+        "test_recall": {
+          "no": 0.938,
+          "yes": 0.966
+        }
+      }
+    },
+    "device": "cuda",
+    "seconds": 48.1
+  },
+  "log_tail": [
+    "data from /kaggle/input/ira-care-training-data/classifier_data.jsonl",
+    "rows 1120",
+    "device cuda",
+    "METRICS {\"encoder\": \"sentence-transformers/all-MiniLM-L6-v2\", \"licence\": \"Apache-2.0\", \"embedding_dim\": 384, \"rows\": 1120, \"train_rows\": 896, \"test_rows\": 224, \"heads\": {\"needs_help\": {\"train_accuracy\": 0.93, \"test_accuracy\": 0.875, \"test_recall\": {\"no\": 0.878, \"yes\": 0.864}}, \"pain\": {\"train_accuracy\": 0.963, \"test_accuracy\": 0.929, \"test_recall\": {\"no\": 0.952, \"yes\": 0.864}}, \"wellbeing\": {\"train_accuracy\": 0.823, \"test_accuracy\": 0.754, \"test_recall\": {\"unknown\": 0.872, \"good\": 0.596, \"ok\": 0.529, \"poor\": 0.78}}, \"said\": {\"train_accuracy\": 0.903, \"test_accuracy\": 0.92, \"test_recall\": {\"none\": 0.935, \"yes\": 1.0, \"no\": 0.652, \"unclear\": 1.0}}, \"advice\": {\"train_accuracy\": 0.972, \"test_accuracy\": 0.942, \"test_recall\": {\"no\": 0.938, \"yes\": 0.966}}}, \"device\": \"cuda\", \"seconds\": 48.1}",
+    "DONE in 48 s"
+  ]
+}
