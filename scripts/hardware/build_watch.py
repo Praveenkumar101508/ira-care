@@ -14,7 +14,7 @@ separate named objects so the viewer can explode and name them:
 
 Outputs (all under --out):
     renders/hero.png, front.png, side.png, back.png, exploded.png, section.png, wrist_dock.png
-    turntable.mp4 (15 s)        ira_watch.glb (glTF, part names and metadata as extras)
+    turntable.mp4 (20 s)        ira_watch.glb (glTF, part names and metadata as extras)
     ira_watch.blend             parts.json (the part list the viewer reads)
 
 Nothing here is a manufacturing drawing: the dimensions are the design intent
@@ -87,6 +87,10 @@ PARTS = {
 LAYERS = ["Cover glass", "Display", "Display frame", "Case", "Logic board", "Battery", "Sensor board", "Back cover",
           "Strap", "Clasp"]
 EXPLODED_LAYERS = [n for n in LAYERS if n not in ("Strap", "Clasp")]
+#: The air between one layer's top and the next layer's bottom in the exploded view.
+EXPLODE_GAP_MM = 7.0
+#: The turntable's length: the film opens with it (docs/film/NARRATION.md).
+TURNTABLE_S = 20
 
 #: One product look, shared with the browser watch in the dashboard (dashboard/src/app/globals.css,
 #: the `.watch-*` rules) and the phone's theme: a graphite case, a coral Help button, the app's
@@ -333,7 +337,7 @@ def build_watch():
 def build_dock(location=(0, 0, 0)):
     x, y, z = location
     dock = cylinder("Dock", P["dock_diameter"] / 2, P["dock_height"], z + P["dock_height"] / 2, MATS["dock"], bevel=3.0, location=(x, y))
-    cradle = ring("Dock", P["case_diameter"] / 2 + 1.5, P["case_diameter"] / 2 - 4, 2.0, z + P["dock_height"] - 1.0, MATS["steel_dark"], group="Dock")
+    cradle = ring("Dock", P["case_diameter"] / 2 + 1.5, P["case_diameter"] / 2 - 4, 2.0, z + P["dock_height"] + 0.6, MATS["steel_dark"], group="Dock")
     cradle.location.x, cradle.location.y = x * MM, y * MM
     cable = box("Dock", (40.0, 4.0, 3.0), (x + P["dock_diameter"] / 2 + 18, y, z + 2.0), MATS["black"], bevel=1.0, group="Dock")
     return [dock, cradle, cable]
@@ -405,7 +409,7 @@ def lights():
     bpy.context.scene.world = world
     world.use_nodes = True
     bg = world.node_tree.nodes["Background"]
-    bg.inputs["Color"].default_value = (0.55, 0.57, 0.60, 1)
+    bg.inputs["Color"].default_value = srgb(LOOK["line"])
     bg.inputs["Strength"].default_value = 0.6
 
 
@@ -458,18 +462,47 @@ def render(cam, path):
 
 # ── Views ────────────────────────────────────────────────────────────────────
 
+def layer_extent(parts, layer):
+    """The lowest and highest z (mm) of a layer's objects, as built (assembled)."""
+    lo, hi = float("inf"), float("-inf")
+    for o in parts:
+        if (o.get("layer") or o.name) != layer or o.type != "MESH":
+            continue
+        for corner in o.bound_box:
+            z = (o.matrix_world @ Vector(corner)).z / MM
+            lo, hi = min(lo, z), max(hi, z)
+    return lo, hi
+
+
+def explode_offsets(parts, gap_mm):
+    """How far each layer rises when exploded, in mm: from the back cover up, every
+    layer's bottom sits `gap_mm` above the top of the layer below it, so a tall part
+    (the case) never swallows the thin one under it. The viewer uses the same numbers
+    (parts.json, `explode_mm`)."""
+    bpy.context.view_layer.update()
+    offsets, top = {}, None
+    for layer in reversed(EXPLODED_LAYERS):          # bottom of the stack first
+        lo, hi = layer_extent(parts, layer)
+        if lo == float("inf"):
+            continue
+        rise = 0.0 if top is None else max(0.0, top + gap_mm - lo)
+        offsets[layer] = round(rise, 2)
+        top = hi + rise
+    return offsets
+
+
 def explode(parts, amount_mm):
-    """Lift each layer by its distance from the bottom of the stack times the
-    amount, so the cover glass rises most and the back cover least and the
-    parts keep their order in the air. Groups travel with their layer."""
-    order = {n: len(EXPLODED_LAYERS) - 1 - i for i, n in enumerate(EXPLODED_LAYERS)}
+    """Lift each layer by its offset (explode_offsets), so the cover glass rises most and
+    the back cover not at all and the parts keep their order in the air. Groups travel
+    with their layer; the strap and clasp stay."""
+    offsets = explode_offsets(parts, amount_mm)
     for o in parts:
         layer = o.get("layer") or o.name
-        if layer not in order:
+        if layer not in offsets:
             continue
-        k = order[layer]
-        o.location.z += k * amount_mm * MM
-        o["explode_z"] = k * amount_mm
+        o.location.z += offsets[layer] * MM
+        o["explode_z"] = offsets[layer]
+    return offsets
 
 
 def anchor_2d(cam, point_world):
@@ -541,7 +574,7 @@ def unsection(parts, cutter):
     bpy.data.objects.remove(cutter)
 
 
-def export(parts, out):
+def export(parts, out, offsets=None):
     for o in bpy.context.scene.objects:
         o.select_set(False)
     for o in parts:
@@ -558,7 +591,7 @@ def export(parts, out):
         meta.append({"name": n, "layer": o.get("layer") or n, "group": o.get("group") or None,
                      "what": PARTS[n][0], "feature": PARTS[n][1]})
     with open(os.path.join(out, "parts.json"), "w") as f:
-        json.dump({"layers": LAYERS, "parts": meta, "parameters_mm": P}, f, indent=1)
+        json.dump({"layers": LAYERS, "explode_mm": offsets or {}, "look": LOOK, "parts": meta, "parameters_mm": P}, f, indent=1)
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
@@ -576,7 +609,8 @@ def main():
     os.makedirs(renders, exist_ok=True)
     screen = args.screen or make_screen_png(os.path.join(renders, "screen_home.png"))
     wanted = set(args.only.split(",")) if args.only else {"hero", "front", "side", "back", "exploded", "section", "wrist_dock", "turntable"}
-    samples, res, vres, fps = (16, (640, 480), (320, 320), 6) if args.quick else (96, (1600, 1200), (540, 540), 15)
+    # The turntable opens the film (1920 x 1080): 20 seconds, square, padded to 16:9 there.
+    samples, res, vres, fps = (16, (640, 480), (320, 320), 6) if args.quick else (96, (1600, 1200), (960, 960), 15)
 
     reset()
     materials(screen)
@@ -591,11 +625,11 @@ def main():
         "front": camera("Front", (0, 0, 0.26), centre, lens=100),
         "side": camera("Side", (0.26, 0, H / 2), centre, lens=100),
         "back": camera("Back", (0, 0, -0.26), centre, lens=100),
-        "exploded": camera("Exploded", (0.10, -0.23, 0.11), (0, 0, 0.040), lens=70),
+        "exploded": camera("Exploded", (0.12, -0.27, 0.112), (0, 0, 0.033), lens=58),
         "section": camera("Section", (0.24, -0.02, 0.03), (0, 0, H / 2 - 0.002), lens=120),
         "wrist": camera("Wrist", (0.21, -0.29, 0.12), (0.03, -0.025, -0.035), lens=60),
     }
-    fl = floor(z=-(P["wrist_diameter"] + 8) * MM, size=1.2)
+    fl = floor(z=-(P["wrist_diameter"] + 8) * MM, size=8.0)
     if "hero" in wanted:
         render(cams["hero"], os.path.join(renders, "hero.png"))
     if "front" in wanted:
@@ -608,6 +642,7 @@ def main():
         band = [o for o in parts if o.get("layer") in ("Strap", "Clasp")]
         for o in band:
             o.hide_render = True
+        fl.hide_render = True   # a plain background behind the labels
         render(cams["back"], os.path.join(renders, "back.png"))
         for o in band:
             o.hide_render = False
@@ -615,19 +650,22 @@ def main():
     # exploded view, labelled after the render (draw_labels)
     if "exploded" in wanted:
         originals = {o.name: o.location.copy() for o in parts}
-        explode(parts, 9.0)
+        explode(parts, EXPLODE_GAP_MM)
+        band = [o for o in parts if o.get("layer") in ("Strap", "Clasp")]
+        for o in band:
+            o.hide_render = True
         bpy.context.view_layer.update()
         labels = []
         for i, nm in enumerate(EXPLODED_LAYERS):
-            objs = [o for o in parts if (o.get("layer") or o.name) == nm and o.name.startswith(nm)]
+            objs = [o for o in parts if (o.get("layer") or o.name) == nm and o.name.startswith(nm) and o.type == "MESH"]
             if not objs:
                 continue
-            o = objs[0]
-            # the part's own extent (a board, a battery, a ring) at its centre height
-            radius = max(o.dimensions.x, o.dimensions.y) / 2 * 0.72
+            o = max(objs, key=lambda ob: ob.dimensions.x * ob.dimensions.y)
+            hx, hy = o.dimensions.x / 2, o.dimensions.y / 2
             side = 1 if i % 2 == 0 else -1
-            zc = o.location.z + (o.dimensions.z / 2 if nm == "Case" else 0.0)
-            point = (side * radius * 0.82, -radius * 0.45, zc)
+            _, top = layer_extent([o], o.get("layer") or o.name)
+            # a point on the part's top face, toward the camera and toward its label's side
+            point = (o.location.x + side * 0.45 * hx, o.location.y - 0.8 * hy, top * MM)
             text = "Case with buttons" if nm == "Case" else nm
             labels.append((text, anchor_2d(cams["exploded"], point), side))
         path = os.path.join(renders, "exploded.png")
@@ -635,6 +673,9 @@ def main():
         draw_labels(path, labels, font_px=max(18, res[0] // 42))
         for o in parts:
             o.location = originals[o.name]
+        for o in band:
+            o.hide_render = False
+        fl.hide_render = False
         bpy.context.view_layer.update()
     if "section" in wanted:
         cutter = section(parts)
@@ -650,14 +691,14 @@ def main():
         bpy.data.objects.remove(wrist)
         for o in dock_parts:
             bpy.data.objects.remove(o)
-    # turntable: the camera orbits the watch for 15 seconds
+    # turntable: the camera orbits the watch for TURNTABLE_S seconds
     if "turntable" in wanted and not args.no_video:
         s = bpy.context.scene
         empty = bpy.data.objects.new("Pivot", None)
         s.collection.objects.link(empty)
         cam = cams["hero"]
         cam.parent = empty
-        s.frame_start, s.frame_end = 1, 15 * fps
+        s.frame_start, s.frame_end = 1, TURNTABLE_S * fps
         s.render.fps = fps
         # linear keys (set before inserting: the action API differs between Blender versions)
         bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
@@ -666,7 +707,7 @@ def main():
         empty.rotation_euler = (0, 0, math.radians(360))
         empty.keyframe_insert("rotation_euler", frame=s.frame_end + 1)
         s.render.resolution_x, s.render.resolution_y = vres
-        s.cycles.samples = max(8, samples // 4)
+        s.cycles.samples = max(8, samples // 5)
         # Frames as PNG, then ffmpeg: the PyPI build of Blender has no video encoder of its own.
         frames_dir = os.path.join(out, "renders", "turntable_frames")
         os.makedirs(frames_dir, exist_ok=True)
@@ -688,7 +729,7 @@ def main():
         s.render.image_settings.file_format = "PNG"
         s.render.resolution_x, s.render.resolution_y = res
         cam.parent = None
-    export(parts, out)
+    export(parts, out, explode_offsets(parts, EXPLODE_GAP_MM))
     bpy.ops.file.pack_all()
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, "ira_watch.blend"), compress=True)
     print("done", out, file=sys.stderr)

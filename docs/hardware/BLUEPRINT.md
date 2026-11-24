@@ -35,7 +35,7 @@ the watch is a consumer product or a medical device.
 | Part | What it does for the person | IRA CARE feature |
 | --- | --- | --- |
 | Round always-on touch display, 1.39 to 1.43 inch, 466 × 466, under a domed cover | the time, the next visit, the question, the fall countdown, "Sravani is here", in large letters | home screen, check-ins, fall countdown, visit state |
-| Large red Help button on the side; smaller side button | one press tells the circle; the other says "I'm OK" | SOS with location; I'm OK during a check-in or a countdown |
+| Large coral Help button on the side; smaller side button | one press tells the circle; the other says "I'm OK" | SOS with location; I'm OK during a check-in or a countdown |
 | Two microphones and a loud speaker | IRA hears a quiet voice over a kettle; IRA speaks the question and the carer's name | Talk to IRA, check-in answers, "I'm OK" and "help" by voice, the communication profile's pace |
 | Vibration motor | a firm pattern for a question, a repeat, a fall, a carer's arrival | haptics channel of the communication profile |
 | Optical heart-rate sensor, skin contact, off-body detection | heart rate at its own time; whether the watch is worn | out-of-range alert, off-wrist notice and alert, fall gating |
@@ -44,7 +44,7 @@ the watch is a consumer product or a medical device.
 | System-on-chip running plain Android (AOSP) with LTE and VoLTE, GNSS, Wi-Fi, Bluetooth; eSIM | its own line, calls to the circle, one position when help is needed, upload at home | everything; the app's `aosp` flavour |
 | Battery, about 400 mAh, and power management | a day and a night on one charge, a battery notice to the carer | battery notice |
 | Wireless charging coil and the dock | charging without a plug | charging |
-| 316L steel case, sapphire-hard cover, medical-grade silicone strap with a magnetic clasp | 24-hour wear on older skin, fastened with one hand | wearing it at all |
+| 316L steel case finished in graphite, sapphire-hard cover, medical-grade silicone strap with a magnetic clasp | 24-hour wear on older skin, fastened with one hand | wearing it at all |
 
 ![Dimensions](dimensions.svg)
 
@@ -59,9 +59,17 @@ Back to front, true to size in the model: back cover (1.4 mm, with the sensor wi
 charging coil behind it); sensor board (0.8 mm: optical heart-rate front end, skin
 temperature, off-body detection); battery (4.6 mm, curved, about 400 mAh); logic board
 (1.0 mm: system-on-chip and modem, Wi-Fi and Bluetooth, GNSS, eSIM, power management,
-motion sensor, barometer, two microphones, speaker, vibration motor); display frame (1.0 mm);
-display (0.8 mm); cover glass (1.0 mm). The exploded render and the viewer show each layer;
-`renders/section.png` is the cut through the middle.
+motion sensor, barometer, two microphones, speaker, vibration motor); the case with its two
+buttons around them; display frame (1.0 mm); display (0.8 mm); cover glass (1.0 mm).
+`renders/exploded.png` and the viewer show the same stack read from the top down: cover glass,
+display, display frame, case with buttons, logic board, battery, sensor board, back cover, each
+layer lifted clear of the one below and labelled on the part itself. `renders/section.png` is
+the cut through the middle.
+
+**The look.** One finish everywhere (D-072): a graphite case (`#2B2E33`), a coral Help button
+(`#E2574C`), a slate strap, and the app's own screen colours. The Blender model, the eight
+renders, the 20-second `turntable.mp4`, the glTF in `viewer.html` and the dashboard's browser
+watch all use it; the colours are in `LOOK` in `scripts/hardware/build_watch.py`.
 
 ## 4. The software stack
 

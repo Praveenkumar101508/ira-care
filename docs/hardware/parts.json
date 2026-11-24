@@ -3,10 +3,7 @@
   "Cover glass",
   "Display",
   "Display frame",
-  "Bezel ring",
   "Case",
-  "Help button",
-  "Side button",
   "Logic board",
   "Battery",
   "Sensor board",
@@ -14,6 +11,31 @@
   "Strap",
   "Clasp"
  ],
+ "explode_mm": {
+  "Back cover": 0.0,
+  "Sensor board": 6.95,
+  "Battery": 13.35,
+  "Logic board": 19.75,
+  "Case": 38.55,
+  "Display frame": 44.35,
+  "Display": 52.15,
+  "Cover glass": 62.36
+ },
+ "look": {
+  "graphite": "#2B2E33",
+  "graphite_dark": "#1C1F22",
+  "coral": "#E2574C",
+  "strap": "#2F3A44",
+  "screen_bg": "#000000",
+  "ok": "#2E7D32",
+  "sos": "#B3261E",
+  "talk": "#2F5D8A",
+  "dock": "#FAF8F4",
+  "ink": "#1F2A24",
+  "muted": "#9FB0A8",
+  "paper": "#FAF8F4",
+  "line": "#E1DED8"
+ },
  "parts": [
   {
    "name": "Back cover",
@@ -164,22 +186,22 @@
   },
   {
    "name": "Bezel ring",
-   "layer": "Bezel ring",
-   "group": null,
+   "layer": "Case",
+   "group": "Case",
    "what": "a raised ring the finger can feel, so the Help button is found by touch",
    "feature": "orientation without looking"
   },
   {
    "name": "Help button",
-   "layer": "Help button",
-   "group": null,
+   "layer": "Case",
+   "group": "Case",
    "what": "a large tactile button on the side, red, 11 mm long: one press tells the family and carers",
    "feature": "Help request (SOS) with location"
   },
   {
    "name": "Side button",
-   "layer": "Side button",
-   "group": null,
+   "layer": "Case",
+   "group": "Case",
    "what": "a smaller button: I'm OK, and the menu",
    "feature": "I'm OK during a check-in or a fall countdown"
   },
