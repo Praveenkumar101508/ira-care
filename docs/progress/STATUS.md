@@ -50,9 +50,19 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-11 | dashboard-care-record | `feat/dashboard-care-record` | Merged (pull request 31) |
 | R3-12 | clean-product-ui | `feat/clean-product-ui` | Merged (pull request 32) |
 | R3-13 | founder-demo-data | `feat/founder-demo-data` | Merged (pull request 33) |
-| R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | Built and proved locally (clean-clone staging, 7 browser tests, film); pull request to follow |
-| R3-15 | cost-cuts | `ci/cost-cuts` | not started |
+| R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | Merged (pull request 34) |
+| R3-15 | cost-cuts | `ci/cost-cuts` | Built; the after-numbers come from its own pull request's run; pull request to follow |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 15 (cost-cuts), measured from the Actions API (24 November 2026)
+
+- Before: run 45305028277 (the push to `main` after pull request 24) billed 21.1 minutes
+  across eight jobs; with the pull request's own run, 42.2 minutes a phase.
+- After: `scripts/ci/changed_areas.sh` and `scripts/ci/already_tested.sh` tried locally (a
+  pull-request diff against `main` and a push diff both report the areas; an unknown base
+  reports everything). The workflow parses. The measured minutes after the change are
+  filled into `docs/evidence/ci/minutes.json` from the phase 15 pull request's run and the
+  push that merges it.
 
 ## Round 3, phase 14 (staging-proof-and-film), measured locally (24 November 2026)
 

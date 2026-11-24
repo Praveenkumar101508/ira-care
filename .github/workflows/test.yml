@@ -15,9 +15,13 @@
 #   mobile            family app: type check and tests (when mobile/ exists)
 #   dashboard         carer dashboard: build and tests (when dashboard/ exists)
 #
-# The three client jobs are gated on a "detect" job so the workflow stays green
-# while a client has not been built yet, and starts enforcing the moment its
-# directory appears. Nothing here uses a paid runner or a paid service.
+# Every job is gated on the "detect" job: a client job runs when its directory exists and
+# its files (or something shared) changed; the backend jobs run when backend files (or
+# something shared) changed; and a push to main whose tree already passed as a pull
+# request head skips the heavy jobs (scripts/ci/already_tested.sh). No test is removed:
+# a pull request that touches an area always runs that area's whole suite. Nothing here
+# uses a paid runner or a paid service. docs/evidence/ci/minutes.json records the minutes
+# before and after these rules (round 3, phase 15).
 name: tests
 
 on:
@@ -31,6 +35,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 env:
   PYTHON_VERSION: "3.12"
@@ -41,22 +46,44 @@ env:
 
 jobs:
   detect:
-    name: Detect components
+    name: Detect components and changes
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       watch: ${{ steps.probe.outputs.watch }}
       mobile: ${{ steps.probe.outputs.mobile }}
       dashboard: ${{ steps.probe.outputs.dashboard }}
+      backend: ${{ steps.changes.outputs.backend }}
+      watch_changed: ${{ steps.changes.outputs.watch }}
+      mobile_changed: ${{ steps.changes.outputs.mobile }}
+      dashboard_changed: ${{ steps.changes.outputs.dashboard }}
+      already_tested: ${{ steps.tree.outputs.already_tested }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - id: probe
         run: |
           echo "watch=$([ -f watch/gradlew ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           echo "mobile=$([ -f mobile/package.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           echo "dashboard=$([ -f dashboard/package.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      # Path filters inside the workflow: a job runs when the files it tests changed, or when
+      # anything it shares changed (the workflow, the CI scripts, the migrations, the deploy
+      # files). Pure documentation changes run only the secret scan and this job.
+      - id: changes
+        run: bash scripts/ci/changed_areas.sh "${{ github.event_name }}" "${{ github.event.pull_request.base.sha }}" "${{ github.event.before }}" >> "$GITHUB_OUTPUT"
+      # A push to main whose tree already passed as a pull request head does not run the
+      # heavy jobs again: the tests of an identical tree cannot say anything new.
+      - id: tree
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/ci/already_tested.sh >> "$GITHUB_OUTPUT"
 
   backend-unit:
     name: Backend unit tests
+    needs: detect
+    if: needs.detect.outputs.backend == 'true' && needs.detect.outputs.already_tested != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     defaults:
@@ -76,6 +103,8 @@ jobs:
 
   backend-database:
     name: Backend database tests
+    needs: detect
+    if: needs.detect.outputs.backend == 'true' && needs.detect.outputs.already_tested != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     defaults:
@@ -188,6 +217,8 @@ jobs:
 
   backend-lint:
     name: Backend lint
+    needs: detect
+    if: needs.detect.outputs.backend == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -198,13 +229,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: supracloud-jarvis/ira/requirements-test.txt
       - run: pip install ruff
       - run: ruff check .
 
   watch:
     name: Watch app (Wear OS and AOSP)
     needs: detect
-    if: needs.detect.outputs.watch == 'true'
+    if: needs.detect.outputs.watch == 'true' && needs.detect.outputs.watch_changed == 'true' && needs.detect.outputs.already_tested != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     defaults:
@@ -226,7 +259,7 @@ jobs:
   mobile:
     name: Family app (Expo)
     needs: detect
-    if: needs.detect.outputs.mobile == 'true'
+    if: needs.detect.outputs.mobile == 'true' && needs.detect.outputs.mobile_changed == 'true' && needs.detect.outputs.already_tested != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -246,7 +279,7 @@ jobs:
   dashboard:
     name: Carer dashboard (Next.js)
     needs: detect
-    if: needs.detect.outputs.dashboard == 'true'
+    if: needs.detect.outputs.dashboard == 'true' && needs.detect.outputs.dashboard_changed == 'true' && needs.detect.outputs.already_tested != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -259,6 +292,11 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: dashboard/package-lock.json
+      - uses: actions/cache@v4
+        with:
+          path: dashboard/.next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('dashboard/package-lock.json') }}-${{ hashFiles('dashboard/src/**') }}
+          restore-keys: next-${{ runner.os }}-${{ hashFiles('dashboard/package-lock.json') }}-
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
