@@ -1,5 +1,87 @@
 # IRA CARE: final report
 
+## Round 4 (the polish, 24 November 2026)
+
+Four phases, each one branch and one pull request squash-merged into `main` with CI green,
+each started from the latest `main`. Everything below is what a test, a measurement or a
+recording in this repository shows.
+
+### Round 4: the merges
+
+| Phase | Branch | Pull request | What it delivers |
+| --- | --- | --- | --- |
+| R4-1 | `feat/fast-conversation` | 37 | The model kept loaded, one model in memory, a shorter prompt and context, `gemma4:e4b` then `gemma4:e2b`, sentences streamed, an instant acknowledgement, check-in questions prepared five minutes ahead (D-069 to D-071) |
+| R4-2 | `fix/watch-design-renders` | 38 | One look for the watch (graphite case, coral Help button, the app's colours) everywhere; the exploded view in stack order with legible labels; eight renders, the 20-second turntable, glTF and viewer rebuilt (D-072) |
+| R4-3 | `feat/demo-film-polish` | 39 | The film at 1080p with IRA's own words; four conversation faults and one wording fault found while recording, each fixed with a test (D-073) |
+| R4-4 | `docs/polish-final` | 40 | The documents in line with the merged code; the Kaggle GPU measurement; this section |
+
+### Round 4: the conversation, timed and scored
+
+On the deployment-sized machine (4 vCPU Intel Xeon 2.10 GHz, 15.7 GB, no GPU, Ollama 0.40.18),
+`docs/MODEL_CHOICE.md` ("Round 4"):
+
+- **Quality, 162-turn evaluation:** `gemma4:e4b` 0.909 (the best measured), red-flag recall
+  1.00; `gemma4:12b` 0.895; `gemma4:e2b` 0.882; `gemma4:e4b-it-qat` 0.844; `qwen3.5:2b` 0.834.
+  Chosen: `gemma4:e4b`, then `gemma4:e2b`, then the set lines.
+- **First words:** at once (0.0 s on the server; under 0.1 s through the talk endpoint on
+  staging), from the rules' acknowledgement. Target 1.5 s p50: met.
+- **First sentence from the model:** 2.8 s p50 (5.9 s p95) on the evaluation set; 3.5 to 5.5 s
+  on whole talk turns on the staging stack (about 270 prompt tokens, read again in full on
+  every turn). Target 3 s p50: met on the evaluation set, **not met** on a whole talk turn;
+  round 3 took about 10 s, and 15 s when the model had unloaded.
+- **On a small GPU (Kaggle's free Tesla T4, measured):** `gemma4:e4b` first sentence 0.18 s
+  p50, `gemma4:12b` 0.94 s p50 (`docs/evidence/training/gpu_bench.json`). Server prices with a
+  20 to 24 GB card, with sources, are in `docs/MODEL_CHOICE.md`.
+
+### Round 4: what recording the film found
+
+Phase 1's evaluation timed the model directly; the film timed the product. Recording against
+the real model on staging showed that every talk turn was being answered from the set lines,
+for four reasons, each now covered by a test that fails without its fix (D-073): a cold model
+never loaded (each turn aborted its load, and the second model's load pushed the first out);
+the warm request loaded the model with a different context, so the first turn loaded it again;
+the 3-second first-token budget was shorter than a real turn's prompt takes on four cores (now
+8 s); and the browser watch read the whole reply before speaking, holding the acknowledgement
+back. A fifth fault was wording: "Have you taken your the evening tablet yet?".
+
+### Round 4: where to look
+
+- The film: `docs/film/ira_care.mp4` (1920 × 1080, 5 min 6 s, 15.2 MB); its words and how it is
+  remade: `docs/film/NARRATION.md`.
+- The renders: `docs/hardware/renders/` (`hero.png`, `front.png`, `side.png`, `back.png`,
+  `exploded.png`, `section.png`, `wrist_dock.png`, `screen_home.png`); the turntable:
+  `docs/hardware/turntable.mp4`.
+- The viewer: `docs/hardware/viewer.html` (one file; open it in any browser, drag to turn,
+  Explode to separate the layers, tap a part).
+- The measurements: `docs/MODEL_CHOICE.md`, `docs/evidence/eval/round4/`,
+  `docs/evidence/training/gpu_bench.json`, `docs/evidence/staging/clean_clone_proof.json`.
+
+### Round 4: test counts
+
+- CI on every pull request: backend lint, backend unit tests, backend database tests, the
+  dashboard (type check, tests, build), the secret scan and the readiness check, all green
+  before each merge.
+- Local, phase 3: care unit tests 159 passed; care database tests against PostgreSQL 16 with
+  pgvector 366 passed (8 skipped); dashboard 36 passed.
+- Staging from a clean clone of the merged phase 3 tree, with the end-to-end browser tests:
+  passed in 186 s.
+
+### Round 4: needs the owner
+
+- Delete the merged branches `feat/fast-conversation`, `fix/watch-design-renders`,
+  `feat/demo-film-polish` and, once pull request 40 is merged, `docs/polish-final` (this
+  session cannot delete branches).
+- Decide whether the first sentence should be faster on a whole talk turn: a shorter talk
+  prompt, or a GPU server (`docs/MODEL_CHOICE.md`, "What a small GPU server would give").
+- Watch the film and the renders and say whether the look is the one wanted; the colours are
+  in one place (`LOOK` in `scripts/hardware/build_watch.py`) and the renders, turntable,
+  viewer and film are remade from scripts.
+- The round 3 owner items below still stand.
+- Pull request descriptions: the tool line added to each of pull requests 37 to 40 was
+  removed; none is left.
+
+---
+
 ## Round 3 (the completion run, 23 and 24 November 2026)
 
 Seventeen phases, each one branch and one pull request squash-merged into `main` with CI

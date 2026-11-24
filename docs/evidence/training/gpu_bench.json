@@ -1,0 +1,144 @@
+{
+  "job": "gpu_bench",
+  "kernel": "Praveen0116/ira-care-gpu-bench",
+  "status": "complete",
+  "pushed_at": "2026-11-24T20:10:16+00:00",
+  "fetched_at": "2026-11-24T20:25:47+00:00",
+  "output_files": [],
+  "gpu_seconds_reported_by_script": 864,
+  "metrics": {
+    "gpu": "Tesla T4, 15360 MiB\nTesla T4, 15360 MiB",
+    "ollama": "ollama version is 0.40.18",
+    "models": {
+      "gemma4:e4b": {
+        "load_s": 128.07,
+        "talk_turns": 30,
+        "read_turns": 15,
+        "first_token_s": {
+          "p50": 0.098,
+          "p95": 0.102
+        },
+        "first_sentence_s": {
+          "p50": 0.177,
+          "p95": 0.339
+        },
+        "total_s": {
+          "p50": 0.607,
+          "p95": 0.877
+        },
+        "prompt_tokens_per_s": 1681.8,
+        "gen_tokens_per_s": 57.7,
+        "read_answer_s": {
+          "p50": 0.829,
+          "p95": 0.913
+        },
+        "read_json_ok": 15
+      },
+      "gemma4:e2b": {
+        "load_s": 49.71,
+        "talk_turns": 30,
+        "read_turns": 15,
+        "first_token_s": {
+          "p50": 0.046,
+          "p95": 0.049
+        },
+        "first_sentence_s": {
+          "p50": 0.154,
+          "p95": 0.222
+        },
+        "total_s": {
+          "p50": 0.338,
+          "p95": 0.456
+        },
+        "prompt_tokens_per_s": 3819.7,
+        "gen_tokens_per_s": 91.9,
+        "read_answer_s": {
+          "p50": 0.501,
+          "p95": 0.519
+        },
+        "read_json_ok": 15
+      },
+      "qwen3.5:2b": {
+        "load_s": 13.89,
+        "talk_turns": 30,
+        "read_turns": 15,
+        "first_token_s": {
+          "p50": 0.072,
+          "p95": 0.074
+        },
+        "first_sentence_s": {
+          "p50": 0.269,
+          "p95": 0.526
+        },
+        "total_s": {
+          "p50": 0.721,
+          "p95": 1.322
+        },
+        "prompt_tokens_per_s": 2365.9,
+        "gen_tokens_per_s": 66.6,
+        "read_answer_s": {
+          "p50": 1.026,
+          "p95": 1.196
+        },
+        "read_json_ok": 15
+      },
+      "gemma4:12b": {
+        "load_s": 10.54,
+        "talk_turns": 30,
+        "read_turns": 15,
+        "first_token_s": {
+          "p50": 0.36,
+          "p95": 0.385
+        },
+        "first_sentence_s": {
+          "p50": 0.939,
+          "p95": 1.218
+        },
+        "total_s": {
+          "p50": 1.601,
+          "p95": 2.1
+        },
+        "prompt_tokens_per_s": 446.2,
+        "gen_tokens_per_s": 25.6,
+        "read_answer_s": {
+          "p50": 2.786,
+          "p95": 3.298
+        },
+        "read_json_ok": 15
+      }
+    },
+    "settings": {
+      "num_ctx": 1024,
+      "keep_alive": "30m",
+      "talk_turns": 30,
+      "read_turns": 15
+    },
+    "seconds": 864
+  },
+  "log_tail": [
+    "installing ollama",
+    "WARNING: systemd is not running",
+    "WARNING: Unable to detect NVIDIA/AMD GPU. Install lspci or lshw to automatically detect and install GPU dependencies.",
+    "##############################################   99.6%",
+    "######################################################################## 100.0%",
+    ">>> Creating ollama user...",
+    ">>> Adding ollama user to video group...",
+    ">>> Adding current user to ollama group...",
+    ">>> Creating ollama systemd service...",
+    ">>> The Ollama API is now available at 127.0.0.1:11434.",
+    ">>> Install complete. Run \"ollama\" from the command line.",
+    "",
+    "ollama ollama version is 0.40.18",
+    "gpu Tesla T4, 15360 MiB",
+    "Tesla T4, 15360 MiB",
+    "pulled gemma4:e4b in 55s rc=0",
+    "gemma4:e4b: {\"load_s\": 128.07, \"talk_turns\": 30, \"read_turns\": 15, \"first_token_s\": {\"p50\": 0.098, \"p95\": 0.102}, \"first_sentence_s\": {\"p50\": 0.177, \"p95\": 0.339}, \"total_s\": {\"p50\": 0.607, \"p95\": 0.877}, \"prompt_tokens_per_s\": 1681.8, \"gen_tokens_per_s\": 57.7, \"read_answer_s\": {\"p50\": 0.829, \"p95\": 0.913}, \"read_json_ok\": 15}",
+    "pulled gemma4:e2b in 33s rc=0",
+    "gemma4:e2b: {\"load_s\": 49.71, \"talk_turns\": 30, \"read_turns\": 15, \"first_token_s\": {\"p50\": 0.046, \"p95\": 0.049}, \"first_sentence_s\": {\"p50\": 0.154, \"p95\": 0.222}, \"total_s\": {\"p50\": 0.338, \"p95\": 0.456}, \"prompt_tokens_per_s\": 3819.7, \"gen_tokens_per_s\": 91.9, \"read_answer_s\": {\"p50\": 0.501, \"p95\": 0.519}, \"read_json_ok\": 15}",
+    "pulled qwen3.5:2b in 17s rc=0",
+    "qwen3.5:2b: {\"load_s\": 13.89, \"talk_turns\": 30, \"read_turns\": 15, \"first_token_s\": {\"p50\": 0.072, \"p95\": 0.074}, \"first_sentence_s\": {\"p50\": 0.269, \"p95\": 0.526}, \"total_s\": {\"p50\": 0.721, \"p95\": 1.322}, \"prompt_tokens_per_s\": 2365.9, \"gen_tokens_per_s\": 66.6, \"read_answer_s\": {\"p50\": 1.026, \"p95\": 1.196}, \"read_json_ok\": 15}",
+    "pulled gemma4:12b in 64s rc=0",
+    "gemma4:12b: {\"load_s\": 10.54, \"talk_turns\": 30, \"read_turns\": 15, \"first_token_s\": {\"p50\": 0.36, \"p95\": 0.385}, \"first_sentence_s\": {\"p50\": 0.939, \"p95\": 1.218}, \"total_s\": {\"p50\": 1.601, \"p95\": 2.1}, \"prompt_tokens_per_s\": 446.2, \"gen_tokens_per_s\": 25.6, \"read_answer_s\": {\"p50\": 2.786, \"p95\": 3.298}, \"read_json_ok\": 15}",
+    "METRICS {\"gpu\": \"Tesla T4, 15360 MiB\\nTesla T4, 15360 MiB\", \"ollama\": \"ollama version is 0.40.18\", \"models\": {\"gemma4:e4b\": {\"load_s\": 128.07, \"talk_turns\": 30, \"read_turns\": 15, \"first_token_s\": {\"p50\": 0.098, \"p95\": 0.102}, \"first_sentence_s\": {\"p50\": 0.177, \"p95\": 0.339}, \"total_s\": {\"p50\": 0.607, \"p95\": 0.877}, \"prompt_tokens_per_s\": 1681.8, \"gen_tokens_per_s\": 57.7, \"read_answer_s\": {\"p50\": 0.829, \"p95\": 0.913}, \"read_json_ok\": 15}, \"gemma4:e2b\": {\"load_s\": 49.71, \"talk_turns\": 30, \"read_turns\": 15, \"first_token_s\": {\"p50\": 0.046, \"p95\": 0.049}, \"first_sentence_s\": {\"p50\": 0.154, \"p95\": 0.222}, \"total_s\": {\"p50\": 0.338, \"p95\": 0.456}, \"prompt_tokens_per_s\": 3819.7, \"gen_tokens_per_s\": 91.9, \"read_answer_s\": {\"p50\": 0.501, \"p95\": 0.519}, \"read_json_ok\": 15}, \"qwen3.5:2b\": {\"load_s\": 13.89, \"talk_turns\": 30, \"read_turns\": 15, \"first_token_s\": {\"p50\": 0.072, \"p95\": 0.074}, \"first_sentence_s\": {\"p50\": 0.269, \"p95\": 0.526}, \"total_s\": {\"p50\": 0.721, \"p95\": 1.322}, \"prompt_tokens_per_s\": 2365.9, \"gen_tokens_per_s\": 66.6, \"read_answer_s\": {\"p50\": 1.026, \"p95\": 1.196}, \"read_json_ok\": 15}, \"gemma4:12b\": {\"load_s\": 10.54, \"talk_turns\": 30, \"read_turns\": 15, \"first_token_s\": {\"p50\": 0.36, \"p95\": 0.385}, \"first_sentence_s\": {\"p50\": 0.939, \"p95\": 1.218}, \"total_s\": {\"p50\": 1.601, \"p95\": 2.1}, \"prompt_tokens_per_s\": 446.2, \"gen_tokens_per_s\": 25.6, \"read_answer_s\": {\"p50\": 2.786, \"p95\": 3.298}, \"read_json_ok\": 15}}, \"settings\": {\"num_ctx\": 1024, \"keep_alive\": \"30m\", \"talk_turns\": 30, \"read_turns\": 15}, \"seconds\": 864}"
+  ]
+}

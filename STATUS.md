@@ -30,13 +30,21 @@ tests. The per-phase detail is in [docs/progress/STATUS.md](docs/progress/STATUS
 | The system watches itself: heartbeats, `/health/jobs`, the "monitoring paused" banner | Built | A database test that stops the jobs; a dashboard test |
 | Home record, sealed access notes, location once at an SOS, whereabouts in every message | Built | Unit and database tests; the recording |
 | Fall detection on the watch with a countdown; the server's deadline; per-person off switch | Built, unit tested | Synthetic signals only; **real-world accuracy unmeasured** |
-| IRA talks: composed check-ins, structured answers, red flags, Talk to IRA, memory | Built | Unit and database tests with the fake model; **latency unmeasured** |
+| IRA talks: composed check-ins, structured answers, red flags, Talk to IRA, memory | Built, measured | Unit and database tests with the fake model; the 162-turn evaluation on the real open models and the staging stack (round 4: first words at once, the model's first sentence 3.5 to 5.5 s on 4 CPU cores; `docs/MODEL_CHOICE.md`) |
 | The hardware-free demo: seed, simulator, scenarios, recording | Built, recorded | `docs/demo/`; the clean-clone run |
 | Sign-up, invitations by link with consent, plans and limits | Built | Database tests on every new route; sign-up off by default |
 | Deployment: containers, HTTPS, health checks, encrypted backups with a proved restore, soak | Built, checked locally | The CI restore round trip; the soak (20 of 20 escalated); **not run on a rented machine** |
 | Store readiness, accessibility, legal drafts, compliance drafts | Built or written | Automated accessibility checks; every document marked as a draft for review |
 
 The full table with proof or blocker per feature is [docs/READINESS.md](docs/READINESS.md).
+
+## Round 4 (the polish, 24 November 2026)
+
+| Change | State | How it is proved |
+| --- | --- | --- |
+| A conversation that feels smooth on four CPU cores: the model kept loaded, a shorter prompt, an instant acknowledgement, prepared check-in questions, and a turn that asks only a loaded model | Built, measured | The 162-turn evaluation (`docs/evidence/eval/round4/`) and the staging stack; D-069 to D-071, D-073 |
+| The watch's one look and the exploded view in stack order, across the Blender model, eight renders, the turntable, the viewer and the browser watch | Built | Every render reviewed at full size; the viewer exploded in a headless browser; D-072 |
+| The film at 1080p with IRA's own words | Built | `docs/film/ira_care.mp4` (5 min 6 s, 15.2 MB), remade from the staging stack |
 
 ## Foundation (from IRA)
 
@@ -52,8 +60,9 @@ text-to-speech.
 - **No vendor sensor SDK.** Needs partner approval; the sensor source is an interface for it.
 - **No text messages or calls are sent.** Needs provider keys; without them the provider logs.
 - **No monitoring centre.** Needs a contract; tier 3 shows the family "call 999 now".
-- **No language model in the loop by default.** Questions come from templates; a model may
-  rephrase them when `IRA_CARE_MODEL_PHRASING` is on.
+- **No GPU.** The open models run on the server's CPU (`gemma4:e4b`, then `gemma4:e2b`, then
+  the set lines; no hosted model API). A whole talk turn's first sentence takes 3.5 to 5.5 s on
+  four cores; a small GPU server would bring it well under a second (`docs/MODEL_CHOICE.md`).
 - **One inherited test** fails on a full local clone and skips in CI (DECISIONS D-004).
 
 ## Verification
