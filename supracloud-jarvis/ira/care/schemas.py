@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import re
 import uuid
 from typing import Optional
 
@@ -315,6 +316,44 @@ class Resolve(BaseModel):
         if v not in ALERT_OUTCOMES:
             raise ValueError(f"outcome must be one of {ALERT_OUTCOMES}")
         return v
+
+
+class Preferences(BaseModel):
+    """How the app looks for one account. Any field may be left out; the app has defaults."""
+    wallpaper_kind: Optional[str] = Field(None, pattern=r"^(colour|image|photo)$")
+    wallpaper_value: Optional[str] = Field(None, max_length=480000)
+    mode: Optional[str] = Field(None, pattern=r"^(system|light|dark)$")
+    text_scale: Optional[float] = Field(None, ge=0.85, le=1.8)
+    high_contrast: Optional[bool] = None
+    reduce_motion: Optional[bool] = None
+    card_order: Optional[list[str]] = Field(None, max_length=12)
+    selected_person_id: Optional[uuid.UUID] = None
+
+    @field_validator("wallpaper_value")
+    @classmethod
+    def _wallpaper(cls, v, info):
+        kind = info.data.get("wallpaper_kind")
+        if v is None:
+            return v
+        if kind == "colour" and not re.fullmatch(r"#[0-9a-fA-F]{6}", v):
+            raise ValueError("a colour wallpaper is a #rrggbb value")
+        if kind == "image" and not re.fullmatch(r"[a-z0-9_-]{1,40}", v):
+            raise ValueError("a built-in image is named by its key")
+        if kind == "photo" and not v.startswith("data:image/"):
+            raise ValueError("a photo wallpaper is a data URL")
+        return v
+
+    @field_validator("card_order")
+    @classmethod
+    def _cards(cls, v):
+        if v is None:
+            return v
+        out = [c for c in v if re.fullmatch(r"[a-z_]{1,32}", c)]
+        return list(dict.fromkeys(out))
+
+
+class PhoneHelp(BaseModel):
+    note: str = Field("", max_length=400)
 
 
 class CommunicationProfile(BaseModel):

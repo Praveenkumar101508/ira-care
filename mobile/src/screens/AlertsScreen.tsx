@@ -3,7 +3,7 @@ import { FlatList, Linking, StyleSheet, Text, View } from 'react-native';
 import type { AccessNotes, Alert, AlertOutcome, Person } from '../api/types';
 import { alertTitle, awaitingArrival, needsSomeone, showCall999, sortAlerts, whereabouts } from '../model/alerts';
 import { timeAgo } from '../model/format';
-import { BigButton, Card, Muted, Screen, colors } from '../ui';
+import { BigButton, Card, Muted, Screen , useColors, type Palette } from '../ui';
 
 export function AlertsScreen({ alerts, people, onAcknowledge, onArrived, onResolve, onBack, onCall999, onAccessNotes }: {
   alerts: Alert[]; people: Person[];
@@ -12,6 +12,8 @@ export function AlertsScreen({ alerts, people, onAcknowledge, onArrived, onResol
   onBack: () => void; onCall999: () => void;
   onAccessNotes?: (a: Alert) => Promise<AccessNotes>;
 }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [busy, setBusy] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, AccessNotes | 'refused'>>({});
   const personOf = (id: string) => people.find((p) => p.id === id);
@@ -99,7 +101,7 @@ export function AlertsScreen({ alerts, people, onAcknowledge, onArrived, onResol
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   kind: { fontSize: 18, fontWeight: '700' },
   where: { marginTop: 8, padding: 8, borderRadius: 8, backgroundColor: '#f4f4f0' },
   whereText: { fontSize: 15 },

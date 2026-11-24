@@ -45,14 +45,24 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-6 | scheduled-care | `feat/scheduled-care` | Merged (pull request 26) |
 | R3-7 | ira-personal | `feat/ira-personal` | Merged (pull request 27) |
 | R3-8 | watch-platform-layer | `feat/watch-platform-layer` | Merged (pull request 28) |
-| R3-9 | hardware-blueprint | `feat/hardware-blueprint` | Built locally (model, renders, viewer, components, blueprint); pull request to follow |
-| R3-10 | one-mobile-app | `feat/one-mobile-app` | not started |
+| R3-9 | hardware-blueprint | `feat/hardware-blueprint` | Merged (pull request 29) |
+| R3-10 | one-mobile-app | `feat/one-mobile-app` | Built and tested locally; pull request to follow |
 | R3-11 | dashboard-care-record | `feat/dashboard-care-record` | not started |
 | R3-12 | clean-product-ui | `feat/clean-product-ui` | not started |
 | R3-13 | founder-demo-data | `feat/founder-demo-data` | not started |
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | not started |
 | R3-15 | cost-cuts | `ci/cost-cuts` | not started |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 10 (one-mobile-app), measured locally (24 November 2026)
+
+- Migration 111 (`care_user_preferences`, 150 to 151 tables), routes `/me/experience`,
+  `/me/preferences`, `/people/{id}/help`; account erasure covers the new table.
+- Phone: type check and 42 tests (15 new: appearance rules, experience model, the shell at
+  each experience, settings controls, the tab bar); the shared UI now follows the theme.
+- Server: 3 tests in `test_care_one_app_db.py` (experience by relationship and role; the
+  appearance per account and device with a photo, a bad colour and an oversized photo
+  refused; Help from the phone), run against PostgreSQL.
 
 ## Round 3, phase 9 (hardware-blueprint), measured locally (24 November 2026)
 

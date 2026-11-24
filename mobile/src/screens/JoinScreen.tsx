@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput } from 'react-native';
 import { CareClient } from '../api/client';
-import { BigButton, Card, Muted, Screen, colors } from '../ui';
+import { BigButton, Card, Muted, Screen , useColors, type Palette } from '../ui';
 
 /** "I have an invitation link": sign in with the invited address and join the care circle. */
 export function JoinScreen({ baseUrl, onJoined, onBack }: { baseUrl: string; onJoined: (session: { accessToken: string; refreshToken: string; workspaceId: string | null; username: string }) => void; onBack: () => void }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [link, setLink] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,4 +37,4 @@ export function JoinScreen({ baseUrl, onJoined, onBack }: { baseUrl: string; onJ
   );
 }
 
-const styles = StyleSheet.create({ input: { borderWidth: 1, borderColor: '#bbb', borderRadius: 10, padding: 12, fontSize: 18, backgroundColor: '#fff', marginTop: 8 } });
+const makeStyles = (colors: Palette) => StyleSheet.create({ input: { borderWidth: 1, borderColor: '#bbb', borderRadius: 10, padding: 12, fontSize: 18, backgroundColor: '#fff', marginTop: 8 } });

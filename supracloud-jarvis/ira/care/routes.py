@@ -15,6 +15,7 @@ row to `care_access_log` in the same transaction as the read.
 from __future__ import annotations
 
 import datetime as dt
+import json
 import uuid
 from typing import Optional
 
@@ -26,7 +27,7 @@ from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
-from . import audit, checkin_cycle, consent, history, onboarding, ops, personal, push, reports, repository as repo, schemas, sos, visits
+from . import authz, audit, checkin_cycle, consent, history, onboarding, ops, personal, push, reports, repository as repo, schemas, sos, visits
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 router = APIRouter(prefix="/care", tags=["care"])
@@ -527,6 +528,83 @@ async def ask_now(person_id: uuid.UUID, body: schemas.AskNow, p: Principal = Dep
     if row is None:
         raise _not_found("Person not found.")
     return row
+
+
+# ── One app: who you are to the people here, and how it looks for you (111) ──
+
+EXPERIENCES = ("wearer", "family", "carer")
+
+
+def experience_for(memberships: list[dict], manage: bool) -> str:
+    """wearer: a circle member whose relationship is 'self'; carer: a carer, clinician,
+    care-organisation member or a workspace administrator; otherwise family."""
+    if any(str(m.get("relationship", "")).strip().lower() == "self" for m in memberships):
+        return "wearer"
+    if manage or any(m.get("role") in ("carer", "clinician", "care_organisation") for m in memberships):
+        return "carer"
+    return "family"
+
+
+@router.get("/me/experience")
+async def my_experience(p: Principal = Depends(require_workspace_principal)):
+    """Which of the app's three experiences this account gets, and for whom."""
+    async with workspace_connection(p) as conn:
+        rows = [dict(r) for r in await conn.fetch(
+            "SELECT m.id, m.person_id, m.role, m.relationship, m.display_name, m.tier, "
+            "coalesce(nullif(pp.preferred_name, ''), pp.display_name) AS person_name "
+            "FROM care_circle_members m JOIN care_people pp ON pp.id = m.person_id "
+            "WHERE m.user_id = $1 AND m.active AND pp.status = 'active' ORDER BY pp.display_name", p.user_id)]
+    manage = authz.can_manage(p)
+    return {"experience": experience_for(rows, manage), "can_manage": manage,
+            "memberships": [{k: (str(v) if isinstance(v, uuid.UUID) else v) for k, v in r.items()} for r in rows]}
+
+
+@router.get("/me/preferences")
+async def my_preferences(p: Principal = Depends(require_workspace_principal)):
+    """How the app looks for this account, the same on every device."""
+    async with workspace_connection(p) as conn:
+        row = await conn.fetchrow("SELECT appearance, updated_at FROM care_user_preferences WHERE user_id = $1", p.user_id)
+    appearance = row["appearance"] if row else {}
+    if isinstance(appearance, str):
+        appearance = json.loads(appearance)
+    return {"appearance": appearance, "updated_at": row["updated_at"] if row else None}
+
+
+@router.put("/me/preferences")
+async def put_my_preferences(body: schemas.Preferences, p: Principal = Depends(require_workspace_principal)):
+    appearance = body.model_dump(exclude_none=True)
+    text = json.dumps(appearance)
+    if len(text) > 500_000:
+        raise HTTPException(status_code=413, detail="The appearance (a photo wallpaper, probably) is too large: at most 500 KB.")
+    async with workspace_connection(p) as conn:
+        row = await conn.fetchrow(
+            """
+            INSERT INTO care_user_preferences (user_id, appearance) VALUES ($1, $2::jsonb)
+            ON CONFLICT (workspace_id, user_id) DO UPDATE SET appearance = EXCLUDED.appearance, updated_at = NOW()
+            RETURNING appearance, updated_at
+            """, p.user_id, text)
+    appearance = row["appearance"]
+    if isinstance(appearance, str):
+        appearance = json.loads(appearance)
+    return {"appearance": appearance, "updated_at": row["updated_at"]}
+
+
+@router.post("/people/{person_id}/help", status_code=201)
+async def help_from_phone(person_id: uuid.UUID, body: schemas.PhoneHelp, p: Principal = Depends(require_workspace_principal)):
+    """Help from the phone: the person themselves (the wearer experience) or a family
+    member who is with them. Opens the same SOS the watch would, marked 'phone'."""
+    ensure_can_act(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1 AND status = 'active'", person_id):
+            raise _not_found("Person not found.")
+        member = await conn.fetchrow(
+            "SELECT display_name, relationship FROM care_circle_members WHERE person_id = $1 AND user_id = $2 AND active",
+            person_id, p.user_id)
+        who = "the person" if member and str(member["relationship"]).lower() == "self" else (member["display_name"] if member else "a member of the circle")
+        alert = await repo.open_alert(conn, person_id, kind="help_requested", severity="sos",
+                                      details={"via": "phone", "note": body.note, "raised_by": who,
+                                               "summary": f"Help was asked for from the phone by {who}."})
+    return alert
 
 
 # ── IRA, personal to the person (110) ────────────────────────────────────────

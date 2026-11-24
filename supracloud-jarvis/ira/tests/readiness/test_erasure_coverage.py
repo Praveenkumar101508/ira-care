@@ -140,6 +140,11 @@ EXEMPT: dict[str, str] = {
         "workspace pass), by ON DELETE CASCADE from users, with the circle member, with the person "
         "cared for and with the TENANT. Listed here rather than in SUBJECT_TABLES because the "
         "generic tenant-wide DELETE would take every member's phones, not this account's.",
+    "care_user_preferences":
+        "IRA CARE (111): how the app looks for one account, keyed on user_id. Deleted by account "
+        "erasure through the care-specific step in erase_postgres (by user_id, inside each workspace "
+        "pass), by ON DELETE CASCADE from users, and with the TENANT. Listed here rather than in "
+        "SUBJECT_TABLES because the generic tenant-wide DELETE would take every member's appearance.",
     "care_push_tickets":
         "IRA CARE (107): the push service's ticket and receipt for one alert message. Belongs to the "
         "PERSON CARED FOR's alert, not to an account; the token link is ON DELETE SET NULL. Removed "
@@ -535,7 +540,7 @@ TENANT_LIFECYCLE_EXEMPT: frozenset[str] = frozenset({
     "care_acknowledgements", "care_routines", "care_medications",
     "care_medication_events", "care_transcripts", "care_consents", "care_reports",
     "care_conversation_memory", "care_device_events", "care_push_tokens", "care_push_tickets",
-    "care_visits", "care_visit_tasks", "care_communication_profiles", "care_reminders",
+    "care_visits", "care_visit_tasks", "care_communication_profiles", "care_reminders", "care_user_preferences",
 })
 
 

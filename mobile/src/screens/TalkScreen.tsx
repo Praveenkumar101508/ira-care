@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Linking, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { Person, TalkReply } from '../api/types';
 import { telLink } from '../model/format';
-import { BigButton, Card, Muted, Screen, colors } from '../ui';
+import { BigButton, Card, Muted, Screen , useColors, type Palette } from '../ui';
 
 /**
  * Talk to IRA from the person's own phone: company, reminders, "what's on
@@ -12,6 +12,8 @@ import { BigButton, Card, Muted, Screen, colors } from '../ui';
 export function TalkScreen({ person, onSend, onBack }: {
   person: Person; onSend: (text: string) => Promise<TalkReply>; onBack: () => void;
 }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [text, setText] = useState('');
   const [log, setLog] = useState<{ who: 'you' | 'ira'; text: string }[]>([]);
   const [action, setAction] = useState<TalkReply['action']>(null);
@@ -57,7 +59,7 @@ export function TalkScreen({ person, onSend, onBack }: {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   line: { fontSize: 18 },
   ira: { color: '#1b4d3e' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 8 },

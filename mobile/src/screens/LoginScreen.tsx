@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { ApiError, CareClient } from '../api/client';
 import type { Workspace } from '../api/types';
-import { BigButton, Card, Muted, Screen, colors } from '../ui';
+import { BigButton, Card, Muted, Screen , useColors, type Palette } from '../ui';
 
 export interface LoginResult {
   baseUrl: string; accessToken: string; refreshToken: string; username: string;
@@ -10,6 +10,8 @@ export interface LoginResult {
 }
 
 export function LoginScreen({ defaultBaseUrl, onLoggedIn, onJoin }: { defaultBaseUrl: string; onLoggedIn: (r: LoginResult) => void; onJoin?: () => void }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [baseUrl, setBaseUrl] = useState(defaultBaseUrl);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -48,7 +50,7 @@ export function LoginScreen({ defaultBaseUrl, onLoggedIn, onJoin }: { defaultBas
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   input: { borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 12, fontSize: 16, marginTop: 10, color: colors.text },
   error: { color: colors.sos, marginTop: 8 },
 });

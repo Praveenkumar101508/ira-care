@@ -7,13 +7,15 @@ import { REMINDER_WORDS, reminderActions, reminderTitle } from '../model/reminde
 import { VISIT_OUTCOMES, VISIT_OUTCOME_WORDS, currentVisit, visitActions, visitTitle } from '../model/visits';
 import { alertTitle } from '../model/alerts';
 import { deviceSummary, readingLabel, telLink, timeAgo } from '../model/format';
-import { BigButton, Card, Muted, Screen, colors } from '../ui';
+import { BigButton, Card, Muted, Screen , useColors, type Palette } from '../ui';
 
 type Tab = 'status' | 'visits' | 'ira' | 'history' | 'reports' | 'contacts' | 'consent';
 
 export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair }: {
   client: CareClient; person: Person; canManage: boolean; onBack: () => void; onTalk?: () => void; onPair?: () => void;
 }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [tab, setTab] = useState<Tab>('status');
   const [status, setStatus] = useState<PersonStatus | null>(null);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
@@ -269,7 +271,7 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   tabs: { flexDirection: 'row', gap: 8, marginBottom: 10 },
   tab: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: colors.card, color: colors.muted, borderWidth: 1, borderColor: colors.border },
   tabOn: { backgroundColor: colors.notice, color: '#fff', borderColor: colors.notice },

@@ -1,6 +1,8 @@
 import type { AlertOutcome, AccessNotes, TalkLine, TalkReply,
   Alert, Checkin, CircleMember, CommunicationProfile, ConsentList, Device, LoginResponse, Memory, Person, PersonStatus, Reminder, Report, Visit, VisitOutcome, WorkspaceList,
 } from './types';
+import type { Appearance } from '../appearance/theme';
+import type { Membership } from '../model/experience';
 
 /** What went wrong, in a way a screen can show. */
 export class ApiError extends Error {
@@ -143,6 +145,25 @@ export class CareClient {
 
   async forgetMemory(personId: string, day: string): Promise<void> {
     await this.request<void>('DELETE', `/api/v1/care/people/${personId}/memory/${day}`);
+  }
+
+  /** Which of the app's three experiences this account gets, and for whom. */
+  async experience(): Promise<{ experience: 'wearer' | 'family' | 'carer'; can_manage: boolean; memberships: Membership[] }> {
+    return this.request('GET', '/api/v1/care/me/experience');
+  }
+
+  /** How the app looks for this account, the same on every device. */
+  async preferences(): Promise<{ appearance: Partial<Appearance>; updated_at: string | null }> {
+    return this.request('GET', '/api/v1/care/me/preferences');
+  }
+
+  async putPreferences(appearance: Appearance): Promise<{ appearance: Partial<Appearance>; updated_at: string | null }> {
+    return this.request('PUT', '/api/v1/care/me/preferences', appearance);
+  }
+
+  /** Help from the phone: opens the same SOS the watch would. */
+  async phoneHelp(personId: string, note = ''): Promise<Alert> {
+    return this.request<Alert>('POST', `/api/v1/care/people/${personId}/help`, { note });
   }
 
   async circle(personId: string): Promise<CircleMember[]> {
