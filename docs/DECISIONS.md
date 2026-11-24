@@ -896,3 +896,23 @@ server reports a closed SOS, as the real watch does.
 Rejected: a separate "demo mode" switch on the watch page (the controls would still be one
 tap away in a recording); hiding the presenter behind a password (it is a local page with no
 secrets, and a password would be one more thing to type on stage).
+
+## D-064 The demonstration names the two people who build IRA CARE, and no one else real (round 3, phase 13)
+
+The demo seed, scenarios, recording, screenshots and demo script now name Praveen Kamineti
+as the care coordinator (the dashboard's care manager, in Ada's and Bert's circles as the
+carer called first) and Sravani Perni as family (Ada's daughter, Bert's niece, the family
+member called first). The people being looked after stay made up, with one name each: Ada
+Hartley and Bert Lowe. Ada also has her own account, linked to her circle with the
+relationship "self", so the phone app's wearer experience can be signed into and recorded.
+E-mail addresses are at example.com, telephone numbers in the UK range reserved for fiction
+(+447700900000 to +447700900003) and addresses in Lowbridge, a town that does not exist.
+`docs/BUILD_RULES.md` says so under "Demonstration data" and
+`supracloud-jarvis/ira/tests/test_demo_data_rules.py` checks every demonstration file for
+other e-mail domains, other telephone numbers, other full names, "Demo Person" and the old
+placeholders. The 68 screenshots in `docs/screens/` were retaken with this data; the wearer's
+four screens are new.
+
+Rejected: using the builders' real e-mail addresses or numbers in the seed (the rule against
+real contact details holds for the builders too); a third real name for the viewer account
+(it is "Care viewer", a role).

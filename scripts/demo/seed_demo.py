@@ -3,11 +3,15 @@
 
     IRA_TEST_DATABASE_DSN=... IRA_TEST_ADMIN_DSN=... python scripts/demo/seed_demo.py [--reset]
 
-Everything it creates is obviously fake: "Lowbridge Care", two people
-called Ada Hartley and Bert Lowe (made-up people), circle members with +4400000000xx numbers, an
-address at Example Street, routines, medication, a week of readings and
-check-ins, one resolved alert and one report. Three accounts can sign in to the
-dashboard and the family app. Their passwords and the device tokens are
+What it creates follows docs/BUILD_RULES.md "Demonstration data": the care
+organisation "Lowbridge Care"; Praveen Kamineti as the care coordinator and
+Sravani Perni as family (the two people who build IRA CARE); two made-up people
+being looked after, Ada Hartley and Bert Lowe, with example.com addresses,
+07700 900xxx telephone numbers (the UK range reserved for fiction) and
+addresses in a town that does not exist; routines, medication, a week of
+readings and check-ins, one resolved alert and one report. Four accounts can
+sign in: Praveen (dashboard and app, the carer's experience), Sravani (the
+family experience), Ada (the wearer's own phone) and a read-only viewer. Their passwords and the device tokens are
 generated afresh on every run, printed to the terminal and written for the
 local scripts to `.demo/demo.local.json` (mode 0600, ignored by git). Nothing
 in the repository can sign in to any seeded demo.
@@ -40,29 +44,33 @@ UTC = dt.UTC
 SLUG = "demo-care-organisation"
 DISPLAY = "Lowbridge Care"
 ACCOUNTS = [
-    # email, display name, tenant role, workspace role. Passwords are generated
+    # key, email, display name, tenant role, workspace role. Passwords are generated
     # on every run (fresh_password) and never written into the repository.
-    ("demo-manager@example.invalid", "Care manager", "owner", "workspace_admin"),
-    ("demo-family@example.invalid", "Family member", "member", "member"),
-    ("demo-viewer@example.invalid", "Care viewer", "member", "viewer"),
+    ("coordinator", "praveen@example.com", "Praveen Kamineti", "owner", "workspace_admin"),
+    ("family", "sravani@example.com", "Sravani Perni", "member", "member"),
+    ("wearer", "ada@example.com", "Ada Hartley", "member", "member"),
+    ("viewer", "viewer@example.com", "Care viewer", "member", "viewer"),
 ]
 PEOPLE = [
     {"display_name": "Ada Hartley", "preferred_name": "Ada", "timezone": "Europe/London", "language": "en-GB",
-     "home_address": "1 Example Street, Testtown, TE5 7ST", "home_latitude": 51.5, "home_longitude": -0.12,
+     "home_address": "14 Orchard Close, Lowbridge, LB1 2AB", "home_latitude": 51.5, "home_longitude": -0.12,
      "emergency_summary": "Hard of hearing: speak clearly and face them. Uses a walking stick.",
      "access_notes": "Key safe left of the front door, code on the circle's record. Small friendly dog called Biscuit.",
      "routines": [("breakfast", "meal", "08:00"), ("lunch", "meal", "12:30"), ("afternoon walk", "activity", "15:00"), ("tea", "meal", "18:00")],
      "medications": [("the morning tablets", "one", ["08:00"]), ("the evening tablet", "one", ["20:00"])],
-     "circle": [("Family member", "family", 1, "+440000000001", "daughter", True),
-                ("Visiting carer", "carer", 1, "+440000000002", "visiting carer", False),
-                ("Lowbridge Care desk", "care_organisation", 2, "+440000000003", "", False)]},
+     # name, role, tier, phone, relationship, linked account (a key in ACCOUNTS or None)
+     "circle": [("Ada Hartley", "family", 3, "+447700900000", "self", "wearer"),
+                ("Sravani Perni", "family", 1, "+447700900001", "daughter", "family"),
+                ("Praveen Kamineti", "carer", 1, "+447700900002", "care coordinator", "coordinator"),
+                ("Lowbridge Care desk", "care_organisation", 2, "+447700900003", "", None)]},
     {"display_name": "Bert Lowe", "preferred_name": "Bert", "timezone": "Europe/London", "language": "en-GB",
-     "home_address": "2 Example Court, Testtown, TE5 7ST", "home_latitude": 51.52, "home_longitude": -0.1,
+     "home_address": "Flat 3, Mill House, Lowbridge, LB1 4QT", "home_latitude": 51.52, "home_longitude": -0.1,
      "emergency_summary": "", "access_notes": "Door code with the warden. No pets.",
      "routines": [("breakfast", "meal", "09:00"), ("lunch", "meal", "13:00")],
      "medications": [("the blue tablet", "one", ["09:00", "21:00"])],
-     "circle": [("Her son", "family", 1, "+440000000011", "son", False),
-                ("Lowbridge Care desk", "care_organisation", 2, "+440000000003", "", False)]},
+     "circle": [("Sravani Perni", "family", 1, "+447700900001", "niece", "family"),
+                ("Praveen Kamineti", "carer", 1, "+447700900002", "care coordinator", "coordinator"),
+                ("Lowbridge Care desk", "care_organisation", 2, "+447700900003", "", None)]},
 ]
 
 
@@ -78,10 +86,10 @@ async def remove_previous(admin) -> None:
     for r in rows:
         # The care access log keeps RESTRICT on the tenant: remove the demo's rows first (schema owner).
         await admin.execute("DELETE FROM care_access_log WHERE tenant_id = $1", r["id"])
-        for email, *_ in ACCOUNTS:
+        for _key, email, *_ in ACCOUNTS:
             # Accounts are retired, not deleted: token and audit rows keep their foreign keys.
             await admin.execute(
-                "UPDATE users SET email = 'retired+' || id::text || '@example.invalid', email_verified_at = NULL, "
+                "UPDATE users SET email = 'retired+' || id::text || '@example.com', email_verified_at = NULL, "
                 "deleted_at = NOW(), status = 'deleted' WHERE email = $1 AND deleted_at IS NULL", email)
         await admin.execute("DELETE FROM tenants WHERE id = $1", r["id"])
         print(f"removed the previous demo tenant {r['id']}")
@@ -105,7 +113,7 @@ async def seed(dsn: str, admin_dsn: str, out: Path) -> dict:
             "INSERT INTO tenants (id, name, slug, display_name, edition, status) VALUES ($1, $2, $2, $3, 'cloud', 'active')",
             tenant_id, SLUG, DISPLAY)
         users, passwords = {}, {}
-        for email, name, trole, wrole in ACCOUNTS:
+        for key, email, name, trole, wrole in ACCOUNTS:
             uid = uuid.uuid4()
             password = passwords[email] = fresh_password()
             await admin.execute(
@@ -115,22 +123,22 @@ async def seed(dsn: str, admin_dsn: str, out: Path) -> dict:
             await admin.execute(
                 "INSERT INTO tenant_memberships (tenant_id, user_id, role, status, joined_at) VALUES ($1, $2, $3, 'active', NOW())",
                 tenant_id, uid, trole)
-            users[wrole] = uid
+            users[key] = (uid, wrole)
         async with pool.acquire() as conn:
             await conn.execute("SELECT set_config('app.tenant_id', $1, false)", str(tenant_id))
-            await conn.execute("SELECT set_config('app.user_id', $1, false)", str(users["workspace_admin"]))
+            await conn.execute("SELECT set_config('app.user_id', $1, false)", str(users["coordinator"][0]))
             await conn.execute("INSERT INTO organisations (id, tenant_id, name, slug) VALUES ($1, $2, $3, $4)", org_id, tenant_id, DISPLAY, f"org-{SLUG}")
             await conn.execute(
                 "INSERT INTO workspaces (id, tenant_id, organisation_id, name, slug, is_default, status) "
                 "VALUES ($1, $2, $3, 'Lowbridge care team', 'lowbridge-care-team', TRUE, 'active')", ws_id, tenant_id, org_id)
-            for wrole, uid in users.items():
+            for uid, wrole in users.values():
                 await conn.execute(
                     "INSERT INTO workspace_memberships (tenant_id, workspace_id, user_id, role, status) VALUES ($1, $2, $3, $4, 'active')",
                     tenant_id, ws_id, uid, wrole)
             for k in ("app.tenant_id", "app.user_id"):
                 await conn.execute(f"SELECT set_config('{k}', '', false)")
 
-        manager = principal_for(users["workspace_admin"], tenant_id, ws_id, "workspace_admin")
+        manager = principal_for(users["coordinator"][0], tenant_id, ws_id, "workspace_admin")
         jp = cycle.job_principal(tenant_id, ws_id)
         rng = random.Random(42)
         now = dt.datetime.now(UTC)
@@ -142,7 +150,7 @@ async def seed(dsn: str, admin_dsn: str, out: Path) -> dict:
             pid = person["id"]
             for name, role, tier, phone, rel, link in spec["circle"]:
                 await repo.add_member(manager, pid, {"display_name": name, "role": role, "tier": tier, "phone": phone,
-                                                     "relationship": rel, "user_id": users["member"] if link else None,
+                                                     "relationship": rel, "user_id": users[link][0] if link else None,
                                                      "sms_enabled": True, "call_enabled": True, "push_enabled": True})
             for name, kind, at in spec["routines"]:
                 await repo.add_routine(manager, pid, {"name": name, "kind": kind, "time_of_day": dt.time.fromisoformat(at), "days_of_week": [1, 2, 3, 4, 5, 6, 7], "active": True})
@@ -160,8 +168,8 @@ async def seed(dsn: str, admin_dsn: str, out: Path) -> dict:
             out_people.append({"id": str(pid), "display_name": spec["display_name"], "device_token": paired["device_token"],
                                "home_latitude": spec["home_latitude"], "home_longitude": spec["home_longitude"]})
         result = {"tenant_id": str(tenant_id), "workspace_id": str(ws_id), "organisation": DISPLAY,
-                  "manager_user_id": str(users["workspace_admin"]),
-                  "logins": [{"email": e, "password": passwords[e], "role": w} for e, _n, _t, w in ACCOUNTS], "people": out_people}
+                  "manager_user_id": str(users["coordinator"][0]),
+                  "logins": [{"key": k, "name": n, "email": e, "password": passwords[e], "role": w} for k, e, n, _t, w in ACCOUNTS], "people": out_people}
         write_private(out, json.dumps(result, indent=2) + "\n")
         return result
     finally:
@@ -224,7 +232,7 @@ def main() -> int:
     print(json.dumps({k: v for k, v in result.items() if k not in ("people", "logins")}, indent=2))
     print("\nLogins (generated for this run only):")
     for login in result["logins"]:
-        print(f"  {login['role']:16} {login['email']}  password {login['password']}")
+        print(f"  {login['name']:18} {login['role']:16} {login['email']}  password {login['password']}")
     for p in result["people"]:
         print(f"{p['display_name']}: device token {p['device_token']}")
     print(f"\nWritten for the local scripts to {args.out} (mode 0600, inside the ignored .demo/ directory). All of it is fake.")
