@@ -44,6 +44,7 @@ cp .env.example .env
 | `IRA_ADMIN_PASSWORD` | The private edition's owner account. Required by the settings even in the cloud edition; not used for care sign-in. | as above |
 | `IRA_CONNECTOR_ENCRYPTION_KEY` | 32 random bytes, base64. Seals the access notes (and connector credentials). Losing it loses the notes. | `python3 -c "import base64,os;print(base64.b64encode(os.urandom(32)).decode())"` |
 | `IRA_CARE_MODEL` | `ollama` (the default: the two free open-weight models served on this machine, then the set questions), `off` (templates only) or `fake` (demos and CI). There is no hosted model API in this product. | leave unset |
+| `IRA_CARE_CLASSIFIER` | `on` runs the small trained answer classifier on the CPU beside the keyword rules and the model; it may only add a signal, never remove one. Default `off`: on the 150-turn eval it equalled the rules (docs/evidence/training/classifier_eval.json). | `off` |
 | `IRA_CARE_MODEL_PRIMARY`, `IRA_CARE_MODEL_SECONDARY` | The chain: the chosen model, then the second. `docs/MODEL_CHOICE.md` says why these two. The `ollama-pull` service pulls them on first start. | `gemma4:12b`, `gemma4:e4b` |
 | `IRA_CARE_OPS_PHONE` | Who is told when the care jobs stop. Log-only until an SMS provider is configured. | your on-call number |
 | `IRA_CARE_SMS_PROVIDER` | `log` or `twilio`. The adapter never dials emergency numbers. | `log` until you have keys |

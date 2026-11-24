@@ -499,19 +499,32 @@ class Reading:
     red_flag: bool = False
 
 
-def merge(keyword: rules.AnswerReading, structured: Optional[StructuredAnswer], text: str, kind: str) -> Reading:
-    """The stricter of the two always wins: the model can never downgrade a
-    safety signal, and a red-flag phrase overrides everything."""
+# The classifier may only add a signal when it is sure: an "asked for help"
+# it gets wrong is a false alarm to the whole circle. Chosen on the 150-turn
+# eval (docs/evidence/training/classifier_eval.json), not on its training data.
+CLASSIFIER_MIN_CONFIDENCE = {"needs_help": 0.9, "pain": 0.8, "wellbeing": 0.7, "said": 0.8}
+
+
+def merge(keyword: rules.AnswerReading, structured: Optional[StructuredAnswer], text: str, kind: str,
+          classified=None) -> Reading:
+    """The stricter reading always wins: neither the model nor the classifier
+    can downgrade a safety signal, and a red-flag phrase overrides everything.
+    `classified` is the small classifier's reading (care/classifier.py), when it runs."""
     flag = red_flag(text)
     s = structured or StructuredAnswer()
-    needs_help = keyword.asked_for_help or s.needs_help or flag
+    c_help = bool(classified and classified.needs_help and classified.confidence.get("needs_help", 0) >= CLASSIFIER_MIN_CONFIDENCE["needs_help"])
+    c_pain = bool(classified and classified.pain and classified.confidence.get("pain", 0) >= CLASSIFIER_MIN_CONFIDENCE["pain"])
+    c_poor = bool(classified and classified.wellbeing == "poor" and classified.confidence.get("wellbeing", 0) >= CLASSIFIER_MIN_CONFIDENCE["wellbeing"])
+    needs_help = keyword.asked_for_help or s.needs_help or flag or c_help
     pain_kw = any("pain" in sig for sig in keyword.signals)
-    pain = pain_kw or s.pain_mentioned or flag
+    pain = pain_kw or s.pain_mentioned or flag or c_pain
     said = keyword.said
     if kind in ("meal", "medication"):
-        if "no" in (keyword.said, s.medication_taken if kind == "medication" else "unknown"):
+        c_said = (classified.said if classified and classified.said in ("yes", "no")
+                  and classified.confidence.get("said", 0) >= CLASSIFIER_MIN_CONFIDENCE["said"] else "unknown")
+        if "no" in (keyword.said, s.medication_taken if kind == "medication" else "unknown", c_said):
             said = "no"
-        elif keyword.said == "yes" or (kind == "medication" and s.medication_taken == "yes"):
+        elif keyword.said == "yes" or (kind == "medication" and s.medication_taken == "yes") or c_said == "yes":
             said = "yes"
         else:
             said = keyword.said or "unclear"
@@ -522,7 +535,7 @@ def merge(keyword: rules.AnswerReading, structured: Optional[StructuredAnswer], 
         signals.append("asked for help")
     if flag:
         signals.append("said something that needs a check right now")
-    if s.wellbeing == "poor" and "sounded low" not in signals:
+    if (s.wellbeing == "poor" or c_poor) and "sounded low" not in signals:
         signals.append("sounded low")
     summary = keyword.summary
     # The keyword summary already says yes or no about a meal or a dose; the
@@ -534,7 +547,10 @@ def merge(keyword: rules.AnswerReading, structured: Optional[StructuredAnswer], 
         summary = base if not signals else f"{base} ({'; '.join(signals)})"
     merged = rules.AnswerReading(summary=summary[:400], said=said, signals=tuple(dict.fromkeys(signals)),
                                  asked_for_help=needs_help)
-    return Reading(merged, StructuredAnswer(wellbeing=s.wellbeing, pain_mentioned=pain,
+    wellbeing = "poor" if (s.wellbeing == "poor" or c_poor) else s.wellbeing
+    if wellbeing == "unknown" and classified and classified.wellbeing in ("good", "ok"):
+        wellbeing = classified.wellbeing
+    return Reading(merged, StructuredAnswer(wellbeing=wellbeing, pain_mentioned=pain,
                                             medication_taken="yes" if said == "yes" else "no" if said == "no" else s.medication_taken,
                                             needs_help=needs_help, mood_words=s.mood_words, summary=merged.summary),
                    "model+rules" if structured is not None else "rules", red_flag=flag)
@@ -545,6 +561,15 @@ async def read_answer(kind: str, question: str, text: str, *, subject: Optional[
     keyword = rules.summarise_answer(kind, text, subject=subject)
     model = model if model is not None else configured_model()
     structured: Optional[StructuredAnswer] = None
+    classified = None
+    if (text or "").strip():
+        from . import classifier as _classifier
+        clf = _classifier.configured()
+        if clf is not None:
+            try:
+                classified = clf.read(text)
+            except Exception as exc:  # noqa: BLE001 - the rules and the model still decide
+                logger.info("care classifier failed on an answer (%s)", exc)
     if model is not None and (text or "").strip():
         try:
             raw = await asyncio.wait_for(model.complete_json(answer_messages(kind, question, text, language), max_tokens=200),
@@ -554,7 +579,7 @@ async def read_answer(kind: str, question: str, text: str, *, subject: Optional[
             logger.info("care conversation: model answer did not fit the schema (%s); keyword reading used", exc)
         except Exception as exc:  # noqa: BLE001
             logger.info("care conversation: model unavailable for the answer (%s)", exc)
-    return merge(keyword, structured, text, kind)
+    return merge(keyword, structured, text, kind, classified)
 
 
 # ── Talk to IRA ──────────────────────────────────────────────────────────────

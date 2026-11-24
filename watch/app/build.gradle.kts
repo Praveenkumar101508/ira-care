@@ -69,6 +69,10 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
+    androidResources {
+        // The model is memory-mapped from the assets: it must not be compressed.
+        noCompress += "tflite"
+    }
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
@@ -93,6 +97,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // The trained fall model (round 3, phase 5) runs through TensorFlow Lite; the rule detector is the fallback.
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")

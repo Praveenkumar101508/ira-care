@@ -70,6 +70,9 @@ class CareDependencies private constructor(context: Context) {
     /** Asked once per SOS; never polled. */
     val location: LocationSource = AndroidLocationSource(context)
     val accelerometer: AccelerometerSource = AndroidAccelerometerSource(context)
+    /** The trained fall model and its normalisation, when the build carries them; null means rules only. */
+    val fallModel: Pair<care.ira.watch.sensors.Inference, care.ira.watch.sensors.FallModelSpec>? =
+        care.ira.watch.sensors.TfLiteInference.load(context)
     /** The carer's fall settings, refreshed from the server after each sync. */
     @Volatile var fallSettings: FallSettingsDto = FallSettingsDto()
     /** The carer's heart-rate range and the upload interval, refreshed the same way. */

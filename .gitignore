@@ -121,3 +121,7 @@ supracloud-jarvis/.venv/
 
 # IRA CARE demo: seeded logins and device tokens for the local demo, never committed
 .demo/
+.kaggle-runs/
+
+# The classifier encoder is fetched, not committed (scripts/training/fetch_encoder.py)
+supracloud-jarvis/ira/care/models/encoder/

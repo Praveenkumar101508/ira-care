@@ -41,8 +41,8 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-2 | care-push-isolation | `fix/care-push-isolation` | Merged (pull request 22) |
 | R3-3 | responder-follow-up | `fix/responder-follow-up` | Merged (pull request 23) |
 | R3-4 | private-model | `feat/private-model` | Merged (pull request 24) |
-| R3-5 | own-models | `feat/own-models` | Built locally; classifier and fall model trained on Kaggle; the conversation fine-tune did not beat the base model and is not adopted; pull request to follow |
-| R3-6 | scheduled-care | `feat/scheduled-care` | Built and tested locally (server, dashboard, phone, watch model); pull request to follow once R3-5 merges |
+| R3-5 | own-models | `feat/own-models` | Merged (pull request 25) |
+| R3-6 | scheduled-care | `feat/scheduled-care` | Built and tested locally; pull request 26 open |
 | R3-7 | ira-personal | `feat/ira-personal` | not started |
 | R3-8 | watch-platform-layer | `feat/watch-platform-layer` | not started |
 | R3-9 | hardware-blueprint | `feat/hardware-blueprint` | not started |
@@ -70,6 +70,21 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 - Dashboard: type check, 29 tests (timeline sources and visit lines added) and lint pass.
   Phone: type check and 24 tests (visit model added) pass. Watch: `VisitStateTest` 3 pass
   beside the outbox tests; the screen itself needs hardware.
+
+## Round 3, phase 5 (own-models), measured on Kaggle and locally (23 and 24 November 2026)
+
+- Fall detector: trained in 186 GPU seconds on SisFall and UCI HAR; on 6,243 held-out windows
+  from 21 unseen subjects sensitivity 0.990, specificity 0.9998, 3.8 false alarms a day (the
+  rule detector on the same windows: 0.906, 0.984, 344 a day). The 17.9 kB TensorFlow Lite
+  file is in the watch's assets; `ModelFallDetectorTest` (5) and `FallDetectorTest` (5) pass.
+- Answer classifier: trained in 48 GPU seconds; equals the rules on the 150-turn eval at its
+  gates (147 of 150) and is worse without them (144, five false alarms). Ships default off.
+  `test_care_classifier.py`: 5 pass.
+- Conversation fine-tune: four Kaggle attempts (about 2.6 GPU hours); the fourth trained
+  (457 steps, 1,170 s) and scored 0.92 against the base model's 0.94 on 50 held-out prompts
+  with a loss that did not fall. Not adopted. The GGUF conversion of the merged weights also
+  failed in llama.cpp's tokenizer reader; it was not retried because the result would not
+  have shipped.
 
 ## Round 3, phase 4 (private-model), measured locally (23 November 2026)
 

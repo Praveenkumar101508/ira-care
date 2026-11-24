@@ -1,18 +1,18 @@
 # IRA CARE: next step
 
 **Round 3 (the completion run) is in progress.** Phases and their state are in
-`STATUS.md` (table "Round 3"). Phases 0 to 3 are merged (pull requests 20 to 23). Phase 4
-waits on its CPU benchmark to write `docs/MODEL_CHOICE.md`; phase 5 waits on two Kaggle
-kernels (fall model, QLoRA); phase 6 is built and tested on `feat/scheduled-care`. Next:
-finish and merge 4, 5, 6 in order (each rebased on the new `main`), then R3-7 `feat/ira-personal`.
+`STATUS.md` (table "Round 3"). Phases 0 to 5 are merged (pull requests 20 to 25). Phase 6
+is pull request 26; next are phases 7 to 13 (built on their branches) in order, each
+rebased on the new `main`, then R3-14 `feat/staging-proof-and-film`.
 
 Owner actions found so far in round 3:
 
 1. Delete the merged branches `fix/remove-demo-state`, `fix/trustworthy-sos`,
-   `fix/care-push-isolation`, `fix/responder-follow-up` (the session's network may not).
-2. If the SisFall mirror or IEEE DataPort sets are wanted locally, allow `api.figshare.com`
-   and `ieee-dataport.org`; to download Kaggle kernel output files directly, allow
-   `www.kaggleusercontent.com` (the session read kernel logs through the API instead).
+   `fix/care-push-isolation`, `fix/responder-follow-up`, `feat/private-model`, `feat/own-models` (this
+   machine's network refuses branch deletes).
+2. Allow `api.figshare.com`, `ieee-dataport.org` and `www.kaggleusercontent.com` on the
+   environment if the original terms of UMAFall and FallAllD or the notebook output files
+   are wanted; nothing shipped depends on them.
 
 ---
 

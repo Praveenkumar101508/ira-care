@@ -132,11 +132,11 @@ class CareForegroundService : LifecycleService() {
      * deadline.
      */
     private suspend fun watchForFalls() {
-        var detector = FallDetector(fallSettings())
         var configured = fallSettings()
+        var detector = newFallDetector(configured)
         deps.accelerometer.samples().onEach { sample ->
             val wanted = fallSettings()
-            if (wanted != configured) { configured = wanted; detector = FallDetector(wanted) }
+            if (wanted != configured) { configured = wanted; detector = newFallDetector(wanted) }
             if (!deps.fallSettings.enabled) return@onEach
             detector.onWrist = deps.lastOnWrist
             when (val event = detector.feed(sample)) {
@@ -145,6 +145,22 @@ class CareForegroundService : LifecycleService() {
                 else -> {}
             }
         }.collect()
+    }
+
+    /** The trained model behind the detector interface when the build carries it; the rules alone otherwise. */
+    private fun newFallDetector(settings: FallSettings): FallDetecting {
+        val model = deps.fallModel ?: return RuleOnly(FallDetector(settings))
+        return ModelBacked(care.ira.watch.sensors.ModelFallDetector(settings, model.second, model.first))
+    }
+
+    private interface FallDetecting { var onWrist: Boolean?; fun feed(sample: care.ira.watch.sensors.AccelSample): FallEvent? }
+    private class RuleOnly(private val d: FallDetector) : FallDetecting {
+        override var onWrist: Boolean? get() = d.onWrist; set(v) { d.onWrist = v }
+        override fun feed(sample: care.ira.watch.sensors.AccelSample) = d.feed(sample)
+    }
+    private class ModelBacked(private val d: care.ira.watch.sensors.ModelFallDetector) : FallDetecting {
+        override var onWrist: Boolean? get() = d.onWrist; set(v) { d.onWrist = v }
+        override fun feed(sample: care.ira.watch.sensors.AccelSample) = d.feed(sample)
     }
 
     private fun fallSettings(): FallSettings = deps.fallSettings.let {

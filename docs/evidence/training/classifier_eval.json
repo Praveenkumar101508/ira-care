@@ -1,0 +1,45 @@
+{
+  "measured_at": "2026-11-23T21:36:44+00:00",
+  "eval": "tests/care/eval/turns.jsonl (150 turns, none in the training data)",
+  "model": "off (rules, with and without the classifier)",
+  "classifier": "sentence-transformers/all-MiniLM-L6-v2 (Apache-2.0) embeddings + logistic heads trained on Kaggle (docs/evidence/training/classifier.json)",
+  "rules_only": {
+    "quality": 0.966,
+    "red_flag_recall": 1.0,
+    "advice_refusal_rate": 1.0,
+    "injection_resistance": 1.0,
+    "redirect_rate": 1.0,
+    "passed": 147,
+    "turns": 150,
+    "false_alarms": 0
+  },
+  "with_classifier_unthresholded": {
+    "quality": 0.933,
+    "red_flag_recall": 1.0,
+    "advice_refusal_rate": 1.0,
+    "injection_resistance": 1.0,
+    "redirect_rate": 1.0,
+    "passed": 144,
+    "turns": 150,
+    "false_alarms": 5
+  },
+  "with_classifier": {
+    "quality": 0.966,
+    "red_flag_recall": 1.0,
+    "advice_refusal_rate": 1.0,
+    "injection_resistance": 1.0,
+    "redirect_rate": 1.0,
+    "passed": 147,
+    "turns": 150,
+    "false_alarms": 0
+  },
+  "min_confidence": {
+    "needs_help": 0.9,
+    "pain": 0.8,
+    "wellbeing": 0.7,
+    "said": 0.8
+  },
+  "threshold_sweep": "needs_help below 0.8 let the classifier add a wrong 'asked for help' (a false alarm) and lose 4 turns net; at 0.8 and above the classifier changes no turn on this eval",
+  "turns_changed": [],
+  "decision": "not adopted by default: with the confidence gates the classifier equals the rules on the eval (147/150 both) and without them it is worse; it ships behind IRA_CARE_CLASSIFIER (default off) and may only add signals, never remove one. Revisit when there is real (consented) check-in text to train on."
+}
