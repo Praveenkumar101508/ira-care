@@ -49,7 +49,7 @@ export default function LoginPage() {
       <h2>Sign in</h2>
       <p className="muted"><a href="/signup">New care organisation? Start here.</a></p>
       <p className="muted">For carers and care organisations. Family use the phone app.</p>
-      <label>Server<br /><input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} style={{ width: '100%' }} /></label><br /><br />
+      <details className="advanced"><summary className="muted">Advanced</summary><label>Care server<br /><input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} style={{ width: '100%' }} aria-label="Care server" /></label></details>
       <label>Username<br /><input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" style={{ width: '100%' }} /></label><br /><br />
       <label>Password<br /><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" style={{ width: '100%' }} /></label><br /><br />
       {error ? <p className="error">{error}</p> : null}

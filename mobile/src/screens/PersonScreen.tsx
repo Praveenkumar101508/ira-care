@@ -59,7 +59,7 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
       <View style={styles.tabs}>
         {(['status', 'visits', 'ira', 'history', 'reports', 'contacts', 'consent'] as Tab[]).map((t) => (
           <Text key={t} onPress={() => setTab(t)} style={[styles.tab, tab === t && styles.tabOn]} testID={`tab-${t}`}>
-            {t[0].toUpperCase() + t.slice(1)}
+            {t === 'ira' ? 'IRA' : t[0].toUpperCase() + t.slice(1)}
           </Text>
         ))}
       </View>
@@ -234,7 +234,7 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
             {circle.map((m) => (
               <Card key={m.id}>
                 <Text style={styles.h}>{m.display_name}</Text>
-                <Muted>{m.role.replace('_', ' ')}{m.relationship ? ` · ${m.relationship}` : ''} · tier {m.tier}</Muted>
+                <Muted>{m.role.replace('_', ' ')}{m.relationship ? ` · ${m.relationship}` : ''} · {m.tier === 1 ? 'called first' : m.tier === 2 ? 'called second' : 'called last'}</Muted>
                 {m.phone ? <BigButton label={`Call ${m.display_name}`} color={colors.notice} onPress={() => Linking.openURL(telLink(m.phone))} /> : null}
               </Card>
             ))}
@@ -272,7 +272,7 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
 }
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
-  tabs: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  tabs: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
   tab: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: colors.card, color: colors.muted, borderWidth: 1, borderColor: colors.border },
   tabOn: { backgroundColor: colors.notice, color: '#fff', borderColor: colors.notice },
   input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 10, minHeight: 60, color: colors.text, marginVertical: 8 },

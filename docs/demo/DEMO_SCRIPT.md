@@ -20,7 +20,8 @@ them to the terminal and writes them for the local scripts to `.demo/demo.local.
 | Tab | Address | Sign in as |
 | --- | --- | --- |
 | Carer dashboard | http://localhost:3000 | the demo manager |
-| Watch simulator | http://localhost:3000/simulator | the device token from the seed output |
+| The watch in the browser | http://localhost:3000/watch | the pairing code or the device key, entered on the presenter page |
+| Presenter controls (never on screen in a recording) | http://localhost:3000/presenter | the device key from the seed output |
 | Family app (web) | http://localhost:8081 | the demo family member |
 
 ## Minute 0 to 1: who is being looked after
@@ -64,7 +65,7 @@ on every view. Tap **I'm on my way**: the chain stops; the dashboard shows who i
 
 Simulator, **Fall**. The page counts down 30 seconds, vibrating and asking *"It looks like
 you may have fallen. Are you OK?"*. Let it run out. The SOS carries the watch's location
-(the simulator sends a fake fix 2 km from home): "AWAY FROM HOME, about 2.0 km from 1 Example
+(the presenter page sends a fake fix 2 km from home): "AWAY FROM HOME, about 2.0 km from 1 Example
 Street" with a plain map link. Then press **Fall** again and tap **I'm OK** within the
 countdown: the alert resolves with "The person answered the fall check: OK."
 
@@ -85,7 +86,7 @@ range), with no diagnosis words anywhere. The weekly family report is shorter an
 
 ## If something does not go to plan
 
-- The simulator says "offline": the API is not running or CORS refused the origin; check
+- The presenter page says "offline": the API is not running or CORS refused the origin; check
   `./scripts/demo/up.sh` is still running.
 - A question does not arrive: it is quiet hours for the person (22:00 to 07:00 by default);
   use **Ask me now**, or change the quiet hours on the Settings tab.

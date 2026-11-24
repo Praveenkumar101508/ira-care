@@ -11,7 +11,15 @@ import type {
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, InvitationOut, Medication, Memory, MedicationEvent, Person, PersonStatus, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitOutcome, CommunicationProfile,
 } from '@/lib/types';
 import { VISIT_OUTCOME_WORDS } from '@/lib/types';
-import { VISIT_WORDS, byDay, checkinCounts, freshness, headline, series, sortAlerts, timeAgo, timeline, visitLine } from '@/lib/view';
+import { VISIT_WORDS, byDay, checkinCounts, circleWords, freshness, headline, series, sortAlerts, timeAgo, timeline, visitLine } from '@/lib/view';
+
+/** What was looked at, in a reader's words; who looked, in their role's words rather than a raw identifier. */
+const ACCESS_WORDS: Record<string, string> = { vitals: 'readings', checkins: 'check-ins', medication: 'medication', transcripts: 'transcripts', access_notes: 'entry instructions', reports: 'reports', memory: 'what IRA remembers', alerts: 'alerts' };
+function accessWho(label: string): string {
+  if (label === 'workspace_admin') return 'care manager';
+  if (/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(label)) return 'a member of the care team';
+  return label.replace(/_/g, ' ');
+}
 
 const TABS = ['overview', 'profile', 'health', 'care', 'timeline', 'alerts', 'ira', 'reports', 'search', 'access'] as const;
 const TAB_WORDS: Record<Tab, string> = { overview: 'Overview', profile: 'Profile', health: 'Health and wellbeing', care: 'Visits and care plan', timeline: 'Timeline', alerts: 'Alerts', ira: 'IRA', reports: 'Reports', search: 'Search', access: 'Access' };
@@ -251,8 +259,8 @@ export default function PersonPage() {
 
       {tab === 'profile' && (
         <div className="card">
-          <table><thead><tr><th>Name</th><th>Role</th><th>Tier</th><th>Phone</th><th>Active</th></tr></thead><tbody>
-            {circle.map((m) => <tr key={m.id}><td>{m.display_name}{m.relationship ? ` (${m.relationship})` : ''}</td><td>{m.role.replace('_', ' ')}</td><td>{m.tier}</td><td>{m.phone}</td><td>{m.active ? 'yes' : 'no'}</td></tr>)}
+          <table><thead><tr><th>Name</th><th>Role</th><th>Called</th><th>Phone</th><th>Active</th></tr></thead><tbody>
+            {circle.map((m) => <tr key={m.id}><td>{m.display_name}{m.relationship ? ` (${m.relationship})` : ''}</td><td>{m.role.replace('_', ' ')}</td><td>{circleWords(m.tier).toLowerCase()}</td><td>{m.phone}</td><td>{m.active ? 'yes' : 'no'}</td></tr>)}
           </tbody></table>
           {manage ? <AddMember onAdd={(b) => act(() => api!.addMember(id, b))} /> : null}
           {manage ? <InviteForm onInvite={(b) => api!.invite(id, b)} /> : null}
@@ -276,7 +284,7 @@ export default function PersonPage() {
             <li>Keep the app&apos;s ongoing notification: it is what collects readings and asks the questions.</li>
             <li>Within a few minutes the Readings tab shows the first readings and the watch line above says &quot;synced just now&quot;. Then ask IRA to check in now and answer on the watch.</li>
           </ol>
-          <p className="muted">No watch to hand? The <a href="/simulator">watch simulator</a> pairs with the same code. The full guide is docs/DEVICE_SETUP.md.</p>
+          <p className="muted">No watch to hand? The <a href="/watch">browser watch</a> pairs with the same code. The full guide is docs/DEVICE_SETUP.md.</p>
         </div>
       ) : null}
 
@@ -365,8 +373,9 @@ export default function PersonPage() {
       {tab === 'access' && manage && (
         <div className="card">
           <p className="muted">Every view of this person&apos;s health data or transcripts.</p>
+          {access.length > 100 ? <p className="muted">The latest 100 of {access.length} entries.</p> : null}
           <table><thead><tr><th>When</th><th>Who</th><th>What</th><th>Action</th></tr></thead><tbody>
-            {access.map((e) => <tr key={e.id}><td className="muted">{e.at.slice(0, 19).replace('T', ' ')}</td><td>{e.actor_label || e.actor_user_id || 'system'}</td><td>{e.resource_kind}</td><td>{e.action}</td></tr>)}
+            {access.slice(0, 100).map((e) => <tr key={e.id}><td className="muted">{e.at.slice(0, 16).replace('T', ' ')}</td><td>{accessWho(e.actor_label || e.actor_user_id || 'system')}</td><td>{ACCESS_WORDS[e.resource_kind] ?? e.resource_kind.replace(/_/g, ' ')}</td><td>{e.action === 'view' ? 'viewed' : e.action}</td></tr>)}
           </tbody></table>
         </div>
       )}
@@ -407,7 +416,7 @@ function AddMember({ onAdd }: { onAdd: (b: { display_name: string; role: string;
       <input placeholder="Relationship" value={rel} onChange={(e) => setRel(e.target.value)} />
       <select value={role} onChange={(e) => setRole(e.target.value)}>{['family', 'carer', 'clinician', 'care_organisation'].map((k) => <option key={k} value={k}>{k.replace('_', ' ')}</option>)}</select>
       <input placeholder="+44..." value={phone} onChange={(e) => setPhone(e.target.value)} />
-      <button type="submit">Add to circle (tier {tier})</button>
+      <button type="submit">Add to circle ({tier === 1 ? 'called first' : tier === 2 ? 'called second' : 'called last'})</button>
     </form>
   );
 }
@@ -433,7 +442,7 @@ function HomeForm({ person, manage, onSave }: { person: Person; manage: boolean;
         <tr><td>Emergency information (shown with every SOS)</td><td><textarea value={b.emergency_summary ?? ''} disabled={!manage} rows={3} onChange={(e) => setB({ ...b, emergency_summary: e.target.value })} style={{ width: 360 }} /></td></tr>
         <tr><td>Access notes (key safe, which door, pets)</td><td>
           <textarea value={notes} disabled={!manage} rows={3} placeholder={person.has_access_notes ? 'Notes are stored (encrypted). Type here to replace them.' : 'None stored yet.'} onChange={(e) => setNotes(e.target.value)} style={{ width: 360 }} />
-          <div className="muted">Encrypted at rest. Shown only to tier 1 and 2 recipients while an alert is open; every view is logged.</div>
+          <div className="muted">Encrypted at rest. Shown only to the people called first and second while an alert is open; every view is logged.</div>
         </td></tr>
       </tbody></table>
       {manage ? <button type="submit">Save</button> : null}

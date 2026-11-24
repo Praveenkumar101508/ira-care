@@ -1,8 +1,12 @@
-:root { --bg: #f6f4ef; --card: #fff; --text: #1f2a24; --muted: #5b6b63; --border: #e1ded8; --sos: #b3261e; --urgent: #b35c00; --notice: #2f5d8a; --ok: #2e7d32; }
+/* IRA CARE design system (docs/design/DESIGN_SYSTEM.md). The same tokens as the phone's theme (mobile/src/appearance/theme.ts). */
+:root { --bg: #FAF8F4; --card: #FFFFFF; --text: #1F2A24; --muted: #5B6B63; --border: #E1DED8; --sos: #B3261E; --urgent: #B35C00; --notice: #2F5D8A; --ok: #2E7D32; --focus: #1A5FB4; color-scheme: light dark; }
+@media (prefers-color-scheme: dark) { :root { --bg: #14181B; --card: #1D2327; --text: #EEF1F0; --muted: #A6B3AC; --border: #2C343A; --sos: #D32F2F; --urgent: #B35C00; --notice: #2F5D8A; --ok: #2E7D32; --focus: #8AB6E0; } a { color: #8AB6E0; } }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.45; }
 a { color: var(--notice); text-decoration: none; }
-header.top { display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: var(--card); border-bottom: 1px solid var(--border); }
+header.top { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 10px 16px; background: var(--card); border-bottom: 1px solid var(--border); }
+header.top .who { margin-left: auto; font-size: 14px; }
+@media (max-width: 600px) { header.top .who { order: 3; flex-basis: 100%; margin-left: 0; } header.top nav a { margin-right: 10px; } }
 header.top h1 { font-size: 18px; margin: 0; }
 header.top nav a { margin-right: 14px; }
 main { max-width: 1100px; margin: 0 auto; padding: 20px; }
@@ -14,7 +18,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 20px; }
 button { border: 0; border-radius: 10px; padding: 9px 14px; font-size: 14px; cursor: pointer; color: #fff; background: var(--notice); }
 button.ok { background: var(--ok); } button.grey { background: var(--muted); } button.sos { background: var(--sos); }
 button:disabled { opacity: 0.5; cursor: default; }
-input, select { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
+input, select, textarea { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 14px; background: var(--card); color: var(--text); }
 table { width: 100%; border-collapse: collapse; } th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
 .tabs a { display: inline-block; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); margin-right: 6px; margin-bottom: 8px; background: var(--card); color: var(--muted); }
 .tabs a.on { background: var(--notice); color: #fff; border-color: var(--notice); }
@@ -22,10 +26,37 @@ table { width: 100%; border-collapse: collapse; } th, td { text-align: left; pad
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
 /* Accessibility: a visible focus ring everywhere, large targets, a skip link, and no motion for those who ask. */
-:focus-visible { outline: 3px solid #1a5fb4; outline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 button, .tabs a, input, select, textarea { min-height: 40px; }
 .skip-link { position: absolute; left: -999px; top: 8px; background: var(--text); color: #fff; padding: 8px 12px; border-radius: 8px; z-index: 100; }
 .skip-link:focus { left: 8px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 @media (prefers-contrast: more) { :root { --muted: #3a463f; --border: #8a8a8a; } }
 .pill { font-size: 13px; }
+
+/* Advanced settings a carer rarely needs (the care server's address) stay folded away. */
+details.advanced { margin: 8px 0 14px; } details.advanced summary { cursor: pointer; }
+
+/* The browser watch (/watch): the phase-9 watch, 46 mm round case, 1.39" round screen, on a clean page. */
+.watch-page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 24px; background: var(--bg); }
+.watch-case { position: relative; width: min(84vw, 400px); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #3b4046, #1c1f22 70%); box-shadow: 0 18px 50px rgba(0,0,0,0.35), inset 0 2px 4px rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; }
+.watch-case.buzz { animation: buzz 0.4s linear 3; }
+@keyframes buzz { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+.watch-button { position: absolute; right: -3%; width: 6%; height: 12%; border-radius: 4px; background: linear-gradient(#5a6066, #2a2e32); }
+.watch-button-help { top: 30%; background: linear-gradient(#d84a40, #8f1f18); } .watch-button-side { top: 56%; }
+.watch-glass { width: 84%; aspect-ratio: 1; border-radius: 50%; background: #000; color: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 2px #0a0a0a, inset 0 0 18px rgba(255,255,255,0.08); }
+.watch-screen { width: 80%; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.watch-time { font-size: 15px; color: #9fb0a8; font-variant-numeric: tabular-nums; }
+.watch-words { font-size: clamp(16px, 4.4vw, 22px); line-height: 1.3; min-height: 2.6em; display: flex; align-items: center; }
+.watch-visit { font-size: 14px; color: #9fb0a8; }
+.watch-key { width: 100%; min-height: 44px; border-radius: 22px; font-size: 17px; font-weight: 600; color: #fff; }
+.watch-key-ok { background: var(--ok); } .watch-key-help { background: var(--sos); } .watch-key-talk { background: #2F5D8A; }
+.watch-code, .watch-say { width: 100%; text-align: center; background: #15191c; color: #fff; border: 1px solid #333a40; border-radius: 10px; }
+.watch-caption { color: var(--muted); max-width: 420px; text-align: center; font-size: 14px; }
+
+/* Narrow screens: wide tables scroll inside their card rather than the page; fields never exceed it. */
+@media (max-width: 600px) {
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  input, select, textarea { max-width: 100%; }
+  main { padding: 16px; }
+}

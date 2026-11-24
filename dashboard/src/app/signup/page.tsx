@@ -54,7 +54,7 @@ export default function SignupPage() {
       {message ? <p className="ok">{message}</p> : null}
       {step === 1 ? (
         <form className="card" onSubmit={(e) => { void signup(e); }}>
-          <label>Server<br /><input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} style={{ width: '100%' }} /></label><br /><br />
+          <details className="advanced"><summary className="muted">Advanced</summary><label>Care server<br /><input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} style={{ width: '100%' }} aria-label="Care server" /></label></details>
           <label>Email<br /><input value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" style={{ width: '100%' }} /></label><br /><br />
           <label>Password (12 characters or more)<br /><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" style={{ width: '100%' }} /></label><br /><br />
           <button type="submit" disabled={!email || password.length < 12}>Create account</button>

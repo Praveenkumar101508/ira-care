@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { OUTCOME_WORDS, type AccessNotes, type Alert, type AlertOutcome, type Person } from '@/lib/types';
-import { alertWords, timeAgo, whereabouts } from '@/lib/view';
+import { alertWords, circleWords, reachWords, timeAgo, whereabouts } from '@/lib/view';
 
 export function AlertCard({ alert, personName, person, onAcknowledge, onArrived, onResolve, onAccessNotes, busy }: {
   alert: Alert; personName: string; busy: boolean; person?: Person | null;
@@ -23,13 +23,13 @@ export function AlertCard({ alert, personName, person, onAcknowledge, onArrived,
       <div className="row">
         <span className={`pill ${alert.severity}`} aria-hidden="true">{alert.severity.toUpperCase()}</span>
         <strong>{alertWords(alert)}</strong>
-        <span className="muted">{personName} · {timeAgo(alert.opened_at)} · tier {alert.current_tier} · {alert.status}</span>
+        <span className="muted">{personName} · {timeAgo(alert.opened_at)} · {reachWords(alert.current_tier)} · {alert.status}</span>
       </div>
       {summary ? <p className="muted" style={{ margin: '6px 0' }}>{summary}</p> : null}
       {(alert.attempts ?? []).some((a) => a.channel === 'push') ? (
         <ul className="muted" data-testid="delivery" style={{ margin: '6px 0', paddingLeft: 18 }}>
           {(alert.attempts ?? []).filter((a) => a.channel === 'push').map((a) => (
-            <li key={a.id}>Tier {a.tier} phone: {a.delivery ?? a.outcome}{a.delivered_at ? ` (${timeAgo(a.delivered_at)})` : ''}</li>
+            <li key={a.id}>{circleWords(a.tier)} phone: {a.delivery ?? a.outcome}{a.delivered_at ? ` (${timeAgo(a.delivered_at)})` : ''}</li>
           ))}
         </ul>
       ) : null}
@@ -44,7 +44,7 @@ export function AlertCard({ alert, personName, person, onAcknowledge, onArrived,
         notes === null ? (
           <p><button className="grey" onClick={() => { onAccessNotes(alert).then(setNotes).catch(() => setNotes('refused')); }}>Show access notes (key safe, door, pets)</button></p>
         ) : notes === 'refused' ? (
-          <p className="muted">Access notes are shown only to tier 1 and 2 recipients while the alert is open.</p>
+          <p className="muted">Access notes are shown only to the people called first and second while the alert is open.</p>
         ) : (
           <p data-testid="access-notes"><strong>Access notes:</strong> {notes.access_notes || 'none recorded'} <span className="muted">(this view is in the access log)</span></p>
         )

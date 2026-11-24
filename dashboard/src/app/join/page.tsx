@@ -42,7 +42,7 @@ function Join() {
       {message ? <p className="ok">{message}</p> : null}
       <form className="card" onSubmit={(e) => { void go(e); }}>
         <p className="muted">Use the email address the invitation was sent to; the link works only for that address, once.</p>
-        <label>Server<br /><input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} style={{ width: '100%' }} /></label><br /><br />
+        <details className="advanced"><summary className="muted">Advanced</summary><label>Care server<br /><input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} style={{ width: '100%' }} aria-label="Care server" /></label></details>
         <label>Email<br /><input value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%' }} /></label><br /><br />
         <label>Password<br /><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: '100%' }} /></label><br /><br />
         <label><input type="radio" checked={mode === 'signin'} onChange={() => setMode('signin')} /> I have an account</label>{' '}

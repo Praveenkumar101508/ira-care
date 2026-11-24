@@ -3,8 +3,8 @@
 
     IRA_TEST_DATABASE_DSN=... IRA_TEST_ADMIN_DSN=... python scripts/demo/seed_demo.py [--reset]
 
-Everything it creates is obviously fake: "Demo Care Organisation", two people
-called Demo Person A and B, circle members with +4400000000xx numbers, an
+Everything it creates is obviously fake: "Lowbridge Care", two people
+called Ada Hartley and Bert Lowe (made-up people), circle members with +4400000000xx numbers, an
 address at Example Street, routines, medication, a week of readings and
 check-ins, one resolved alert and one report. Three accounts can sign in to the
 dashboard and the family app. Their passwords and the device tokens are
@@ -31,38 +31,38 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "supracloud-jarvis" / "ira"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from demo._local_state import fresh_password, prepare_environment, write_private  # noqa: E402
+from demo._local_state import fresh_password, prepare_environment, write_private
 
 # A fresh sealing key on every seed: the notes it seals are reseeded with it.
 prepare_environment(renew_key=True, edition="cloud", model="fake")
 
-UTC = dt.timezone.utc
+UTC = dt.UTC
 SLUG = "demo-care-organisation"
-DISPLAY = "Demo Care Organisation"
+DISPLAY = "Lowbridge Care"
 ACCOUNTS = [
     # email, display name, tenant role, workspace role. Passwords are generated
     # on every run (fresh_password) and never written into the repository.
-    ("demo-manager@example.invalid", "Demo Manager", "owner", "workspace_admin"),
-    ("demo-family@example.invalid", "Demo Family Member", "member", "member"),
-    ("demo-viewer@example.invalid", "Demo Viewer", "member", "viewer"),
+    ("demo-manager@example.invalid", "Care manager", "owner", "workspace_admin"),
+    ("demo-family@example.invalid", "Family member", "member", "member"),
+    ("demo-viewer@example.invalid", "Care viewer", "member", "viewer"),
 ]
 PEOPLE = [
-    {"display_name": "Demo Person A", "preferred_name": "Ada", "timezone": "Europe/London", "language": "en-GB",
+    {"display_name": "Ada Hartley", "preferred_name": "Ada", "timezone": "Europe/London", "language": "en-GB",
      "home_address": "1 Example Street, Testtown, TE5 7ST", "home_latitude": 51.5, "home_longitude": -0.12,
      "emergency_summary": "Hard of hearing: speak clearly and face them. Uses a walking stick.",
      "access_notes": "Key safe left of the front door, code on the circle's record. Small friendly dog called Biscuit.",
      "routines": [("breakfast", "meal", "08:00"), ("lunch", "meal", "12:30"), ("afternoon walk", "activity", "15:00"), ("tea", "meal", "18:00")],
      "medications": [("the morning tablets", "one", ["08:00"]), ("the evening tablet", "one", ["20:00"])],
-     "circle": [("Demo Family Member", "family", 1, "+440000000001", "daughter", True),
-                ("Demo Carer", "carer", 1, "+440000000002", "visiting carer", False),
-                ("Demo Care Organisation desk", "care_organisation", 2, "+440000000003", "", False)]},
-    {"display_name": "Demo Person B", "preferred_name": "Bert", "timezone": "Europe/London", "language": "en-GB",
+     "circle": [("Family member", "family", 1, "+440000000001", "daughter", True),
+                ("Visiting carer", "carer", 1, "+440000000002", "visiting carer", False),
+                ("Lowbridge Care desk", "care_organisation", 2, "+440000000003", "", False)]},
+    {"display_name": "Bert Lowe", "preferred_name": "Bert", "timezone": "Europe/London", "language": "en-GB",
      "home_address": "2 Example Court, Testtown, TE5 7ST", "home_latitude": 51.52, "home_longitude": -0.1,
      "emergency_summary": "", "access_notes": "Door code with the warden. No pets.",
      "routines": [("breakfast", "meal", "09:00"), ("lunch", "meal", "13:00")],
      "medications": [("the blue tablet", "one", ["09:00", "21:00"])],
-     "circle": [("Demo Son", "family", 1, "+440000000011", "son", False),
-                ("Demo Care Organisation desk", "care_organisation", 2, "+440000000003", "", False)]},
+     "circle": [("Her son", "family", 1, "+440000000011", "son", False),
+                ("Lowbridge Care desk", "care_organisation", 2, "+440000000003", "", False)]},
 ]
 
 
@@ -122,7 +122,7 @@ async def seed(dsn: str, admin_dsn: str, out: Path) -> dict:
             await conn.execute("INSERT INTO organisations (id, tenant_id, name, slug) VALUES ($1, $2, $3, $4)", org_id, tenant_id, DISPLAY, f"org-{SLUG}")
             await conn.execute(
                 "INSERT INTO workspaces (id, tenant_id, organisation_id, name, slug, is_default, status) "
-                "VALUES ($1, $2, $3, 'Demo Care Team', 'demo-care-team', TRUE, 'active')", ws_id, tenant_id, org_id)
+                "VALUES ($1, $2, $3, 'Lowbridge care team', 'lowbridge-care-team', TRUE, 'active')", ws_id, tenant_id, org_id)
             for wrole, uid in users.items():
                 await conn.execute(
                     "INSERT INTO workspace_memberships (tenant_id, workspace_id, user_id, role, status) VALUES ($1, $2, $3, $4, 'active')",
@@ -176,7 +176,7 @@ async def history(*, conn_factory, jp, device, pid, now, rng, repo) -> None:
     readings = []
     for day in range(7, 0, -1):
         base = (now - dt.timedelta(days=day)).replace(hour=7, minute=0, second=0, microsecond=0)
-        for step in range(0, 15 * 3):   # 07:00 to 22:00, every 20 minutes
+        for step in range(15 * 3):   # 07:00 to 22:00, every 20 minutes
             t = base + dt.timedelta(minutes=20 * step)
             readings.append({"kind": "heart_rate", "value": round(rng.uniform(62, 88), 1), "unit": "bpm", "recorded_at": t})
             readings.append({"kind": "steps", "value": float(rng.randint(0, 60)), "unit": "", "recorded_at": t})

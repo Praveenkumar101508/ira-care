@@ -45,7 +45,7 @@ export function AlertsScreen({ alerts, people, onAcknowledge, onArrived, onResol
                 <BigButton label="Show access notes (key safe, door, pets)" color={colors.muted} testID={`notes-${item.id}`}
                   onPress={async () => { try { setNotes({ ...notes, [item.id]: await onAccessNotes(item) }); } catch { setNotes({ ...notes, [item.id]: 'refused' }); } }} />
               ) : notes[item.id] === 'refused' ? (
-                <Muted>Access notes are shown only to tier 1 and 2 contacts while the alert is open.</Muted>
+                <Muted>Access notes are shown only to the people called first and second while the alert is open.</Muted>
               ) : (
                 <View style={styles.where}>
                   <Text style={styles.whereText}>{(notes[item.id] as AccessNotes).access_notes || 'No access notes recorded.'}</Text>
