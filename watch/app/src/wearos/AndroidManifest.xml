@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Wear OS: the app works without a phone app. Meaningless on AOSP, so it lives in this flavour only. -->
+        <meta-data android:name="com.google.android.wearable.standalone" android:value="true" />
+    </application>
+</manifest>

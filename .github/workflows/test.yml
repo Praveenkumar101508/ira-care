@@ -202,7 +202,7 @@ jobs:
       - run: ruff check .
 
   watch:
-    name: Watch app (Wear OS)
+    name: Watch app (Wear OS and AOSP)
     needs: detect
     if: needs.detect.outputs.watch == 'true'
     runs-on: ubuntu-latest
@@ -217,8 +217,11 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
-      - name: Build and unit test
-        run: ./gradlew --no-daemon --console=plain assembleDebug testDebugUnitTest
+      - name: Build and unit test both platforms (Wear OS, plain AOSP)
+        run: ./gradlew --no-daemon --console=plain assembleWearosDebug assembleAospDebug testWearosDebugUnitTest testAospDebugUnitTest
+      - name: The AOSP flavour carries no Google service dependency
+        working-directory: .
+        run: bash scripts/ci/check_watch_aosp_deps.sh
 
   mobile:
     name: Family app (Expo)

@@ -22,9 +22,17 @@ import kotlinx.serialization.json.jsonObject
 import care.ira.watch.sensors.AccelerometerSource
 import care.ira.watch.sensors.AndroidAccelerometerSource
 import care.ira.watch.sensors.AndroidLocationSource
-import care.ira.watch.sensors.HealthServicesSensorSource
+import care.ira.watch.sensors.SimulatedSensorSource
 import care.ira.watch.sensors.LocationSource
 import care.ira.watch.sensors.SensorSource
+import care.ira.watch.platform.AndroidConnectivity
+import care.ira.watch.platform.AndroidHaptics
+import care.ira.watch.platform.Connectivity
+import care.ira.watch.platform.Haptics
+import care.ira.watch.platform.PlatformDrivers
+import care.ira.watch.platform.ServerChannel
+import care.ira.watch.platform.SosStreamChannel
+import care.ira.watch.platform.SpeechCapabilities
 import care.ira.watch.voice.AndroidListener
 import care.ira.watch.voice.AndroidSpeaker
 import care.ira.watch.voice.Listener
@@ -67,7 +75,14 @@ class CareDependencies private constructor(context: Context) {
     /** Help, falls and answers, on disk until the server has answered. */
     val outbox = Outbox(File(context.filesDir, "outbox.jsonl"), clock)
     val api = CareApi(BuildConfig.CARE_API_BASE_URL, { pairing.token })
-    val sensors: SensorSource = HealthServicesSensorSource(context, clock)
+    /** The platform's readings, or the scripted driver when the build asks for it (phase 8). */
+    val sensors: SensorSource = if (BuildConfig.SIMULATED_SENSORS) SimulatedSensorSource(clock) else PlatformDrivers.sensors(context, clock)
+    val platform: String = PlatformDrivers.NAME
+    val haptics: Haptics = AndroidHaptics(context)
+    val connectivity: Connectivity = AndroidConnectivity(context)
+    /** Our own push channel: the server's held connection, nothing in between. */
+    val channel: ServerChannel by lazy { SosStreamChannel(api) }
+    val speech: SpeechCapabilities by lazy { SpeechCapabilities.probe(context) }
     /** Asked once per SOS; never polled. */
     val location: LocationSource = AndroidLocationSource(context)
     val accelerometer: AccelerometerSource = AndroidAccelerometerSource(context)

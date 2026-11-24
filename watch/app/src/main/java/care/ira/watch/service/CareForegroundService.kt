@@ -5,10 +5,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -116,7 +112,7 @@ class CareForegroundService : LifecycleService() {
         while (currentCoroutineIsActive()) {
             if (!deps.pairing.isPaired) { delay(POLL_MS); continue }
             deps.onCarerArrived = { id -> vibrate(); if (id != null) deps.api.acknowledgeVisit(id) }
-            when (val out = deps.api.sosStream { deps.applyServerSos(it) }) {
+            when (val out = deps.channel.run { deps.applyServerSos(it) }) {
                 is ApiOutcome.Ok -> wait = 2_000L
                 is ApiOutcome.Unauthorised -> deps.onUnauthorised()
                 is ApiOutcome.Offline, is ApiOutcome.Failed -> { deps.status.value = deps.status.value.copy(online = out !is ApiOutcome.Offline); wait = minOf(wait * 2, 60_000L) }
@@ -326,14 +322,7 @@ class CareForegroundService : LifecycleService() {
         deps.status.value = deps.status.value.copy(queued = deps.queue.size(), online = result != SyncResult.Offline)
     }
 
-    private fun vibrate() {
-        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            getSystemService(VibratorManager::class.java).defaultVibrator
-        } else {
-            @Suppress("DEPRECATION") getSystemService(Vibrator::class.java)
-        }
-        vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 400, 200, 400, 200, 600), -1))
-    }
+    private fun vibrate() = deps.haptics.pattern()
 
     private fun notification(): Notification {
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)

@@ -43,8 +43,8 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-4 | private-model | `feat/private-model` | Merged (pull request 24) |
 | R3-5 | own-models | `feat/own-models` | Merged (pull request 25) |
 | R3-6 | scheduled-care | `feat/scheduled-care` | Merged (pull request 26) |
-| R3-7 | ira-personal | `feat/ira-personal` | Built and tested locally; pull request to follow |
-| R3-8 | watch-platform-layer | `feat/watch-platform-layer` | not started |
+| R3-7 | ira-personal | `feat/ira-personal` | Merged (pull request 27) |
+| R3-8 | watch-platform-layer | `feat/watch-platform-layer` | Built and tested locally (both flavours); pull request to follow |
 | R3-9 | hardware-blueprint | `feat/hardware-blueprint` | not started |
 | R3-10 | one-mobile-app | `feat/one-mobile-app` | not started |
 | R3-11 | dashboard-care-record | `feat/dashboard-care-record` | not started |
@@ -53,6 +53,15 @@ Round 2 is merged to `main` (pull requests 10 to 19). Round 3 (the completion ru
 | R3-14 | staging-proof-and-film | `feat/staging-proof-and-film` | not started |
 | R3-15 | cost-cuts | `ci/cost-cuts` | not started |
 | R3-16 | truth-sweep-and-final | `docs/truth-sweep-and-final` | not started |
+
+## Round 3, phase 8 (watch-platform-layer), measured locally (24 November 2026)
+
+- Two product flavours (`wearos`, `aosp`); Health Services moved into the Wear OS flavour;
+  `SensorManagerSensorSource` for AOSP with `SensorEventMapper`; `SimulatedSensorSource`;
+  `Haptics`, `Connectivity`, `ServerChannel`, `SpeechCapabilities` interfaces; the service
+  routes through them. Both flavours build (`assembleWearosDebug`, `assembleAospDebug`) and
+  pass the unit tests; `scripts/ci/check_watch_aosp_deps.sh` finds no Google service library
+  on the aosp runtime classpath. `docs/hardware/SENSOR_HAL.md` is the hardware contract.
 
 ## Round 3, phase 7 (ira-personal), measured locally (23 November 2026)
 

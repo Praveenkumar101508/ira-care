@@ -770,3 +770,23 @@ summary labelled "summary by IRA" and a link to the transcript row it came from;
 person's words stay in the transcript, shown only to a role with their consent. On the watch
 the fall countdown also listens: "I'm OK" ends it as the button would, "help" asks now, and
 no other words are read into anything.
+
+## D-059 One watch app for Google's Wear OS and for our own AOSP watch (round 3, phase 8)
+
+Our own watch will run plain Android (AOSP) with no Wear OS licence and no Google Play
+services. The app therefore has two build flavours of one code base: `wearos` for development
+boards and shop watches (readings through Health Services, which is Google's) and `aosp` for
+our hardware (readings through the Android sensor framework, against the contract in
+`docs/hardware/SENSOR_HAL.md`). Every platform dependency sits behind an interface: sensors
+(`SensorSource`: Health Services, the framework, or a scripted simulated driver that marks every
+reading "simulated" and is never chosen unless the build asks), location (the platform
+`LocationManager`, one fix per SOS), speech (`Speaker`, `Listener`, with `SpeechCapabilities`
+saying whether the image has an engine), haptics (`Haptics`), connectivity (`Connectivity`),
+and push (`ServerChannel`: the server's own held connection to the wrist; the app has never
+used Firebase and now cannot by accident). CI builds and unit-tests both flavours and runs
+`scripts/ci/check_watch_aosp_deps.sh`, which fails the build if the `aosp` runtime classpath
+names Play Services, Firebase, the Health Services client or the Wearable library. The
+Jetpack libraries (Compose for Wear OS, AndroidX) stay in both flavours: they are open-source
+and run on AOSP without any Google service. The sensor arithmetic (unreliable heart-rate
+samples dropped, step totals to deltas with a reboot read as zero, off-body to wrist state)
+is in `SensorEventMapper`, with no Android in it, so the JVM tests prove it for both drivers.
