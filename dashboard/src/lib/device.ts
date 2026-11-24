@@ -44,8 +44,7 @@ export class DeviceClient {
   async talk(text: string, onSentence: (s: string) => void): Promise<TalkReply> {
     const r = await this.f(`${this.baseUrl}/api/v1/care/devices/me/talk`, { method: 'POST', headers: this.headers(true), body: JSON.stringify({ text }) });
     if (!r.ok) throw new DeviceError(r.status, 'IRA could not answer.');
-    const raw = await r.text();
-    return parseTalk(raw, onSentence);
+    return readTalk(r, onSentence);
   }
 
   private headers(json: boolean, idempotencyKey?: string): Record<string, string> {
@@ -64,6 +63,35 @@ export class DeviceClient {
     const text = await r.text();
     return (text ? JSON.parse(text) : null) as T;
   }
+}
+
+/**
+ * Read the talk reply as it arrives, one JSON line at a time, so each sentence is spoken as
+ * soon as the server sends it: the instant acknowledgement first, then the model's sentences.
+ * Reading the whole body before speaking (as before round 4) held the first words back until
+ * the model had finished.
+ */
+export async function readTalk(r: Response, onSentence?: (s: string) => void): Promise<TalkReply> {
+  const reader = r.body?.getReader?.();
+  if (!reader) return parseTalk(await r.text(), onSentence);
+  const out: TalkReply = { sentences: [], action: null, needsHelp: false };
+  const take = (lines: string) => {
+    const part = parseTalk(lines, onSentence);
+    out.sentences.push(...part.sentences);
+    if (/"done"\s*:\s*true/.test(lines)) { out.action = part.action; out.needsHelp = part.needsHelp; }
+  };
+  const decoder = new TextDecoder();
+  let buffer = '';
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const end = buffer.lastIndexOf('\n');
+    if (end >= 0) { take(buffer.slice(0, end + 1)); buffer = buffer.slice(end + 1); }
+  }
+  buffer += decoder.decode();
+  if (buffer.trim()) take(buffer);
+  return out;
 }
 
 export function parseTalk(raw: string, onSentence?: (s: string) => void): TalkReply {

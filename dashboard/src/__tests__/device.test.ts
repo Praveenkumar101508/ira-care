@@ -1,4 +1,4 @@
-import { DeviceClient, heartRateRun, noMovement, outOfRange, parseTalk, sosWords, wristOff } from '@/lib/device';
+import { DeviceClient, heartRateRun, noMovement, outOfRange, parseTalk, readTalk, sosWords, wristOff } from '@/lib/device';
 
 test('a heart-rate run is spaced a minute apart and ends now', () => {
   const now = new Date('2026-11-21T02:00:00Z');
@@ -14,6 +14,32 @@ test('a streamed talk reply is read line by line and each sentence is handed on'
   const r = parseTalk('{"sentence": "Here is Family Member."}\n{"sentence": "Tap to call."}\n{"done": true, "action": {"kind": "call", "name": "Family Member", "phone": "+440000000001"}, "needs_help": false}\n', (s) => heard.push(s));
   expect(heard).toEqual(['Here is Family Member.', 'Tap to call.']);
   expect(r.action).toEqual({ kind: 'call', name: 'Family Member', phone: '+440000000001' });
+});
+
+test('the first sentence is spoken while the rest of the reply is still on its way', async () => {
+  // Found in the round 4 film: the acknowledgement and the model's sentence were spoken together,
+  // seconds late, because the whole body was read before anything was said.
+  const enc = new TextEncoder();
+  let release: () => void = () => {};
+  const later = new Promise<void>((r) => { release = r; });
+  const body = new ReadableStream<Uint8Array>({
+    async start(c) {
+      c.enqueue(enc.encode('{"sentence": "Mm, Ada."}\n{"sent'));
+      c.enqueue(enc.encode('ence": "Is it'));
+      await later;
+      c.enqueue(enc.encode(' sunny?"}\n{"done": true, "action": null, "needs_help": true}\n'));
+      c.close();
+    },
+  });
+  const heard: string[] = [];
+  const reply = readTalk({ body } as unknown as Response, (s) => heard.push(s));
+  await new Promise((r) => setTimeout(r, 20));
+  expect(heard).toEqual(['Mm, Ada.']);
+  release();
+  const r = await reply;
+  expect(heard).toEqual(['Mm, Ada.', 'Is it sunny?']);
+  expect(r.sentences).toEqual(['Mm, Ada.', 'Is it sunny?']);
+  expect(r.needsHelp).toBe(true);
 });
 
 test('the device client sends the token header to the same routes as the watch', async () => {

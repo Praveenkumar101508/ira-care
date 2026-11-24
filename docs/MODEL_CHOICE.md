@@ -87,7 +87,7 @@ left off.
 | Qwen3.5 (`qwen3.5:4b`, `qwen3.5:9b`) | Apache-2.0 | https://huggingface.co/Qwen |
 
 No hosted model API is used or available (D-056). The budgets: `IRA_CARE_MODEL_FIRST_TOKEN_S`
-(3 s by default: the chain moves to the next model), `IRA_CARE_MODEL_FIRST_SENTENCE_S` (now
+(8 s by default since round 4, phase 3: the chain moves to the next model; D-073), `IRA_CARE_MODEL_FIRST_SENTENCE_S` (now
 12 s: the set question takes over). The fine-tuning of the primary on synthetic care turns is
 phase 5 (`feat/own-models`); its before-and-after numbers are added to this file when it lands.
 

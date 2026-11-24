@@ -130,12 +130,19 @@ class OllamaModel:
         self.timeout_s = timeout_s
         self._transport = transport   # tests hand in an httpx.MockTransport
 
-    def _options(self, max_tokens: int, temperature: float) -> dict:
-        opts = {"num_predict": max_tokens, "temperature": temperature, "num_ctx": context_window()}
+    @staticmethod
+    def _load_options() -> dict:
+        """The options that decide how the model is loaded. Every request must send the same
+        ones: a request with a different context size makes Ollama load the model again
+        ("runner options changed"), which takes longer than a turn may wait (D-073)."""
+        opts = {"num_ctx": context_window()}
         threads = _int_env("IRA_CARE_MODEL_THREADS")
         if threads:
             opts["num_thread"] = threads
         return opts
+
+    def _options(self, max_tokens: int, temperature: float) -> dict:
+        return {"num_predict": max_tokens, "temperature": temperature, **self._load_options()}
 
     def _body(self, messages, *, stream: bool, max_tokens: int, temperature: float) -> dict:
         # keep_alive: the model stays loaded between turns, so no turn pays the
@@ -173,11 +180,24 @@ class OllamaModel:
         Returns the seconds it took: about 0.05 s when it was already loaded."""
         import httpx
         t0 = time.monotonic()
-        body = {"model": self.name, "keep_alive": keep_alive()}
+        body = {"model": self.name, "keep_alive": keep_alive(), "options": self._load_options()}
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout_s, connect=5.0), transport=self._transport) as client:
             r = await client.post(f"{self.base_url}/api/generate", json=body)
             r.raise_for_status()
         return time.monotonic() - t0
+
+    async def loaded(self) -> Optional[bool]:
+        """Is this model in memory now? Asks Ollama's `/api/ps` (a few milliseconds);
+        None when Ollama cannot say, so the caller tries the model as before."""
+        import httpx
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(2.0, connect=1.0), transport=self._transport) as client:
+                r = await client.get(f"{self.base_url}/api/ps")
+                r.raise_for_status()
+                names = {m.get("name") or m.get("model") for m in (r.json().get("models") or [])}
+        except Exception:  # noqa: BLE001 - unknown is not the same as cold
+            return None
+        return self.name in names
 
 
 class ChainModel:
@@ -193,6 +213,7 @@ class ChainModel:
         self.first_token_s = first_token_s if first_token_s is not None else first_token_budget_s()
         self.name = self.models[0].name
         self.last_error: str = ""
+        self._warming: Optional[asyncio.Task] = None
 
     async def warm(self) -> float:
         """Load the primary only: on a 16 GB machine the second model would
@@ -200,6 +221,33 @@ class ChainModel:
         first = self.models[0]
         warm = getattr(first, "warm", None)
         return await warm() if warm else 0.0
+
+    async def _ready(self, model) -> bool:
+        """Only a model already in memory is asked (D-073). Starting a cold one
+        inside a turn's few seconds aborts its load when the turn gives up, and
+        the next model's load pushes the first out again: neither ever loads.
+        A cold chain answers from the set lines at once and loads its primary
+        in the background, whole, for the next turn."""
+        loaded = getattr(model, "loaded", None)
+        if loaded is None:
+            return True
+        state = await loaded()
+        if state is not False:
+            return True
+        self.last_error = f"{model.name}: not loaded"
+        self._warm_in_background()
+        return False
+
+    def _warm_in_background(self) -> None:
+        if self._warming is not None and not self._warming.done():
+            return
+
+        async def warm() -> None:
+            try:
+                await self.warm()
+            except Exception as exc:  # noqa: BLE001 - the next turn will try again
+                logger.info("care conversation: background load failed (%s)", exc)
+        self._warming = asyncio.create_task(warm())
 
     @property
     def first_sentence_budget(self) -> float:
@@ -209,6 +257,8 @@ class ChainModel:
     async def stream(self, messages, *, max_tokens, temperature):
         last: Optional[BaseException] = None
         for model in self.models:
+            if not await self._ready(model):
+                continue
             it = model.stream(messages, max_tokens=max_tokens, temperature=temperature).__aiter__()
             try:
                 first = await asyncio.wait_for(it.__anext__(), timeout=self.first_token_s)
@@ -230,6 +280,8 @@ class ChainModel:
     async def complete_json(self, messages, *, max_tokens):
         last: Optional[BaseException] = None
         for model in self.models:
+            if not await self._ready(model):
+                continue
             try:
                 out = await asyncio.wait_for(model.complete_json(messages, max_tokens=max_tokens),
                                              timeout=self.first_token_s * 3)
@@ -246,7 +298,11 @@ class ChainModel:
 #: The free open-weight models the chain uses by default (docs/MODEL_CHOICE.md, round 4).
 DEFAULT_PRIMARY = "gemma4:e4b"
 DEFAULT_SECONDARY = "gemma4:e2b"
-FIRST_TOKEN_S = 3.0
+#: How long the primary is given for its first token before the chain moves on. The
+#: instant acknowledgement (D-070) is already spoken, so waiting for the model's own words is
+#: better than the set line: a whole talk prompt (about 270 tokens) is read again on every turn
+#: (no prompt cache with Gemma 4's sliding window) and takes 3 to 6 s on four cores (D-073).
+FIRST_TOKEN_S = 8.0
 #: How long Ollama keeps a model loaded after a turn, and the context window a turn is given.
 DEFAULT_KEEP_ALIVE = "30m"
 DEFAULT_NUM_CTX = 1024

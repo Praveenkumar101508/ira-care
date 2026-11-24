@@ -181,3 +181,16 @@ def test_missed_in_a_row_counts_until_an_answer():
     assert rules.missed_in_a_row(rows) == 2
     assert rules.missed_in_a_row([{"status": "answered"}]) == 0
     assert rules.missed_in_a_row([]) == 0
+
+
+@pytest.mark.parametrize("kind,name,expected", [
+    ("medication", "The evening tablet", "Have you taken your evening tablet yet?"),
+    ("medication", "Blood pressure tablet", "Have you taken your blood pressure tablet yet?"),
+    ("meal", "the lunch", "Did you have your lunch yet?"),
+    ("meal", "Your breakfast", "Did you have your breakfast yet?"),
+])
+def test_a_name_that_starts_with_an_article_reads_naturally_after_your(kind, name, expected):
+    # Found in the round 4 film: "Have you taken your the evening tablet yet?"
+    text = rules.question_text(rules.QuestionChoice(kind, "medication_due", subject=name), "Ada", rng=random.Random(0))
+    assert text.endswith(expected), text
+    assert "your the" not in text.lower()

@@ -1123,3 +1123,41 @@ derived from geometry make every image agree with the others and with the descri
 **Checked.** Every render, the turntable frames and the viewer (headless Chromium, exploded)
 were reviewed at full size before merging.
 
+
+## D-073 Only a loaded model is asked inside a turn; the browser watch speaks each sentence as it arrives (round 4, phase 3)
+
+**Found while recording the film against the real model on staging.** Five faults, each
+now covered by a test that fails without its fix:
+
+1. **A cold chain never loaded.** Once Ollama had unloaded the primary (keep-alive ended,
+   a restart, or the second model pushed it out under `OLLAMA_MAX_LOADED_MODELS=1`), each
+   turn started loading `gemma4:e4b` (about 16 s on four cores), gave up after its few
+   seconds, and Ollama aborted the load with the request; the chain then started
+   `gemma4:e2b`, whose load pushed the first out and was aborted in turn. Ollama's log
+   showed the two loads alternating every 3 to 9 seconds and no turn ever reached a model:
+   every reply came from the set lines. **Choice:** before asking a model, the chain asks
+   Ollama what is loaded (`/api/ps`, a few milliseconds). A model not in memory is skipped;
+   the chain starts one background load of its primary, given its whole time, and that
+   turn answers from the set lines at once instead of after the timeouts. The next turn
+   finds the primary loaded. If Ollama cannot say (an error), the model is tried as before.
+2. **The browser watch held IRA's first words back.** The server streams one JSON line per
+   sentence (the instant acknowledgement first, D-070), but the browser watch read the whole
+   body before speaking, so the acknowledgement was heard with the model's sentence, about
+   6 s late. **Choice:** `readTalk` reads the body as a stream and speaks each line as it
+   arrives. The Wear OS watch already did.
+3. **"Have you taken your the evening tablet yet?"** A medication or routine whose name
+   starts with "the", "your", "my", "a" or "an" read badly after "your". **Choice:** that
+   word is dropped from the name when it is put into the question.
+4. **Warming the model made the first turn load it again.** Round 4's warm request (D-069)
+   sent only the model's name, so Ollama loaded it with its default context of 4096 tokens;
+   the first turn then asked for 1024 and Ollama loaded it again ("runner options changed"),
+   longer than the turn could wait. **Choice:** every request, the warm one included, sends
+   the same load options (`num_ctx`, and `num_thread` when set).
+5. **Three seconds was too short for a real turn's first token.** The round 4 evaluation's
+   prompts are short; a talk turn for a person with a care record is about 270 tokens, read
+   again in full on every turn (Gemma 4's sliding window leaves Ollama no prompt cache), and
+   its first token came after 3 to 6 s on four cores, so the 3-second budget handed every turn
+   to the set lines. **Choice:** the primary's first-token budget is 8 s
+   (`IRA_CARE_MODEL_FIRST_TOKEN_S`). The person has already heard the acknowledgement at once;
+   measured on staging after these fixes, the model's first sentence follows in 3.5 to 5.5 s.
+
