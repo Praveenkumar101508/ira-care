@@ -33,3 +33,20 @@ def test_browser_origins_come_from_the_setting(monkeypatch):
     monkeypatch.delenv("IRA_CARE_JOBS_IN_API", raising=False)
     assert server.jobs_in_api() is False
     assert os.environ.get("IRA_CARE_JOBS_IN_API") is None
+
+
+def test_a_browser_watch_may_send_its_idempotency_key(monkeypatch):
+    """The watch's outbox sends X-Idempotency-Key with help, falls and answers. From a
+    browser on an allowed origin that is a preflighted request, and the staging proof
+    found the server refusing it (round 3, phase 14)."""
+    from starlette.testclient import TestClient
+
+    monkeypatch.setenv("IRA_CARE_ALLOWED_ORIGINS", "http://localhost:3010")
+    from care.server import create_care_app
+    client = TestClient(create_care_app())
+    r = client.options("/api/v1/care/devices/me/help", headers={
+        "Origin": "http://localhost:3010", "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "x-device-token, x-idempotency-key, content-type"})
+    assert r.status_code == 200, r.text
+    allowed = r.headers.get("access-control-allow-headers", "").lower()
+    assert "x-idempotency-key" in allowed and "x-device-token" in allowed

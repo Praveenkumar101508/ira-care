@@ -916,3 +916,54 @@ four screens are new.
 Rejected: using the builders' real e-mail addresses or numbers in the seed (the rule against
 real contact details holds for the builders too); a third real name for the viewer account
 (it is "Care viewer", a role).
+
+## D-066 Staging is a clean clone brought up the deployment's own way, and the proof is the journey (round 3, phase 14)
+
+`scripts/staging/clean_clone_proof.sh` clones this repository's HEAD into an empty directory
+and brings IRA CARE up as `docs/DEPLOY.md` and `deploy/docker-compose.yml` do: the
+deployment's PostgreSQL and Redis containers (`deploy/compose.staging.yml` only maps their
+ports to the developer's machine), a fresh Python 3.12 environment with the server image's
+requirements, the migration chain applied by the image's own entry point as `ira_migrator`,
+the care server and the care worker as the image starts them, the dashboard built and served
+standalone as its image serves it, the phone app exported for the web, the demo organisation
+seeded, then `e2e/` against it: five journey tests (the coordinator adds a person and makes
+a pairing code; the watch pairs with the code typed on its face; the server asks a real
+check-in that the watch answers, through the real model; a heart rate outside the range opens
+an alert the family member answers on the phone with "I'm on my way", "I've arrived" and an
+outcome, and the watch says each of those; a visit is planned, arrived at and handed over) and
+two outage drills with timings (Redis stopped under a help press: the server reports
+unhealthy at once, the watch says "Sending…" and keeps the request, the request reaches the
+care team as soon as Redis returns; PostgreSQL stopped: unhealthy at once, healthy half a
+second after it returns, no restart). Every step's timing and result goes to
+`docs/evidence/staging/clean_clone_proof.json`, `e2e_results.json` and `outages.json`.
+
+What the proof is not: the two application images are not built here and Caddy does not get
+a public certificate, because this machine's network allows no package index inside a
+container build and has no domain name. Everything those images run is run from the same
+files; building them is listed as needing the owner's machine.
+
+The proof found six defects before any person did, each fixed in this phase with a test
+where one fits: (1) the compose file had an invalid volume block (the deployment would not
+have started); (2) the server image applied migrations at start without the migration
+tool's authorisation, which it refuses in production, so the container would have exited:
+now the operator's `IRA_MIGRATE_ON_START=true` in `deploy/.env` carries that authorisation
+through the entry point, and with it off the operator migrates by hand; (3) the care server's
+browser-origin rules did not allow the watch's `X-Idempotency-Key` header, so a browser watch
+could never send help, a fall or an answer (`test_care_server.py`); (4) pressing Help while
+"Are you OK?" was being asked left that question pending, so the watch was asked again after
+the SOS (`test_care_sos_db.py`); (5) the watch kept saying "This is now resolved." for as
+long as the server reported the closed SOS, and a carer's arrival could not be seen behind
+it: the face now says it for a minute and puts a carer in the room first (`face.test.ts`);
+(6) an empty stored server address made the watch poll the wrong host; it falls back to the
+default.
+
+The film (`docs/film/ira_care.mp4`) is made from this stack by `scripts/film/record_scenes.mjs`
+(Playwright recordings of the watch, the phone and the dashboard; the presenter's tab drives
+the watch and is never in frame) and `scripts/film/make_film.sh` (the Blender turntable as the
+opening, the renders as the closing, the narration in `docs/film/NARRATION.md` spoken by Piper,
+MIT, with the `en_GB-cori-high` voice whose training data is public domain; H.264, 1280 × 720,
+5 minutes 30 seconds, 3.9 MB).
+
+Rejected: faking the stack with the demo API (`scripts/demo/api.py` allows browser origins
+the real server does not; the proof must run `care.server`); a screen recording made by hand
+(it could not be remade, and it would not have found the six defects).

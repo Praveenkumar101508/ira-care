@@ -1,0 +1,9 @@
+# Staging on one developer machine (scripts/staging/clean_clone_proof.sh): the deployment's
+# own database and Redis containers, reachable from the host on local ports so the care
+# server, the worker and the dashboard can run from the clone exactly as the images run them.
+# Never used in production: the production file exposes nothing on the host.
+services:
+  postgres:
+    ports: ["127.0.0.1:${IRA_STAGING_PG_PORT:-5433}:5432"]
+  redis:
+    ports: ["127.0.0.1:${IRA_STAGING_REDIS_PORT:-6381}:6379"]

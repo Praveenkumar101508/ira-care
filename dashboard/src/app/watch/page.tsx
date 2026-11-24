@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { sosWords } from '@/lib/device';
+import { faceWords } from '@/lib/face';
 import { useBrowserWatch } from '@/lib/browserWatch';
 
 /**
@@ -19,11 +19,9 @@ export default function WatchPage() {
     const t = setInterval(tick, 10_000);
     return () => clearInterval(t);
   }, []);
-  const words = w.fallCountdown !== null ? `Did you fall? Are you OK? Help in ${w.fallCountdown} s`
-    : sosWords(w.sos, w.sosPending) ?? (w.question ? w.question.question_text : 'All well');
   const visit = w.sos && typeof (w.sos as unknown as { visit?: { state: string; carer_name: string; planned_start: string } }).visit === 'object'
     ? (w.sos as unknown as { visit: { state: string; carer_name: string; planned_start: string } }).visit : null;
-  const visitWords = visit?.state === 'here' ? `${visit.carer_name} is here.` : visit?.state === 'expected' || visit?.state === 'late' ? `${visit.carer_name} is coming at ${visit.planned_start.slice(11, 16)}.` : null;
+  const { words, second: visitWords } = faceWords({ fallCountdown: w.fallCountdown, sos: w.sos, sosPending: w.sosPending, question: w.question?.question_text ?? null, visit });
 
   return (
     <main className="watch-page" data-testid="watch-page">

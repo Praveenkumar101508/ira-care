@@ -1,8 +1,9 @@
 # IRA CARE: next step
 
 **Round 3 (the completion run) is in progress.** Phases and their state are in
-`STATUS.md` (table "Round 3"). Phases 0 to 12 are merged (pull requests 20 to 32). Phase 13 is
-built and tested on its branch; next: its pull request, CI and squash-merge, then R3-14.
+`STATUS.md` (table "Round 3"). Phases 0 to 12 are merged (pull requests 20 to 32). Phases 13
+to 14 are built and tested on their branches; next: their pull requests, CI and
+squash-merges in order, then R3-15.
 
 Owner actions found so far in round 3:
 
@@ -11,12 +12,18 @@ Owner actions found so far in round 3:
    `feat/scheduled-care`, `feat/ira-personal`, `feat/watch-platform-layer`, `feat/hardware-blueprint`,
    `feat/one-mobile-app`, `feat/dashboard-care-record` and `feat/clean-product-ui` (this machine's
    network refuses branch deletes).
-2. Allow `api.figshare.com`, `ieee-dataport.org` and `www.kaggleusercontent.com` on the
+1. Allow `api.figshare.com`, `ieee-dataport.org` and `www.kaggleusercontent.com` on the
    environment if the original terms of UMAFall and FallAllD or the notebook output files
    are wanted; nothing shipped depends on them.
-3. A hardware engineer verifies the rows of `docs/hardware/COMPONENTS.md` marked not verified
+2. A hardware engineer verifies the rows of `docs/hardware/COMPONENTS.md` marked not verified
    (those manufacturers' sites refuse automated readers) and a regulatory adviser reviews
    `docs/hardware/BLUEPRINT.md` section 8 before any submission.
+3. If the SisFall mirror or IEEE DataPort sets are wanted locally, allow `api.figshare.com`
+   and `ieee-dataport.org`; to download Kaggle kernel output files directly, allow
+   `www.kaggleusercontent.com` (the session read kernel logs through the API instead).
+4. Build the two application images and start the stack with Caddy on a machine with a
+   domain name (`docs/DEPLOY.md`); this machine could not build images, so staging ran
+   everything the images run from the same files instead.
 
 ---
 

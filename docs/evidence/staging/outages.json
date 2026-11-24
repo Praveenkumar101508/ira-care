@@ -1,0 +1,38 @@
+{
+  "measured_at": "2026-11-24T09:13:08.056Z",
+  "results": [
+    {
+      "outage": "redis",
+      "step": "server reports unhealthy",
+      "seconds_after_stop": 0
+    },
+    {
+      "outage": "redis",
+      "step": "watch answers the help press",
+      "seconds": 0,
+      "words": "Sending…"
+    },
+    {
+      "outage": "redis",
+      "step": "server healthy again after start",
+      "seconds_after_start": 0,
+      "stop_took_s": 0.4
+    },
+    {
+      "outage": "redis",
+      "step": "help request visible to the care team",
+      "seconds_after_start": 0
+    },
+    {
+      "outage": "postgres",
+      "step": "server reports unhealthy",
+      "seconds_after_stop": 0
+    },
+    {
+      "outage": "postgres",
+      "step": "server healthy again after start",
+      "seconds_after_start": 0.5,
+      "stop_at_s": 1.2
+    }
+  ]
+}

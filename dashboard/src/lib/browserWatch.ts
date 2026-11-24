@@ -12,6 +12,8 @@ import { DEFAULT_BASE_URL } from '@/lib/session';
  * taking the watch off.
  */
 const POLL_MS = 5_000;
+/** How long the watch keeps saying a closed SOS is resolved before it returns to "All well". */
+export const RESOLVED_WORDS_MS = 60_000;
 const KEY = 'ira_care_simulator';
 
 type Line = { who: 'ira' | 'you' | 'note'; text: string };
@@ -53,6 +55,15 @@ export function useBrowserWatch(role: 'watch' | 'presenter' = 'watch') {
   const [homeLon, setHomeLon] = useState('-0.1200');
   const [away, setAway] = useState(false);
   const [sos, setSos] = useState<SosState | null>(null);
+  const closedSince = useRef<{ id: string | null; at: number } | null>(null);
+  /** A closed SOS is said to be resolved for a minute, then the face returns to the day. */
+  const applySos = (s: SosState | null) => {
+    if (s && s.state === 'closed') {
+      if (!closedSince.current || closedSince.current.id !== s.alert_id) closedSince.current = { id: s.alert_id, at: Date.now() };
+      if (Date.now() - closedSince.current.at > RESOLVED_WORDS_MS) { setSos(null); return; }
+    } else closedSince.current = null;
+    setSos(s);
+  };
   const [sosPending, setSosPending] = useState<'sending' | 'waiting' | null>(null);
   const [ranges, setRanges] = useState<ReadingSettings | null>(null);
   const [queuedHelp, setQueuedHelp] = useState<{ key: string; via: 'button' | 'voice' | 'fall' } | null>(null);
@@ -71,7 +82,7 @@ export function useBrowserWatch(role: 'watch' | 'presenter' = 'watch') {
   const vibrate = () => { setFlash(true); setTimeout(() => setFlash(false), 600); if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(300); };
 
   useEffect(() => {
-    try { const raw = window.localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw) as { baseUrl: string; token: string }; setBaseUrl(s.baseUrl); setToken(s.token); } } catch { /* ignore */ }
+    try { const raw = window.localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw) as { baseUrl: string; token: string }; setBaseUrl(s.baseUrl || DEFAULT_BASE_URL); setToken(s.token); } } catch { /* ignore */ }
   }, []);
   useEffect(() => {
     if (!token) { setClient(null); return; }
@@ -93,7 +104,7 @@ export function useBrowserWatch(role: 'watch' | 'presenter' = 'watch') {
       if (stop) return;
       try {
         // The SOS line is the server's word: asked on every tick, like the watch's held stream.
-        const state = await client.sos(); setSos(state);
+        const state = await client.sos(); applySos(state);
         if (queuedHelp) {
           // The outbox: a Help request that could not be sent is re-sent with the same key.
           try { await client.help(queuedHelp.via, location(), queuedHelp.key); setQueuedHelp(null); setSosPending(null); note('The saved help request has reached the server.'); } catch { setSosPending('waiting'); }
@@ -144,7 +155,7 @@ export function useBrowserWatch(role: 'watch' | 'presenter' = 'watch') {
     setSosPending('sending'); say('Sending your request for help. Stay where you are.', true);
     try {
       const a = await client.help(via, location(), key);
-      setSosPending(null); if (a.sos) setSos(a.sos);
+      setSosPending(null); if (a.sos) applySos(a.sos);
       note(`SOS opened: ${a.kind} (${a.status}), at home: ${a.at_home === null ? 'unknown' : a.at_home ? 'yes' : 'no'}.`); setQuestion(null);
       say('Help request received.', true);
     } catch (e) {
@@ -231,7 +242,7 @@ export function useBrowserWatch(role: 'watch' | 'presenter' = 'watch') {
     if (role !== 'watch') return;
     post({ type: 'mirror', log, online, onWrist, fallCountdown, paired: client !== null, baseUrl });
   }, [role, log, online, onWrist, fallCountdown, client, baseUrl]);
-  const presenterSetToken = (t: string) => { setToken(t); if (role === 'presenter') post({ type: 'credentials', baseUrl, token: t }); };
+  const presenterSetToken = (t: string) => { setToken(t); if (role === 'presenter') post({ type: 'credentials', baseUrl: baseUrl || DEFAULT_BASE_URL, token: t }); };
   const presenterSetBaseUrl = (b: string) => { setBaseUrl(b); if (role === 'presenter' && token) post({ type: 'credentials', baseUrl: b, token }); };
   const presenterSet = (v: { homeLat?: string; homeLon?: string; away?: boolean; speak?: boolean }) => {
     if (v.homeLat !== undefined) setHomeLat(v.homeLat); if (v.homeLon !== undefined) setHomeLon(v.homeLon); if (v.away !== undefined) setAway(v.away); if (v.speak !== undefined) setSpeak(v.speak);

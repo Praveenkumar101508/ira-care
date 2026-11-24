@@ -39,7 +39,8 @@ cp .env.example .env
 | `POSTGRES_DB` | The database name. | `ira_care` |
 | `POSTGRES_SUPERUSER_PASSWORD` | The database's own superuser, used by the first-run role script and the backup job. | `python3 -c "import secrets;print(secrets.token_urlsafe(32))"` |
 | `IRA_APP_PASSWORD` | The runtime roles `ira_app` and `ira_worker`; everything they read is under row-level security. | as above |
-| `IRA_MIGRATOR_PASSWORD` | `ira_migrator`, which applies the migration chain when the server starts. | as above |
+| `IRA_MIGRATOR_PASSWORD` | `ira_migrator`, which applies the migration chain. | as above |
+| `IRA_MIGRATE_ON_START` | The migration tool refuses a staging or production database unless the person running it is authorised. `true` says that person is you, the operator, and the server applies the chain each time it starts; `false` leaves the database alone and you run `docker compose run --rm api migrate` when you choose. | `true` |
 | `IRA_SECRET_KEY` | Signs sessions and tokens. Changing it signs everyone out. | as above |
 | `IRA_ADMIN_PASSWORD` | The private edition's owner account. Required by the settings even in the cloud edition; not used for care sign-in. | as above |
 | `IRA_CONNECTOR_ENCRYPTION_KEY` | 32 random bytes, base64. Seals the access notes (and connector credentials). Losing it loses the notes. | `python3 -c "import base64,os;print(base64.b64encode(os.urandom(32)).decode())"` |

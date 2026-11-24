@@ -113,7 +113,8 @@ def create_care_app() -> FastAPI:
     if origins:
         app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True,
                            allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
-                           allow_headers=["Authorization", "Content-Type", "X-Workspace-ID", "X-Device-Token"])
+                           # X-Idempotency-Key is what the watch's outbox sends with help, falls and answers.
+                           allow_headers=["Authorization", "Content-Type", "X-Workspace-ID", "X-Device-Token", "X-Idempotency-Key"])
     app.add_middleware(RequestContextMiddleware)
     return app
 

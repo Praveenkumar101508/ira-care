@@ -115,9 +115,18 @@ async def promote_overdue(conn, now: dt.datetime) -> int:
 
 async def promote_on_help(conn, person_id, now: dt.datetime) -> Optional[dict]:
     """The Help button while a question is out: open the asking alert instead
-    of a second row."""
+    of a second row, and settle the safety question it was asking. Pressing Help
+    is the answer; the watch must not be asked "are you OK?" again afterwards
+    (the staging proof of round 3, phase 14 caught it doing so)."""
     row = await conn.fetchrow(
         "UPDATE care_alerts SET status = 'open', next_action_at = $2, "
         "details = details || '{\"outcome\": \"asked_for_help\"}'::jsonb "
         "WHERE person_id = $1 AND status = 'asking' RETURNING *", person_id, now)
-    return dict(row) if row else None
+    if row is None:
+        return None
+    if row["checkin_id"] is not None:
+        await conn.execute(
+            "UPDATE care_checkins SET status = 'answered', answered_at = $2, answered_via = 'button', "
+            "answer_summary = 'Pressed Help.' WHERE id = $1 AND status IN ('scheduled', 'asked', 'repeated')",
+            row["checkin_id"], now)
+    return dict(row)
