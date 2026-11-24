@@ -3,10 +3,12 @@ import { ScrollView, StyleSheet, Text } from 'react-native';
 import type { CareClient } from '../api/client';
 import type { Device, Person } from '../api/types';
 import { timeAgo } from '../model/format';
-import { BigButton, Card, Muted, Screen, colors } from '../ui';
+import { BigButton, Card, Muted, Screen , useColors, type Palette } from '../ui';
 
 /** Pairing a watch, one step at a time, with the code and the first sync shown as they happen. */
 export function PairWatchScreen({ client, person, onBack }: { client: CareClient; person: Person; onBack: () => void }) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [pairing, setPairing] = useState<Device | null>(null);
   const [device, setDevice] = useState<Device | undefined>(undefined);
   const [error, setError] = useState('');
@@ -42,4 +44,4 @@ export function PairWatchScreen({ client, person, onBack }: { client: CareClient
   );
 }
 
-const styles = StyleSheet.create({ h: { fontSize: 18, fontWeight: '700', marginBottom: 4 } });
+const makeStyles = (colors: Palette) => StyleSheet.create({ h: { fontSize: 18, fontWeight: '700', marginBottom: 4 } });

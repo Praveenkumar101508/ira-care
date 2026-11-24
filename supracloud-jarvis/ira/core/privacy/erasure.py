@@ -615,6 +615,7 @@ async def erase_postgres(principal, *, scope: str) -> StoreResult:
                         # on user_id, so only this person's phones go; the circle member
                         # row (the person cared for's record) stays.
                         deleted += await _delete_own_care_push_tokens(conn, principal)
+                        deleted += await _delete_own_care_user_preferences(conn, principal)
             except Exception as exc:  # noqa: BLE001 — recorded, never swallowed
                 logger.error(
                     "erasure: workspace %s pass failed: %s", workspace_id, exc
@@ -838,6 +839,13 @@ def _in_workspace(principal, workspace_id):
     from dataclasses import replace
 
     return replace(principal, workspace_id=workspace_id)
+
+
+async def _delete_own_care_user_preferences(conn, principal) -> int:
+    """`care_user_preferences` rows belong to an ACCOUNT (how the app looks for it);
+    they go with the account, inside each workspace pass, like the push tokens."""
+    result = await conn.execute("DELETE FROM care_user_preferences WHERE user_id = $1", principal.user_id)
+    return int(result.split()[-1]) if result else 0
 
 
 async def _delete_own_care_push_tokens(conn, principal) -> int:

@@ -1,58 +1,97 @@
 import Constants from 'expo-constants';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert as Dialog, Linking, View } from 'react-native';
 import { ApiError, CareClient } from './api/client';
-import type { Alert, Person, Workspace } from './api/types';
+import type { Alert, CircleMember, ConsentList, Person, PersonStatus, Reminder, Visit, Workspace } from './api/types';
+import { ThemeProvider } from './appearance/ThemeContext';
+import { DEFAULT_APPEARANCE, normaliseAppearance, type Appearance } from './appearance/theme';
+import { alertBadge, pickPerson, type Experience, type Membership, type Tab } from './model/experience';
 import { registerForPush } from './push';
 import { AlertsScreen } from './screens/AlertsScreen';
-import { HomeScreen } from './screens/HomeScreen';
+import { JoinScreen } from './screens/JoinScreen';
 import { LoginScreen, type LoginResult } from './screens/LoginScreen';
+import { PairWatchScreen } from './screens/PairWatchScreen';
 import { PersonScreen } from './screens/PersonScreen';
 import { TalkScreen } from './screens/TalkScreen';
-import { PairWatchScreen } from './screens/PairWatchScreen';
-import { JoinScreen } from './screens/JoinScreen';
 import { WorkspaceScreen } from './screens/WorkspaceScreen';
-import { loadSession, saveSession, type StoredSession } from './storage';
-
-type Route = { name: 'home' } | { name: 'alerts' } | { name: 'person'; person: Person } | { name: 'talk'; person: Person } | { name: 'pair'; person: Person };
+import { HomeTab } from './shell/HomeTab';
+import { SettingsTab, pickPhoto } from './shell/SettingsTab';
+import { TabBar } from './shell/TabBar';
+import { loadAppearance, loadSession, saveAppearance, saveSession, type StoredSession } from './storage';
 
 const DEFAULT_BASE_URL: string =
   (Constants.expoConfig?.extra as { careApiBaseUrl?: string } | undefined)?.careApiBaseUrl ?? 'http://10.0.2.2:8000';
 
-/** How often the home screen refreshes alerts while open. */
+/** How often the app refreshes while open. */
 export const REFRESH_MS = 30_000;
+
+type Overlay = { name: 'talk' } | { name: 'pair' } | null;
 
 export default function App() {
   const [session, setSession] = useState<StoredSession | null | undefined>(undefined);
   const [joining, setJoining] = useState(false);
   const [pendingWorkspaces, setPendingWorkspaces] = useState<LoginResult | null>(null);
-  const [route, setRoute] = useState<Route>({ name: 'home' });
+  const [tab, setTab] = useState<Tab>('home');
+  const [overlay, setOverlay] = useState<Overlay>(null);
   const [people, setPeople] = useState<Person[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [role, setRole] = useState('');
+  const [experience, setExperience] = useState<Experience>('family');
+  const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [canManage, setCanManage] = useState(false);
+  const [personId, setPersonId] = useState<string | null>(null);
+  const [status, setStatus] = useState<PersonStatus | null>(null);
+  const [visits, setVisits] = useState<Visit[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [circle, setCircle] = useState<CircleMember[]>([]);
+  const [consents, setConsents] = useState<ConsentList | null>(null);
+  const [appearance, setAppearance] = useState<Appearance>(DEFAULT_APPEARANCE);
+  const [pushRegistered, setPushRegistered] = useState<boolean | null>(null);
   const [error, setError] = useState('');
   const client = useRef<CareClient | null>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => { void loadSession().then((s) => setSession(s)); }, []);
+  useEffect(() => {
+    void loadSession().then((s) => setSession(s));
+    void loadAppearance().then((a) => { if (a) setAppearance(normaliseAppearance(a)); });
+  }, []);
 
   useEffect(() => {
     if (!session) { client.current = null; return; }
     client.current = new CareClient({ baseUrl: session.baseUrl, accessToken: session.accessToken, workspaceId: session.workspaceId });
-    void registerForPush(client.current);
+    void registerForPush(client.current).then(setPushRegistered);
   }, [session]);
+
+  const person = useMemo(() => pickPerson(people, memberships, personId ?? appearance.selected_person_id), [people, memberships, personId, appearance.selected_person_id]);
 
   const refresh = useCallback(async () => {
     const c = client.current;
     if (!c || !session?.workspaceId) return;
     try {
-      const [p, a] = await Promise.all([c.people(), c.alerts(true)]);
-      setPeople(p); setAlerts(a); setError('');
+      const [p, a, me, prefs] = await Promise.all([c.people(), c.alerts(false), c.experience(), c.preferences()]);
+      setPeople(p); setAlerts(a); setExperience(me.experience); setMemberships(me.memberships); setCanManage(me.can_manage);
+      if (prefs.appearance && Object.keys(prefs.appearance).length > 0) {
+        const merged = normaliseAppearance(prefs.appearance);
+        setAppearance(merged);
+        void saveAppearance(merged);
+      }
+      setError('');
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) { await saveSession(null); setSession(null); return; }
       setError(e instanceof ApiError ? e.message : 'Could not refresh.');
     }
   }, [session]);
+
+  const refreshPerson = useCallback(async () => {
+    const c = client.current;
+    if (!c || !person) return;
+    try {
+      const [s, v, r, m, k] = await Promise.all([c.status(person.id), c.visits(person.id), c.reminders(person.id), c.circle(person.id), c.consents(person.id)]);
+      setStatus(s); setVisits(v); setReminders(r); setCircle(m); setConsents(k);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Could not refresh.');
+    }
+  }, [person]);
 
   useEffect(() => {
     if (!session?.workspaceId) return;
@@ -60,13 +99,22 @@ export default function App() {
     const timer = setInterval(() => { void refresh(); }, REFRESH_MS);
     return () => clearInterval(timer);
   }, [session, refresh]);
+  useEffect(() => { void refreshPerson(); }, [refreshPerson, alerts]);
+
+  /** Appearance changes apply at once, are kept on this phone, and reach the server a moment later. */
+  const changeAppearance = (a: Appearance) => {
+    setAppearance(a);
+    void saveAppearance(a);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => { void client.current?.putPreferences(a).catch(() => {}); }, 600);
+  };
 
   const finishLogin = async (result: LoginResult, workspace: Workspace) => {
     const s: StoredSession = {
       baseUrl: result.baseUrl, accessToken: result.accessToken, refreshToken: result.refreshToken,
       workspaceId: workspace.id, workspaceName: workspace.name, username: result.username,
     };
-    setRole(workspace.role);
+    setCanManage(workspace.role === 'workspace_admin');
     await saveSession(s);
     setPendingWorkspaces(null);
     setSession(s);
@@ -83,46 +131,65 @@ export default function App() {
   }
   if (!session && joining) {
     return (
-      <><StatusBar style="dark" />
+      <ThemeProvider appearance={appearance}><StatusBar style="auto" />
         <JoinScreen baseUrl={DEFAULT_BASE_URL} onBack={() => setJoining(false)}
           onJoined={(j) => { void finishLogin({ baseUrl: DEFAULT_BASE_URL, accessToken: j.accessToken, refreshToken: j.refreshToken, username: j.username, workspaces: [] }, { id: j.workspaceId ?? '', name: 'Care team', role: 'member', slug: 'care-team', is_default: true, status: 'active' } as Workspace); }} />
-      </>
+      </ThemeProvider>
     );
   }
-  if (!session) return <><StatusBar style="dark" /><LoginScreen defaultBaseUrl={DEFAULT_BASE_URL} onLoggedIn={onLoggedIn} onJoin={() => setJoining(true)} /></>;
+  if (!session) return <ThemeProvider appearance={appearance}><StatusBar style="auto" /><LoginScreen defaultBaseUrl={DEFAULT_BASE_URL} onLoggedIn={onLoggedIn} onJoin={() => setJoining(true)} /></ThemeProvider>;
 
   const c = client.current!;
-  const canManage = role === 'workspace_admin';
-  const signOut = async () => { await saveSession(null); setSession(null); setRoute({ name: 'home' }); };
+  const signOut = async () => { await saveSession(null); setSession(null); setTab('home'); };
+  const act = async (fn: () => Promise<unknown>) => { try { await fn(); await refresh(); await refreshPerson(); } catch (e) { setError(e instanceof ApiError ? e.message : 'Failed.'); } };
+  const switchPerson = (p: Person) => { setPersonId(p.id); changeAppearance({ ...appearance, selected_person_id: p.id }); };
+
+  /** Help from the phone is a two-step action: the second step is the confirmation. */
+  const help = () => {
+    if (!person) return;
+    Dialog.alert('Ask for help?', 'Your family and carers will be told now, with where you are.',
+      [{ text: 'Not now', style: 'cancel' }, { text: 'Yes, get help', style: 'destructive', onPress: () => { void act(() => c.phoneHelp(person.id)); setTab('alerts'); } }]);
+  };
+
+  const body = overlay?.name === 'talk' && person ? (
+    <TalkScreen person={person} onSend={(t) => c.talk(person.id, t)} onBack={() => setOverlay(null)} />
+  ) : overlay?.name === 'pair' && person ? (
+    <PairWatchScreen client={c} person={person} onBack={() => { setOverlay(null); void refreshPerson(); }} />
+  ) : tab === 'home' ? (
+    <HomeTab
+      d={{ experience, memberships, people, person, device: status?.devices[0], alerts, visits, reminders, lastCheckin: status?.last_checkin, cardOrder: appearance.card_order, error }}
+      a={{ onHelp: help, onTalk: () => setOverlay({ name: 'talk' }), onAlerts: () => setTab('alerts'), onCare: () => setTab('care'), onSettings: () => setTab('settings'),
+        onSwitchPerson: switchPerson, onOnMyWay: (al) => { void act(() => c.acknowledge(al.id)); },
+        onArrive: (v) => { void act(() => c.arrive(v.id)); }, onDepart: () => setTab('care'),
+        onReminder: (r, action) => { void act(() => c.actOnReminder(r.id, action)); } }} />
+  ) : tab === 'care' ? (
+    person ? (
+      <PersonScreen key={person.id} client={c} person={person} canManage={canManage} onBack={() => setTab('home')}
+        onTalk={() => setOverlay({ name: 'talk' })} onPair={canManage ? () => setOverlay({ name: 'pair' }) : undefined} />
+    ) : <HomeTab d={{ experience, memberships, people, alerts, visits: [], reminders: [], cardOrder: [], error: 'No one is set up yet. A carer adds people from the dashboard.' }}
+      a={{ onHelp: () => {}, onTalk: () => {}, onAlerts: () => setTab('alerts'), onCare: () => {}, onSettings: () => setTab('settings'), onSwitchPerson: switchPerson, onOnMyWay: () => {}, onArrive: () => {}, onDepart: () => {}, onReminder: () => {} }} />
+  ) : tab === 'alerts' ? (
+    <AlertsScreen alerts={alerts.filter((x) => x.status !== 'resolved')} people={people}
+      onAcknowledge={async (al) => { await c.acknowledge(al.id); await refresh(); }}
+      onArrived={async (al) => { await c.arrived(al.id); await refresh(); }}
+      onResolve={async (al, outcome) => { await c.resolve(al.id, outcome === 'all_well' ? 'All well; resolved from the app.' : 'Needed help; resolved from the app.', outcome); await refresh(); }}
+      onBack={() => setTab('home')}
+      onCall999={() => { void Linking.openURL('tel:999'); }}
+      onAccessNotes={(al) => c.accessNotes(al.id)} />
+  ) : (
+    <SettingsTab appearance={appearance} onAppearance={changeAppearance} experience={experience} person={person} device={status?.devices[0]}
+      circle={circle} consents={consents} pushRegistered={pushRegistered} onRegisterPush={() => { void registerForPush(c).then(setPushRegistered); }}
+      username={session.username} server={session.baseUrl} onSignOut={() => { void signOut(); }} onPairWatch={() => setOverlay({ name: 'pair' })}
+      onOpenCare={() => setTab('care')} onPickPhoto={pickPhoto} />
+  );
 
   return (
-    <>
-      <StatusBar style="dark" />
-      {route.name === 'home' && (
-        <HomeScreen people={people} alerts={alerts} workspaceName={session.workspaceName ?? ''} error={error}
-          onOpenPerson={(person) => setRoute({ name: 'person', person })}
-          onOpenAlerts={() => setRoute({ name: 'alerts' })} onRefresh={() => { void refresh(); }} onSignOut={() => { void signOut(); }} />
-      )}
-      {route.name === 'alerts' && (
-        <AlertsScreen alerts={alerts} people={people}
-          onAcknowledge={async (a) => { await c.acknowledge(a.id); await refresh(); }}
-          onArrived={async (a) => { await c.arrived(a.id); await refresh(); }}
-          onResolve={async (a, outcome) => { await c.resolve(a.id, outcome === 'all_well' ? 'All well; resolved from the family app.' : 'Needed help; resolved from the family app.', outcome); await refresh(); }}
-          onBack={() => setRoute({ name: 'home' })}
-          onCall999={() => { void Linking.openURL('tel:999'); }}
-          onAccessNotes={(a) => c.accessNotes(a.id)} />
-      )}
-      {route.name === 'person' && (
-        <PersonScreen client={c} person={route.person} canManage={canManage} onBack={() => setRoute({ name: 'home' })}
-          onTalk={() => setRoute({ name: 'talk', person: route.person })}
-          onPair={canManage ? () => setRoute({ name: 'pair', person: route.person }) : undefined} />
-      )}
-      {route.name === 'pair' && (
-        <PairWatchScreen client={c} person={route.person} onBack={() => setRoute({ name: 'person', person: route.person })} />
-      )}
-      {route.name === 'talk' && (
-        <TalkScreen person={route.person} onSend={(t) => c.talk(route.person.id, t)} onBack={() => setRoute({ name: 'person', person: route.person })} />
-      )}
-    </>
+    <ThemeProvider appearance={appearance}>
+      <StatusBar style="auto" />
+      <View style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>{body}</View>
+        {overlay ? null : <TabBar tab={tab} onTab={(t) => { setTab(t); }} alertCount={alertBadge(alerts.filter((x) => x.status !== 'resolved'), memberships)} />}
+      </View>
+    </ThemeProvider>
   );
 }

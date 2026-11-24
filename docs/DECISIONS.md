@@ -816,3 +816,25 @@ watch is a consumer product or a medical device; kept to the language of
 `docs/compliance/INTENDED_PURPOSE.md`, it is a consumer product. Nothing in this phase is
 claimed built: the renders are of a model, the power budget is an estimate, and the folder
 says so.
+
+## D-061 One app, three experiences, and the look is the person's own (round 3, phase 10)
+
+There is one Android and iOS app. Who you are to the people in it decides what it shows
+(`GET /me/experience`): the person wearing the watch (a circle member whose relationship is
+"self") gets the wearer's home (Help first, the next visit, reminders, Talk to IRA, who sees
+what); family get the person (the alert that needs someone first, with "I'm on my way",
+updates, the watch's last sync, a switch between the people they belong to); a carer, a
+clinician, a care-organisation member or an administrator gets today's visits with "I've
+arrived", the outcome and the handover. Four tabs carry everything: Home, Care (the care
+record), Alerts, Settings. The appearance is the person's own and travels with their account
+(`care_user_preferences`, 111; `/me/preferences`): a wallpaper (a colour, one of four
+built-in pictures drawn by the app, or their own photo as a data URL of at most 500 KB), light
+or dark or the phone's choice, text size, high contrast, less motion, and the order of their
+home cards. Two rules do not bend to it: words stay readable (a scrim over any picture or
+photo, and a plain colour that clashes with the text gets one too, proved by the contrast
+checks in `appearance.test.ts`) and the urgent actions keep their fixed colours (Help, the
+alert banner, "I'm on my way"), drawn first whatever order the person chose. Help from the
+phone (`POST /people/{id}/help`) opens the same SOS the watch would, marked "phone", after a
+confirmation step. A photo wallpaper is kept on the server only (the phone's secure store is
+too small for it); everything else is also cached on the phone so the app looks right before
+the server answers. Account erasure removes the appearance with the account.

@@ -1,8 +1,8 @@
 # IRA CARE: next step
 
 **Round 3 (the completion run) is in progress.** Phases and their state are in
-`STATUS.md` (table "Round 3"). Phases 0 to 8 are merged (pull requests 20 to 28). Phase 9
-is built; next is its pull request, CI and squash-merge, then phases 10 to 15 in order.
+`STATUS.md` (table "Round 3"). Phases 0 to 9 are merged (pull requests 20 to 29). Phase 10
+is built; next is its pull request, CI and squash-merge, then phases 11 to 15 in order.
 
 Owner actions found so far in round 3:
 
