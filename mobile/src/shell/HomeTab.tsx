@@ -42,8 +42,9 @@ export function HomeTab({ d, a }: { d: HomeData; a: HomeActions }) {
   ) : urgent.length > 0 ? (
     <Pressable key="alerts-first" onPress={a.onAlerts} testID="urgent-banner" style={[styles.banner, { backgroundColor: c.sos }]}>
       <Text style={styles.bannerText} maxFontSizeMultiplier={2}>{urgent.length === 1 ? '1 alert needs someone' : `${urgent.length} alerts need someone`}. Tap to see.</Text>
+      {urgent[0] ? <Text style={styles.bannerDetail} maxFontSizeMultiplier={2}>{alertTitle(urgent[0])}{urgent[0].opened_at ? ` · ${timeAgo(urgent[0].opened_at)}` : ''}</Text> : null}
       {urgent[0] && d.experience === 'family' ? (
-        <BigButton label="I'm on my way" color="#FFFFFF" testID="home-on-my-way" hint="Tells everyone you are going" onPress={() => a.onOnMyWay(urgent[0])} />
+        <BigButton label="I'm on my way" color="#FFFFFF" textColor={c.sos} testID="home-on-my-way" hint="Tells everyone you are going" onPress={() => a.onOnMyWay(urgent[0])} />
       ) : null}
     </Pressable>
   ) : (
@@ -114,6 +115,7 @@ export function HomeTab({ d, a }: { d: HomeData; a: HomeActions }) {
 const styles = StyleSheet.create({
   banner: { borderRadius: 14, padding: 16, marginBottom: 10 },
   bannerText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  bannerDetail: { color: '#fff', fontSize: 16, marginTop: 4 },
   h: { fontSize: 18, fontWeight: '600', marginBottom: 6 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   rowWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 8 },

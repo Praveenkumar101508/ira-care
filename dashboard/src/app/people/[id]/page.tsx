@@ -284,7 +284,7 @@ export default function PersonPage() {
             <li>Keep the app&apos;s ongoing notification: it is what collects readings and asks the questions.</li>
             <li>Within a few minutes the Readings tab shows the first readings and the watch line above says &quot;synced just now&quot;. Then ask IRA to check in now and answer on the watch.</li>
           </ol>
-          <p className="muted">No watch to hand? The <a href="/watch">browser watch</a> pairs with the same code. The full guide is docs/DEVICE_SETUP.md.</p>
+          <p className="muted">No watch to hand? The <a href="/watch">browser watch</a> pairs with the same code.</p>
         </div>
       ) : null}
 

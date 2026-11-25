@@ -42,8 +42,8 @@ export function Card({ children, testID }: { children: React.ReactNode; testID?:
   return <View testID={testID} style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>{children}</View>;
 }
 
-export function BigButton({ label, onPress, color, disabled = false, testID, hint }: {
-  label: string; onPress: () => void; color?: string; disabled?: boolean; testID?: string; hint?: string;
+export function BigButton({ label, onPress, color, textColor, disabled = false, testID, hint }: {
+  label: string; onPress: () => void; color?: string; textColor?: string; disabled?: boolean; testID?: string; hint?: string;
 }) {
   const c = useColors();
   const scale = useTextScale();
@@ -58,7 +58,7 @@ export function BigButton({ label, onPress, color, disabled = false, testID, hin
       disabled={disabled}
       style={({ pressed }) => [styles.button, { backgroundColor: color ?? c.ok, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 }]}
     >
-      <Text style={[styles.buttonText, { fontSize: 18 * scale }]} maxFontSizeMultiplier={2}>{label}</Text>
+      <Text style={[styles.buttonText, { fontSize: 18 * scale }, textColor ? { color: textColor } : null]} maxFontSizeMultiplier={2}>{label}</Text>
     </Pressable>
   );
 }

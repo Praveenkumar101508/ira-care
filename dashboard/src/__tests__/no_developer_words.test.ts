@@ -18,6 +18,8 @@ const FORBIDDEN: { re: RegExp; why: string }[] = [
   { re: /\bDemo Person\b/, why: 'the demonstration people have names' },
   { re: /\buuid\b|\bID\b/, why: 'raw identifiers are not shown' },
   { re: /localhost|127\.0\.0\.1|:8000\b/, why: 'no addresses on a screen' },
+  { re: /\b[\w./-]+\.md\b/, why: 'no repository file paths on a screen' },
+  { re: /\b[A-Z]{2,}(?:_[A-Z]+)+\b/, why: 'no error codes on a screen' },
 ];
 
 const ROOT = join(__dirname, '..');
