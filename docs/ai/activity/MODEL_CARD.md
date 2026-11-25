@@ -19,7 +19,9 @@ has been run on the IRA watch.
 - **Not a medical device.** It is not for diagnosis, it does not measure food or fluid
   intake, it does not measure frailty or mobility decline, and it is not a fall detector.
 - **Never an alarm on its own.** No alert, escalation or SOS may be raised because of this
-  estimate alone. At the time of writing, nothing in the backend calls this module.
+  estimate alone. The backend does not run this model on people's data: it stores the
+  watch's hourly summaries under the person's consent, and no alert path reads them (D-084,
+  `DATA_CONTRACT.md`).
 - **Not for identifying people.** The dataset also supports biometrics (it tags every
   reading with a subject id). That is a stated non-goal. The subject id is used only to keep
   each person's windows in one cross-validation fold. No model here predicts or uses who
@@ -51,10 +53,56 @@ byte for byte the backend's file, with its CC BY notice beside it):
 - `ActivityMonitor` takes the accelerometer (the fall detector's source, in g) and the gyroscope
   (20 Hz), interpolates both onto one 20 Hz grid by timestamp, and classifies every 10 s.
   Off the wrist, or with a gap of more than 0.5 s in either sensor, there is no estimate.
-- **The estimate stays on the watch.** The backend has no reading kind for it, nothing is sent,
-  and nothing alerts on it (`ActivityMonitorTest.theEstimateStaysOnTheWatch`).
+- **Windows stay on the watch.** Every window (a class, `unknown`, or `unavailable` with its reason)
+  goes to `ActivitySummariser`, which keeps minutes per label per hour. Only those hourly summaries
+  can leave the watch, and only under the person's `activity_sharing` consent (`ActivitySharing`,
+  `ActivitySharingTest`). There is no reading kind for activity and no urgent path for it.
 - Not measured: battery cost of the 20 Hz gyroscope, and accuracy on the IRA watch or with
   older adults.
+
+## In the product (D-084)
+
+The full contract is in `DATA_CONTRACT.md`. In short:
+
+- **Watch:** hourly summaries (seconds per label and per reason, window count, model version and
+  SHA-256, source `device` or `simulated`) are queued only while the person's `activity_sharing`
+  consent is granted, sealed on disk, and sent after the urgent outbox and the readings. Off the
+  wrist and sensor gaps are `unavailable`; low confidence is `unknown`; nothing is filled in.
+- **Server:** `POST /care/devices/me/activity` (device token) checks the contract and the consent
+  again and stores into `care_activity_periods` (migration 121), kept for the person's retention
+  period and erased with the person. No safety rule runs on it and none reads that table
+  (`tests/care/test_activity_no_alert_path.py`, and a day of stillness and off-wrist hours opening
+  no alert in `test_care_activity_db.py`).
+- **Carers:** `GET /care/people/{id}/activity` and the "Activity (estimated)" panel on the health
+  tab show minutes per day and per week as active (walking, stairs), still (sitting, standing),
+  other arm movement (eating_drinking, other) and could not tell, not worn or not recorded,
+  always labelled "Estimated from the watch's motion sensor; not a measurement of health."
+  `eating_drinking` is never shown by name and never read as a meal.
+- **Wearer:** one small line on the watch's home screen: "On the move today: about N min (the
+  watch's estimate)".
+
+### Cost per window and expected duty cycle (preparation for the battery measurement)
+
+Measured on the JVM by `ActivityCostTest` (`./gradlew testWearosDebugUnitTest --tests
+'care.ira.watch.activity.ActivityCostTest'`), 25 November 2026: OpenJDK 21.0.13, x86-64, a shared
+4-CPU build container shared with other jobs, 120 windows from 20 minutes of synthetic samples at
+the watch's rates (accelerometer 50 Hz, gyroscope 20 Hz) after a two-minute warm-up. Two runs:
+
+| | Run 1 | Run 2 (container busier) |
+|---|---|---|
+| Classify and summarise, per window, median | 13.66 ms | 17.82 ms |
+| Same, 95th percentile | 24.05 ms | 37.05 ms |
+| Taking in the samples between two windows | 0.32 ms | 0.31 ms |
+| CPU busy per hour (360 windows) | 5.03 s (0.140 %) | 6.53 s (0.181 %) |
+
+The Kotlin port computes the spectrum with a direct transform (129 bins by 200 samples for each of
+eight signals), which is most of the cost; the Python reference uses an FFT and takes about 1 ms.
+Expected on a watch: a watch core is several times slower than this container, so perhaps 50 to
+150 ms per window and a CPU duty cycle under about 1.5 %, every 10 s while worn. **This is an
+estimate, not a measurement.** The energy cost is dominated by keeping the 20 Hz gyroscope and the
+accelerometer running, not by this arithmetic, and only a watch can measure it (requirement F7.j,
+blocked on a physical watch). Sending costs one small request per sync (an hour is about 300 bytes
+of JSON).
 
 ## Data and licence
 
@@ -510,7 +558,8 @@ Everything else was set once, before the first run, and not tuned:
 ## Physical validation still needed (none of it done)
 
 These results are **not** validation on the IRA watch, and must not be presented as such.
-Before this signal is shown to anyone:
+Today the signal is shown only as a labelled estimate, under consent, and never alerts. Before
+anyone relies on it for more than that:
 
 1. Record IRA watch accelerometer and gyroscope data, at the watch's real rate, range and
    axis orientation, on the wrist it will be worn on. Use a reference annotation (video, or
@@ -528,4 +577,7 @@ Before this signal is shown to anyone:
 5. Calibrate the probabilities (for example by temperature scaling) on that data, and set
    the "unknown" threshold there, not on WISDM.
 6. Confirm the wellbeing-only labelling and that no alert path consumes this value, as
-   part of the regulatory review.
+   part of the regulatory review. (The software side is tested: `test_activity_no_alert_path.py`;
+   the review itself is not done.)
+7. Measure the battery cost of the 20 Hz gyroscope and the per-window work on the watch
+   (requirement F7.k).

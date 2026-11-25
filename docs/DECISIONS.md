@@ -1448,3 +1448,38 @@ numpy) where faster-whisper expects PyAV's, so `import av` is never attempted.
 - **Accuracy:** unchanged. On LibriSpeech test-clean, run before and after in sequence on the same machine, the WER was 4.16 % on both paths with identical errors (132 / 19 / 8); `docs/ai/speech/RESULTS.md`. The 4.24 % recorded earlier came from another package set and stays as the historical benchmark.
 
 What would change it: a client that has to send compressed audio and cannot record WAV.
+
+## D-084 IRA Care Activity leaves the watch only as hourly summaries, under its own consent, and never alerts (requirements F7.f to F7.k, 25 November 2026)
+
+IRA Care Activity (WISDM-trained; `docs/ai/activity/MODEL_CARD.md`)
+has run on the watch since F7.d, but nothing used its answer. The owner asked for an end-to-end
+integration that never presents the estimate as confirmed behaviour or a medical state and never
+raises an alert from it.
+
+Decision:
+
+- **Summaries, not windows.** The watch keeps every 10 s window to itself and sends only hourly
+  seconds per label (the model's six classes, `unknown`, `unavailable`) and per reason
+  (`low_confidence`; `off_wrist`, `sensor_gap`, `too_short`, `sensor_fault`), with the model's
+  version and SHA-256 and the source (`device` or `simulated`). Nothing is filled in: time the
+  watch did not record stays "not recorded". Contract: `docs/ai/activity/DATA_CONTRACT.md`.
+- **Its own consent kind, `activity_sharing`** (migration 121), following the existing pattern
+  (`topics` was added the same way in 110). `health_data_family` was not reused: it is about family
+  seeing readings, not about a new kind of inference leaving the watch, and reusing it would have
+  started sending for people who never agreed to this. The watch queues only while the server says
+  the consent is granted; the server checks again on arrival and on every carer read.
+- **Its own table, `care_activity_periods`**, not `care_vitals`. Every safety rule reads
+  `care_vitals`; a separate table is what makes "no alert path reads it" checkable
+  (`tests/care/test_activity_no_alert_path.py`). Same tenancy, row-level security, retention and
+  erasure as the readings.
+- **Carers see four groups, not classes:** active (walking, stairs), still (sitting, standing),
+  other arm movement (eating_drinking, other), and could not tell, not worn or not recorded. The
+  class `eating_drinking` is never shown by name: the model confuses sitting and eating
+  (`MODEL_CARD.md`), and "food_intake" stays what the person says at a check-in. Every view
+  carries "Estimated from the watch's motion sensor; not a measurement of health."
+- **The wearer** sees one small line ("On the move today: about N min (the watch's estimate)")
+  when nothing else is on the screen.
+
+What this does not decide: accuracy on the IRA watch or with older adults, and the battery cost of
+the 20 Hz gyroscope. Both need a physical watch (F7.k and the model card's physical validation
+list). The software cost per window was measured on the JVM and is in the model card.

@@ -88,6 +88,8 @@ WORKSPACE_SCOPED = (
     "care_plans",
     # 117: SELECT, INSERT and DELETE granted; no UPDATE, which the UPDATE probe accepts.
     "care_staff_designations",
+    # 121: SELECT, INSERT and DELETE granted; no UPDATE, which the UPDATE probe accepts.
+    "care_activity_periods",
 )
 
 
@@ -188,6 +190,9 @@ SPECS: dict[str, Spec] = {
     "care_push_tickets": Spec(parents=(("care_alerts", "alert_id"),)),
     "care_plans": Spec(columns={"version": "int", "reason": "text"}, parents=(("care_people", "person_id"),)),
     "care_staff_designations": Spec(columns={"user_id": "user", "designation": "literal:coordinator"}),
+    "care_activity_periods": Spec(columns={"period_start": "now", "period_end": "later", "model_version": "text",
+                                           "model_sha256": "literal:" + "0" * 64},
+                                  parents=(("care_people", "person_id"),)),
     "care_visits": Spec(columns={"planned_start": "now", "planned_end": "later"}, parents=(("care_people", "person_id"),)),
     "care_visit_tasks": Spec(columns={"title": "text"}, parents=(("care_visits", "visit_id"),)),
     "care_communication_profiles": Spec(parents=(("care_people", "person_id"),)),

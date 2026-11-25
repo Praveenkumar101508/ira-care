@@ -1,7 +1,7 @@
 {
   "phase": "3B batch 0/1",
   "schema_version": 1,
-  "table_count": 157,
+  "table_count": 158,
   "tables": {
     "access_audit_log": {
       "access": {
@@ -1612,6 +1612,81 @@
         "target_columns": {}
       },
       "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_acknowledgements/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "DENIED (no UPDATE policy)"
+      }
+    },
+    "care_activity_periods": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/retention.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/retention.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/activity.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/activity.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_activity_periods:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 15,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 3,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Hourly IRA Care Activity estimates from the watch (121, D-084): seconds per label (the model's classes, unknown, unavailable), seconds per reason, window count, model version and SHA-256, and source (device or simulated). Summaries only, no window or sample. Stored only under the person's activity_sharing consent, checked on arrival. Kept apart from care_vitals so that no safety rule, escalation or alert reads it. Insert-only for the runtime (SELECT, INSERT, DELETE; no UPDATE); removed by retention, with the person and with the tenant. Every read is written to care_access_log. Belongs to the person cared for.",
+      "migration": {
+        "done_by": "121_care_activity.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_activity_periods/",
       "retention": "care_consents.retention_months per person, default 12 months",
       "rls": {
         "already_satisfied": true,
