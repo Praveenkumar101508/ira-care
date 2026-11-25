@@ -1,9 +1,13 @@
 /* IRA CARE design system (docs/design/DESIGN_SYSTEM.md). The same tokens as the phone's theme (mobile/src/appearance/theme.ts). */
-:root { --bg: #FAF8F4; --card: #FFFFFF; --text: #1F2A24; --muted: #5B6B63; --border: #E1DED8; --sos: #B3261E; --urgent: #B35C00; --notice: #2F5D8A; --ok: #2E7D32; --focus: #1A5FB4; color-scheme: light dark; }
-@media (prefers-color-scheme: dark) { :root { --bg: #14181B; --card: #1D2327; --text: #EEF1F0; --muted: #A6B3AC; --border: #2C343A; --sos: #D32F2F; --urgent: #B35C00; --notice: #2F5D8A; --ok: #2E7D32; --focus: #8AB6E0; } a { color: #8AB6E0; } }
+:root { --bg: #FAF8F4; --card: #FFFFFF; --text: #1F2A24; --muted: #5B6B63; --border: #E1DED8; --sos: #B3261E; --urgent: #B35C00; --notice: #2F5D8A; --ok: #2E7D32; --focus: #1A5FB4;
+  /* Text tokens are separate from fill tokens: a colour that makes a good button behind white text
+     (fill) is rarely readable as text on a dark card. Every pair is checked by accessibility.test.tsx. */
+  --fill-muted: #5B6B63; --sos-text: #B3261E; --notice-text: #2F5D8A; color-scheme: light dark; }
+@media (prefers-color-scheme: dark) { :root { --bg: #14181B; --card: #1D2327; --text: #EEF1F0; --muted: #A6B3AC; --border: #2C343A; --sos: #D32F2F; --urgent: #B35C00; --notice: #2F5D8A; --ok: #2E7D32; --focus: #8AB6E0;
+  --fill-muted: #4F5B55; --sos-text: #FF8A80; --notice-text: #8AB6E0; } }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.45; }
-a { color: var(--notice); text-decoration: none; }
+a { color: var(--notice-text); text-decoration: none; }
 header.top { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 10px 16px; background: var(--card); border-bottom: 1px solid var(--border); }
 header.top .who { margin-left: auto; font-size: 14px; }
 @media (max-width: 600px) { header.top .who { order: 3; flex-basis: 100%; margin-left: 0; } header.top nav a { margin-right: 10px; } }
@@ -14,24 +18,25 @@ main { max-width: 1100px; margin: 0 auto; padding: 20px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 .muted { color: var(--muted); }
 .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; color: #fff; }
-.pill.sos { background: var(--sos); } .pill.urgent { background: var(--urgent); } .pill.notice { background: var(--notice); } .pill.ok { background: var(--ok); } .pill.grey { background: var(--muted); }
+.pill.sos { background: var(--sos); } .pill.urgent { background: var(--urgent); } .pill.notice { background: var(--notice); } .pill.ok { background: var(--ok); } .pill.grey { background: var(--fill-muted); }
 button { border: 0; border-radius: 10px; padding: 9px 14px; font-size: 14px; cursor: pointer; color: #fff; background: var(--notice); }
-button.ok { background: var(--ok); } button.grey { background: var(--muted); } button.sos { background: var(--sos); }
+button.ok { background: var(--ok); } button.grey { background: var(--fill-muted); } button.sos { background: var(--sos); }
 button:disabled { opacity: 0.5; cursor: default; }
 input, select, textarea { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 14px; background: var(--card); color: var(--text); }
 table { width: 100%; border-collapse: collapse; } th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
 .tabs a { display: inline-block; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); margin-right: 6px; margin-bottom: 8px; background: var(--card); color: var(--muted); }
 .tabs a.on { background: var(--notice); color: #fff; border-color: var(--notice); }
-.error { color: var(--sos); }
+.error { color: var(--sos-text); }
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
 /* Accessibility: a visible focus ring everywhere, large targets, a skip link, and no motion for those who ask. */
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 button, .tabs a, input, select, textarea { min-height: 40px; }
-.skip-link { position: absolute; left: -999px; top: 8px; background: var(--text); color: #fff; padding: 8px 12px; border-radius: 8px; z-index: 100; }
+.skip-link { position: absolute; left: -999px; top: 8px; background: var(--text); color: var(--bg); padding: 8px 12px; border-radius: 8px; z-index: 100; }
 .skip-link:focus { left: 8px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 @media (prefers-contrast: more) { :root { --muted: #3a463f; --border: #8a8a8a; } }
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) { :root { --muted: #D5DDD9; --border: #8a8a8a; } }
 .pill { font-size: 13px; }
 
 /* Advanced settings a carer rarely needs (the care server's address) stay folded away. */
