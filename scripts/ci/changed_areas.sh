@@ -20,7 +20,10 @@ if [ -z "$files" ]; then for a in backend watch mobile dashboard; do echo "$a=tr
 shared=false
 echo "$files" | grep -qE '^(\.github/|scripts/ci/|supracloud-jarvis/postgres/|deploy/|\.gitleaksignore)' && shared=true
 area() { if [ "$shared" = true ] || echo "$files" | grep -qE "$2"; then echo "$1=true"; else echo "$1=false"; fi; }
-area backend '^(supracloud-jarvis/|scripts/|e2e/|tests/)'
+# The licence check (scripts/licence_check.py, docs/security/LICENCES.json and its exceptions)
+# runs in the mobile and dashboard jobs, and its tests in the backend jobs.
+lic='scripts/licence_check\.py|docs/security/(LICENCES\.json|licence_exceptions\.json)'
+area backend "^(supracloud-jarvis/|scripts/|e2e/|tests/|$lic)"
 area watch '^watch/'
-area mobile '^mobile/'
-area dashboard '^dashboard/'
+area mobile "^(mobile/|$lic)"
+area dashboard "^(dashboard/|$lic)"

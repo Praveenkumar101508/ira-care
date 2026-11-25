@@ -1,0 +1,53 @@
+{
+  "_about": "Reviewed exceptions to the licence policy in docs/security/LICENCES.md. Each entry names the ecosystem, the package and the licence exactly as LICENCES.json records it, and says why it is acceptable. A change of licence upstream stops the entry matching, so the package is reviewed again. scripts/licence_check.py fails on an entry that no longer matches a package.",
+  "exceptions": [
+    {
+      "ecosystem": "npm-dashboard",
+      "licence": "LGPL-3.0-or-later",
+      "package": "@img/sharp-libvips-linux-x64",
+      "reason": "glibc build. Prebuilt libvips for sharp, which next uses for image optimisation. It is a separate shared library (libvips-cpp.so) that sharp's native addon loads at run time: checked with ldd on sharp-linux-x64, which links it dynamically from this package. It is the unmodified npm build and can be swapped for another libvips, which is the LGPL-3.0 combined-work case (section 4). The licence text and notice must travel with any image we hand to someone else."
+    },
+    {
+      "ecosystem": "npm-dashboard",
+      "licence": "LGPL-3.0-or-later",
+      "package": "@img/sharp-libvips-linuxmusl-x64",
+      "reason": "musl build, the variant used on Alpine Linux, which the dashboard image is based on. Prebuilt libvips for sharp, which next uses for image optimisation. It is a separate shared library (libvips-cpp.so) that sharp's native addon loads at run time: checked with ldd on sharp-linux-x64, which links it dynamically from this package. It is the unmodified npm build and can be swapped for another libvips, which is the LGPL-3.0 combined-work case (section 4). The licence text and notice must travel with any image we hand to someone else."
+    },
+    {
+      "ecosystem": "npm-mobile",
+      "licence": "NOASSERTION",
+      "package": "@segment/loosely-validate-event",
+      "reason": "package.json declares no licence, but the LICENSE file in the published 2.0.0 package is the MIT licence text (checked in node_modules). Arrives through expo's command-line tool (@expo/cli via @expo/rudder-sdk-node), not app code."
+    },
+    {
+      "ecosystem": "python",
+      "licence": "LGPL-3.0",
+      "package": "psycopg",
+      "reason": "The PostgreSQL driver, required by langgraph-checkpoint-postgres. A Python library installed from PyPI as its own unmodified package (pinned by hash in requirements.lock) and imported at run time; nothing from it is copied, vendored or changed in this repository, and it can be replaced with a modified version by reinstalling the package. That is the LGPL-3.0 combined-work case (section 4). The licence text and notice must travel with any image we hand to someone else."
+    },
+    {
+      "ecosystem": "python",
+      "licence": "LGPL-3.0",
+      "package": "psycopg-binary",
+      "reason": "The compiled distribution of psycopg, installed with it. A Python library installed from PyPI as its own unmodified package (pinned by hash in requirements.lock) and imported at run time; nothing from it is copied, vendored or changed in this repository, and it can be replaced with a modified version by reinstalling the package. That is the LGPL-3.0 combined-work case (section 4). The licence text and notice must travel with any image we hand to someone else."
+    },
+    {
+      "ecosystem": "python",
+      "licence": "LGPL-3.0-only",
+      "package": "psycopg-pool",
+      "reason": "psycopg's connection pool, required by langgraph-checkpoint-postgres. A Python library installed from PyPI as its own unmodified package (pinned by hash in requirements.lock) and imported at run time; nothing from it is copied, vendored or changed in this repository, and it can be replaced with a modified version by reinstalling the package. That is the LGPL-3.0 combined-work case (section 4). The licence text and notice must travel with any image we hand to someone else."
+    },
+    {
+      "ecosystem": "python",
+      "licence": "LGPL-3.0-or-later",
+      "package": "recurring-ical-events",
+      "reason": "Arrives through caldav (calendar access). A Python library installed from PyPI as its own unmodified package (pinned by hash in requirements.lock) and imported at run time; nothing from it is copied, vendored or changed in this repository, and it can be replaced with a modified version by reinstalling the package. That is the LGPL-3.0 combined-work case (section 4). The licence text and notice must travel with any image we hand to someone else."
+    },
+    {
+      "ecosystem": "python",
+      "licence": "LGPL-3.0-or-later",
+      "package": "x-wr-timezone",
+      "reason": "Arrives through recurring-ical-events (calendar access). A Python library installed from PyPI as its own unmodified package (pinned by hash in requirements.lock) and imported at run time; nothing from it is copied, vendored or changed in this repository, and it can be replaced with a modified version by reinstalling the package. That is the LGPL-3.0 combined-work case (section 4). The licence text and notice must travel with any image we hand to someone else."
+    }
+  ]
+}
