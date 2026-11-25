@@ -21,7 +21,11 @@ PEM_FIXTURES = {"supracloud-jarvis/ira/tests/runtime/test_log_redaction.py"}
 MUST_IGNORE = ["watch/keystore.properties", "keystore.properties", "release.jks", "x.keystore", "platform.pk8",
                "avb.pem", "upload.p12", "AuthKey.p8"]
 KEYS_THE_CODE_READS = ["IRA_WATCH_KEYSTORE", "IRA_WATCH_KEYSTORE_PASSWORD", "IRA_WATCH_KEY_ALIAS",
-                       "IRA_WATCH_KEY_PASSWORD", "IRA_OTA_MANIFEST_KEY", "IRA_SECRET_KEY"]
+                       "IRA_WATCH_KEY_PASSWORD", "IRA_OTA_MANIFEST_KEY", "IRA_DEVICE_POLICY_KEY", "IRA_SECRET_KEY"]
+# A module-level constant naming the environment variable a signing key is read from, as
+# care/ota.py and care/devicepolicy.py declare theirs. Found by reading the code, so a key added
+# later cannot be missed the way IRA_DEVICE_POLICY_KEY was (REVIEW.md S12).
+KEY_ENV_CONSTANT = re.compile(r'^[A-Z_]*KEY_ENV\s*=\s*"(IRA_[A-Z0-9_]+)"', re.M)
 
 
 def _git(*args: str) -> str:
@@ -98,3 +102,25 @@ def test_every_key_the_code_reads_is_in_the_custody_document():
 def test_the_document_forbids_test_keys_for_anything_distributed():
     doc = DOC.read_text(encoding="utf-8")
     assert "test-keys" in doc and "must never reach a real person" in doc
+
+
+def key_env_constants(sources: dict[str, str]) -> set[str]:
+    return {name for text in sources.values() for name in KEY_ENV_CONSTANT.findall(text)}
+
+
+def undocumented(names: set[str], doc: str) -> list[str]:
+    return sorted(n for n in names if f"`{n}`" not in doc)
+
+
+def test_every_key_variable_the_server_declares_is_in_the_custody_document():
+    care = ROOT / "supracloud-jarvis" / "ira" / "care"
+    found = key_env_constants({p.name: p.read_text(encoding="utf-8") for p in care.glob("*.py")})
+    assert {"IRA_OTA_MANIFEST_KEY", "IRA_DEVICE_POLICY_KEY"} <= found, found
+    assert found <= set(KEYS_THE_CODE_READS), found - set(KEYS_THE_CODE_READS)
+    assert undocumented(found, DOC.read_text(encoding="utf-8")) == []
+
+
+def test_negative_control_an_undocumented_key_variable_is_reported():
+    src = {"newkey.py": 'X = 1\nBADGE_KEY_ENV = "IRA_BADGE_KEY"   # base64\n'}
+    assert key_env_constants(src) == {"IRA_BADGE_KEY"}
+    assert undocumented({"IRA_BADGE_KEY", "IRA_OTA_MANIFEST_KEY"}, "| `IRA_OTA_MANIFEST_KEY` |") == ["IRA_BADGE_KEY"]

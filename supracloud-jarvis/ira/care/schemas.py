@@ -4,7 +4,7 @@ from __future__ import annotations
 import datetime as dt
 import re
 import uuid
-from typing import Optional
+from typing import Annotated, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -723,7 +723,10 @@ class ResearchPpgIn(ResearchStreamIn):
 
 
 class ResearchAccIn(ResearchStreamIn):
-    samples: list[list[Optional[float]]] = Field(..., min_length=1, max_length=RESEARCH_MAX_SAMPLES)
+    # Rows of exactly three axes: an unbounded row was parsed whole before the contract
+    # check refused it (security review S11).
+    samples: list[Annotated[list[Optional[float]], Field(min_length=3, max_length=3)]] = Field(
+        ..., min_length=1, max_length=RESEARCH_MAX_SAMPLES)
 
 
 class ResearchReferenceIn(BaseModel):
