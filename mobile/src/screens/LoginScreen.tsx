@@ -9,7 +9,7 @@ export interface LoginResult {
   workspaces: Workspace[];
 }
 
-export function LoginScreen({ defaultBaseUrl, onLoggedIn, onJoin }: { defaultBaseUrl: string; onLoggedIn: (r: LoginResult) => void; onJoin?: () => void }) {
+export function LoginScreen({ defaultBaseUrl, onLoggedIn, onJoin, notice = '' }: { defaultBaseUrl: string; onLoggedIn: (r: LoginResult) => void; onJoin?: () => void; notice?: string }) {
   const colors = useColors();
   const styles = makeStyles(colors);
   const [baseUrl, setBaseUrl] = useState(defaultBaseUrl);
@@ -37,6 +37,7 @@ export function LoginScreen({ defaultBaseUrl, onLoggedIn, onJoin }: { defaultBas
   return (
     <Screen title="IRA CARE">
       <Card>
+        {notice ? <Text style={styles.error} accessibilityRole="alert" testID="signed-out-notice">{notice}</Text> : null}
         <Muted>Sign in with the account your care circle gave you.</Muted>
         <TextInput style={styles.input} placeholder="Username" accessibilityLabel="Username" autoCapitalize="none" value={username} onChangeText={setUsername} testID="username" />
         <TextInput style={styles.input} placeholder="Password" accessibilityLabel="Password" secureTextEntry value={password} onChangeText={setPassword} testID="password" />
