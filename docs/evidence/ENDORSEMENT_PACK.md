@@ -3,6 +3,13 @@
 Prepared 25 November 2026, on `main` at `633572f`. Every claim below links to the evidence for
 it in this repository. Where the evidence stops, it says so.
 
+The full technical report for the Innovator Founder endorsement, with what IRA built set apart
+from the third-party models it integrates, is `docs/evidence/TECHNICAL_ENDORSEMENT_REPORT.md`.
+Beside it: the architecture diagrams (`docs/evidence/ARCHITECTURE_DIAGRAMS.md`), the
+assumptions register with what does not exist (`docs/evidence/ASSUMPTIONS_REGISTER.md`), and the
+remaining external dependencies (`docs/evidence/DEPENDENCY_REGISTER.md`). The figures below are
+from `633572f`; the report has the figures on `65c61fa`.
+
 ## What IRA CARE is, honestly
 
 **A working, tested software prototype. The IRA CARE OS image and the IRA watch hardware are the
@@ -31,7 +38,7 @@ never dials emergency services itself (`docs/compliance/INTENDED_PURPOSE.md`).
 | The full 22-step care journey, from organisation set-up to recovery after a network failure, passes end to end against the real API and database | `supracloud-jarvis/ira/tests/tenancy/test_care_journey_db.py`, `docs/demo/CARE_JOURNEY_22.md` |
 | The whole stack runs as containers with health checks, outage drills, backups and restore proved | `docs/evidence/staging/CONTAINERS.md`, `docs/evidence/staging/containers.json` |
 | Encrypted off-site backups restore byte for byte | `docs/evidence/staging/OFFSITE.md` |
-| Thousands of automated tests and CI on every change, including container image builds | `docs/progress/VERIFICATION.md`, `.github/workflows/test.yml` (the family app's native Android build in CI is in an open change, not yet on `main`) |
+| Thousands of automated tests and CI on every change, including container image builds and the family app's native Android release build | `docs/progress/VERIFICATION.md`, `.github/workflows/test.yml` (the `mobile-android` job) |
 | Security: tenant and person isolation proved adversarially, rate limits, headers, signed callbacks, a STRIDE threat model | `docs/security/REVIEW.md`, `docs/security/THREAT_MODEL.md` |
 | Clinical-safety thinking from the start: a hazard log tied to tests, and a claims register | `docs/compliance/CLINICAL_SAFETY_CASE.md`, `docs/compliance/CLAIMS_REGISTER.md` |
 
