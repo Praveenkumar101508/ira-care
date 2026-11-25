@@ -1,49 +1,182 @@
-# Integrated verification on `main` (register K)
+# Integrated verification on `main` (register K, round 7)
 
-Run on 25 November 2026 on `main` at `04451d7` (PRs #63 to #88 merged), against a database created
-empty for the run and migrated as `ira_migrator`. Every number below comes from a run whose output
-was read; nothing is estimated. Earlier runs (after #61 at `eed43f1`, after #80 at `eec19a0`) are in
-this file's history. PRs merged after `04451d7`, #89 to #94, each passed every CI job before merging; their CI
-runs are their verification. #94 adds a licence check of shipped dependencies to CI (below).
+Run on 25 November 2026 on `main` at `200533e` (PRs up to #111 merged; the same tree as #109's head
+`b49ebef`, tree `5bc8a2c`). The database for the run was created empty and migrated as
+`ira_migrator`. Every number below comes from a run whose output was read; nothing is estimated.
+Counts from different runs overlap (the unit run collects the database files too, where they
+skip), so they are never added together. Earlier runs (after #61 at `eed43f1`, after #80 at
+`eec19a0`, after #88 at `04451d7`) are in this file's history.
+
+Machine: one shared Linux container, 4 CPUs, 15 GB RAM, no GPU, no `/dev/kvm`, about 22 GB of
+free disk. Other work was running on it at the same time. Python 3.13.18 here; CI uses 3.12.
+Local PostgreSQL 16.15; CI uses `pgvector/pgvector:pg16`. Node 22.23.5. OpenJDK 17.0.21.
 
 ## Passed, failed and skipped
 
-| Check | Where | Passed | Skipped | Failed |
+| Check | Where | Passed | Skipped | Failed | Warnings |
+|---|---|---|---|---|---|
+| Migration chain to an empty database as `ira_migrator`; `scripts.check_migration_integrity` | this container | 120 migrations applied, `init.sql` to `123_device_admin_factory_reset_approval`; 169 tables; 120 files, all hashes match | | 0 | |
+| Database suites as CI runs them (`tests/tenancy tests/readiness tests/architecture tests/callers tests/idempotency tests/runtime`, CI's environment including `IRA_REQUIRE_DB_HARNESS=1`, plus a 300 s per-test limit added here) | this container, 947 s | 4,199 | 9 (below) | 1: the SOS stream test reached the 300 s limit added here. Run on its own it **passed in 301.26 s** (below) | 213: test keys shorter than 32 bytes (`InsecureKeyLengthWarning`), one pydantic field name, one test helper class pytest cannot collect |
+| The same suites in CI on `b49ebef` (identical tree) | CI job "Backend database tests" | 4,191 | 18 | 0 | 214 |
+| Backup and restore round trip (`deploy/backup.sh`, `deploy/restore.sh`, as CI's step runs them) | this container, `pg_dump` 16.15 | 256 KB encrypted file, checksum verified; restored into a new database: 169 → 169 tables, 120 → 120 migrations, 2,962 → 2,962 rows | | 0 | |
+| Backend unit suite as the CI job runs it (`pytest tests`, no database: the database tests skip) | this container, 325 s | 5,740 | 558 | **2**, both explained below | 87 |
+| The same, outside `tests/tenancy` (`--ignore=tests/tenancy`) | this container, 295 s | 5,430 | 82 | **2** (the same two) | 87 |
+| The same suite in CI on `b49ebef` | CI job "Backend unit tests" | 5,753 | 196 | 0 | 86 |
+| Backend lint (`ruff check .`, ruff 0.16.9) | this container | clean | | 0 | |
+| Dashboard: `npm ci`, `tsc --noEmit`, vitest, `next build` | this container | typecheck clean; 137 tests (23 files); production build of every route | | 0 | `npm ci`: 1 deprecation notice (`whatwg-encoding`) |
+| Phone app: `npm ci`, `tsc`, jest | this container | typecheck clean; 83 tests (18 suites) | | 0 | `npm ci`: 17 deprecation notices in build tooling |
+| Watch app: `assembleWearosDebug assembleAospDebug testWearosDebugUnitTest testAospDebugUnitTest` (CI's command) | this container, Android SDK 35 installed for the run and removed afterwards | both debug APKs built; 171 JVM tests per flavour (342 test runs), all executed here, not taken from a cache | 0 | 0 | 2 Kotlin opt-in warnings in one test file (`ActivitySharingTest.kt:261`), reported once per flavour |
+| Watch: the AOSP flavour has no Google service dependency (`scripts/ci/check_watch_aosp_deps.sh`) | this container | 626 dependency lines, none from a Google service | | 0 | |
+| Watch: release APKs (`assembleWearosRelease assembleAospRelease`) and what they contain (`scripts/supply_chain.py apk --check`) | this container | both built, unsigned (Wear OS 17,640,387 bytes, AOSP 17,428,594 bytes); 8 native libraries and 5 assets each; 58 and 56 library version files matched to the classpath | | 0 | Gradle reports features deprecated for Gradle 9 |
+| The 22-step care journey, deterministic model | database suite above (`test_care_journey_db.py`) | passed | | 0 | |
+| The 22-step care journey with the real model chain (`gemma4:e4b`, then `gemma4:e2b`, Ollama 0.40.18, CPU only) | this container; its own empty database | **8 of 8 runs**, every safety assertion held (below) | | 0 | |
+| API and dashboard images (`scripts/staging/sandbox_build.sh`), CI's image checks | this container | API runs as uid 10001 and carries 120 migrations; the dashboard runs as uid 10001; both images' third-party notices are byte-identical to `docs/legal/notices/`; the API image imports `care.server` and `care.worker` with no network | | 0 | |
+| Container stack (`docker-compose.yml` + `compose.staging.yml` + `compose.nomodel.yml`): Postgres, Redis, API, worker, dashboard, Caddy | this container | up in 21 s from empty volumes, 120 migrations applied at start; `/health` 200, `/login` 200, `/health/jobs` 200 after the worker's first pass; care flow over HTTPS (`containers_smoke.py`) **13 of 13 steps** | | 0 | Caddy's container health check never passes (below) |
+| Images in CI on `b49ebef`: all three built (backup image included), the same checks, image inventories against the licence policy, syft SBOMs | CI job "Container images build" | passed | | 0 | |
+| Watch, family app (Expo, Android build), dashboard, images, secret scan, documents | CI on `b49ebef`: all 11 jobs | 11 of 11 | | 0 | |
+| Secret scan (`scripts/ci/gitleaks.sh`, gitleaks 8.24.3, full history) | this container | 119 commits, no leaks found | | 0 | |
+| Documents tell the truth (`scripts/check_docs_truth.py`) | this container | every row in one of the three states; every proof exists | | 0 | |
+| Requirements (`scripts/completion_summary.py`) | this container | 253 requirements valid: implemented 44, accepted 79, verified 71, blocked by something external 58, not started 1 | | 0 | |
+| Evidence index (`scripts/evidence_index.py`; it has no check mode, so it was generated and read) | this container | generated | | 0 | |
+| Python dependencies (`pip-audit -r <file> --no-deps --disable-pip`, as in `docs/security/REVIEW.md`) | this container | `requirements.lock` (166 packages), `requirements-api.lock` (110), `requirements-nodeps.txt` (1): no known vulnerabilities | | | |
+| npm dependencies (`npm audit`, development dependencies included, and `--omit=dev`) | this container | dashboard 0 and 0; phone app 0 and 0 | | | |
+| Licences of shipped dependencies (`scripts/licence_check.py --check --only <ecosystem>`) | this container | Python 166 (161 allowed, 5 reviewed exceptions; read from a virtual environment holding exactly `requirements.lock`); dashboard 24 (22, 2); phone 803 (802, 1); watch Gradle classpath 109 (109): none forbidden, inventory up to date | | 0 | |
+| SBOMs and notices rendered from the inventories (`scripts/supply_chain.py render --check`) | this container | up to date | | 0 | |
+
+### Skips, by reason
+
+**Database suites here (9).** Six tests whose harness or input file is not in this repository:
+`benchmarks/acceptance`, `benchmarks/interactive/interactive_bench.py`,
+`scripts/check_benchmark_ratchet.py`, `scripts/models/evaluate.py`,
+`scripts/staging/p17_system_benchmark.py` and `docs/cloud/CLOUD_PHASE_STATUS.md`. These tests came
+over from the source project without their files, and they skip in CI the same way. Two need
+`IRA_TEST_REDIS_URL` (global logout across processes), which CI does not set either. One is the
+destructive failover test, which stops every database connection and runs only with
+`IRA_TEST_ALLOW_DESTRUCTIVE`.
+
+**Why CI skips 9 more (18).** CI also skips three `test_no_pyav.py` tests, because PyAV is not
+installed there ("could not import faster_whisper: No module named av"). It also skips six
+`test_migration_runner_separation.py` tests ("cannot connect as ira_app / ira_worker /
+ira_migrator"). Here those nine ran and passed. The total collected is the same in both places:
+4,209.
+
+**Unit suite here (558).** 525 database tests with no database. 18 Windows installer tests with no
+PowerShell. 2 with no `livekit-agents`. One each: Playwright browser test, OCR without
+`pdftoppm`/`tesseract`, faster-whisper installed (so the alternative path is live), dataset not
+checked out, no `torch`, brain-affect layer off, no Cortex gateway. The six missing-file skips
+are the same as above. Outside `tests/tenancy` there are 82: 55 database tests, 18 PowerShell and
+the nine single-reason skips above.
+
+**Why the unit totals differ from CI (6,300 collected here, 5,949 in CI).** CI's unit job does not
+install `psycopg2`. 21 test modules call `pytest.importorskip("psycopg2")` at module level, so in
+CI each whole module counts as one skip, while here their 364 tests are collected one by one.
+That accounts for 343 of the 351. The last eight were not traced.
+
+### The SOS stream test does not hang: it waits 300 s
+
+`tests/tenancy/test_care_sos_db.py::test_the_stream_route_answers_with_the_current_state_first`
+was reported as hanging on `main`. It does not hang. The test client (httpx 0.27.2
+`ASGITransport`) buffers the whole response body before it returns. The route keeps the stream
+open for `max_seconds=300` (`care/sos.py`, after which the watch reconnects). So the test always
+takes just over 300 s. In the full run it hit the 300 s limit added here and was counted as a
+failure. Run on its own with a longer limit, it passed in 301.26 s. CI runs it with no limit, so it
+passes there and adds about five minutes to the database job. This does not depend on the
+environment. It is a slow test, not a defect in the product.
+
+### The two unit failures
+
+- `test_prompt_injection_guard.py::test_public_url_allowed_by_egress_guard`: the guard could not
+  resolve `example.com` because this container has no outbound DNS. It is environmental and passes
+  in CI.
+- `test_published_credentials.py::test_the_table_matches_a_fresh_scan_of_history`: the test runs
+  `scripts/security/published_credential_digests.py`, which was never carried over into this
+  repository (D-004). This checkout has the full history, so the test runs and fails. CI checks out
+  a shallow clone, so there the test **skips**. (The previous version of this file said it
+  passes in CI; that was wrong.) Bringing the script over or retiring the test is still the
+  owner's decision (D-004).
+
+### The real model in the care journey (8 runs)
+
+`scripts/demo/real_model_journey.py --runs 8` used the product's own chain and time budgets, the
+real care API over ASGI, and an empty database migrated as `ira_migrator`. Models were pulled
+for the run and removed afterwards: `gemma4:e4b` (digest `dc35e8d9c606`, 6.58 GB) and `gemma4:e2b`
+(`b37049369adf`, 4.59 GB), the same digests as the round-6 run. All people were fictional. SMS
+went to a recording provider and push to a fake service, and nothing left the machine.
+
+| Run | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|---|
+| Result | passed | passed | passed | passed | passed | passed | passed | passed |
+| Time | 49.9 s (includes 9.6 s of model loading) | 36.5 s | 35.2 s | 36.1 s | 35.9 s | 35.9 s | 35.5 s | 36.7 s |
+| Step 5 question used | template | model | template | model | template | model | model | template |
+
+The test asserted these in every run:
+
+- **Step 5:** one question at a time, asked by name, and the answer recorded.
+- **Step 6:** the consented preference ("her garden roses") reached the model's prompt.
+- **Step 8:** "maybe, I can't remember" was read as unclear, with `medication_taken: unknown`. No
+  dose was written and the reminder was snoozed.
+- **Step 19:** the daily report contains neither "garden roses" nor "can't remember".
+
+The raw model output, checked afterwards with the product's own guard (`care/conversation.py`):
+
+- **Diagnosis words:** none in any of the 8 talk replies or 8 questions.
+- **Medication answers:** `medication_taken: unknown` in all 16 answer readings; no reading came
+  back empty.
+- **The one-question rule did its job:** in runs 1, 3, 5 and 8 the model wrote two questions in
+  one (for example "…how was your dinner this evening? Did you enjoy it?"). The guard refused
+  them, and the product asked its template question instead.
+- **Over-cautious advice rule:** in runs 1, 3 and 5 the talk reply's second sentence ("I hope you
+  have a peaceful evening, Edith.") matched the advice rule's `you have` pattern and was refused.
+  Edith heard only the first sentence. The rule fails safe, but it is broader than it needs to be.
+  It is recorded here and not changed in this round.
+- **Her preference in replies:** five of the eight talk replies mentioned her roses, and in each
+  of those five the sentence that mentioned them was spoken.
+
+| Call | Calls | Median total | Worst total | Median first token |
 |---|---|---|---|---|
-| Migration chain to an empty database as `ira_migrator`; integrity of applied migrations | this container, PostgreSQL 16 | 117 migrations applied, to `120_os_releases`; all hashes match | | 0 |
-| Database suites as CI runs them (`tests/tenancy tests/readiness tests/architecture tests/callers tests/idempotency tests/runtime`) | this container | 3903 | 10 | **0** |
-| Backend unit suite (everything outside `tests/tenancy`) | this container | 5113 | 28 | **2**, both environmental and both passing in CI (below) |
-| Backend lint (`ruff check .`) | this container | clean | | 0 |
-| Documents tell the truth; requirements valid; evidence index generated | this container | all three pass | | 0 |
-| Dashboard: `tsc`, vitest, `next build` | this container | typecheck clean; 99 tests (19 files); production build | | 0 |
-| Phone app: `tsc`, jest | this container | typecheck clean; 79 tests (17 suites) | | 0 |
-| Watch app (Wear OS and AOSP builds, JVM tests); family app native Android build; container images (API, dashboard, backup); secret scan | CI on #88's head, the last code change before `04451d7` | all 11 jobs | | 0 |
-| The 22-step care journey, deterministic | database suite above | passed | | 0 |
-| The 22-step care journey with the real model chain (`gemma4:e4b`, `gemma4:e2b` on CPU) | #90, `docs/evidence/demo/REAL_MODEL_RUN.md` | 8 of 8 runs, every safety assertion held | | 0 |
-| Container stack: health, care flow, outage drills, backup and restore, load baseline | #78, `docs/evidence/staging/CONTAINERS.md` | all | | 0 |
-| Off-site encrypted backup and restore drill | #86, `docs/evidence/staging/OFFSITE.md` | identical counts after restore | | 0 |
-| Python dependencies (`pip-audit` over `requirements.lock`) | this container | no known vulnerabilities | | |
-| Dashboard production dependencies (`npm audit --omit=dev`) | this container | 0 vulnerabilities | | |
-| Licences of shipped dependencies (`scripts/licence_check.py --check`, K.d) | CI on #94 and this container | 1,103 declared packages (Python 166, dashboard 24, phone 803, watch Gradle classpath 109): none forbidden. What the artefacts contain (`scripts/supply_chain.py`, this container on 25 November 2026): the watch release APKs (2 native libraries for 4 ABIs each, both traced to their module; 58 and 56 library version files matched to the classpath; the v3 fall model); the API image (112 Python packages, exactly `requirements-api.lock` and `requirements-nodeps.txt` plus the base image's pip, no test tool; 87 Debian, 37 native libraries bundled in wheels, 13 linked OS libraries), the dashboard image (22 npm, no TypeScript; 19 Alpine) and the backup base image (45 Alpine). Fourteen reviewed exceptions. The scan found the base image's Python linking GNU readline, GDBM and Berkeley DB; the three modules are now removed (D-087). The API image installs only its hashed locks and each artefact carries its notices (D-088). Image snapshots lack the OS package steps (no mirror here); CI scans the real images. SBOMs and notices in `docs/security/sbom/` and `docs/legal/` (`docs/security/LICENCES.md`) | | |
-| Phone app production dependencies | this container | 0 vulnerabilities (was 20: 1 critical, 3 high, 16 moderate, all in Expo's CLI and Metro build tooling); cleared by npm overrides and two small patches, `docs/security/REVIEW.md` S6 | | |
+| answer reading | 16 | 9.50 s | 12.20 s | (not streamed) |
+| check-in question | 8 | 4.37 s | 7.57 s | 1.19 s |
+| talk | 8 | 7.54 s | 9.10 s | 1.56 s |
+
+### Images and the container stack
+
+`scripts/staging/sandbox_build.sh` builds from the real Dockerfiles with two changes. This
+container cannot reach the Debian and Alpine package mirrors, so the `apt-get` and `apk add` steps
+were replaced by a minimal `curl` stand-in. Those steps were therefore **not exercised here**, and
+the backup image (which needs `apk add`) was **not built here**. CI built all three images
+unchanged on `b49ebef` and ran the same checks, plus the image inventories and SBOMs.
+Some build layers were reused from Docker's cache where their content was unchanged.
+
+In the stack, Caddy served HTTPS correctly: every request above went through it. Yet its
+container never became healthy. Its health check fetches `http://127.0.0.1:80/health`, Caddy
+answers with a redirect to `https://127.0.0.1/health`, and that TLS handshake fails because no
+certificate exists for an IP address. This reproduces with the Caddy image alone. Nothing waits
+on Caddy's health, so traffic is unaffected, but the check reports the proxy as unhealthy even
+when it is serving. It is recorded here and not changed in this round.
 
 ## Not passed here, and why
 
 | Check | Why | What it needs |
 |---|---|---|
 | `test_public_url_allowed_by_egress_guard` | no outbound DNS in this container; passes in CI | nothing: environmental |
-| `test_published_credentials.py::test_the_table_matches_a_fresh_scan_of_history` | the checkout is shallow; the scan needs the full git history; passes in CI | nothing: environmental |
-| IRA CARE OS image (Cuttlefish build and boot) | the build script refused: 42 GB free disk (needs 400), 16 GB RAM (needs 64), 4 cores (floor 8), no `/dev/kvm` | an AOSP build host |
+| `test_the_table_matches_a_fresh_scan_of_history` | the script it runs is not in the repository (D-004); skips on CI's shallow clone | the owner's decision (D-004) |
+| `apt-get`/`apk add` image steps; the backup image | package mirrors unreachable from this container | nothing: CI built all three images on `b49ebef` |
+| Off-site encrypted backup drill | not repeated here; #86 (`docs/evidence/staging/OFFSITE.md`) restored with identical counts. The local round trip above and CI's backup step on `b49ebef` passed | nothing new |
+| IRA CARE OS image (Cuttlefish build and boot) | `os/scripts/build_cuttlefish.sh` preflight refused: 22 GB free disk (needs 400), 16 GB RAM (needs 64), 4 cores (IRA's floor is 8); no `/dev/kvm` | an AOSP build host |
 | Emulator runs of the watch and phone apps | no `/dev/kvm` | a host with KVM |
 | iOS build | no macOS, no Apple signing | macOS with Apple signing |
 | Device runs, screen-reader pass, real-world model accuracy | no physical watch or phone; no consented recordings of older people | devices; consented recordings |
 | Live SMS, call, email and monitoring-centre delivery | stand-ins only; no credentials, no contract | provider credentials, a monitoring-centre contract |
-| 24 hours of wall-clock soak; capacity on a representative server | one shared container that restarts; a simulated day is recorded (`docs/evidence/soak/SOAK.md`) | a host that stays up; a representative server |
+| 24 hours of wall-clock soak | this container restarted during the session (last boot 25 November 2026 18:39 UTC; up 4 h 37 min when checked at 23:16); a simulated day is recorded in `docs/evidence/soak/SOAK.md` | a host that stays up |
+| Capacity on a representative server | one shared 4-CPU container | a representative server (the owner's approval to spend) |
+| Penetration test | none commissioned | a contracted, qualified tester (C-22.d) |
 
 ## Licences
 
-Datasets added in rounds 5 and 6, each verified at its source on 25 November 2026 and recorded in
-`docs/DATASETS.md` (checked by `test_dataset_register.py`): BITS-2 (Zenodo 10013090, CC BY 4.0),
-WISDM (UCI 507, CC BY 4.0), LibriSpeech test-clean (CC BY 4.0, evaluation only). The care
-conversation dataset is synthetic and written in this repository. SisFall stays excluded from
-every build, debug included (D-077, D-082); the shipped fall model v3 is trained only on licensed data (D-080).
+No dataset was added in this round. The licence check above covers every ecosystem that ships:
+Python, dashboard and phone npm, and the watch's Gradle classpath. None is forbidden, and the
+reviewed exceptions are listed in `docs/security/LICENCES.md`. Datasets stay as recorded in
+`docs/DATASETS.md` (checked by `test_dataset_register.py`). SisFall stays excluded from every
+build, debug builds included (D-077, D-082). The shipped fall model v3 is trained only on licensed
+data (D-080). The Gemma 4 models used in the real-model run are Apache-2.0
+(`docs/MODEL_CHOICE.md`), and no model weights are in this repository.
