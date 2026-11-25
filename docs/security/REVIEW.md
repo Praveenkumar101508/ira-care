@@ -91,6 +91,23 @@ What stays: nothing that `npm audit` reports. The patches are local edits to two
 that Expo and Meta do not test with these versions; the tests above and CI's prebuild and
 release build are what guard them.
 
+### S13 status: dashboard test runner, fixed 25 November 2026
+
+S13 is recorded in the round 7 review (the dashboard's `vitest` 3.2.7 brought `tinypool` 1.1.1,
+two critical advisories, and `@vitest/mocker` 3.2.7, one moderate; development tree only). It
+is now fixed: the dashboard runs `vitest` 4.1.12, which no longer uses `tinypool` and brings the
+patched `@vitest/mocker` 4.1.12. npm 10.9.9 had crashed resolving it (`edgesOut`) because it
+chose `vite` 8 for `vitest` and then tried to load `vite` 8's optional development-tools peers,
+one of which asks for the newest `vitest`. `vite` is now a direct development dependency at the
+7.3.8 the lock already had, and `overrides` holds `vitest`'s own `vite` to it (`"vite": "$vite"`),
+so the resolver never looks at `vite` 8. The lock was updated in place, not regenerated (15
+packages changed or added, 10 removed, all test-runner internals; resolved with
+`npm install --before=2026-11-11`, so nothing published in the last two weeks came in).
+Checked with Node 22 and npm 10.9.9, as in CI: `npm ci` clean; `npm audit` 0 (development tree
+included) and `npm audit --omit=dev` 0; `npx vitest run` 130 passed in 22 files;
+`npx tsc --noEmit` clean; `npx next build` succeeds; `scripts/licence_check.py --check --only
+npm-dashboard` passes (it covers the production tree only, which did not change).
+
 ## Reviewed and sound
 
 - The unauthenticated care routes are sign-up, pairing, and two provider callbacks: Twilio's status callback and, since G3.d, the monitoring centre's acknowledgement (`/care/providers/arc/status/...`), refused unless our token in its address and the centre's timestamped HMAC signature over the body both verify.
