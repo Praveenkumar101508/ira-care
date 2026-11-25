@@ -1,0 +1,52 @@
+{
+  "builder": "scripts/training/conversation_dataset.py",
+  "licence": "IRA CARE proprietary; written for this repository, no third-party content",
+  "name": "ira-care-conversation",
+  "seed": 20261125,
+  "source": "synthetic:ira-care-templates",
+  "splits": {
+    "test": {
+      "by_type": {
+        "advice_request": 4,
+        "checkin_answer": 12,
+        "checkin_question": 12,
+        "comfort": 4,
+        "dose_answer": 18,
+        "red_flag": 2,
+        "safety_answer": 18
+      },
+      "examples": 70,
+      "file": "test.jsonl",
+      "sha256": "5f797a80ecac536ebade20565e30408dd90dc6e6e8e2ad9b78c8ec5d0e03a7be"
+    },
+    "train": {
+      "by_type": {
+        "advice_request": 12,
+        "checkin_answer": 44,
+        "checkin_question": 48,
+        "comfort": 16,
+        "dose_answer": 69,
+        "red_flag": 6,
+        "safety_answer": 63
+      },
+      "examples": 258,
+      "file": "train.jsonl",
+      "sha256": "3f58c6d20f0214084b7029881065814c84339cfaee6e421d75fa3ee03dcf9f4b"
+    },
+    "validation": {
+      "by_type": {
+        "advice_request": 4,
+        "checkin_answer": 12,
+        "checkin_question": 12,
+        "comfort": 4,
+        "dose_answer": 18,
+        "red_flag": 2,
+        "safety_answer": 18
+      },
+      "examples": 70,
+      "file": "validation.jsonl",
+      "sha256": "8c44f927e51661cf3b5a9570e7468282b30dd3f5874bba83d25c3946b37caf9b"
+    }
+  },
+  "version": "1.0.0"
+}
