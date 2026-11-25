@@ -1,0 +1,913 @@
+{
+  "dataset": {
+    "name": "PPG-DaLiA",
+    "source": "https://archive.ics.uci.edu/dataset/495/ppg+dalia",
+    "archive_sha256": "5772387956e34e2e2dc4c2ddbeb98cb70569d5112fa4c13ee98a17680b84a1f3",
+    "licence": "CC BY 4.0",
+    "citation": "A. Reiss, I. Indlekofer, P. Schmidt, K. Van Laerhoven. Deep PPG: Large-Scale Heart Rate Estimation with Convolutional Neural Networks. Sensors 2019, 19(14), 3079.",
+    "subjects": 15,
+    "windows": 64697,
+    "windowing": "8 s windows, 2 s shift, aligned with the dataset's 'label' array"
+  },
+  "protocol": "leave-one-subject-out over all 15 subjects; MAE in bpm against the ECG-derived label; a missing estimate is excluded and counted in no_estimate",
+  "seed": 20261125,
+  "methods": {
+    "naive": {
+      "mae_bpm_mean_of_subjects": 19.67,
+      "mae_bpm_std_of_subjects": 8.83,
+      "mae_bpm_pooled_windows": 19.51,
+      "per_subject": {
+        "S1": {
+          "mae_bpm": 13.06,
+          "windows": 4603,
+          "no_estimate": 0
+        },
+        "S2": {
+          "mae_bpm": 15.22,
+          "windows": 4099,
+          "no_estimate": 0
+        },
+        "S3": {
+          "mae_bpm": 19.4,
+          "windows": 4367,
+          "no_estimate": 0
+        },
+        "S4": {
+          "mae_bpm": 21.75,
+          "windows": 4572,
+          "no_estimate": 0
+        },
+        "S5": {
+          "mae_bpm": 45.91,
+          "windows": 4649,
+          "no_estimate": 0
+        },
+        "S6": {
+          "mae_bpm": 27.17,
+          "windows": 2622,
+          "no_estimate": 0
+        },
+        "S7": {
+          "mae_bpm": 9.47,
+          "windows": 4668,
+          "no_estimate": 0
+        },
+        "S8": {
+          "mae_bpm": 17.59,
+          "windows": 4037,
+          "no_estimate": 0
+        },
+        "S9": {
+          "mae_bpm": 26.51,
+          "windows": 4277,
+          "no_estimate": 0
+        },
+        "S10": {
+          "mae_bpm": 15.41,
+          "windows": 5321,
+          "no_estimate": 0
+        },
+        "S11": {
+          "mae_bpm": 26.51,
+          "windows": 4521,
+          "no_estimate": 0
+        },
+        "S12": {
+          "mae_bpm": 15.32,
+          "windows": 3954,
+          "no_estimate": 0
+        },
+        "S13": {
+          "mae_bpm": 10.49,
+          "windows": 4565,
+          "no_estimate": 0
+        },
+        "S14": {
+          "mae_bpm": 15.88,
+          "windows": 4476,
+          "no_estimate": 0
+        },
+        "S15": {
+          "mae_bpm": 15.36,
+          "windows": 3966,
+          "no_estimate": 0
+        }
+      },
+      "by_activity_pooled": {
+        "transient": {
+          "mae_bpm": 23.73,
+          "windows": 17515
+        },
+        "sitting": {
+          "mae_bpm": 3.24,
+          "windows": 4569
+        },
+        "stairs": {
+          "mae_bpm": 38.06,
+          "windows": 3239
+        },
+        "table_soccer": {
+          "mae_bpm": 32.9,
+          "windows": 2310
+        },
+        "cycling": {
+          "mae_bpm": 30.08,
+          "windows": 3473
+        },
+        "driving": {
+          "mae_bpm": 14.45,
+          "windows": 6843
+        },
+        "lunch": {
+          "mae_bpm": 15.44,
+          "windows": 13554
+        },
+        "walking": {
+          "mae_bpm": 29.19,
+          "windows": 4697
+        },
+        "working": {
+          "mae_bpm": 9.75,
+          "windows": 8497
+        }
+      }
+    },
+    "classical": {
+      "mae_bpm_mean_of_subjects": 13.28,
+      "mae_bpm_std_of_subjects": 5.01,
+      "mae_bpm_pooled_windows": 13.23,
+      "per_subject": {
+        "S1": {
+          "mae_bpm": 11.01,
+          "windows": 4603,
+          "no_estimate": 0
+        },
+        "S2": {
+          "mae_bpm": 12.36,
+          "windows": 4099,
+          "no_estimate": 0
+        },
+        "S3": {
+          "mae_bpm": 9.82,
+          "windows": 4367,
+          "no_estimate": 0
+        },
+        "S4": {
+          "mae_bpm": 16.97,
+          "windows": 4572,
+          "no_estimate": 0
+        },
+        "S5": {
+          "mae_bpm": 25.99,
+          "windows": 4649,
+          "no_estimate": 0
+        },
+        "S6": {
+          "mae_bpm": 13.68,
+          "windows": 2622,
+          "no_estimate": 0
+        },
+        "S7": {
+          "mae_bpm": 5.3,
+          "windows": 4668,
+          "no_estimate": 0
+        },
+        "S8": {
+          "mae_bpm": 12.43,
+          "windows": 4037,
+          "no_estimate": 0
+        },
+        "S9": {
+          "mae_bpm": 19.06,
+          "windows": 4277,
+          "no_estimate": 0
+        },
+        "S10": {
+          "mae_bpm": 9.02,
+          "windows": 5321,
+          "no_estimate": 0
+        },
+        "S11": {
+          "mae_bpm": 19.04,
+          "windows": 4521,
+          "no_estimate": 0
+        },
+        "S12": {
+          "mae_bpm": 11.63,
+          "windows": 3954,
+          "no_estimate": 0
+        },
+        "S13": {
+          "mae_bpm": 7.99,
+          "windows": 4565,
+          "no_estimate": 0
+        },
+        "S14": {
+          "mae_bpm": 11.66,
+          "windows": 4476,
+          "no_estimate": 0
+        },
+        "S15": {
+          "mae_bpm": 13.2,
+          "windows": 3966,
+          "no_estimate": 0
+        }
+      },
+      "by_activity_pooled": {
+        "transient": {
+          "mae_bpm": 16.66,
+          "windows": 17515
+        },
+        "sitting": {
+          "mae_bpm": 2.38,
+          "windows": 4569
+        },
+        "stairs": {
+          "mae_bpm": 33.54,
+          "windows": 3239
+        },
+        "table_soccer": {
+          "mae_bpm": 26.45,
+          "windows": 2310
+        },
+        "cycling": {
+          "mae_bpm": 19.86,
+          "windows": 3473
+        },
+        "driving": {
+          "mae_bpm": 7.24,
+          "windows": 6843
+        },
+        "lunch": {
+          "mae_bpm": 8.23,
+          "windows": 13554
+        },
+        "walking": {
+          "mae_bpm": 23.99,
+          "windows": 4697
+        },
+        "working": {
+          "mae_bpm": 4.82,
+          "windows": 8497
+        }
+      }
+    },
+    "classical_no_acc": {
+      "mae_bpm_mean_of_subjects": 19.7,
+      "mae_bpm_std_of_subjects": 10.26,
+      "mae_bpm_pooled_windows": 19.65,
+      "per_subject": {
+        "S1": {
+          "mae_bpm": 12.88,
+          "windows": 4603,
+          "no_estimate": 0
+        },
+        "S2": {
+          "mae_bpm": 14.49,
+          "windows": 4099,
+          "no_estimate": 0
+        },
+        "S3": {
+          "mae_bpm": 22.78,
+          "windows": 4367,
+          "no_estimate": 0
+        },
+        "S4": {
+          "mae_bpm": 23.85,
+          "windows": 4572,
+          "no_estimate": 0
+        },
+        "S5": {
+          "mae_bpm": 50.58,
+          "windows": 4649,
+          "no_estimate": 0
+        },
+        "S6": {
+          "mae_bpm": 22.33,
+          "windows": 2622,
+          "no_estimate": 0
+        },
+        "S7": {
+          "mae_bpm": 9.13,
+          "windows": 4668,
+          "no_estimate": 0
+        },
+        "S8": {
+          "mae_bpm": 16.57,
+          "windows": 4037,
+          "no_estimate": 0
+        },
+        "S9": {
+          "mae_bpm": 29.26,
+          "windows": 4277,
+          "no_estimate": 0
+        },
+        "S10": {
+          "mae_bpm": 14.14,
+          "windows": 5321,
+          "no_estimate": 0
+        },
+        "S11": {
+          "mae_bpm": 26.37,
+          "windows": 4521,
+          "no_estimate": 0
+        },
+        "S12": {
+          "mae_bpm": 16.57,
+          "windows": 3954,
+          "no_estimate": 0
+        },
+        "S13": {
+          "mae_bpm": 6.51,
+          "windows": 4565,
+          "no_estimate": 0
+        },
+        "S14": {
+          "mae_bpm": 13.76,
+          "windows": 4476,
+          "no_estimate": 0
+        },
+        "S15": {
+          "mae_bpm": 16.29,
+          "windows": 3966,
+          "no_estimate": 0
+        }
+      },
+      "by_activity_pooled": {
+        "transient": {
+          "mae_bpm": 25.0,
+          "windows": 17515
+        },
+        "sitting": {
+          "mae_bpm": 2.55,
+          "windows": 4569
+        },
+        "stairs": {
+          "mae_bpm": 43.03,
+          "windows": 3239
+        },
+        "table_soccer": {
+          "mae_bpm": 34.4,
+          "windows": 2310
+        },
+        "cycling": {
+          "mae_bpm": 32.19,
+          "windows": 3473
+        },
+        "driving": {
+          "mae_bpm": 11.54,
+          "windows": 6843
+        },
+        "lunch": {
+          "mae_bpm": 13.59,
+          "windows": 13554
+        },
+        "walking": {
+          "mae_bpm": 33.52,
+          "windows": 4697
+        },
+        "working": {
+          "mae_bpm": 8.33,
+          "windows": 8497
+        }
+      }
+    },
+    "classical_no_tracking": {
+      "mae_bpm_mean_of_subjects": 17.49,
+      "mae_bpm_std_of_subjects": 5.92,
+      "mae_bpm_pooled_windows": 17.42,
+      "per_subject": {
+        "S1": {
+          "mae_bpm": 14.82,
+          "windows": 4603,
+          "no_estimate": 0
+        },
+        "S2": {
+          "mae_bpm": 16.76,
+          "windows": 4099,
+          "no_estimate": 0
+        },
+        "S3": {
+          "mae_bpm": 14.67,
+          "windows": 4367,
+          "no_estimate": 0
+        },
+        "S4": {
+          "mae_bpm": 20.4,
+          "windows": 4572,
+          "no_estimate": 0
+        },
+        "S5": {
+          "mae_bpm": 35.71,
+          "windows": 4649,
+          "no_estimate": 0
+        },
+        "S6": {
+          "mae_bpm": 19.69,
+          "windows": 2622,
+          "no_estimate": 0
+        },
+        "S7": {
+          "mae_bpm": 8.57,
+          "windows": 4668,
+          "no_estimate": 0
+        },
+        "S8": {
+          "mae_bpm": 16.86,
+          "windows": 4037,
+          "no_estimate": 0
+        },
+        "S9": {
+          "mae_bpm": 22.41,
+          "windows": 4277,
+          "no_estimate": 0
+        },
+        "S10": {
+          "mae_bpm": 13.54,
+          "windows": 5321,
+          "no_estimate": 0
+        },
+        "S11": {
+          "mae_bpm": 20.06,
+          "windows": 4521,
+          "no_estimate": 0
+        },
+        "S12": {
+          "mae_bpm": 15.45,
+          "windows": 3954,
+          "no_estimate": 0
+        },
+        "S13": {
+          "mae_bpm": 12.51,
+          "windows": 4565,
+          "no_estimate": 0
+        },
+        "S14": {
+          "mae_bpm": 15.8,
+          "windows": 4476,
+          "no_estimate": 0
+        },
+        "S15": {
+          "mae_bpm": 15.06,
+          "windows": 3966,
+          "no_estimate": 0
+        }
+      },
+      "by_activity_pooled": {
+        "transient": {
+          "mae_bpm": 21.44,
+          "windows": 17515
+        },
+        "sitting": {
+          "mae_bpm": 3.77,
+          "windows": 4569
+        },
+        "stairs": {
+          "mae_bpm": 35.85,
+          "windows": 3239
+        },
+        "table_soccer": {
+          "mae_bpm": 28.29,
+          "windows": 2310
+        },
+        "cycling": {
+          "mae_bpm": 23.82,
+          "windows": 3473
+        },
+        "driving": {
+          "mae_bpm": 12.66,
+          "windows": 6843
+        },
+        "lunch": {
+          "mae_bpm": 12.69,
+          "windows": 13554
+        },
+        "walking": {
+          "mae_bpm": 28.05,
+          "windows": 4697
+        },
+        "working": {
+          "mae_bpm": 9.39,
+          "windows": 8497
+        }
+      }
+    },
+    "learned": {
+      "mae_bpm_mean_of_subjects": 7.75,
+      "mae_bpm_std_of_subjects": 3.23,
+      "mae_bpm_pooled_windows": 7.68,
+      "per_subject": {
+        "S1": {
+          "mae_bpm": 8.09,
+          "windows": 4603,
+          "no_estimate": 0
+        },
+        "S2": {
+          "mae_bpm": 7.69,
+          "windows": 4099,
+          "no_estimate": 0
+        },
+        "S3": {
+          "mae_bpm": 4.81,
+          "windows": 4367,
+          "no_estimate": 0
+        },
+        "S4": {
+          "mae_bpm": 9.37,
+          "windows": 4572,
+          "no_estimate": 0
+        },
+        "S5": {
+          "mae_bpm": 16.38,
+          "windows": 4649,
+          "no_estimate": 0
+        },
+        "S6": {
+          "mae_bpm": 8.77,
+          "windows": 2622,
+          "no_estimate": 0
+        },
+        "S7": {
+          "mae_bpm": 3.4,
+          "windows": 4668,
+          "no_estimate": 0
+        },
+        "S8": {
+          "mae_bpm": 9.63,
+          "windows": 4037,
+          "no_estimate": 0
+        },
+        "S9": {
+          "mae_bpm": 11.22,
+          "windows": 4277,
+          "no_estimate": 0
+        },
+        "S10": {
+          "mae_bpm": 4.21,
+          "windows": 5321,
+          "no_estimate": 0
+        },
+        "S11": {
+          "mae_bpm": 9.19,
+          "windows": 4521,
+          "no_estimate": 0
+        },
+        "S12": {
+          "mae_bpm": 7.72,
+          "windows": 3954,
+          "no_estimate": 0
+        },
+        "S13": {
+          "mae_bpm": 4.68,
+          "windows": 4565,
+          "no_estimate": 0
+        },
+        "S14": {
+          "mae_bpm": 4.95,
+          "windows": 4476,
+          "no_estimate": 0
+        },
+        "S15": {
+          "mae_bpm": 6.09,
+          "windows": 3966,
+          "no_estimate": 0
+        }
+      },
+      "by_activity_pooled": {
+        "transient": {
+          "mae_bpm": 9.32,
+          "windows": 17515
+        },
+        "sitting": {
+          "mae_bpm": 2.92,
+          "windows": 4569
+        },
+        "stairs": {
+          "mae_bpm": 14.38,
+          "windows": 3239
+        },
+        "table_soccer": {
+          "mae_bpm": 15.54,
+          "windows": 2310
+        },
+        "cycling": {
+          "mae_bpm": 11.54,
+          "windows": 3473
+        },
+        "driving": {
+          "mae_bpm": 5.34,
+          "windows": 6843
+        },
+        "lunch": {
+          "mae_bpm": 5.64,
+          "windows": 13554
+        },
+        "walking": {
+          "mae_bpm": 11.31,
+          "windows": 4697
+        },
+        "working": {
+          "mae_bpm": 3.7,
+          "windows": 8497
+        }
+      }
+    },
+    "candidate_oracle": {
+      "mae_bpm_mean_of_subjects": 4.01,
+      "mae_bpm_std_of_subjects": 1.07,
+      "mae_bpm_pooled_windows": 3.99,
+      "per_subject": {
+        "S1": {
+          "mae_bpm": 3.73,
+          "windows": 4603,
+          "no_estimate": 0
+        },
+        "S2": {
+          "mae_bpm": 4.22,
+          "windows": 4099,
+          "no_estimate": 0
+        },
+        "S3": {
+          "mae_bpm": 3.26,
+          "windows": 4367,
+          "no_estimate": 0
+        },
+        "S4": {
+          "mae_bpm": 5.64,
+          "windows": 4572,
+          "no_estimate": 0
+        },
+        "S5": {
+          "mae_bpm": 4.51,
+          "windows": 4649,
+          "no_estimate": 0
+        },
+        "S6": {
+          "mae_bpm": 3.71,
+          "windows": 2622,
+          "no_estimate": 0
+        },
+        "S7": {
+          "mae_bpm": 2.63,
+          "windows": 4668,
+          "no_estimate": 0
+        },
+        "S8": {
+          "mae_bpm": 5.29,
+          "windows": 4037,
+          "no_estimate": 0
+        },
+        "S9": {
+          "mae_bpm": 6.5,
+          "windows": 4277,
+          "no_estimate": 0
+        },
+        "S10": {
+          "mae_bpm": 2.81,
+          "windows": 5321,
+          "no_estimate": 0
+        },
+        "S11": {
+          "mae_bpm": 4.27,
+          "windows": 4521,
+          "no_estimate": 0
+        },
+        "S12": {
+          "mae_bpm": 3.94,
+          "windows": 3954,
+          "no_estimate": 0
+        },
+        "S13": {
+          "mae_bpm": 2.85,
+          "windows": 4565,
+          "no_estimate": 0
+        },
+        "S14": {
+          "mae_bpm": 3.37,
+          "windows": 4476,
+          "no_estimate": 0
+        },
+        "S15": {
+          "mae_bpm": 3.38,
+          "windows": 3966,
+          "no_estimate": 0
+        }
+      },
+      "by_activity_pooled": {
+        "transient": {
+          "mae_bpm": 4.54,
+          "windows": 17515
+        },
+        "sitting": {
+          "mae_bpm": 1.64,
+          "windows": 4569
+        },
+        "stairs": {
+          "mae_bpm": 5.89,
+          "windows": 3239
+        },
+        "table_soccer": {
+          "mae_bpm": 7.95,
+          "windows": 2310
+        },
+        "cycling": {
+          "mae_bpm": 2.94,
+          "windows": 3473
+        },
+        "driving": {
+          "mae_bpm": 3.65,
+          "windows": 6843
+        },
+        "lunch": {
+          "mae_bpm": 3.7,
+          "windows": 13554
+        },
+        "walking": {
+          "mae_bpm": 5.33,
+          "windows": 4697
+        },
+        "working": {
+          "mae_bpm": 2.73,
+          "windows": 8497
+        }
+      }
+    }
+  },
+  "published_reference": {
+    "method": "Deep PPG CNN ensemble (Reiss et al., Sensors 2019)",
+    "mae_bpm": 7.65,
+    "note": "as reported, not reproduced: the paper's leave-one-subject-out MAE on PPG-DaLiA. The paper's site (mdpi.com) was not reachable from the build machine, and neither the dataset readme nor the UCI page states the number, so it was not re-checked here"
+  },
+  "classical_confidence_coverage": {
+    "0.0": {
+      "share_of_windows": 1.0,
+      "mae_bpm_pooled": 13.23
+    },
+    "0.2": {
+      "share_of_windows": 0.8141,
+      "mae_bpm_pooled": 10.48
+    },
+    "0.3": {
+      "share_of_windows": 0.6733,
+      "mae_bpm_pooled": 8.51
+    },
+    "0.4": {
+      "share_of_windows": 0.5361,
+      "mae_bpm_pooled": 6.36
+    },
+    "0.5": {
+      "share_of_windows": 0.4158,
+      "mae_bpm_pooled": 4.54
+    },
+    "0.6": {
+      "share_of_windows": 0.3108,
+      "mae_bpm_pooled": 3.11
+    }
+  },
+  "classical_input_refusals": {},
+  "learned_model": {
+    "type": "sklearn HistGradientBoostingClassifier over spectral-peak candidates",
+    "params": {
+      "max_iter": 200,
+      "learning_rate": 0.1,
+      "max_leaf_nodes": 31,
+      "l2_regularization": 1.0,
+      "random_state": 20261125
+    },
+    "features": [
+      "cand_bpm",
+      "ppg_raw",
+      "ppg_suppressed",
+      "harmonic_score",
+      "acc_amp",
+      "acc_amp_half",
+      "acc_amp_double",
+      "ppg_raw_double",
+      "ppg_raw_half",
+      "log_motion_rms_g",
+      "suppressed",
+      "rank_raw",
+      "rank_score",
+      "minus_classical",
+      "abs_minus_classical",
+      "minus_prev_classical",
+      "abs_minus_prev_classical",
+      "classical_confidence",
+      "n_candidates"
+    ],
+    "candidate_label": "within 5 bpm of the reference",
+    "tracking_sigma_bpm": 15.0,
+    "serialised_bytes_fold_S1": 748003,
+    "tree_nodes_fold_S1": 12200,
+    "folds": {
+      "S1": {
+        "train_rows": 238384,
+        "train_positive_share": 0.2037,
+        "predict_s": 0.082
+      },
+      "S2": {
+        "train_rows": 240525,
+        "train_positive_share": 0.204,
+        "predict_s": 0.079
+      },
+      "S3": {
+        "train_rows": 239378,
+        "train_positive_share": 0.2029,
+        "predict_s": 0.083
+      },
+      "S4": {
+        "train_rows": 237939,
+        "train_positive_share": 0.2074,
+        "predict_s": 0.083
+      },
+      "S5": {
+        "train_rows": 237621,
+        "train_positive_share": 0.2029,
+        "predict_s": 0.089
+      },
+      "S6": {
+        "train_rows": 246051,
+        "train_positive_share": 0.2032,
+        "predict_s": 0.049
+      },
+      "S7": {
+        "train_rows": 238821,
+        "train_positive_share": 0.2015,
+        "predict_s": 0.089
+      },
+      "S8": {
+        "train_rows": 240454,
+        "train_positive_share": 0.2067,
+        "predict_s": 0.098
+      },
+      "S9": {
+        "train_rows": 239083,
+        "train_positive_share": 0.208,
+        "predict_s": 0.105
+      },
+      "S10": {
+        "train_rows": 235739,
+        "train_positive_share": 0.2012,
+        "predict_s": 0.091
+      },
+      "S11": {
+        "train_rows": 238773,
+        "train_positive_share": 0.2041,
+        "predict_s": 0.079
+      },
+      "S12": {
+        "train_rows": 240918,
+        "train_positive_share": 0.2045,
+        "predict_s": 0.073
+      },
+      "S13": {
+        "train_rows": 238901,
+        "train_positive_share": 0.2019,
+        "predict_s": 0.081
+      },
+      "S14": {
+        "train_rows": 239070,
+        "train_positive_share": 0.2028,
+        "predict_s": 0.096
+      },
+      "S15": {
+        "train_rows": 241345,
+        "train_positive_share": 0.2025,
+        "predict_s": 0.076
+      }
+    }
+  },
+  "classical_parameters": {
+    "BAND_HZ": [
+      0.5,
+      3.5
+    ],
+    "MIN_SECONDS": 6.0,
+    "GRID_HZ": 0.0078125,
+    "MOTION_GATE_G": 0.01,
+    "SUPPRESSION_FLOOR": 0.02,
+    "SUPPRESSION_HALF_WIDTH_HZ": 0.1,
+    "HARMONIC_WEIGHT": 0.5,
+    "TRACK_SIGMA_BPM": 12.0,
+    "CONFIDENCE_HALF_WIDTH_HZ": 0.15,
+    "SATURATION_SHARE": 0.1,
+    "MIN_CONFIDENCE": 0.3
+  },
+  "runtime": {
+    "classical_ms_per_window": 0.737,
+    "classical_module_bytes": 12891,
+    "classical_trained_parameters": 0,
+    "learned_train_s_per_fold_mean": 2.33,
+    "learned_predict_and_select_ms_per_window": 0.019,
+    "data_load_s": 3.7,
+    "per_subject_passes_s": 69.9,
+    "learned_loso_s": 36.6,
+    "total_s": 110.2,
+    "machine": "x86_64, 4 CPUs, no GPU, 3 worker processes",
+    "versions": {
+      "python": "3.13.18",
+      "numpy": "1.26.4",
+      "scikit-learn": "1.9.1"
+    }
+  }
+}

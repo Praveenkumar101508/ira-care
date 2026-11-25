@@ -28,7 +28,7 @@ stated; treated as research only).
 
 | Dataset | Where | Size | Sensors, rate | Population | Licence | Use |
 | --- | --- | --- | --- | --- | --- | --- |
-| PPG-DaLiA | [UCI 495](https://archive.ics.uci.edu/dataset/495/ppg+dalia) | 8.3 M samples | wrist PPG 64 Hz, wrist accelerometer 32 Hz, chest ECG reference | 15 subjects, daily activities | CC BY 4.0 (stated on the page) | ✅ reference for heart-rate-from-PPG and motion artefact work; not needed for the shipped fall or conversation models |
+| PPG-DaLiA | [UCI 495](https://archive.ics.uci.edu/dataset/495/ppg+dalia) | 8.3 M samples | wrist PPG 64 Hz, wrist accelerometer 32 Hz, chest ECG reference | 15 subjects, daily activities | CC BY 4.0 (stated on the page). Cite: A. Reiss, I. Indlekofer, P. Schmidt, K. Van Laerhoven, "Deep PPG: Large-Scale Heart Rate Estimation with Convolutional Neural Networks", *Sensors* 2019, 19(14), 3079 | ✅ **used for IRA Care Heart (F3)**: leave-one-subject-out evaluation of the heart-rate estimator (`scripts/training/heart_ppg_dalia.py`, results and model card in `docs/ai/heart/`). Downloaded outside the repository, never committed; the shipped estimator is classical and carries no weights trained on it |
 | Wearable PPG, ACC and ECG heart rate | [Kaggle antonjuk/wearable-ppg-acc-and-ecg-heart-rate-dataset](https://www.kaggle.com/datasets/antonjuk/wearable-ppg-acc-and-ecg-heart-rate-dataset) | 347 MB | wrist PPG + accelerometer, ECG reference | small | CC BY 4.0 (stated) | ✅ reference only |
 | MIMIC-III waveform (matched) | [PhysioNet](https://physionet.org/content/mimic3wdb-matched/1.0/) | very large | bedside monitor waveforms | hospital patients | PhysioNet open access, Open Data Commons | ✅ not relevant to a wrist device; not used |
 
