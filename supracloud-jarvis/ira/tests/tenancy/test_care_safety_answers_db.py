@@ -276,3 +276,95 @@ async def test_only_the_wearer_may_talk_as_the_person(client, families):
     async with workspace_connection(p["jp"]) as conn:
         await conn.execute("UPDATE care_circle_members SET active = FALSE WHERE person_id = $1 AND user_id = $2", pid, fam["wearer"])
     assert (await client.post(f"{C}/people/{p['id']}/talk", json={"text": "hello"})).status_code == 403
+
+
+# ── A3d/A3e (migration 112): bound when asked, attributed, corrected in the open ──
+
+async def _ask_bound(p, med, due, text="Hello Tess. Have you taken your tablets yet?", asked_at=NOW) -> uuid.UUID:
+    async with workspace_connection(p["jp"]) as conn:
+        return await conn.fetchval(
+            "INSERT INTO care_checkins (person_id, scheduled_at, asked_at, status, question_kind, question_text, "
+            "medication_id, dose_due_at) VALUES ($1, $2, $2, 'asked', 'medication', $3, $4, $5) RETURNING id",
+            uuid.UUID(p["id"]), asked_at, text, uuid.UUID(med["id"]), due)
+
+
+async def test_a_bound_question_writes_exactly_its_own_dose_even_among_similar_names(client, families):
+    p = await _setup(client, families["a"], meds=(("Aspirin", ["08:00"]), ("Aspirin 75mg", ["08:00", "08:30"])))
+    second = p["meds"][1]
+    # Words that name no single medicine, two doses close together: the binding decides, not the words.
+    cid = await _ask_bound(p, second, NOW + dt.timedelta(minutes=30), asked_at=NOW + dt.timedelta(minutes=25))
+    out = await cycle.record_answer(p["jp"], p["device"], cid, "Yes I have", now=NOW + dt.timedelta(minutes=27))
+    assert out["said"] == "yes"
+    ev = await _events(p)
+    assert len(ev) == 1 and str(ev[0]["medication_id"]) == second["id"] and ev[0]["due_at"] == NOW + dt.timedelta(minutes=30)
+    assert ev[0]["source"] == "self_report" and ev[0]["recorded_by"] is None
+
+
+async def test_a_bound_answer_that_comes_too_late_or_after_the_medicine_was_stopped_writes_nothing(client, families):
+    p = await _setup(client, families["a"])
+    med = p["meds"][0]
+    cid = await _ask_bound(p, med, NOW)
+    await cycle.record_answer(p["jp"], p["device"], cid, "Yes I have", now=NOW + dt.timedelta(hours=3))
+    cid = await _ask_bound(p, med, NOW + dt.timedelta(days=1), asked_at=NOW + dt.timedelta(days=1))
+    async with workspace_connection(p["jp"]) as conn:
+        await conn.execute("UPDATE care_medications SET active = FALSE WHERE id = $1", uuid.UUID(med["id"]))
+    await cycle.record_answer(p["jp"], p["device"], cid, "Yes I have", now=NOW + dt.timedelta(days=1, minutes=1))
+    assert await _events(p) == []
+
+
+async def test_the_scheduler_binds_the_dose_when_it_asks(client, families):
+    p = await _setup(client, families["a"])
+    import random
+    await cycle.run_workspace(p["jp"], NOW - dt.timedelta(minutes=20), rng=random.Random(3))
+    due = await cycle.due_checkin(p["jp"], p["device"], NOW, rng=random.Random(3))
+    assert due is not None and due["question_kind"] == "medication"
+    async with workspace_connection(p["jp"]) as conn:
+        row = await conn.fetchrow("SELECT medication_id, dose_due_at FROM care_checkins WHERE id = $1", due["id"])
+    assert str(row["medication_id"]) == p["meds"][0]["id"] and row["dose_due_at"] == NOW
+
+
+async def test_who_recorded_it_and_whether_it_was_observed_come_from_the_caller(client, families):
+    fam = families["a"]
+    p = await _setup(client, fam)
+    client.act_as(fam, "admin", "workspace_admin")
+    r = await client.post(f"{C}/people/{p['id']}/circle", json={"display_name": "Carer", "role": "carer", "user_id": str(fam["viewer"])})
+    assert r.status_code == 201, r.text
+    med = p["meds"][0]["id"]
+    # A daughter cannot claim to have observed it as a carer; a carer in the circle can.
+    client.act_as(fam, "member", "member")
+    r = await client.post(f"{C}/people/{p['id']}/medication-events", json={
+        "medication_id": med, "due_at": NOW.isoformat(), "status": "taken", "observed": True})
+    assert r.status_code == 201 and r.json()["source"] == "family_report" and r.json()["recorded_by"] == str(fam["member"])
+    client.act_as(fam, "viewer", "member")
+    r = await client.post(f"{C}/people/{p['id']}/medication-events", json={
+        "medication_id": med, "due_at": (NOW + dt.timedelta(days=1)).isoformat(), "status": "taken", "observed": True})
+    assert r.status_code == 201 and r.json()["source"] == "carer_observed"
+
+
+async def test_a_correction_needs_a_reason_and_keeps_the_old_record(client, families, pool):
+    fam = families["a"]
+    p = await _setup(client, fam)
+    med = p["meds"][0]["id"]
+    client.act_as(fam, "member", "member")
+    body = {"medication_id": med, "due_at": NOW.isoformat(), "status": "taken"}
+    assert (await client.post(f"{C}/people/{p['id']}/medication-events", json=body)).status_code == 201
+    client.act_as(fam, "admin", "workspace_admin")
+    assert (await client.post(f"{C}/people/{p['id']}/medication-events", json=dict(body, status="missed"))).status_code == 409
+    r = await client.post(f"{C}/people/{p['id']}/medication-events",
+                          json=dict(body, status="missed", correction_reason="Tablet found on the floor at lunch."))
+    assert r.status_code == 201, r.text
+    assert r.json()["status"] == "missed" and r.json()["source"] == "carer_report"
+    r = await client.get(f"{C}/people/{p['id']}/medication-corrections")
+    assert r.status_code == 200
+    c = r.json()["corrections"]
+    assert len(c) == 1 and (c[0]["previous_status"], c[0]["previous_source"], c[0]["new_status"]) == ("taken", "family_report", "missed")
+    assert c[0]["reason"] == "Tablet found on the floor at lunch." and c[0]["corrected_by"] == str(fam["admin"])
+    # The history is append-only to the application role.
+    for sql in ("UPDATE care_medication_event_corrections SET reason = 'changed'",
+                "DELETE FROM care_medication_event_corrections"):
+        with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):
+            async with workspace_connection(p["jp"]) as conn:
+                await conn.execute(sql)
+    # Another tenant sees none of it.
+    client.act_as(families["b"], "admin", "workspace_admin")
+    assert (await client.get(f"{C}/people/{p['id']}/medication-corrections")).status_code == 404

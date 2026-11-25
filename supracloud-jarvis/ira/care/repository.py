@@ -734,15 +734,18 @@ async def delete_medication(principal: Principal, medication_id: uuid.UUID) -> b
         return (await conn.execute("DELETE FROM care_medications WHERE id = $1", medication_id)).endswith(" 1")
 
 
-#: A dose already written down as one of these is never replaced by a later,
-#: different record without a correction history (which needs its own
-#: migration, see docs/progress/REMEDIATION.md, A3). Until then a different
-#: record for the same dose is refused, never silently written over.
+#: A dose already written down as one of these is never replaced silently: a
+#: different record is refused unless it is an explicit correction with a
+#: reason, which keeps the old values in care_medication_event_corrections.
 SETTLED_DOSE_STATUSES = ("taken", "skipped")
+
+#: Where a dose record came from (migration 112). 'legacy' is only ever a
+#: pre-112 row; nothing writes it.
+DOSE_SOURCES = ("self_report", "family_report", "carer_report", "carer_observed", "device", "system")
 
 
 class DoseConflict(Exception):
-    """A different record already exists for this dose."""
+    """A different record already settles this dose, and no correction was asked for."""
 
     def __init__(self, existing: dict):
         super().__init__("A different record already exists for this dose.")
@@ -750,61 +753,92 @@ class DoseConflict(Exception):
 
 
 async def write_medication_event(conn, *, medication_id, person_id, due_at, status: str, via: str,
-                                 checkin_id=None) -> dict:
+                                 source: str, recorded_by=None, checkin_id=None,
+                                 correction_reason: Optional[str] = None) -> dict:
     """The one place a dose is written. Inserts, or fills in a dose that is
     still open (due, unknown, missed). A dose already settled as taken or
-    skipped is left alone: the same record again is a no-op, a different one
-    raises DoseConflict. Row-locked, so two confirmations at once cannot both win."""
+    skipped is left alone: the same record again is a no-op; a different one
+    raises DoseConflict, unless `correction_reason` is given, in which case the
+    change is made AND the previous values are kept in the correction history.
+    Row-locked, so two confirmations at once cannot both win."""
+    if source not in DOSE_SOURCES:
+        raise ValueError(f"unknown dose source {source!r}")
     row = await conn.fetchrow(
         """
-        INSERT INTO care_medication_events (medication_id, person_id, checkin_id, due_at, status, confirmed_via)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO care_medication_events
+            (medication_id, person_id, checkin_id, due_at, status, confirmed_via, source, recorded_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         ON CONFLICT (medication_id, due_at) DO NOTHING
         RETURNING *
-        """, medication_id, person_id, checkin_id, due_at, status, via)
+        """, medication_id, person_id, checkin_id, due_at, status, via, source, recorded_by)
     if row is not None:
         return dict(row)
     existing = dict(await conn.fetchrow(
         "SELECT * FROM care_medication_events WHERE medication_id = $1 AND due_at = $2 FOR UPDATE",
         medication_id, due_at))
-    if existing["status"] == status and existing["confirmed_via"] == via:
+    if existing["status"] == status and existing["confirmed_via"] == via and existing["source"] == source:
         return existing
-    if existing["status"] in SETTLED_DOSE_STATUSES:
+    reason = (correction_reason or "").strip()
+    if existing["status"] in SETTLED_DOSE_STATUSES and len(reason) < 3:
         raise DoseConflict(existing)
+    if existing["status"] != "due":
+        # Every change to a dose that already said something is kept: a
+        # correction with its reason, or the filling-in of an unknown or missed dose.
+        reason = reason or f"Recorded after the dose was marked {existing['status']}."
+        await conn.execute(
+            """
+            INSERT INTO care_medication_event_corrections
+                (event_id, person_id, previous_status, previous_source, previous_confirmed_via,
+                 new_status, new_source, reason, corrected_by)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            """, existing["id"], person_id, existing["status"], existing["source"], existing["confirmed_via"],
+            status, source, reason[:400], recorded_by)
     return dict(await conn.fetchrow(
-        "UPDATE care_medication_events SET status = $2, confirmed_via = $3, checkin_id = COALESCE($4, checkin_id), "
-        "recorded_at = NOW() WHERE id = $1 RETURNING *", existing["id"], status, via, checkin_id))
+        "UPDATE care_medication_events SET status = $2, confirmed_via = $3, source = $4, recorded_by = $5, "
+        "checkin_id = COALESCE($6, checkin_id), recorded_at = NOW() WHERE id = $1 RETURNING *",
+        existing["id"], status, via, source, recorded_by, checkin_id))
 
 
-async def provenance_of(conn, principal: Principal, person_id: uuid.UUID) -> str:
-    """Who is recording a dose, from the VERIFIED caller, never from the request:
-    the person themself ('checkin': a self-report), family, or a carer. A
-    workspace admin or owner outside the circle records as 'carer'. 'device'
-    (observed by a device) is never available to a person's account."""
+async def provenance_of(conn, principal: Principal, person_id: uuid.UUID, *, observed: bool = False) -> tuple[str, str]:
+    """(confirmed_via, source) for a dose recorded by the signed-in caller, from
+    the VERIFIED caller, never from the request: the person themself
+    (self_report), family (family_report), or a carer (carer_report, or
+    carer_observed when a carer in the circle says they watched it taken). A
+    workspace admin or owner outside the circle records as a carer report.
+    'device' is never available to a person's account."""
     rows = await conn.fetch(
         "SELECT role, relationship FROM care_circle_members WHERE person_id = $1 AND user_id = $2 AND active",
         person_id, principal.user_id)
     if any(str(r["relationship"]).strip().lower() == "self" for r in rows):
-        return "checkin"
+        return "checkin", "self_report"
     if any(r["role"] == "family" for r in rows):
-        return "family"
-    return "carer"
+        return "family", "family_report"
+    if observed and any(r["role"] in ("carer", "clinician", "care_organisation") for r in rows):
+        return "carer", "carer_observed"
+    return "carer", "carer_report"
 
 
 async def record_medication_event(principal: Principal, person_id: uuid.UUID, body: dict) -> Optional[dict]:
-    """A dose recorded by a signed-in member. `confirmed_via` is derived from the
-    caller; whatever the request said is ignored. Raises DoseConflict when a
-    different record already settles that dose."""
+    """A dose recorded by a signed-in member. Provenance is derived from the
+    caller; whatever the request said about it is ignored. Raises DoseConflict
+    when a different record already settles that dose and no correction reason
+    was given."""
     async with workspace_connection(principal) as conn:
-        async with conn.transaction():
-            if not await conn.fetchval(
-                    "SELECT 1 FROM care_medications WHERE id = $1 AND person_id = $2",
-                    body["medication_id"], person_id):
-                return None
-            via = await provenance_of(conn, principal, person_id)
-            return _d(await write_medication_event(
-                conn, medication_id=body["medication_id"], person_id=person_id, due_at=body["due_at"],
-                status=body["status"], via=via))
+        if not await conn.fetchval(
+                "SELECT 1 FROM care_medications WHERE id = $1 AND person_id = $2",
+                body["medication_id"], person_id):
+            return None
+        via, source = await provenance_of(conn, principal, person_id, observed=bool(body.get("observed")))
+        return _d(await write_medication_event(
+            conn, medication_id=body["medication_id"], person_id=person_id, due_at=body["due_at"],
+            status=body["status"], via=via, source=source, recorded_by=principal.user_id,
+            correction_reason=body.get("correction_reason")))
+
+
+async def list_medication_corrections(conn, person_id: uuid.UUID, *, limit: int = 200) -> list[dict]:
+    return _ds(await conn.fetch(
+        "SELECT * FROM care_medication_event_corrections WHERE person_id = $1 ORDER BY corrected_at DESC LIMIT $2",
+        person_id, limit))
 
 
 async def list_medication_events(conn, person_id: uuid.UUID, *, limit: int) -> list[dict]:

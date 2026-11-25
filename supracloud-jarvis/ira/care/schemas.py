@@ -542,6 +542,10 @@ class MedicationEventRecord(BaseModel):
     #: Accepted for compatibility and IGNORED: who recorded a dose is derived from the
     #: signed-in caller (care/repository.provenance_of), never from the request.
     confirmed_via: str = Field("carer", pattern=r"^(checkin|family|carer|device|none)$")
+    #: A carer in the person's circle watched the dose being taken. Ignored for anyone else.
+    observed: bool = False
+    #: Required to change a dose already recorded as taken or skipped; kept in the correction history.
+    correction_reason: Optional[str] = Field(None, max_length=400)
 
     @field_validator("status")
     @classmethod

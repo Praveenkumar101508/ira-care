@@ -165,6 +165,11 @@ EXEMPT: dict[str, str] = {
         "IRA CARE (110): how IRA speaks to the PERSON CARED FOR, one row per person. Belongs to the person, not "
         "to an account; the editor's user link is ON DELETE SET NULL. Removed by the care package's per-person "
         "erasure and, when the TENANT is deleted, by ON DELETE CASCADE.",
+    "care_medication_event_corrections":
+        "IRA CARE (112): the history of changes to the PERSON CARED FOR's dose records. Belongs to the person, "
+        "not to an account; the corrector's user link is ON DELETE SET NULL. Removed with its dose record "
+        "(ON DELETE CASCADE from care_medication_events, which the care package's per-person erasure and "
+        "retention remove) and, when the TENANT is deleted, by ON DELETE CASCADE.",
     "care_reminders":
         "IRA CARE (110): the PERSON CARED FOR's reminders and what happened to each. Belongs to the person, not to "
         "an account; the creator's user link is ON DELETE SET NULL. Removed by the care package's per-person erasure "
@@ -541,6 +546,7 @@ TENANT_LIFECYCLE_EXEMPT: frozenset[str] = frozenset({
     "care_medication_events", "care_transcripts", "care_consents", "care_reports",
     "care_conversation_memory", "care_device_events", "care_push_tokens", "care_push_tickets",
     "care_visits", "care_visit_tasks", "care_communication_profiles", "care_reminders", "care_user_preferences",
+    "care_medication_event_corrections",
 })
 
 

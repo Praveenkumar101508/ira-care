@@ -576,6 +576,11 @@
    "sha256": "8c3560ccab1ffff74ed17c92f15eb97d424cecc69caa8527d2176376872f6cc5",
    "status": "applied"
   },
+  "112_care_medication_provenance.sql": {
+   "migration_number": 112,
+   "sha256": "b1422c9f8a8907494fdb153ff3893f53ab4f7b210a29cd5a80f75ba6bf1bb6db",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",

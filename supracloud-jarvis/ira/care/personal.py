@@ -231,15 +231,15 @@ async def act_on_reminder(principal: Principal, reminder_id: uuid.UUID, action: 
         # Who confirmed is read from the verified caller, never assumed: the
         # person themself, family, or a carer (care/repository.provenance_of).
         from . import repository as repo
-        via = await repo.provenance_of(conn, principal, row["person_id"])
+        via, source = await repo.provenance_of(conn, principal, row["person_id"])
         if action == "confirm":
-            row = await _finish(conn, dict(row), "confirmed", now, via=via)
+            row = await _finish(conn, dict(row), "confirmed", now, via=via, source=source, recorded_by=principal.user_id)
         elif action == "snooze":
             row = await conn.fetchrow(
                 "UPDATE care_reminders SET status = 'snoozed', snoozed_until = $2, updated_at = NOW() WHERE id = $1 RETURNING *",
                 reminder_id, now + dt.timedelta(minutes=max(1, min(minutes, 240))))
         elif action == "skip":
-            row = await _finish(conn, dict(row), "skipped", now, via=via)
+            row = await _finish(conn, dict(row), "skipped", now, via=via, source=source, recorded_by=principal.user_id)
         elif action == "cancel":
             row = await conn.fetchrow(
                 "UPDATE care_reminders SET status = 'cancelled', done_at = $2, updated_at = NOW() WHERE id = $1 RETURNING *",
@@ -249,7 +249,8 @@ async def act_on_reminder(principal: Principal, reminder_id: uuid.UUID, action: 
         return _public(row)
 
 
-async def _finish(conn, reminder: dict, status: str, now: dt.datetime, *, via: str, checkin_id=None) -> dict:
+async def _finish(conn, reminder: dict, status: str, now: dt.datetime, *, via: str, source: str = "self_report",
+                  recorded_by=None, checkin_id=None) -> dict:
     row = await conn.fetchrow(
         "UPDATE care_reminders SET status = $2, done_at = $3, updated_at = NOW() WHERE id = $1 RETURNING *",
         reminder["id"], status, now)
@@ -261,7 +262,7 @@ async def _finish(conn, reminder: dict, status: str, now: dt.datetime, *, via: s
             await repo.write_medication_event(
                 conn, medication_id=reminder["medication_id"], person_id=reminder["person_id"],
                 due_at=reminder["due_at"], status="taken" if status == "confirmed" else "skipped",
-                via=via, checkin_id=checkin_id)
+                via=via, source=source, recorded_by=recorded_by, checkin_id=checkin_id)
         except repo.DoseConflict:
             # Already settled differently by someone else: left as it is, never overwritten.
             logger.warning("care reminder %s: dose already recorded differently; not overwritten", reminder["id"])
@@ -422,8 +423,8 @@ async def missed(conn, checkin: dict, now: dt.datetime) -> None:
         if reminder["kind"] == "medication" and reminder["medication_id"]:
             await conn.execute(
                 """
-                INSERT INTO care_medication_events (medication_id, person_id, checkin_id, due_at, status, confirmed_via)
-                VALUES ($1, $2, $3, $4, 'unknown', 'none')
+                INSERT INTO care_medication_events (medication_id, person_id, checkin_id, due_at, status, confirmed_via, source)
+                VALUES ($1, $2, $3, $4, 'unknown', 'none', 'system')
                 ON CONFLICT (medication_id, due_at) DO NOTHING
                 """, reminder["medication_id"], reminder["person_id"], checkin["id"], reminder["due_at"])
 

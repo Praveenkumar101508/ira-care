@@ -1004,11 +1004,24 @@ async def record_medication_event(person_id: uuid.UUID, body: schemas.Medication
     except repo.DoseConflict:
         raise HTTPException(
             status_code=409,
-            detail="This dose is already recorded differently. It is not overwritten; "
-                   "a correction needs the correction history, which is not available yet.")
+            detail="This dose is already recorded differently. It is not overwritten. "
+                   "To correct it, send the change again with a correction_reason; the old record is kept.")
     if event is None:
         raise _not_found("Medication not found for this person.")
     return event
+
+
+@router.get("/people/{person_id}/medication-corrections")
+async def list_medication_corrections(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    """Every change made to a dose already recorded: what it was, what it became, who changed it and why."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+        rows = await repo.list_medication_corrections(conn, person_id)
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="medication",
+                                  detail={"view": "corrections", "rows": len(rows)})
+    return {"corrections": rows, "count": len(rows)}
 
 
 # ── Transcripts and consents ─────────────────────────────────────────────────

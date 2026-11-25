@@ -237,10 +237,27 @@ async def prepare_question(conn, person: dict, row: dict, rng) -> dict:
     local = rules.local_now(row["scheduled_at"], person["timezone"])
     choice, template = await _choose(conn, person, row, local, rng)
     text, source = await _compose(conn, person, choice, template, row["scheduled_at"])
+    med_id, due = await _dose_binding(conn, person, choice, row["scheduled_at"])
     updated = await conn.fetchrow(
-        "UPDATE care_checkins SET question_kind = $2, question_text = $3, question_source = $4 "
-        "WHERE id = $1 AND status = 'scheduled' RETURNING *", row["id"], choice.kind, text, source)
+        "UPDATE care_checkins SET question_kind = $2, question_text = $3, question_source = $4, "
+        "medication_id = $5, dose_due_at = $6 "
+        "WHERE id = $1 AND status = 'scheduled' RETURNING *", row["id"], choice.kind, text, source, med_id, due)
     return dict(updated or row)
+
+
+async def _dose_binding(conn, person: dict, choice: rules.QuestionChoice, at: dt.datetime):
+    """The one medicine and the one scheduled dose a medication question is
+    about, fixed when the question is chosen (migration 112). (None, None) when
+    the question is not about a dose or the dose is not unambiguous; an answer
+    to such a question writes no dose."""
+    if choice.kind != "medication" or not choice.subject_id:
+        return None, None
+    med = await conn.fetchrow("SELECT * FROM care_medications WHERE id = $1 AND person_id = $2 AND active",
+                              uuid.UUID(str(choice.subject_id)), person["id"])
+    if med is None:
+        return None, None
+    due = _bound_due(at, at, dict(med), rules.local_now(at, person["timezone"]).tzinfo)
+    return (med["id"], due) if due is not None else (None, None)
 
 #: How long after the wake deadline the morning check can still be asked.
 MORNING_WINDOW = dt.timedelta(hours=3)
@@ -339,13 +356,16 @@ async def due_checkin(principal: Principal, device: dict, now: Optional[dt.datet
             # Prepared by the scheduler a few minutes ago (prepare_question): spoken at once.
             kind, text, source, subject_id = row["question_kind"], row["question_text"], row["question_source"], None
             prepared = True
+            med_id, due = row["medication_id"], row["dose_due_at"]
         else:
             choice, text = await _choose(conn, dict(person), dict(row), local, rng)
             text, source = await _compose(conn, dict(person), choice, text, now)
             kind, subject_id, prepared = choice.kind, choice.subject_id, False
+            med_id, due = await _dose_binding(conn, dict(person), choice, now)
         row = await conn.fetchrow(
             "UPDATE care_checkins SET status = 'asked', asked_at = $2, question_kind = $3, question_text = $4, "
-            "question_source = $5 WHERE id = $1 RETURNING *", row["id"], now, kind, text, source)
+            "question_source = $5, medication_id = $6, dose_due_at = $7 WHERE id = $1 RETURNING *",
+            row["id"], now, kind, text, source, med_id, due)
         await conn.execute(
             "INSERT INTO care_transcripts (person_id, checkin_id, speaker, text) VALUES ($1, $2, 'companion', $3)",
             person_id, row["id"], text)
@@ -406,7 +426,12 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
         if row["question_kind"] == "medication":
             meds = [dict(m) for m in await conn.fetch(
                 "SELECT * FROM care_medications WHERE person_id = $1 AND active", person_id)]
-            med = _medication_asked_about(meds, row["question_text"])
+            if row["medication_id"] is not None:
+                # Bound when asked (migration 112): exactly this medicine, if still active.
+                med = next((m for m in meds if m["id"] == row["medication_id"]), None)
+            else:
+                # Asked before the binding existed: the conservative re-derivation.
+                med = _medication_asked_about(meds, row["question_text"])
             subject = med["name"] if med else None
             others = tuple(m["name"] for m in meds)
         from . import conversation
@@ -458,13 +483,19 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
                 and reading.said == dose_said_for(reading.dose):
             tz = rules.local_now(now, await conn.fetchval(
                 "SELECT timezone FROM care_people WHERE id = $1", person_id) or "UTC").tzinfo
-            due = _bound_due(row.get("asked_at") or row["scheduled_at"], now, med, tz)
+            asked_at = row["asked_at"] or row["scheduled_at"]
+            if row["dose_due_at"] is not None:
+                in_time = asked_at - dt.timedelta(minutes=5) <= now <= asked_at + ANSWER_WINDOW
+                due = row["dose_due_at"] if in_time else None
+            else:
+                due = _bound_due(asked_at, now, med, tz)
             if due is not None:
                 from . import repository as repo
                 try:
                     await repo.write_medication_event(
                         conn, medication_id=med["id"], person_id=person_id, due_at=due,
-                        status="taken" if reading.dose == "yes" else "skipped", via="checkin", checkin_id=checkin_id)
+                        status="taken" if reading.dose == "yes" else "skipped", via="checkin", checkin_id=checkin_id,
+                        source="self_report")
                 except repo.DoseConflict:
                     logger.warning("care check-in %s: dose already recorded differently; not overwritten", checkin_id)
     if row["question_kind"] == "safety":
