@@ -155,10 +155,18 @@ class CareForegroundService : LifecycleService() {
 
     /**
      * IRA Care Activity on the watch's own motion: the accelerometer (shared with the fall
-     * detector's source) and the gyroscope, classified every 10 s. The answer stays on the
-     * watch; nothing is sent and nothing alerts on it.
+     * detector's source) and the gyroscope, classified every 10 s. Each window goes to
+     * ActivitySharing, which keeps the wearer's "today" line and closes hourly summaries;
+     * those are sent only under the person's activity-sharing consent. Nothing alerts on it.
      */
     private suspend fun watchActivity(monitor: care.ira.watch.activity.ActivityMonitor) = kotlinx.coroutines.coroutineScope {
+        deps.activitySharing?.let { sharing ->
+            monitor.onWindow = { w ->
+                sharing.onWindow(w)
+                val line = care.ira.watch.activity.ActivityWearerText.line(sharing.today.activeMinutes(w.endMillis))
+                if (line != deps.status.value.activityLine) deps.status.value = deps.status.value.copy(activityLine = line)
+            }
+        }
         launch {
             deps.accelerometer.samples().onEach { s ->
                 monitor.onWrist = deps.lastOnWrist

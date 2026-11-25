@@ -110,6 +110,21 @@ export interface InvitationOut { invitation_id: string; member_id: string; email
 export interface InvitationRow { member_id: string; display_name: string; role: string; invited_email: string; accepted: boolean; expires_at: string | null; accepted_at: string | null; revoked_at: string | null }
 
 /** What IRA CARE measures and what it does not (GET /api/v1/care/capabilities). */
+/** Minutes in one day or week, by group (GET /care/people/{id}/activity, care/activity.py). */
+export interface ActivityMinutes {
+  active: number; still: number; other_movement: number; unknown: number; unavailable: number; not_recorded: number;
+  unknown_or_unavailable: number;
+}
+/** IRA Care Activity for carers: an estimate from the watch's motion sensor, shown only under consent. */
+export interface ActivitySummary {
+  label: string; sharing: boolean; timezone: string;
+  groups: Record<string, string>;
+  model: { version: string; sha256: string };
+  days: { date: string; minutes: ActivityMinutes }[];
+  weeks: { start: string; end: string; minutes: ActivityMinutes }[];
+  sources: string[];
+}
+
 export interface Capability {
   key: string; label: string; status: 'available' | 'not_available';
   reading?: string; how?: string; reason?: string;

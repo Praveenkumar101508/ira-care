@@ -163,6 +163,11 @@ EXEMPT: dict[str, str] = {
         "through the care-specific step in erase_postgres (by user_id, inside each workspace pass), by ON "
         "DELETE CASCADE from users, and with the TENANT. Listed here rather than in SUBJECT_TABLES because "
         "the generic tenant-wide DELETE would take every coordinator's designation, not this account's.",
+    "care_activity_periods":
+        "IRA CARE (121): hourly activity estimates from the PERSON CARED FOR's watch, sent under their "
+        "activity_sharing consent (D-084). Belongs to the person, not to an account; the device link is ON DELETE "
+        "SET NULL. Removed with the person by the care package's per-person erasure (ON DELETE CASCADE from "
+        "care_people), by the retention purge, and when the TENANT is deleted, by ON DELETE CASCADE.",
     "care_plans":
         "IRA CARE (116): the versioned care plan of the PERSON CARED FOR, insert-only. Belongs to the person, not to "
         "an account; the author's user link is ON DELETE SET NULL. Removed with the person by the care package's "
@@ -566,7 +571,7 @@ TENANT_LIFECYCLE_EXEMPT: frozenset[str] = frozenset({
     "care_conversation_memory", "care_device_events", "care_push_tokens", "care_push_tickets",
     "care_visits", "care_visit_tasks", "care_communication_profiles", "care_reminders", "care_user_preferences",
     "care_medication_event_corrections", "care_alert_dispatch", "care_alert_attempt_events",
-    "care_staff_designations",
+    "care_staff_designations", "care_activity_periods",
 })
 
 

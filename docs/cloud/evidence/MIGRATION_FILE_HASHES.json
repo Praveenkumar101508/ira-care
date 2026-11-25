@@ -611,6 +611,11 @@
    "sha256": "db7dfff38f670f0216e10a98644a4aa78f76b3e75a87f184837d0a5fbccde148",
    "status": "applied"
   },
+  "121_care_activity.sql": {
+   "migration_number": 121,
+   "sha256": "bf4ded6a4f021c4ffa6898de2d8e62463b56591c7ccb20bea39f3be2bb546b1f",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",

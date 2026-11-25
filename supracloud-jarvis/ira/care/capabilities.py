@@ -38,6 +38,10 @@ CAPABILITIES: tuple[dict, ...] = (
     {"key": "food_intake", "label": "Eating", "status": AVAILABLE,
      "how": "A check-in asks whether the person has eaten, and records what they say. It is what the person "
             "reports, not a measurement of what they ate."},
+    {"key": "activity_estimate", "label": "Activity (estimated)", "status": AVAILABLE,
+     "how": "Estimated from the watch's motion sensor, not a measurement of health: minutes a day that look active, "
+            "still or like other arm movement, and the time the watch could not tell or was not worn. Shown only when "
+            "the person has agreed to share it. It never raises an alert and never says whether someone ate."},
     {"key": "hearing_access", "label": "Hearing access", "status": AVAILABLE,
      "how": "Voice can be switched off for the person; questions then come as text with a vibration, answered "
             "by touch (communication profile)."},

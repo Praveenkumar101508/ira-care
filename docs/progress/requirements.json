@@ -1,5 +1,5 @@
 {
- "version": "1.4.0",
+ "version": "1.5.0",
  "methodology": "A fixed, versioned list of atomic requirements for the owner's master directive. Each item is one measurable deliverable with one state. States: not_started; implemented (code or document merged); accepted (functional evidence: unit_test, db_test, build, browser, emulator, model_eval or device; docs_only and config_check never count); verified (integration-level evidence: db_test, browser, emulator, model_eval or device); device_validated (device evidence); blocked_external (cannot progress without something outside the software; blocked_by says what). Every file ref must exist and a PR ref must be #44 or later; acceptance and verification need a qualifying evidence item that names a file, not only a PR. Items are never removed to raise a percentage: blocked and not-started items stay in every denominator. A requirement that changes scope gets a new id and the version is raised. scripts/completion_summary.py enforces these rules and computes the seven measures.",
  "requirements": [
   {
@@ -2712,6 +2712,123 @@
      "ref": "docs/ai/activity/MODEL_CARD.md"
     }
    ]
+  },
+  {
+   "id": "F7.f",
+   "parent": "F7",
+   "title": "Activity estimate summarised into hourly periods on the watch and sent only under the activity-sharing consent",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/activity/ActivitySharingTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/activity/ActivityMonitorTest.kt"
+    },
+    {
+     "kind": "build",
+     "ref": "watch/app/src/main/java/care/ira/watch/activity/ActivitySharing.kt"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/activity/DATA_CONTRACT.md"
+    }
+   ]
+  },
+  {
+   "id": "F7.g",
+   "parent": "F7",
+   "title": "Activity ingestion, storage, consent check, retention and erasure on the server",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_activity_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_activity_rules.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_3c06_seventeen_tables.py"
+    }
+   ]
+  },
+  {
+   "id": "F7.h",
+   "parent": "F7",
+   "title": "Daily and weekly activity trend for a person through the care API, person-level access only",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_activity_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_activity_rules.py"
+    }
+   ]
+  },
+  {
+   "id": "F7.i",
+   "parent": "F7",
+   "title": "Activity trend panel on the person's health tab, labelled as an estimate",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/activity_trend.test.tsx"
+    },
+    {
+     "kind": "build",
+     "ref": "dashboard/src/components/ActivityTrend.tsx"
+    }
+   ]
+  },
+  {
+   "id": "F7.j",
+   "parent": "F7",
+   "title": "No alert, escalation or check-in is raised from the activity estimate",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_activity_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_activity_no_alert_path.py"
+    }
+   ]
+  },
+  {
+   "id": "F7.k",
+   "parent": "F7",
+   "title": "Battery cost of activity estimation measured on the IRA watch",
+   "area": "ai",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/activity/ActivityCostTest.kt"
+    }
+   ],
+   "blocked_by": "a physical watch"
   },
   {
    "id": "F8.a",

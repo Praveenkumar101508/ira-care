@@ -91,6 +91,7 @@ class MainActivity : ComponentActivity() {
                         onHelp = { CareForegroundService.send(this, CareForegroundService.ACTION_HELP) },
                         onTalk = { CareForegroundService.send(this, CareForegroundService.ACTION_TALK) },
                         talking = status.talking,
+                        activityLine = status.activityLine,
                         reminderChoices = ReminderButtons.visible(status.reminderKind, status.fallCountdown,
                             status.sos !is SosState.Idle && status.sos !is SosState.Closed),
                         onChoice = { CareForegroundService.sendChoice(this, it) },
@@ -233,6 +234,7 @@ fun HomeScreen(
     onTalk: () -> Unit = {}, talking: Boolean = false, visit: VisitState = VisitState.None,
     onUnpair: () -> Unit = {},
     reminderChoices: List<ReminderChoice> = emptyList(), onChoice: (ReminderChoice) -> Unit = {},
+    activityLine: String? = null,
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(10.dp),
@@ -247,6 +249,9 @@ fun HomeScreen(
         )
         if (listening) Text("Listening…", fontSize = 12.sp, color = Color(0xFF9FD3A0))
         if (!online) Text("Offline: saving for later", fontSize = 10.sp, color = Color(0xFFE0C068))
+        // The wearer's own activity estimate: small, only when nothing else is happening, and said to be an estimate.
+        if (activityLine != null && question == null && fallCountdown == null && sos is SosState.Idle)
+            Text(activityLine, fontSize = 11.sp, textAlign = TextAlign.Center, color = Color(0xFFB0BEC5))
         Spacer(Modifier.height(10.dp))
         if (reminderChoices.isEmpty()) {
             Button(

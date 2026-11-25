@@ -34,6 +34,8 @@ CONSENT_KINDS = frozenset({
     "health_data_family", "data_retention",
     # IRA may use the familiar topics and topics to avoid in the communication profile (110).
     "topics",
+    # The watch may send hourly activity estimates, and the care circle may see them (121, D-084).
+    "activity_sharing",
 })
 
 #: Months of history kept when no consent record names a retention period.
