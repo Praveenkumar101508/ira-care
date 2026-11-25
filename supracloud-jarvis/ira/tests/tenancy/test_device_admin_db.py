@@ -101,10 +101,11 @@ async def _collect(client, token):
     return r.json()
 
 
-async def _count(table: str) -> int:
+async def _count(table: str, tenant_id) -> int:
+    """Rows in this test's tenant only: other suites write the same table concurrently."""
     conn = await asyncpg.connect(ADMIN_DSN)
     try:
-        return await conn.fetchval(f"SELECT count(*) FROM {table}")  # noqa: S608 - constant names
+        return await conn.fetchval(f"SELECT count(*) FROM {table} WHERE tenant_id = $1", tenant_id)  # noqa: S608
     finally:
         await conn.close()
 
@@ -127,7 +128,7 @@ async def test_no_care_or_tenant_role_is_a_deployment_administrator(client, fami
         # The member is the workspace's coordinator (D-081) for this test.
         await conn.execute("INSERT INTO care_staff_designations (user_id, designation) VALUES ($1, 'coordinator')",
                            fam["member"])
-    before = await _count("care_device_admin_instructions")
+    before = await _count("care_device_admin_instructions", families["a"]["tenant_id"])
     ungranted = await admins(grant=False)
     callers = [
         ("care manager", _principal(fam, "admin", "workspace_admin")),
@@ -150,7 +151,7 @@ async def test_no_care_or_tenant_role_is_a_deployment_administrator(client, fami
         r = await client.get(ISSUE, params={"tenant_id": str(fam["tenant_id"]), "workspace_id": str(fam["workspace_id"]),
                                             "device_id": device})
         assert r.status_code == 403, (who, r.text)
-    assert await _count("care_device_admin_instructions") == before
+    assert await _count("care_device_admin_instructions", families["a"]["tenant_id"]) == before
     assert (await _collect(client, token)) == {"instructions": [], "revoked_nonces": []}
 
 
@@ -202,12 +203,12 @@ async def test_another_tenants_watch_cannot_be_named_reached_or_reported_on(clie
     token_b, device_b = await _watch(client, families["b"])
     uid = await admins()
     act_as_admin(client, families, uid)
-    before = await _count("care_device_admin_instructions")
+    before = sum([await _count("care_device_admin_instructions", f["tenant_id"]) for f in families.values()])
     # A's watch named with B's tenant and workspace (and the mixed triples): not found, nothing written.
     for t, w in ((families["b"], families["b"]), (families["a"], families["b"]), (families["b"], families["a"])):
         body = _body(families["a"], device_a) | {"tenant_id": str(t["tenant_id"]), "workspace_id": str(w["workspace_id"])}
         assert (await client.post(ISSUE, json=body)).status_code == 404
-    assert await _count("care_device_admin_instructions") == before
+    assert sum([await _count("care_device_admin_instructions", f["tenant_id"]) for f in families.values()]) == before
 
     issued = (await client.post(ISSUE, json=_body(families["a"], device_a))).json()
     assert (await _collect(client, token_b)) == {"instructions": [], "revoked_nonces": []}
@@ -229,10 +230,11 @@ async def test_only_the_closed_list_and_at_most_fifteen_minutes(client, families
     for minutes in (0, 16, 600, -1):
         assert (await client.post(ISSUE, json=_body(families["a"], device, minutes=minutes))).status_code == 422, minutes
     assert (await client.post(ISSUE, json=_body(families["a"], device, reason="x"))).status_code == 422
-    with pytest.raises(ValueError):
-        await deviceadmin.issue(admin_id=uuid.uuid4(), tenant_id=families["a"]["tenant_id"],
-                                workspace_id=families["a"]["workspace_id"], device_id=uuid.UUID(device),
-                                action="MAINTENANCE_WINDOW", minutes=16, reason=REASON, key=KEY)
+    for action, minutes in (("MAINTENANCE_WINDOW", 16), ("RUN_SHELL", 5)):  # the module refuses on its own too
+        with pytest.raises(ValueError):
+            await deviceadmin.issue(admin_id=uuid.uuid4(), tenant_id=families["a"]["tenant_id"],
+                                    workspace_id=families["a"]["workspace_id"], device_id=uuid.UUID(device),
+                                    action=action, minutes=minutes, reason=REASON, key=KEY)
     assert (await _collect(client, token))["instructions"] == []
 
     # The table refuses the same things if the code ever did not.
@@ -334,9 +336,9 @@ async def test_no_key_means_no_instruction(client, families, admins, monkeypatch
     monkeypatch.delenv(devicepolicy.KEY_ENV, raising=False)
     _, device = await _watch(client, families["a"])
     act_as_admin(client, families, await admins())
-    before = await _count("care_device_admin_instructions")
+    before = await _count("care_device_admin_instructions", families["a"]["tenant_id"])
     assert (await client.post(ISSUE, json=_body(families["a"], device))).status_code == 503
-    assert await _count("care_device_admin_instructions") == before
+    assert await _count("care_device_admin_instructions", families["a"]["tenant_id"]) == before
 
 
 async def test_the_runtime_cannot_make_anyone_an_administrator_even_with_every_grant(pool, admins):
