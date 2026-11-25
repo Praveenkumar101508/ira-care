@@ -125,7 +125,7 @@ edited since are not credited.
 | C-19 | Encrypted watch storage | unit tested | #48 · D5 (Keystore hardware backing: **needs external**, device); #68 · D9 (no plain-text fallback for sensitive data; Help still queued, minimised) |
 | C-20 | Atomic offline-queue and outbox writes | unit tested | #48 · D5 |
 | C-21 | Secure unpairing and re-pairing | integration tested | #48 · D5 (kept per wearer); #53 · D7 (explicit unpair with warning, migration 114). On-device UI check: **needs external**, a watch |
-| C-22 | Backend and person-level authorisation review | integration tested | #51 · REMEDIATION E1 (D-076) |
+| C-22 | Backend and person-level authorisation review; system security review | integration tested | #51 · REMEDIATION E1 (D-076). #72 · security review (`docs/security/REVIEW.md`): rate limits on the open routes, dashboard headers, patched dependencies, each with a test. #89 · STRIDE threat model (`docs/security/THREAT_MODEL.md`), every named control checked by `test_threat_model_traceability.py`. Independent penetration test: **needs external** (a contracted tester) |
 | C-23 | Accessibility and interface consistency | unit tested | Automated accessibility checks from round 4; #54 · C5 (dark-mode and high-contrast colour review, measured). A screen-reader pass on real devices: **needs external** |
 | C-24 | Full-system outage and recovery tests | integration tested | #51 · REMEDIATION E2–E5 |
 
@@ -167,16 +167,16 @@ edited since are not credited.
 | # | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
 | G1 | Containers, CPU / GPU profiles, Postgres, Redis, workers, proxy, HTTPS | integration tested (containers) | #78 · the stack run as containers (`docs/evidence/staging/CONTAINERS.md`); the API, dashboard and backup images built and checked in CI. A rented server: **needs external** |
-| G2 | Observability, outage recovery, encrypted backups, restore | integration tested | #78 · outage drills on containers; CI restore round trip; `fix/infra-adapters-backups` · encrypted off-site copies with a restore drill (`docs/evidence/staging/OFFSITE.md`, against a local S3 stand-in). 24-hour soak: a simulated day recorded (`docs/evidence/soak/SOAK.md`); 24 wall-clock hours: **not started**. Capacity on a representative server: **needs external** |
-| G3 | Push, SMS, call, email, monitoring-centre adapters | integration tested | #46 · SMS / call / push delivery states; `fix/infra-adapters-backups` · email (SMTP) and a signed monitoring-centre webhook with signed acknowledgements, both off unless configured, tested against stand-ins. Live delivery: **needs external** (provider credentials, a decision to pay). A contracted centre: **needs external** |
-| G4 | Hosting proposal, cost model, runbooks | pre-existing (partial); runbooks written | `docs/ops/RUNBOOKS.md` (incident, worker, database, restore, key rotation; every path and service checked by a test). Hosting proposal and cost model: **not started**. Renting a server: **needs external** (owner's approval to spend) |
+| G2 | Observability, outage recovery, encrypted backups, restore | integration tested | #78 · outage drills on containers; CI restore round trip; backups that cannot fail silently (G4 defect fixed). #86 · encrypted off-site copies with a restore drill (`docs/evidence/staging/OFFSITE.md`, against a local S3 stand-in; G5 defect fixed). 24-hour wall-clock soak: not run (a simulated day is recorded in `docs/evidence/soak/SOAK.md`). Capacity on a representative server: **needs external** |
+| G3 | Push, SMS, call, email, monitoring-centre adapters | integration tested | #46 · SMS, call and push delivery states. #86 · email (SMTP) and a signed monitoring-centre webhook with signed acknowledgements, both off unless configured, tested against stand-ins. Live delivery: **needs external** (provider credentials); a monitoring centre: **needs external** (contract) |
+| G4 | Hosting proposal, cost model, runbooks | implemented | #86 · `docs/ops/RUNBOOKS.md` (every path and service checked by a test). #89 · `docs/ops/HOSTING_PROPOSAL.md` sized from the measured container stack, with `scripts/hosting_cost.py`; no price page was reachable from the build machine, so the total is withheld until prices are entered. Renting a server: **needs external** (owner's approval to spend) |
 
 ## H, I. Hardware and compliance preparation
 
 | # | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
-| H1–H4 | Sensor evaluation plan, Qualcomm engagement document, ODM specification, EVT / DVT / PVT roadmap | pre-existing (partial) | `docs/hardware/`. Updates: **not started**. All physical work: **needs external** |
-| I | Intended purpose, claims register, hazard log, DPIA, pilot protocol | pre-existing drafts | `docs/compliance/`. Updating against current MHRA / ICO guidance: **not started**. Approval: **needs external** (qualified review) |
+| H1–H4 | Sensor evaluation plan, Qualcomm engagement document, ODM specification, EVT / DVT / PVT roadmap | implemented | #89 · `docs/hardware/SENSOR_EVALUATION_PLAN.md`, `QUALCOMM_ENGAGEMENT.md`, `ODM_SPECIFICATION.md`, `EVT_DVT_PVT_ROADMAP.md`, every path they cite checked by `test_document_references.py`. All physical work: **needs external** (hardware, an ODM, supplier access) |
+| I | Intended purpose, claims register, hazard log, DPIA, pilot protocol | implemented | `docs/compliance/`. #73 · hazard log H14 to H20 and a claims register, both checked by tests. #89 · pilot protocol; intended purpose, DPIA (speech recognisers) and MHRA questions updated against MHRA guidance read at gov.uk on 25 November 2026. ICO guidance: **needs external** (ico.org.uk was unreachable from the build machine). Approval: **needs external** (a Clinical Safety Officer, an MHRA adviser) |
 
 ## J, K, L. Demonstration, final verification, evidence
 
@@ -184,7 +184,7 @@ edited since are not credited.
 |---|---|---|---|
 | J | Integrated live demonstration, the 22-step care journey (D-079), presenter guide | integration tested | #79 · the 22 steps against the real API and PostgreSQL (`docs/demo/CARE_JOURNEY_22.md`); #64 · `docs/demo/RERUN.md`: scripted scenarios and the browser demo re-run on the remediated stack (fake model, log-only providers); two defects found and fixed (REMEDIATION B4, B5). Film voice-over and devices: not re-run; the 22 steps with the real model chain (gemma4:e4b then gemma4:e2b on CPU), 8 of 8 runs passed, the safety rules held (`docs/evidence/demo/REAL_MODEL_RUN.md`) |
 | K | Full verification on integrated `main` (every suite, builds, load, outage, backup, licence scan) | integration tested | `docs/progress/VERIFICATION.md`: backend unit and database suites, dashboard, phone, watch builds, outage, backup and restore, secret scan, licences. Load (24 h soak): not run. Device, emulator and OS image runs: **needs external** |
-| L | Endorsement evidence pack, GO / NO-GO decisions | not started | |
+| L | Endorsement evidence pack, GO / NO-GO decisions | implemented | #89 · `docs/evidence/ENDORSEMENT_PACK.md` (every claim linked to its evidence) and `docs/progress/GO_NO_GO.md` (per area). #87 · the requirement index is generated by `scripts/evidence_index.py` in CI on every run |
 
 ## External blockers (owner actions)
 
