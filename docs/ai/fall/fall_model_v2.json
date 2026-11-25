@@ -1,0 +1,20 @@
+{
+ "threshold": 0.11,
+ "mean": [
+  -0.00017154929810203612,
+  0.0024364644195884466,
+  -0.0045839883387088776,
+  1.1699111461639404
+ ],
+ "std": [
+  0.800560712814331,
+  0.7957524657249451,
+  0.8013845086097717,
+  0.7325762510299683
+ ],
+ "windowSamples": 200,
+ "rateHz": 50,
+ "trained_on": "BITS-2 (Zenodo 10013090, CC BY 4.0, left-wrist) and UCI HAR (CC BY 4.0), subject-independent folds; see docs/ai/fall/MODEL_CARD_V2.md",
+ "cv_event_sensitivity_rule_plus_model": 0.6013,
+ "cv_event_specificity_rule_plus_model": 0.9777
+}

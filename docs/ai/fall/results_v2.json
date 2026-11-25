@@ -1,0 +1,489 @@
+{
+  "data": {
+    "bits2": {
+      "record": "https://zenodo.org/records/10013090",
+      "licence": "CC BY 4.0",
+      "sha256": "346cd2748ffaa006e775d1876a674f531430dc0e090bf0766dffb4437e137785",
+      "subjects_used": 40,
+      "excluded_subjects": [
+        "user1"
+      ],
+      "fall_files": 316,
+      "fall_files_gate_missed": 59,
+      "fall_other_impacts_skipped": 28,
+      "adl_files": 640,
+      "adl_seconds": 8039.260000000007,
+      "fall_windows_padded": 98,
+      "fall_padded_samples": 4810,
+      "adl_event_windows_padded": 210,
+      "adl_event_padded_samples": 10752,
+      "channel": "acg (acceleration including gravity), m/s^2 / 9.80665 -> g; sample order as time at 50 Hz"
+    },
+    "uci_har": {
+      "record": "https://archive.ics.uci.edu/dataset/240",
+      "licence": "CC BY 4.0",
+      "sha256": "c00b803081a5c797cd5e4b83700a9810b38d53d9d84e01917e090e1fdbc81031",
+      "windows": 5847,
+      "use": "negatives only, total_acc in g, 50 Hz, stitched from 50 % overlapping windows"
+    }
+  },
+  "protocol": {
+    "folds": 5,
+    "split": "by BITS-2 subject (and by UCI HAR subject); threshold chosen per fold on validation subjects inside the training subjects",
+    "folds_detail": [
+      {
+        "fold": 0,
+        "test_subjects": [
+          "user7",
+          "user9",
+          "user17",
+          "user18",
+          "user21",
+          "user24",
+          "user34",
+          "user35"
+        ],
+        "val_subjects": [
+          "user6",
+          "user15",
+          "user20",
+          "user23",
+          "user40",
+          "user41"
+        ],
+        "threshold": 0.12,
+        "train_windows": 13748,
+        "train_positive": 3024
+      },
+      {
+        "fold": 1,
+        "test_subjects": [
+          "user5",
+          "user11",
+          "user14",
+          "user15",
+          "user20",
+          "user27",
+          "user31",
+          "user33"
+        ],
+        "val_subjects": [
+          "user6",
+          "user23",
+          "user34",
+          "user35",
+          "user40",
+          "user41"
+        ],
+        "threshold": 0.11,
+        "train_windows": 13685,
+        "train_positive": 3072
+      },
+      {
+        "fold": 2,
+        "test_subjects": [
+          "user6",
+          "user10",
+          "user19",
+          "user25",
+          "user28",
+          "user29",
+          "user32",
+          "user41"
+        ],
+        "val_subjects": [
+          "user15",
+          "user20",
+          "user23",
+          "user34",
+          "user35",
+          "user40"
+        ],
+        "threshold": 0.64,
+        "train_windows": 13265,
+        "train_positive": 3024
+      },
+      {
+        "fold": 3,
+        "test_subjects": [
+          "user2",
+          "user8",
+          "user12",
+          "user13",
+          "user16",
+          "user22",
+          "user37",
+          "user40"
+        ],
+        "val_subjects": [
+          "user15",
+          "user20",
+          "user23",
+          "user34",
+          "user35",
+          "user41"
+        ],
+        "threshold": 0.05,
+        "train_windows": 13883,
+        "train_positive": 3024
+      },
+      {
+        "fold": 4,
+        "test_subjects": [
+          "user3",
+          "user4",
+          "user23",
+          "user26",
+          "user30",
+          "user36",
+          "user38",
+          "user39"
+        ],
+        "val_subjects": [
+          "user15",
+          "user20",
+          "user34",
+          "user35",
+          "user40",
+          "user41"
+        ],
+        "threshold": 0.05,
+        "train_windows": 13591,
+        "train_positive": 3024
+      }
+    ],
+    "epochs": 25,
+    "seed": 20261125,
+    "augmentation": "random 3-D rotation of every training window; impact shifted by up to +/-10 samples; 12 copies per fall, 4 per ADL impact"
+  },
+  "window_level": {
+    "positives": "one window per BITS-2 fall file, impact (or the maximum when no sample reaches 2.5 g) at index 100",
+    "negatives": "every rule impact in BITS-2 daily-activity files (hard negatives), runtime-aligned",
+    "model_alone": {
+      "tp": 294,
+      "fn": 22,
+      "fp": 45,
+      "tn": 1030,
+      "sensitivity": 0.9304,
+      "recall": 0.9304,
+      "specificity": 0.9581,
+      "precision": 0.8673,
+      "f1": 0.8977
+    },
+    "rule_on_4s_window": {
+      "tp": 0,
+      "fn": 316,
+      "fp": 2,
+      "tn": 1073,
+      "sensitivity": 0.0,
+      "recall": 0.0,
+      "specificity": 0.9981,
+      "precision": 0.0,
+      "f1": 0.0
+    },
+    "impact_only_gate": {
+      "tp": 257,
+      "fn": 59,
+      "fp": 1075,
+      "tn": 0,
+      "sensitivity": 0.8133,
+      "recall": 0.8133,
+      "specificity": 0.0,
+      "precision": 0.1929,
+      "f1": 0.3119
+    },
+    "model_alone_randomly_rotated_test_windows": {
+      "tp": 297,
+      "fn": 19,
+      "fp": 50,
+      "tn": 1025,
+      "sensitivity": 0.9399,
+      "recall": 0.9399,
+      "specificity": 0.9535,
+      "precision": 0.8559,
+      "f1": 0.8959
+    },
+    "plain_adl_windows_flagged_by_model": "255/3104",
+    "uci_har_windows_flagged_by_model": "28/5847",
+    "uci_har_windows_flagged_by_rule_on_window": "0/5847"
+  },
+  "event_level": {
+    "definition": "the watch's pipeline on each recording: rule impact gate -> model at +2 s -> rule stillness up to 20 s (or the end of the recording, which counts as still: the rule had not cleared it)",
+    "rule_detector": {
+      "tp": 195,
+      "fn": 121,
+      "fp": 118,
+      "tn": 957,
+      "sensitivity": 0.6171,
+      "recall": 0.6171,
+      "specificity": 0.8902,
+      "precision": 0.623,
+      "f1": 0.62,
+      "missed_falls": 121,
+      "alarms_on_adl": 118,
+      "false_alarms_per_day": 845.45,
+      "alarms_per_hour_of_adl": 52.84
+    },
+    "rule_plus_model_v2": {
+      "tp": 190,
+      "fn": 126,
+      "fp": 24,
+      "tn": 1051,
+      "sensitivity": 0.6013,
+      "recall": 0.6013,
+      "specificity": 0.9777,
+      "precision": 0.8879,
+      "f1": 0.717,
+      "missed_falls": 126,
+      "alarms_on_adl": 24,
+      "false_alarms_per_day": 171.96,
+      "alarms_per_hour_of_adl": 10.75,
+      "falls_the_rule_caught_but_model_vetoed": 5
+    },
+    "falls_with_no_sample_at_2_5_g (missed by both, gate)": 59,
+    "falls_rule_cleared_after_impact (person moved within 20 s or the next trial began)": 62,
+    "adl_impacts_where_the_recording_ended_before_20_s": 117,
+    "adl_impacts_with_a_full_20_s_still_window": 1,
+    "falls_with_a_full_20_s_still_window": 25,
+    "falls_where_the_recording_ended_before_20_s": 170,
+    "false_alarm_assumption": "alarms on 2.233 h of held-out BITS-2 daily-activity recordings, scaled to 16 waking hours a day of the SAME activity mix; the mix is far denser in jumps, sits and lies than an older person's day, so this is a pessimistic rate for that mix and says nothing about a real day",
+    "post_hoc_shared_threshold_sweep_not_held_out": {
+      "0.02": {
+        "falls_vetoed_that_the_rule_caught": 4,
+        "pipeline_sensitivity": 0.6044,
+        "pipeline_alarms_on_adl": 34,
+        "false_alarms_per_day": 243.6
+      },
+      "0.05": {
+        "falls_vetoed_that_the_rule_caught": 5,
+        "pipeline_sensitivity": 0.6013,
+        "pipeline_alarms_on_adl": 30,
+        "false_alarms_per_day": 214.95
+      },
+      "0.1": {
+        "falls_vetoed_that_the_rule_caught": 7,
+        "pipeline_sensitivity": 0.5949,
+        "pipeline_alarms_on_adl": 28,
+        "false_alarms_per_day": 200.62
+      },
+      "0.2": {
+        "falls_vetoed_that_the_rule_caught": 9,
+        "pipeline_sensitivity": 0.5886,
+        "pipeline_alarms_on_adl": 23,
+        "false_alarms_per_day": 164.79
+      },
+      "0.3": {
+        "falls_vetoed_that_the_rule_caught": 11,
+        "pipeline_sensitivity": 0.5823,
+        "pipeline_alarms_on_adl": 22,
+        "false_alarms_per_day": 157.63
+      },
+      "0.4": {
+        "falls_vetoed_that_the_rule_caught": 12,
+        "pipeline_sensitivity": 0.5791,
+        "pipeline_alarms_on_adl": 21,
+        "false_alarms_per_day": 150.46
+      },
+      "0.5": {
+        "falls_vetoed_that_the_rule_caught": 12,
+        "pipeline_sensitivity": 0.5791,
+        "pipeline_alarms_on_adl": 17,
+        "false_alarms_per_day": 121.8
+      },
+      "0.6": {
+        "falls_vetoed_that_the_rule_caught": 12,
+        "pipeline_sensitivity": 0.5791,
+        "pipeline_alarms_on_adl": 17,
+        "false_alarms_per_day": 121.8
+      },
+      "0.7": {
+        "falls_vetoed_that_the_rule_caught": 13,
+        "pipeline_sensitivity": 0.5759,
+        "pipeline_alarms_on_adl": 15,
+        "false_alarms_per_day": 107.47
+      },
+      "0.8": {
+        "falls_vetoed_that_the_rule_caught": 14,
+        "pipeline_sensitivity": 0.5728,
+        "pipeline_alarms_on_adl": 13,
+        "false_alarms_per_day": 93.14
+      },
+      "0.9": {
+        "falls_vetoed_that_the_rule_caught": 19,
+        "pipeline_sensitivity": 0.557,
+        "pipeline_alarms_on_adl": 9,
+        "false_alarms_per_day": 64.48
+      },
+      "0.95": {
+        "falls_vetoed_that_the_rule_caught": 20,
+        "pipeline_sensitivity": 0.5538,
+        "pipeline_alarms_on_adl": 7,
+        "false_alarms_per_day": 50.15
+      }
+    }
+  },
+  "falls_by_activity": {
+    "fall1": {
+      "n": 39,
+      "rule": 27,
+      "rule_plus_model": 27,
+      "gate": 32
+    },
+    "fall2": {
+      "n": 40,
+      "rule": 23,
+      "rule_plus_model": 23,
+      "gate": 32
+    },
+    "fall3": {
+      "n": 39,
+      "rule": 25,
+      "rule_plus_model": 24,
+      "gate": 35
+    },
+    "fall4": {
+      "n": 39,
+      "rule": 27,
+      "rule_plus_model": 25,
+      "gate": 38
+    },
+    "fall5": {
+      "n": 40,
+      "rule": 20,
+      "rule_plus_model": 20,
+      "gate": 24
+    },
+    "fall6": {
+      "n": 39,
+      "rule": 26,
+      "rule_plus_model": 26,
+      "gate": 37
+    },
+    "fall7": {
+      "n": 40,
+      "rule": 16,
+      "rule_plus_model": 15,
+      "gate": 20
+    },
+    "fall8": {
+      "n": 40,
+      "rule": 31,
+      "rule_plus_model": 30,
+      "gate": 39
+    }
+  },
+  "adl_impacts_by_activity": {
+    "adl1": {
+      "impacts": 4,
+      "rule_alarms": 1,
+      "rule_plus_model_alarms": 1
+    },
+    "adl2": {
+      "impacts": 4,
+      "rule_alarms": 0,
+      "rule_plus_model_alarms": 0
+    },
+    "adl3": {
+      "impacts": 490,
+      "rule_alarms": 32,
+      "rule_plus_model_alarms": 1
+    },
+    "adl4": {
+      "impacts": 308,
+      "rule_alarms": 30,
+      "rule_plus_model_alarms": 1
+    },
+    "adl5": {
+      "impacts": 22,
+      "rule_alarms": 4,
+      "rule_plus_model_alarms": 1
+    },
+    "adl6": {
+      "impacts": 4,
+      "rule_alarms": 1,
+      "rule_plus_model_alarms": 0
+    },
+    "adl7": {
+      "impacts": 22,
+      "rule_alarms": 4,
+      "rule_plus_model_alarms": 1
+    },
+    "adl8": {
+      "impacts": 45,
+      "rule_alarms": 7,
+      "rule_plus_model_alarms": 1
+    },
+    "adl9": {
+      "impacts": 3,
+      "rule_alarms": 3,
+      "rule_plus_model_alarms": 1
+    },
+    "adl10": {
+      "impacts": 9,
+      "rule_alarms": 5,
+      "rule_plus_model_alarms": 4
+    },
+    "adl11": {
+      "impacts": 3,
+      "rule_alarms": 1,
+      "rule_plus_model_alarms": 1
+    },
+    "adl12": {
+      "impacts": 142,
+      "rule_alarms": 16,
+      "rule_plus_model_alarms": 0
+    },
+    "adl13": {
+      "impacts": 2,
+      "rule_alarms": 2,
+      "rule_plus_model_alarms": 2
+    },
+    "adl14": {
+      "impacts": 3,
+      "rule_alarms": 1,
+      "rule_plus_model_alarms": 1
+    },
+    "adl15": {
+      "impacts": 9,
+      "rule_alarms": 7,
+      "rule_plus_model_alarms": 5
+    },
+    "adl16": {
+      "impacts": 5,
+      "rule_alarms": 4,
+      "rule_plus_model_alarms": 4
+    }
+  },
+  "synthetic_cases": {
+    "how": "50 synthetic table drops (0.3 s free fall, a 3 to 8.4 g impact, then motionless at 1 g, random orientation) and 50 'not worn' windows (motionless, random orientation). Synthetic: BITS-2 has no drops. Not trained on.",
+    "table_drops_rule_alarm": "50/50",
+    "table_drops_model_at_or_above_threshold": "6/50",
+    "table_drops_rule_plus_model_alarm": "6/50",
+    "not_worn_windows_model_at_or_above_threshold": "0/50",
+    "note": "off the wrist the watch's own onWrist flag stops both detectors; these numbers are for when that flag is unknown"
+  },
+  "final_model": {
+    "threshold": 0.11,
+    "tflite_bytes": 18216,
+    "tflite_input": [
+      1,
+      200,
+      4
+    ],
+    "tflite_output": [
+      1,
+      1
+    ],
+    "tflite_agrees_with_keras": "200/200",
+    "latency_ms_one_thread_this_build_machine_x86": {
+      "median": 0.009,
+      "p95": 0.016
+    },
+    "latency_note": "measured on the build machine's CPU, one thread; a watch CPU is slower and was not measured",
+    "keras_bytes": 125931,
+    "params": 6705,
+    "train_windows": 17043,
+    "train_positive": 3792
+  },
+  "seconds": 335.9
+}
