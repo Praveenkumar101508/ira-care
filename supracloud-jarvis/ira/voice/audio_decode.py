@@ -7,7 +7,8 @@ this module decodes what IRA receives with the standard library and numpy only.
 
 What it reads: RIFF WAV (and RF64 for files over 4 GB) holding linear PCM at 8, 16, 24 or 32
 bits, or IEEE float at 32 or 64 bits, in any number of channels and at any sample rate from
-4 kHz to 384 kHz, including WAVE_FORMAT_EXTENSIBLE headers with those sub-formats. Channels are
+4 kHz to 384 kHz whose conversion filter stays bounded (every rate a recorder uses; not, for
+example, 383,999 Hz), including WAVE_FORMAT_EXTENSIBLE headers with those sub-formats. Channels are
 averaged to mono and the rate is converted to 16 kHz with a windowed-sinc polyphase filter.
 
 What sends it audio, and in which format:
@@ -47,6 +48,15 @@ _KSDATAFORMAT_SUFFIX = bytes.fromhex("000000001000800000aa00389b71")
 _MIN_RATE = 4_000
 _MAX_RATE = 384_000
 _MAX_CHANNELS = 32
+#: Chunks read before the data chunk. A real WAV has a handful (fmt, fact, LIST, bext, JUNK,
+#: ds64); a file of tens of thousands of empty chunks only makes the parser loop.
+_MAX_CHUNKS = 1_024
+#: The longest conversion filter this module will design (coefficients, all phases). The
+#: filter grows with the larger of the two terms of the rate ratio in lowest terms, so a rate
+#: the header names, such as 383,999 Hz (ratio 16,000/383,999), would otherwise ask for a
+#: 12-million-tap filter: about 1 GB of memory and seconds of CPU before one sample is read
+#: (security review S8). Every common rate needs at most 20,480; 4,001 Hz needs 512,000.
+_MAX_FILTER_TAPS = 1 << 19
 
 #: Leading bytes of the formats people are likely to send instead of WAV, so the refusal
 #: can say what the file is rather than only what it is not.
@@ -114,7 +124,11 @@ def _chunks(blob: memoryview, start: int, rf64_sizes: dict[bytes, int]):
     """``(chunk id, payload offset, declared size)`` for each RIFF chunk after ``start``."""
     pos = start
     end = len(blob)
+    count = 0
     while pos + 8 <= end:
+        count += 1
+        if count > _MAX_CHUNKS:
+            raise _bad_wav(f"more than {_MAX_CHUNKS} chunks before the data")
         cid = bytes(blob[pos:pos + 4])
         size = struct.unpack_from("<I", blob, pos + 4)[0]
         if size == 0xFFFFFFFF and cid in rf64_sizes:
@@ -134,6 +148,8 @@ def _parse_wav(blob: bytes) -> tuple[int, int, int, int, memoryview]:
     for cid, off, size in _chunks(view, 12, rf64_sizes):
         if cid == b"ds64" and size >= 24:
             # RF64: the real RIFF, data and sample counts, as 64-bit numbers.
+            if off + 16 > len(view):
+                raise _bad_wav("a truncated ds64 chunk")
             rf64_sizes[b"data"] = struct.unpack_from("<Q", view, off + 8)[0]
         elif cid == b"fmt ":
             if size < 16 or off + 16 > len(view):
@@ -216,6 +232,19 @@ def _polyphase_bank(up: int, down: int, half_taps: int = 16) -> tuple[np.ndarray
     return h.reshape(taps_per_phase, up).T.astype(np.float32), (odd - 1) // 2
 
 
+def _filter_taps(rate: int, target: int) -> int:
+    """How many coefficients ``_polyphase_bank`` would design to convert ``rate`` to ``target``."""
+    g = math.gcd(rate, target)
+    up, down = target // g, rate // g
+    return 2 * 16 * max(1, math.ceil(down / up)) * up
+
+
+def _check_convertible(rate: int, target: int) -> None:
+    """Refuse, before any work, a conversion whose filter would be unreasonably large."""
+    if rate != target and _filter_taps(rate, target) > _MAX_FILTER_TAPS:
+        raise _bad_wav(f"{rate} Hz, a rate this server does not convert to {target} Hz")
+
+
 def resample(samples: np.ndarray, rate: int, target: int = WHISPER_SAMPLE_RATE) -> np.ndarray:
     """Convert float32 mono ``samples`` from ``rate`` to ``target`` Hz.
 
@@ -226,6 +255,7 @@ def resample(samples: np.ndarray, rate: int, target: int = WHISPER_SAMPLE_RATE) 
     """
     if rate == target or samples.size == 0:
         return samples.astype(np.float32, copy=False)
+    _check_convertible(rate, target)
     g = math.gcd(rate, target)
     up, down = target // g, rate // g
     bank, delay = _polyphase_bank(up, down)
@@ -254,6 +284,7 @@ def decode_to_16k_mono(blob: bytes, max_seconds: float | None = None) -> np.ndar
     ``max_seconds``, ``AudioTooLong`` before converting a longer recording.
     """
     code, channels, rate, bits, data = _parse_wav(blob)
+    _check_convertible(rate, WHISPER_SAMPLE_RATE)
     frames = len(data) // ((bits // 8) * channels)
     seconds = frames / rate
     if max_seconds is not None and seconds > max_seconds:
@@ -280,6 +311,7 @@ def decode_audio(input_file, sampling_rate: int = WHISPER_SAMPLE_RATE, split_ste
     as faster-whisper's does.
     """
     code, channels, rate, bits, data = _parse_wav(_read_all(input_file))
+    _check_convertible(rate, sampling_rate)
     if not split_stereo:
         return resample(_to_float_mono(code, channels, bits, data), rate, sampling_rate)
     if channels < 2:

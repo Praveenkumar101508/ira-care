@@ -1,6 +1,7 @@
 # IRA CARE: threat model (STRIDE)
 
-Written 25 November 2026 against `main`. It completes the scope of the security review
+Written 25 November 2026 against `main`; re-reviewed the same day after round 7 (REVIEW.md,
+round 7: S8 to S15). Rows added in that re-review are marked **(round 7)**. It completes the scope of the security review
 (`REVIEW.md`, requirement C-22.c): what can go wrong, per component, under the six STRIDE
 headings (Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation
 of privilege), and what controls it today.
@@ -56,6 +57,10 @@ off-site bucket.
 | T16 | I | Message text or health details written to logs | Log-only provider never logs the message; redaction of care exception logs | `care/providers.py` | `test_care_safety_answers.py::test_the_log_only_provider_never_logs_the_message` | controlled |
 | T17 | T | A language model's reply turns doubt into "OK" or a dose into "taken" | A conservative reader decides; the model can only add doubt | `care/conversation.py`, `care/checkins.py` | `test_care_safety_answers_db.py` | controlled |
 | T18 | S | Default or published secrets in a deployment | The server refuses to start with a published credential | `core/runtime/published_credentials.py` | `test_published_credentials.py` | controlled |
+| T38 | D | **(round 7)** A WAV upload whose header lies (an awkward sample rate, thousands of empty chunks, a truncated RF64 size chunk) makes the decoder spend about 1 GB and seconds of CPU on a 46-byte file | The conversion filter's size is checked from the header and refused above 524,288 taps before any work; at most 1,024 chunks before the data; RF64 sizes bounds-checked; the declared data size never drives an allocation (only bytes present are read) | `voice/audio_decode.py` | `test_audio_decode.py::test_a_header_rate_that_needs_a_huge_filter_is_refused_before_any_work`, `test_audio_decode.py::test_a_file_of_endless_empty_chunks_is_refused_not_looped_over`, `test_audio_decode.py::test_control_an_rf64_file_with_a_huge_declared_size_reads_only_what_is_there` | controlled (S8, S9) |
+| T39 | D | **(round 7)** An oversized request body, to any route including sign-up and pairing, is read and parsed whole before a schema or rate limit can refuse it | A 16 MiB ceiling on every care request body: a larger declared length is refused before reading, a chunked body is counted and refused as it passes the ceiling; research accelerometer rows are exactly three numbers | `care/body_limit.py`, `care/server.py`, `care/schemas.py` | `test_care_body_limit.py` | controlled (S10, S11); the reverse proxy sets no limit of its own |
+| T40 | I | **(round 7)** Activity estimates stored or shown without the person's consent, or read by an alert rule | `activity_sharing` consent checked on arrival and on every read; forced RLS on `care_activity_periods`; no module on the alert path reads the table; retention and erasure remove it | `care/activity.py` | `test_care_activity_db.py::test_without_the_consent_nothing_is_stored_and_the_watch_is_told`, `test_care_activity_db.py::test_only_people_who_may_see_the_person_can_read_the_trend`, `test_activity_no_alert_path.py::test_no_module_on_the_alert_path_imports_the_activity_module` | controlled |
+| T41 | E | **(round 7)** The research heart-rate route reads or writes a person's records, or its result reaches an alert | The route takes no person, opens no database connection and stores nothing; device data is refused; care managers only; rate-limited | `care/heart_research.py`, `care/routes.py` | `test_heart_research.py::test_the_research_pipeline_touches_no_database_and_no_person`, `test_care_research_route.py::test_carers_viewers_and_no_role_are_refused` | controlled |
 
 ## Worker and providers
 
@@ -84,7 +89,7 @@ off-site bucket.
 
 | # | STRIDE | Threat | Control | Code | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| T27 | T | A watch is offered an older, vulnerable image | Not on `main` yet: the OTA server (E4.d) is in an open pull request | — | — | **not controlled** on `main` |
+| T27 | T | A watch is offered an older, vulnerable image | **(round 7: was "not on `main`")** The OTA server is on `main`: a release with a lower rollback index than the watch's own is never offered, and the answer is a signed manifest (no key, no answer); verified boot's rollback index refuses an older image on the device | `care/ota.py` | `test_ota.py::test_a_release_with_a_lower_rollback_index_is_never_offered`, `test_os_update_db.py` | controlled on the server; the device side (verified boot on a real watch) is unverified (E4) |
 
 ## Device administration (deployment administrators, D-085)
 
@@ -94,6 +99,8 @@ off-site bucket.
 | T35 | T | A forged, altered, replayed, expired or foreign instruction opens a watch, or one carries a command | ECDSA P-256 signature over the exact payload checked first; device id, 15-minute bound, single-use nonce kept across reboots; closed list of three actions, anything else refused | `watch/.../devicepolicy/DevicePolicy.kt`, `care/devicepolicy.py` | `DevicePolicyTest.kt`, `test_devicepolicy.py`, `test_device_admin_db.py::test_only_the_closed_list_and_at_most_fifteen_minutes` | controlled in software (JVM tests); not run on a device |
 | T36 | E | A maintenance window stays open, or survives revoking the administrator | The window closes at expiry and at every start; a revoked instruction, or anything issued by an administrator revoked afterwards, is withheld and put on the watch's revocation list, which closes an open window at once | `care/deviceadmin.py`, `watch/.../devicepolicy/DevicePolicy.kt` | `DevicePolicyTest.kt`, `test_device_admin_db.py::test_a_revoked_administrator_can_do_nothing_and_what_they_issued_is_withdrawn` | controlled in software; the timer and boot receiver that call it on a device are not built (E4.f) |
 | T37 | R | An administrator denies having opened a watch | Every instruction is stored with who issued it and why, and every step (issued, delivered, revoked, applied, refused, restored) is an insert-only audit row | `care/deviceadmin.py` | `test_device_admin_db.py::test_an_instruction_is_signed_for_one_watch_collected_once_and_fully_audited` | controlled |
+| T42 | S | **(round 7)** The device-policy key, which can wipe a watch, is mishandled because no custody procedure names it | Listed in the custody document with generation, storage and rotation; the guard finds every key variable the server declares and fails if one is undocumented | `docs/security/SIGNING_KEYS.md` | `test_signing_keys.py::test_every_key_variable_the_server_declares_is_in_the_custody_document` | partly: custody is procedural (S12) |
+| T43 | S | **(round 7)** A phished or stolen deployment administrator session issues a factory reset | Every instruction is audited and revocable, single-use and at most 15 minutes; no second factor or second person is asked for | `care/deviceadmin.py` | `test_device_admin_db.py::test_an_instruction_is_signed_for_one_watch_collected_once_and_fully_audited` | **not controlled**: no step-up authentication for deployment administrators (S15) |
 
 ## Backups
 
@@ -107,11 +114,12 @@ off-site bucket.
 
 | # | STRIDE | Threat | Control | Code | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| T31 | T | A dependency with a known vulnerability ships | `pip-audit` and `npm audit` in the review; overrides for PostCSS and xmldom; Expo CLI advisories remain | `dashboard/package.json`, `mobile/package.json` | `security_headers.test.ts` | partly: the phone app's build tooling has known advisories (REVIEW.md residual) |
+| T31 | T | A dependency with a known vulnerability ships | `pip-audit` and `npm audit` in each review; overrides for PostCSS, xmldom and the Expo build tools (S6) | `dashboard/package.json`, `mobile/package.json` | `security_headers.test.ts` | partly (round 7): production trees clean; the dashboard's test runner has two critical and one moderate advisory (S13); the API image is built from a partly unpinned list the audit does not cover (S14) |
 | T32 | I | Secrets committed to the repository | gitleaks on every pull request | `scripts/ci/gitleaks.sh` | — | controlled in CI (`.github/workflows/test.yml`, job `secrets`) |
 | T33 | I | Traffic read or altered in transit | HTTPS through Caddy; HSTS on the dashboard | `deploy/Caddyfile` | `security_headers.test.ts` | controlled where deployed behind Caddy; certificate on a real domain unverified (G1.e) |
 
 ## Not controlled, in one place
 
-T27 (OTA server not on `main`), and the partial items T3, T8, T31 and T33. T10 (script
+T43 (no step-up for deployment administrators, round 7), and the partial items T3, T8, T27
+(device side), T31, T33 and T42. T10 (script
 injection on the dashboard) has been controlled since the nonce policy (REVIEW.md S7). Each is named in `REVIEW.md` or the register with what it needs.
