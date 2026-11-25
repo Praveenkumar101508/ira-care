@@ -65,7 +65,7 @@ Nothing is marked done because code or a document exists.
 | C-20 | Atomic offline-queue and outbox writes | unit tested | #48 · D5 |
 | C-21 | Secure unpairing and re-pairing | unit tested | #48 · D5 (kept per wearer). Explicit unpair flow with warning: **not started** |
 | C-22 | Backend and person-level authorisation review | in progress | `fix/care-authz-and-outages` · REMEDIATION E1 (D-076) |
-| C-23 | Accessibility and interface consistency | pre-existing | Automated accessibility checks from round 4. Dark-mode colour review (C5): **not started** |
+| C-23 | Accessibility and interface consistency | unit tested | Automated accessibility checks from round 4; `fix/dashboard-dark-mode` · C5 (dark-mode and high-contrast colour review, measured). A screen-reader pass on real devices: **needs external** |
 | C-24 | Full-system outage and recovery tests | in progress | `fix/care-authz-and-outages` · REMEDIATION E2–E5 |
 
 ## D. The software platform
