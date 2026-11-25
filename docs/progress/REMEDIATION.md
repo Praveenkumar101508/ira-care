@@ -37,6 +37,15 @@ true.
 | A2-7 | — | migration 113 | — | Additive. `care_alert_attempts` stays insert-only (an existing test pins this), and states are new rows in the insert-only `care_alert_attempt_events`. The outbox `care_alert_dispatch` can update only tries, lease and finished time. Forward, rollback and re-apply were run on a scratch database. Classified in the tenancy manifest, the isolation matrix and the erasure registry. | registry suites | fixed |
 | A2-8 | — | responder follow-up | The brief asked that an acknowledgement start the follow-up deadline, that non-arrival restart the escalation, and that only a recorded outcome resolve the alert. | Already in place before this work: `care/followup.py`, round 3. Not changed here. | existing `test_care_follow_up_db` | already in place |
 
+## Group C: phone app session and privacy
+
+| ID | Severity | Where | Finding | Fix | Tests | Status |
+|----|----------|-------|---------|-----|-------|--------|
+| C3 | Critical | `mobile/src/App.tsx` sign-out | Sign-out cleared only the stored session. Patients, alerts, the selected person, circle and consents stayed in memory; the phone stayed registered for the account's alert pushes; appearance (photo, wallpaper) stayed on the phone; and a reply still on its way for account A was shown to account B after B signed in on the same phone. | Sign-out now does all of this: unregisters the push token (bounded to 3 s, so offline sign-out still completes); takes the account's notifications off the screen; cancels pending preference writes; clears all account state and the stored appearance. A session generation counter drops any reply that belongs to an earlier sign-in. | `app_signout.test.tsx`: clean-up on sign-out, and A's late reply never reaches B; `push_signout.test.ts`: unregister, and offline does not block | fixed |
+| C4 | High | `mobile/src/api/client.ts` | The refresh token was stored and never used: after the 30-minute access token expired, the next refresh signed the person out silently, even in the middle of an alert. | One shared renewal (`POST /auth/refresh`) for every call that hit the expired token, then each call is retried once; there are no loops. A refused renewal is final and the sign-in screen says why ("Your sign-in has expired. Please sign in again to see alerts."). No network while renewing is "no connection", never a sign-out. The renewed token is kept for next time. A request refused with 401 was refused before anything happened, so retrying it is safe. | `session.test.ts`: 5 tests | fixed |
+| C1, C2 | High | Talk to IRA | The reply is not streamed, and there is no voice in or out on the phone. | Not done here: it needs native speech modules (`expo-speech` and a speech recogniser), and device builds to verify. React Native's `fetch` cannot stream either, so it needs `expo/fetch` or a native module. | — | open |
+| C5 | Medium | colours | Hard-coded colours that break dark mode. | Not reviewed in this branch. | — | open |
+
 ## Group B: dashboard live patient record
 
 | ID | Severity | Where | Finding | Fix | Tests | Status |
@@ -58,6 +67,11 @@ Group A2: the 21 new tests were run against the code from before A2 (the old `es
 and `providers.py`): 12 fail and 9 pass. The 9 that pass are the pure signature, token and
 rank rules, which do not depend on the old sending code. The two-worker test failed on real
 duplicates: 8 messages for 4 recipients.
+
+Group C: the 9 new tests were run against the original `App.tsx`, `push.ts`, `storage.ts`,
+`client.ts` and `LoginScreen.tsx`: 8 fail and 1 passes. The one that passes is "a 401 with no
+refresh token is final", which the old code also met. In the late-reply test the old app showed
+account A's person ("Ada-only-for-A") on account B's home screen.
 
 Group B: the three page tests in `person_live.test.tsx` all fail against the original page and
 `view.ts`: unknown wrist shown as worn, no refresh, and a failed section blanking the record.

@@ -15,7 +15,12 @@ export interface Session {
   baseUrl: string;
   accessToken: string;
   workspaceId: string | null;
+  /** When present, an expired access token is renewed once (POST /auth/refresh) and the call retried. */
+  refreshToken?: string;
 }
+
+/** What renewing the sign-in came to. */
+export type RenewOutcome = 'renewed' | 'expired' | 'offline';
 
 type Fetch = typeof fetch;
 
@@ -26,8 +31,66 @@ type Fetch = typeof fetch;
  * alone.
  */
 export class CareClient {
+  private readonly session: Session;
+  /** One renewal at a time: every call that met an expired token waits for the same one. */
+  private renewing: Promise<RenewOutcome> | null = null;
+  /** Told the new access token, so it can be kept for next time. */
+  onRenewed?: (accessToken: string) => void;
+
   // `fetch` is wrapped rather than passed bare: on the web, calling it with another `this` throws.
-  constructor(private readonly session: Session, private readonly fetchImpl: Fetch = (input, init) => fetch(input, init)) {}
+  constructor(session: Session, private readonly fetchImpl: Fetch = (input, init) => fetch(input, init)) {
+    this.session = { ...session };
+  }
+
+  /** Renew the access token with the refresh token. Shared by concurrent callers; never loops.
+   *  'expired' when the server refuses it (revoked, ended, or too old): the person signs in again.
+   *  'offline' when the server could not be reached: nothing is signed out for that. */
+  renew(): Promise<RenewOutcome> {
+    if (!this.session.refreshToken) return Promise.resolve('expired');
+    if (!this.renewing) {
+      this.renewing = (async (): Promise<RenewOutcome> => {
+        let response: Response;
+        try {
+          response = await this.fetchImpl(`${this.session.baseUrl}/auth/refresh`, {
+            method: 'POST', headers: { Authorization: `Bearer ${this.session.refreshToken}`, Accept: 'application/json' },
+          });
+        } catch {
+          return 'offline';
+        }
+        if (!response.ok) return response.status >= 500 ? 'offline' : 'expired';
+        try {
+          const data = (await response.json()) as { access_token?: string };
+          if (!data.access_token) return 'expired';
+          this.session.accessToken = data.access_token;
+          this.onRenewed?.(data.access_token);
+          return 'renewed';
+        } catch {
+          return 'offline';
+        }
+      })().finally(() => { this.renewing = null; });
+    }
+    return this.renewing;
+  }
+
+  /** Send once; on 401 renew once and send again; a second 401 is final. A request refused with
+   *  401 was refused before anything happened, so sending it again cannot do anything twice. */
+  private async send(method: string, path: string, headersFor: () => Record<string, string>, body?: unknown): Promise<Response> {
+    const once = async () => {
+      try {
+        return await this.fetchImpl(this.session.baseUrl + path, { method, headers: headersFor(), body: body === undefined ? undefined : JSON.stringify(body) });
+      } catch {
+        throw new ApiError(0, 'No connection. Check the network and try again.');
+      }
+    };
+    let response = await once();
+    if (response.status === 401 && this.session.refreshToken) {
+      const renewed = await this.renew();
+      if (renewed === 'offline') throw new ApiError(0, 'No connection. Your sign-in will be renewed when the network is back.');
+      if (renewed === 'renewed') response = await once();
+    }
+    if (response.status === 401) throw new ApiError(401, 'Your sign-in has expired. Please sign in again.');
+    return response;
+  }
 
   /** Sign in. A cloud deployment signs in by email (/auth/cloud/login); a private
    *  one has no such route (404) and uses the owner account at /auth/token. */
@@ -215,40 +278,25 @@ export class CareClient {
   }
 
   private async requestText(method: string, path: string, body?: unknown): Promise<string> {
-    const headers: Record<string, string> = { Authorization: `Bearer ${this.session.accessToken}`, Accept: 'application/x-ndjson' };
     if (!this.session.workspaceId) throw new ApiError(0, 'No care circle selected.');
-    headers['X-Workspace-ID'] = this.session.workspaceId;
-    if (body !== undefined) headers['Content-Type'] = 'application/json';
-    let response: Response;
-    try {
-      response = await this.fetchImpl(this.session.baseUrl + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
-    } catch (e) {
-      throw new ApiError(0, 'No connection. Check the network and try again.');
-    }
-    if (response.status === 401) throw new ApiError(401, 'Please sign in again.');
+    const response = await this.send(method, path, () => {
+      const headers: Record<string, string> = { Authorization: `Bearer ${this.session.accessToken}`, Accept: 'application/x-ndjson' };
+      headers['X-Workspace-ID'] = this.session.workspaceId!;
+      if (body !== undefined) headers['Content-Type'] = 'application/json';
+      return headers;
+    }, body);
     if (!response.ok) throw new ApiError(response.status, await readDetail(response));
     return response.text();
   }
 
   private async request<T>(method: string, path: string, body?: unknown, workspace = true): Promise<T> {
-    const headers: Record<string, string> = {
-      Authorization: `Bearer ${this.session.accessToken}`,
-      Accept: 'application/json',
-    };
-    if (workspace) {
-      if (!this.session.workspaceId) throw new ApiError(0, 'No care circle selected.');
-      headers['X-Workspace-ID'] = this.session.workspaceId;
-    }
-    if (body !== undefined) headers['Content-Type'] = 'application/json';
-    let response: Response;
-    try {
-      response = await this.fetchImpl(this.session.baseUrl + path, {
-        method, headers, body: body === undefined ? undefined : JSON.stringify(body),
-      });
-    } catch (e) {
-      throw new ApiError(0, 'No connection. Check the network and try again.');
-    }
-    if (response.status === 401) throw new ApiError(401, 'Please sign in again.');
+    if (workspace && !this.session.workspaceId) throw new ApiError(0, 'No care circle selected.');
+    const response = await this.send(method, path, () => {
+      const headers: Record<string, string> = { Authorization: `Bearer ${this.session.accessToken}`, Accept: 'application/json' };
+      if (workspace) headers['X-Workspace-ID'] = this.session.workspaceId!;
+      if (body !== undefined) headers['Content-Type'] = 'application/json';
+      return headers;
+    }, body);
     if (!response.ok) throw new ApiError(response.status, await readDetail(response));
     if (response.status === 204) return undefined as T;
     return (await response.json()) as T;
