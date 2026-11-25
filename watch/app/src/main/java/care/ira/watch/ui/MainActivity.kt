@@ -43,9 +43,11 @@ import care.ira.watch.BuildConfig
 import care.ira.watch.outbox.SosState
 import care.ira.watch.outbox.VisitState
 import care.ira.watch.pairing.PairingStore
+import care.ira.watch.pairing.Unpairing
 import care.ira.watch.service.CareDependencies
 import care.ira.watch.service.CareForegroundService
 import care.ira.watch.service.SyncWorker
+import care.ira.watch.service.WatchStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -67,10 +69,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 val status by deps.statusFlow().collectAsStateWithLifecycle()
+                var unpairing by remember { mutableStateOf(false) }
                 when {
-                    !status.paired -> PairingScreen(deps)
+                    !status.paired -> { unpairing = false; PairingScreen(deps) }
                     !status.permissionGranted -> PermissionScreen(deps)
+                    unpairing -> UnpairScreen(deps, status, onKeep = { unpairing = false })
                     else -> HomeScreen(
+                        onUnpair = { unpairing = true },
                         question = status.question, listening = status.listening,
                         lastAnswer = status.lastAnswer, sos = status.sos, online = status.online, visit = status.visit,
                         fallCountdown = status.fallCountdown,
@@ -127,6 +132,51 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** Unpairing: refused while something urgent is unfinished, otherwise a plain warning and
+     *  "Keep paired" first. The server is asked before anything changes here (Unpairing). */
+    @Composable
+    private fun UnpairScreen(deps: CareDependencies, status: WatchStatus, onKeep: () -> Unit) {
+        val scope = rememberCoroutineScope()
+        var message by remember { mutableStateOf("") }
+        var busy by remember { mutableStateOf(false) }
+        val check = Unpairing.check(status.urgentPending, status.sos, status.fallCountdown)
+        Column(
+            modifier = Modifier.fillMaxSize().padding(12.dp),
+            verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            val text = when (check) {
+                is Unpairing.Check.Refused -> check.reason
+                Unpairing.Check.Allowed -> message.ifEmpty { Unpairing.warning(status.queued) }
+            }
+            Text(text, fontSize = 13.sp, textAlign = TextAlign.Center,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onKeep,
+                modifier = Modifier.fillMaxWidth().height(44.dp).semantics { contentDescription = "Keep paired. Nothing changes." },
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2E7D32)),
+            ) { Text("Keep paired", fontSize = 14.sp) }
+            if (check is Unpairing.Check.Allowed) {
+                Spacer(Modifier.height(6.dp))
+                Button(
+                    enabled = !busy,
+                    onClick = {
+                        busy = true
+                        scope.launch {
+                            val result = withContext(Dispatchers.IO) { deps.unpairWatch() }
+                            busy = false
+                            if (result is Unpairing.Result.NotNow) message = result.reason
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(44.dp).semantics {
+                        contentDescription = "Unpair. IRA stops watching over you and your family and carers are told."
+                    },
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6D4C41)),
+                ) { Text(if (busy) "Unpairing…" else "Unpair", fontSize = 13.sp) }
+            }
+        }
+    }
+
     @Composable
     private fun PermissionScreen(deps: CareDependencies) {
         val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -157,6 +207,7 @@ fun HomeScreen(
     question: String?, listening: Boolean, lastAnswer: String?, sos: SosState, online: Boolean,
     onOk: () -> Unit, onHelp: () -> Unit, fallCountdown: Int? = null,
     onTalk: () -> Unit = {}, talking: Boolean = false, visit: VisitState = VisitState.None,
+    onUnpair: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(10.dp),
@@ -197,6 +248,15 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth().height(44.dp).semantics { contentDescription = "Talk to IRA. Say anything; IRA listens and answers." },
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF37474F)),
             ) { Text(if (talking) "Talking…" else "Talk to IRA", fontSize = 14.sp) }
+        }
+        // Small and last, and only when nothing is happening: unpairing is rare and deliberate.
+        if (question == null && fallCountdown == null && sos is SosState.Idle && !talking) {
+            Spacer(Modifier.height(4.dp))
+            Button(
+                onClick = onUnpair,
+                modifier = Modifier.fillMaxWidth().height(44.dp).semantics { contentDescription = "Unpair this watch. Asks before doing anything." },
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF263238)),
+            ) { Text("Unpair watch…", fontSize = 12.sp, color = Color(0xFFCFD8DC)) }
         }
     }
 }

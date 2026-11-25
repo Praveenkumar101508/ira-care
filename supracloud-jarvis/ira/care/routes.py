@@ -430,6 +430,18 @@ async def device_report(body: schemas.DeviceReport, d: tuple[Principal, dict] = 
     return await repo.record_report(principal, device, body.model_dump())
 
 
+@router.post("/devices/me/unpair")
+async def device_unpair(d: tuple[Principal, dict] = Depends(require_device)):
+    """The wearer unpaired this watch from the wrist, after its warning. The token stops
+    working at once and the care circle is told that monitoring has stopped. The watch
+    clears its pairing only after this answers, so the token is never left live."""
+    principal, device = d
+    out = await repo.unpair_by_wearer(principal, device)
+    if out is None:
+        raise HTTPException(status_code=401, detail="Device token not recognised.")
+    return out
+
+
 @router.post("/devices/me/help", status_code=201)
 async def device_help(body: schemas.HelpRequest, d: tuple[Principal, dict] = Depends(require_device),
                       key: Optional[str] = Header(default=None, alias=sos.IDEMPOTENCY_HEADER)):

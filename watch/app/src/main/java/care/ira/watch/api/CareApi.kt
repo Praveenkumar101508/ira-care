@@ -194,6 +194,10 @@ class CareApi(
     fun fallStarted(start: FallStart): ApiOutcome<JsonObject> =
         post("/api/v1/care/devices/me/fall", json.encodeToString(start)).map { json.parseToJsonElement(it).jsonObject }
 
+    /** The wearer confirmed unpairing: the server ends this token and tells the care circle. */
+    fun unpair(): ApiOutcome<JsonObject> =
+        post("/api/v1/care/devices/me/unpair", "{}").map { json.parseToJsonElement(it).jsonObject }
+
     /** The person tapped I'm OK during the countdown. */
     fun fallOk(): ApiOutcome<JsonObject> =
         post("/api/v1/care/devices/me/fall/ok", "{}").map { json.parseToJsonElement(it).jsonObject }

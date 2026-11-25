@@ -355,6 +355,30 @@ async def revoke_device(principal: Principal, device_id: uuid.UUID) -> Optional[
         return _public_device(dict(row)) if row else None
 
 
+WATCH_UNPAIRED_SUMMARY = ("The watch was unpaired on the wrist, so IRA is not watching over this person "
+                          "until a watch is paired again.")
+
+
+async def unpair_by_wearer(principal: Principal, device: dict) -> Optional[dict]:
+    """The person wearing the watch unpaired it, after the watch's warning.
+
+    One transaction: the token stops working, and the care circle is told (a `notice` alert,
+    sent once, like a switched-off sensor permission). Unpairing stops the monitoring, so it
+    never happens in silence. None if the watch was no longer paired.
+    """
+    from .monitoring import NOTICE
+    async with workspace_connection(principal) as conn:
+        row = await conn.fetchrow(
+            "UPDATE care_devices SET status = 'revoked', token_hash = NULL, pairing_code_hash = NULL "
+            "WHERE id = $1 AND status = 'paired' RETURNING id, person_id", device["id"])
+        if row is None:
+            return None
+        alert = await open_alert(conn, row["person_id"], kind="watch_unpaired", severity=NOTICE,
+                                 details={"summary": WATCH_UNPAIRED_SUMMARY, "device_id": str(row["id"]),
+                                          "by": "wearer"})
+        return {"unpaired": True, "device_id": str(row["id"]), "alert_id": str(alert["id"])}
+
+
 def device_principal(tenant_id: uuid.UUID, workspace_id: uuid.UUID) -> Principal:
     """A principal for a watch: no roles, no scopes, bound to the credential's
     tenant and workspace. It can reach exactly the rows the watch's own family

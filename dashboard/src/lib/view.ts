@@ -14,6 +14,7 @@ export const ALERT_WORDS: Record<string, string> = {
   manual: 'Raised by a carer',
   visit_late: 'Planned visit is late',
   visit_missed: 'Planned visit did not happen',
+  watch_unpaired: 'Watch unpaired from the wrist',
   off_wrist_night: 'Watch off the wrist overnight',
   concerning_phrase: 'Said something that needs a check',
 };

@@ -586,6 +586,11 @@
    "sha256": "5cd8e7e0860a934dd9a699242a269370ec4aa0b3520c3283cbfa126c379a7002",
    "status": "applied"
   },
+  "114_care_watch_unpaired.sql": {
+   "migration_number": 114,
+   "sha256": "58a9079287c03844f14e08e3d01a2944454a0adc28eb587097e5d0b519c2b678",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",
