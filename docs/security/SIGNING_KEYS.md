@@ -24,6 +24,7 @@ founders making the keys below.
 | Verified boot (AVB) key | vbmeta and the boot chain | `avbtool` / `BOARD_AVB_KEY_PATH` | Offline; a hardware-backed module when one is affordable | Both founders |
 | OS OTA package key | A/B OTA packages | `ota_from_target_files` | As the platform keys | Both founders |
 | OTA release manifest key | The server's signed OTA manifest (`care/ota.py`) | `IRA_OTA_MANIFEST_KEY` (base64 Ed25519 seed) in the server's environment (`deploy/.env`, never committed) | The server's secret store; an encrypted offline copy | Operator, under the founders |
+| Device-policy instruction key | Deployment administrators' instructions to one watch (`care/devicepolicy.py`, D-085): open a 15-minute maintenance window, restore restrictions, factory reset | `IRA_DEVICE_POLICY_KEY` (base64 of a P-256 private scalar) in the server's environment (`deploy/.env`, never committed); made by `scripts/deployment_admin.py keygen` | The server's secret store; an encrypted offline copy. Separate from the OTA manifest key, so a leak of one cannot vouch for the other | Operator, under the founders |
 | Server keys (`IRA_SECRET_KEY` and others) | Sign-in tokens, connector sealing | `deploy/.env` | `docs/ops/RUNBOOKS.md` §5 | Operator |
 | Backup encryption key | Off-site backups | `deploy/.env` (`backup.sh`, `restore.sh`) | `docs/ops/RUNBOOKS.md` | Operator, with an offline copy held by the founders |
 
@@ -48,7 +49,9 @@ test-keys image must never reach a real person's watch.
    (`openssl genrsa -out avb.pem 4096`, kept encrypted).
 4. OTA manifest: `python3 -c "import os,base64;print(base64.b64encode(os.urandom(32)).decode())"`,
    piped straight into the server's secret store. Publish only the public key (`care/ota.py`
-   derives it), which the watch pins.
+   derives it), which the watch pins. The device-policy instruction key is made the same way
+   with `python3 -m scripts.deployment_admin keygen`, which prints the private value for the
+   secret store and the public key the watch build pins.
 5. Record each key's fingerprint (`keytool -list -v`, `openssl pkey -pubout | sha256sum`) in the
    founders' key register: name, fingerprint, created, by whom, where its backups are. Record the
    fingerprint only, never the key.
@@ -80,6 +83,12 @@ test-keys image must never reach a real person's watch.
   planned schedule. Google Play's app signing key is rotated through Play Console.
 - **OTA manifest key:** generate a new seed and ship a watch update that pins both public keys.
   Switch the server to the new key, then ship an update that drops the old one.
+- **Device-policy instruction key:** it can wipe a watch, so treat an exposure like the OTA
+  key's: generate a new key (`scripts/deployment_admin.py keygen`), ship a watch build that
+  pins the new public key, switch the server, and stop issuing with the old key the same day.
+  Until the new build is on every watch, revoke any instruction signed with the old key that is
+  still live (`POST /care/deployment-admin/device-instructions/{id}/revoke`); each lasts at most
+  15 minutes and is single-use.
 - **OS platform and AVB keys:** a change of key is an OS release in its own right; watches in
   the field need an update signed with the old key that installs the new one. Plan it before
   the first distributed build.
