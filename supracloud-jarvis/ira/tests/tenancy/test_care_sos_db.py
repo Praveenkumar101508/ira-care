@@ -196,17 +196,24 @@ async def test_the_stream_pushes_each_change_to_the_watch(client, families):
     assert seen[-1]["responder_name"] == "Sravani"
 
 
-async def test_the_stream_route_answers_with_the_current_state_first(client, families):
+async def test_the_stream_route_answers_with_the_current_state_first(client, families, monkeypatch):
+    """The first line of the stream is the state the wrist must show now.
+
+    The test client buffers the whole body, so the stream is shortened to one
+    second here (production keeps `STREAM_MAX_SECONDS` = 300: see
+    tests/readiness/test_sos_stream_duration.py)."""
+    import json as _json
+    monkeypatch.setattr(sos, "STREAM_MAX_SECONDS", 1.0)
     fam = families["a"]
     p = await _setup(client, fam)
     await client.post(f"{C}/devices/me/help", json={"via": "button"}, headers=p["h"])
-    import json as _json
+    now = (await client.get(f"{C}/devices/me/sos", headers=p["h"])).json()
+    assert now["state"] == "received"
     async with client.http.stream("GET", f"{C}/devices/me/sos/stream", headers=p["h"]) as r:
         assert r.status_code == 200 and r.headers["content-type"].startswith("application/x-ndjson")
-        async for line in r.aiter_lines():
-            if line.strip():
-                assert _json.loads(line)["state"] == "received"
-                break
+        events = [_json.loads(line) async for line in r.aiter_lines() if line.strip()]
+    assert events, "the stream sent nothing"
+    assert events[0] == now, "the first line must be the current state"
 
 
 async def test_a_notice_is_not_an_sos_for_the_wrist(client, families):

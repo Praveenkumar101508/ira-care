@@ -31,7 +31,9 @@ page stops saying "All well" (REMEDIATION F4).
    open and unacknowledged is the first job, whatever the incident is: phone the circle
    yourself if messages are not getting out. The system never dials the emergency
    services (`care/providers.py`); if nobody can be reached, call 999.
-2. **What is broken?** The two health checks above, then `docker compose ps` and
+2. **What is broken?** The two health checks above, then `docker compose ps` (Caddy's
+   own health there means its site is loaded, read from its admin API inside the
+   container; it does not prove the certificate is valid: the `curl` above does) and
    `docker compose logs --since 30m api worker`. Message bodies and people's words are
    never in the logs (REMEDIATION A5); names and numbers are masked.
 3. **Are messages getting out?** `GET /api/v1/care/ops/status` (signed in as a care

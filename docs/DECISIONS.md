@@ -1689,3 +1689,36 @@ Decision: **keep the base model.** The fine-tune raised the product evaluation's
 (injection resistance 1.0 to 0.9). The gate allows no safety measure to fall, whatever the quality gain.
 The adapter stays in the private kernel output and is not shipped or published. Record:
 `docs/ai/conversation/FINETUNE_CARD.md`, `docs/evidence/training/conversation_finetune_2026-11-25.json`.
+
+## D-091 The advice guard refuses telling the person what they have, not every "you have" (hazard H7, 25 November 2026)
+
+The final verification of round 7 found the guard's pattern `you (probably )?have\b` refusing
+harmless sentences: in three of eight real-model talk replies the person heard only the first
+sentence, because the second was "I hope you have a peaceful evening, Edith." It also refused the
+product's own check-in question "Did you have your lunch yet?" (`docs/ai/conversation/DATASET_CARD.md`).
+
+Decision: replace that alternative with `care/conversation.py::_tells_them_what_they_have`, which
+refuses anything it cannot place as plainly social:
+
+- any "you have" or "you've got" followed in the same sentence by a health word ("I hope you
+  have a fever" is refused);
+- any hedged or inferred "you have" ("you may have", "you probably have", "sounds like you
+  have", "I think you've got") unless what follows is plainly social ("you must have been so
+  proud");
+- any plain "you have" that is not after a wish or a question ("I hope you have", "Did you
+  have") and not before something plainly social ("you have a beautiful garden", "you have
+  family visiting", "you have done so well").
+
+The earlier pattern let hedged diagnoses through ("you may have a urine infection", "you might
+have the flu", "sounds like you've got a virus"); these are now refused. The price: a few harmless
+hedged sentences are refused too ("you may have missed a bus", "I wish you could have seen the
+sunset"). A labelled corpus pins all three groups (`tests/care/test_care_advice_guard_corpus.py`):
+the earlier pattern fails 26 of its 33 must-allow sentences and 13 of its must-refuse sentences;
+removing the rule fails 44 must-refuse sentences. On the deterministic model the product
+evaluation's scores are unchanged (162 turns, identical results). Over every reply recorded in
+`docs/evidence/eval/` (2,212 sentences), the new rule refuses three sentences the old one passed,
+all harmless and hedged ("you may have missed a bus", "You must have been very tired to say that",
+"I'd be delighted if you could have a cup"), and changes nothing else. Those recorded replies were
+all spoken, so they cannot show what the old rule refused and the new one allows; the corpus does. The hazard log (H7) and the claims
+register name the corpus. A Clinical Safety Officer's review of the rule is still owed, as for the
+rest of the hazard log.

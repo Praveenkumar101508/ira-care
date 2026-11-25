@@ -83,6 +83,12 @@ failure. Run on its own with a longer limit, it passed in 301.26 s. CI runs it w
 passes there and adds about five minutes to the database job. This does not depend on the
 environment. It is a slow test, not a defect in the product.
 
+Fixed after this verification (branch `fix/verification-defects-round7`): the stream's duration is
+now read from `care/sos.py::STREAM_MAX_SECONDS` when each stream starts (production keeps 300 s,
+pinned by `tests/readiness/test_sos_stream_duration.py`). The test shortens it to 1 s and checks
+that the first line equals the current state. It took 301.21 s before and 2.55 s after; it fails
+when the stream's first line is not the current state.
+
 ### The two unit failures
 
 - `test_prompt_injection_guard.py::test_public_url_allowed_by_egress_guard`: the guard could not
@@ -128,7 +134,10 @@ The raw model output, checked afterwards with the product's own guard (`care/con
 - **Over-cautious advice rule:** in runs 1, 3 and 5 the talk reply's second sentence ("I hope you
   have a peaceful evening, Edith.") matched the advice rule's `you have` pattern and was refused.
   Edith heard only the first sentence. The rule fails safe, but it is broader than it needs to be.
-  It is recorded here and not changed in this round.
+  It is recorded here and not changed in this round. Fixed afterwards (D-091): the rule now
+  refuses a "you have" only when it cannot place it as plainly social, so this sentence is spoken,
+  and hedged diagnoses the old pattern let through ("you may have a urine infection") are refused.
+  Pinned by `tests/care/test_care_advice_guard_corpus.py`.
 - **Her preference in replies:** five of the eight talk replies mentioned her roses, and in each
   of those five the sentence that mentioned them was spoken.
 
@@ -152,7 +161,12 @@ container never became healthy. Its health check fetches `http://127.0.0.1:80/he
 answers with a redirect to `https://127.0.0.1/health`, and that TLS handshake fails because no
 certificate exists for an IP address. This reproduces with the Caddy image alone. Nothing waits
 on Caddy's health, so traffic is unaffected, but the check reports the proxy as unhealthy even
-when it is serving. It is recorded here and not changed in this round.
+when it is serving. It is recorded here and not changed in this round. Fixed afterwards: the
+check now asks Caddy's admin API inside the container whether the site's server is loaded
+(`wget -q -O - http://127.0.0.1:2019/config/apps/http/servers | grep -q '"listen"'`). With the
+Caddy image alone the container became healthy, the same command fails when no site is loaded, and
+the HTTPS answers (redirect, status codes, HSTS) were identical before and after. Pinned by
+`tests/readiness/test_caddy_healthcheck.py`.
 
 ## Not passed here, and why
 

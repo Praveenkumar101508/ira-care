@@ -157,8 +157,11 @@ services:
     depends_on:
       - api
       - dashboard
+    # Caddy's own admin API, inside the container only: is the site's server
+    # loaded? Fetching http://127.0.0.1/health cannot work: Caddy redirects
+    # plain HTTP to https://127.0.0.1, and no certificate exists for an IP.
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:80/health"]
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:2019/config/apps/http/servers | grep -q '\"listen\"'"]
       interval: 30s
       timeout: 5s
       retries: 3
