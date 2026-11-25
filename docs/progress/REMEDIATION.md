@@ -24,11 +24,25 @@ true.
 | A5 | High | `care/providers.py`, care exception logs | The log-only provider logged the first 80 characters of every SMS, call script and monitoring-centre summary (person's name, what happened). Sixteen care log lines printed raw exception messages, which can carry model output or field values. | Provider logs: channel, masked number, length, reference only. Exception logs: the exception type only. | unit: a message with a name, address and heart rate leaves none of it in the log | fixed |
 | A6 | High | `care/routes.py` `POST /people/{id}/talk` | Any member with the act permission (a daughter, a carer, a workspace admin, another wearer) could talk as the person: transcripts, memory, reminders and alerts in the person's name. | Only an active member of THIS person's circle with relationship `self`; checked before the stream starts, so a refusal writes nothing. The watch's device route is unchanged. The phone app offers Talk only to that account. | DB: wearer 200; daughter, carer, admin outside the circle, another wearer 403; other tenant 404; revoked membership 403; nothing written on refusal. Jest: `isWearerOf`. | fixed |
 
+## Group C: phone app session and privacy
+
+| ID | Severity | Where | Finding | Fix | Tests | Status |
+|----|----------|-------|---------|-----|-------|--------|
+| C3 | Critical | `mobile/src/App.tsx` sign-out | Sign-out cleared only the stored session. Patients, alerts, the selected person, circle and consents stayed in memory; the phone stayed registered for the account's alert pushes; appearance (photo, wallpaper) stayed on the phone; and a reply still on its way for account A was shown to account B after B signed in on the same phone. | Sign-out now does all of this: unregisters the push token (bounded to 3 s, so offline sign-out still completes); takes the account's notifications off the screen; cancels pending preference writes; clears all account state and the stored appearance. A session generation counter drops any reply that belongs to an earlier sign-in. | `app_signout.test.tsx`: clean-up on sign-out, and A's late reply never reaches B; `push_signout.test.ts`: unregister, and offline does not block | fixed |
+| C4 | High | `mobile/src/api/client.ts` | The refresh token was stored and never used: after the 30-minute access token expired, the next refresh signed the person out silently, even in the middle of an alert. | One shared renewal (`POST /auth/refresh`) for every call that hit the expired token, then each call is retried once; there are no loops. A refused renewal is final and the sign-in screen says why ("Your sign-in has expired. Please sign in again to see alerts."). No network while renewing is "no connection", never a sign-out. The renewed token is kept for next time. A request refused with 401 was refused before anything happened, so retrying it is safe. | `session.test.ts`: 5 tests | fixed |
+| C1, C2 | High | Talk to IRA | The reply is not streamed, and there is no voice in or out on the phone. | Not done here: it needs native speech modules (`expo-speech` and a speech recogniser), and device builds to verify. React Native's `fetch` cannot stream either, so it needs `expo/fetch` or a native module. | — | open |
+| C5 | Medium | colours | Hard-coded colours that break dark mode. | Not reviewed in this branch. | — | open |
+
 ## Negative control
 
 Migration 112: of the 5 new database tests, run against the code from before 112 on the migrated
 database, 4 fail (binding, scheduler binding, provenance, correction). The fifth passes because
 the old code also wrote nothing for a late answer or a stopped medicine.
+
+Group C: the 9 new tests were run against the original `App.tsx`, `push.ts`, `storage.ts`,
+`client.ts` and `LoginScreen.tsx`: 8 fail and 1 passes. The one that passes is "a 401 with no
+refresh token is final", which the old code also met. In the late-reply test the old app showed
+account A's person ("Ada-only-for-A") on account B's home screen.
 
 Skipped tests: `main` gives 193 skipped. This branch gives 194 without `psycopg2` installed
 (one new database module) and 544 with it, because four database modules that

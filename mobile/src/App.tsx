@@ -7,7 +7,7 @@ import type { Alert, CircleMember, ConsentList, Person, PersonStatus, Reminder, 
 import { ThemeProvider } from './appearance/ThemeContext';
 import { DEFAULT_APPEARANCE, normaliseAppearance, type Appearance } from './appearance/theme';
 import { alertBadge, isWearerOf, pickPerson, type Experience, type Membership, type Tab } from './model/experience';
-import { registerForPush } from './push';
+import { registerForPush, unregisterForPush } from './push';
 import { AlertsScreen } from './screens/AlertsScreen';
 import { JoinScreen } from './screens/JoinScreen';
 import { LoginScreen, type LoginResult } from './screens/LoginScreen';
@@ -18,7 +18,7 @@ import { WorkspaceScreen } from './screens/WorkspaceScreen';
 import { HomeTab } from './shell/HomeTab';
 import { SettingsTab, pickPhoto } from './shell/SettingsTab';
 import { TabBar } from './shell/TabBar';
-import { loadAppearance, loadSession, saveAppearance, saveSession, type StoredSession } from './storage';
+import { clearAppearance, loadAppearance, loadSession, saveAppearance, saveSession, type StoredSession } from './storage';
 
 const DEFAULT_BASE_URL: string =
   (Constants.expoConfig?.extra as { careApiBaseUrl?: string } | undefined)?.careApiBaseUrl ?? 'http://10.0.2.2:8000';
@@ -48,8 +48,12 @@ export default function App() {
   const [appearance, setAppearance] = useState<Appearance>(DEFAULT_APPEARANCE);
   const [pushRegistered, setPushRegistered] = useState<boolean | null>(null);
   const [error, setError] = useState('');
+  const [signedOutBecause, setSignedOutBecause] = useState('');
   const client = useRef<CareClient | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Which signed-in session an answer belongs to. Bumped on every sign-in and sign-out, so a
+   *  reply that arrives late for one account is dropped and never shown to the next. */
+  const generation = useRef(0);
 
   useEffect(() => {
     void loadSession().then((s) => setSession(s));
@@ -57,18 +61,46 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    generation.current += 1;
     if (!session) { client.current = null; return; }
-    client.current = new CareClient({ baseUrl: session.baseUrl, accessToken: session.accessToken, workspaceId: session.workspaceId });
-    void registerForPush(client.current).then(setPushRegistered);
+    const c = new CareClient({ baseUrl: session.baseUrl, accessToken: session.accessToken, workspaceId: session.workspaceId, refreshToken: session.refreshToken });
+    // A renewed access token is kept for next time, without rebuilding the client or re-registering push.
+    c.onRenewed = (accessToken) => { void saveSession({ ...session, accessToken }); };
+    client.current = c;
+    const mine = generation.current;
+    void registerForPush(c).then((ok) => { if (generation.current === mine) setPushRegistered(ok); });
   }, [session]);
+
+  /** Everything the last account could see, gone: data, selection, overlays, appearance, pending writes. */
+  const forgetAccount = useCallback(() => {
+    generation.current += 1;
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+    setPeople([]); setAlerts([]); setExperience('family'); setMemberships([]); setCanManage(false); setPersonId(null);
+    setStatus(null); setVisits([]); setReminders([]); setCircle([]); setConsents(null); setOverlay(null); setTab('home');
+    setPushRegistered(null); setError(''); setAppearance(DEFAULT_APPEARANCE); setPendingWorkspaces(null); setJoining(false);
+  }, []);
+
+  /** Sign out: the phone stops receiving this account's alerts, then forgets it. Local sign-out
+   *  always completes, online or not. */
+  const signOut = useCallback(async (because = '') => {
+    const c = client.current;
+    forgetAccount();
+    await unregisterForPush(c);
+    await clearAppearance();
+    await saveSession(null);
+    setSignedOutBecause(because);
+    setSession(null);
+  }, [forgetAccount]);
 
   const person = useMemo(() => pickPerson(people, memberships, personId ?? appearance.selected_person_id), [people, memberships, personId, appearance.selected_person_id]);
 
   const refresh = useCallback(async () => {
     const c = client.current;
     if (!c || !session?.workspaceId) return;
+    const mine = generation.current;
     try {
       const [p, a, me, prefs] = await Promise.all([c.people(), c.alerts(false), c.experience(), c.preferences()]);
+      if (generation.current !== mine) return; // signed out, or another account, since this was asked
       setPeople(p); setAlerts(a); setExperience(me.experience); setMemberships(me.memberships); setCanManage(me.can_manage);
       if (prefs.appearance && Object.keys(prefs.appearance).length > 0) {
         const merged = normaliseAppearance(prefs.appearance);
@@ -77,18 +109,23 @@ export default function App() {
       }
       setError('');
     } catch (e) {
-      if (e instanceof ApiError && e.status === 401) { await saveSession(null); setSession(null); return; }
+      if (generation.current !== mine) return;
+      // The sign-in could not be renewed: said plainly on the sign-in screen, never a silent sign-out.
+      if (e instanceof ApiError && e.status === 401) { await signOut('Your sign-in has expired. Please sign in again to see alerts.'); return; }
       setError(e instanceof ApiError ? e.message : 'Could not refresh.');
     }
-  }, [session]);
+  }, [session, signOut]);
 
   const refreshPerson = useCallback(async () => {
     const c = client.current;
     if (!c || !person) return;
+    const mine = generation.current;
     try {
       const [s, v, r, m, k] = await Promise.all([c.status(person.id), c.visits(person.id), c.reminders(person.id), c.circle(person.id), c.consents(person.id)]);
+      if (generation.current !== mine) return;
       setStatus(s); setVisits(v); setReminders(r); setCircle(m); setConsents(k);
     } catch (e) {
+      if (generation.current !== mine) return;
       setError(e instanceof ApiError ? e.message : 'Could not refresh.');
     }
   }, [person]);
@@ -117,6 +154,7 @@ export default function App() {
     setCanManage(workspace.role === 'workspace_admin');
     await saveSession(s);
     setPendingWorkspaces(null);
+    setSignedOutBecause('');
     setSession(s);
   };
 
@@ -137,10 +175,9 @@ export default function App() {
       </ThemeProvider>
     );
   }
-  if (!session) return <ThemeProvider appearance={appearance}><StatusBar style="auto" /><LoginScreen defaultBaseUrl={DEFAULT_BASE_URL} onLoggedIn={onLoggedIn} onJoin={() => setJoining(true)} /></ThemeProvider>;
+  if (!session) return <ThemeProvider appearance={appearance}><StatusBar style="auto" /><LoginScreen defaultBaseUrl={DEFAULT_BASE_URL} onLoggedIn={onLoggedIn} onJoin={() => setJoining(true)} notice={signedOutBecause} /></ThemeProvider>;
 
   const c = client.current!;
-  const signOut = async () => { await saveSession(null); setSession(null); setTab('home'); };
   const act = async (fn: () => Promise<unknown>) => { try { await fn(); await refresh(); await refreshPerson(); } catch (e) { setError(e instanceof ApiError ? e.message : 'Failed.'); } };
   const switchPerson = (p: Person) => { setPersonId(p.id); changeAppearance({ ...appearance, selected_person_id: p.id }); };
 
