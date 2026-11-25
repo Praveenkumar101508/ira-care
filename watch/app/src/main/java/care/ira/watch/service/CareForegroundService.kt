@@ -21,6 +21,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import care.ira.watch.checkin.CheckinController
 import care.ira.watch.checkin.FallCountdown
+import care.ira.watch.checkin.ReminderButtons
+import care.ira.watch.checkin.ReminderChoice
 import care.ira.watch.sensors.FallDetector
 import care.ira.watch.sensors.FallEvent
 import care.ira.watch.sensors.FallSettings
@@ -80,6 +82,11 @@ class CareForegroundService : LifecycleService() {
             ACTION_OK -> lifecycleScope.launch(Dispatchers.IO) {
                 if (fallCountdown.state is FallCountdown.State.Counting) performFall(fallCountdown.okPressed())
                 else perform(controller.answered("", "button"))
+            }
+            ACTION_REMINDER -> lifecycleScope.launch(Dispatchers.IO) {
+                // A reminder's button: never while a fall countdown runs (that screen shows "I'm OK").
+                val choice = ReminderChoice.entries.firstOrNull { it.wire == intent.getStringExtra(EXTRA_CHOICE) }
+                if (choice != null && fallCountdown.state !is FallCountdown.State.Counting) perform(controller.chose(choice))
             }
             ACTION_HELP -> lifecycleScope.launch(Dispatchers.IO) {
                 if (fallCountdown.state is FallCountdown.State.Counting) performFall(fallCountdown.helpPressed())
@@ -230,7 +237,7 @@ class CareForegroundService : LifecycleService() {
                 when (val due = deps.api.dueCheckin()) {
                     is ApiOutcome.Ok -> {
                         deps.status.value = deps.status.value.copy(online = true)
-                        due.value?.let { perform(controller.ask(it.id, it.questionText, it.safety)) }
+                        due.value?.let { perform(controller.ask(it.id, it.questionText, it.safety, ReminderButtons.reminderKindOf(it))) }
                     }
                     is ApiOutcome.Unauthorised -> deps.onUnauthorised()
                     is ApiOutcome.Offline -> deps.status.value = deps.status.value.copy(online = false)
@@ -247,7 +254,7 @@ class CareForegroundService : LifecycleService() {
         for (action in actions) {
             when (action) {
                 is CheckinController.Action.Speak -> {
-                    deps.status.value = deps.status.value.copy(question = action.text)
+                    deps.status.value = deps.status.value.copy(question = action.text, reminderKind = controller.openReminderKind())
                     // Voice off in the person's profile: the words stay on the screen; a louder (safety) question is still spoken.
                     if (deps.profile.voice || action.louder) deps.speaker.speak(action.text, action.louder)
                 }
@@ -257,16 +264,20 @@ class CareForegroundService : LifecycleService() {
                 is CheckinController.Action.ReportAnswer -> {
                     listening?.cancel()
                     // Answers are urgent too (an "I'm OK" to a safety question stops an SOS): outbox, then sync.
-                    deps.outbox.enqueue(Outbox.KIND_ANSWER, CareApi.pathAnswer(action.checkinId), json.encodeToString(CheckinAnswer(action.text, action.via)))
-                    deps.status.value = deps.status.value.copy(question = null, listening = false,
-                        lastAnswer = action.text.ifBlank { getString(R.string.im_ok) }, urgentPending = deps.outbox.size())
+                    // A reminder's button goes the same way, with its own idempotency key: never lost offline.
+                    deps.outbox.enqueue(Outbox.KIND_ANSWER, CareApi.pathAnswer(action.checkinId),
+                        json.encodeToString(CheckinAnswer(action.text, action.via, action.choice)))
+                    val label = ReminderChoice.entries.firstOrNull { it.wire == action.choice }?.label
+                    deps.status.value = deps.status.value.copy(question = null, listening = false, reminderKind = null,
+                        lastAnswer = label ?: action.text.ifBlank { getString(R.string.im_ok) }, urgentPending = deps.outbox.size())
                     controller.reset()
                     syncNow()
                 }
                 is CheckinController.Action.ReportMissed -> {
                     listening?.cancel()
                     deps.outbox.enqueue(Outbox.KIND_MISSED, CareApi.pathMissed(action.checkinId), "{}")
-                    deps.status.value = deps.status.value.copy(question = null, listening = false, urgentPending = deps.outbox.size())
+                    deps.status.value = deps.status.value.copy(question = null, listening = false, reminderKind = null,
+                        urgentPending = deps.outbox.size())
                     controller.reset()
                     syncNow()   // the server's sensor check needs the latest readings
                 }
@@ -314,7 +325,7 @@ class CareForegroundService : LifecycleService() {
                 val kind = (out.value.action?.get("kind") as? kotlinx.serialization.json.JsonPrimitive)?.content
                 if (kind == "safety_check") {
                     when (val due = deps.api.dueCheckin()) {
-                        is ApiOutcome.Ok -> due.value?.let { perform(controller.ask(it.id, it.questionText, it.safety)) }
+                        is ApiOutcome.Ok -> due.value?.let { perform(controller.ask(it.id, it.questionText, it.safety, ReminderButtons.reminderKindOf(it))) }
                         else -> {}
                     }
                 }
@@ -380,6 +391,8 @@ class CareForegroundService : LifecycleService() {
         const val ACTION_HELP = "care.ira.watch.HELP"
         const val ACTION_SYNC = "care.ira.watch.SYNC"
         const val ACTION_TALK = "care.ira.watch.TALK"
+        const val ACTION_REMINDER = "care.ira.watch.REMINDER"
+        const val EXTRA_CHOICE = "choice"
         const val POLL_MS = 60_000L
         const val TICK_MS = 5_000L
         const val FALL_LISTEN_MS = 4_000L
@@ -391,6 +404,12 @@ class CareForegroundService : LifecycleService() {
 
         fun send(context: Context, action: String) {
             context.startForegroundService(Intent(context, CareForegroundService::class.java).setAction(action))
+        }
+
+        /** A reminder's button on the home screen. */
+        fun sendChoice(context: Context, choice: ReminderChoice) {
+            context.startForegroundService(Intent(context, CareForegroundService::class.java)
+                .setAction(ACTION_REMINDER).putExtra(EXTRA_CHOICE, choice.wire))
         }
     }
 }

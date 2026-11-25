@@ -59,10 +59,12 @@ data class DueCheckin(
     @SerialName("question_text") val questionText: String,
     /** A safety question ("Are you OK?"): vibrate first, speak at once, shorter wait. */
     val safety: Boolean = false,
+    /** Set when the question is a due reminder (care/personal.py): the watch shows its buttons. */
+    @SerialName("reminder_id") val reminderId: String? = null,
 )
 
 @Serializable
-data class CheckinAnswer(val text: String = "", val via: String = "voice")
+data class CheckinAnswer(val text: String = "", val via: String = "voice", val choice: String? = null)
 
 /** Where the watch was when the SOS started. Sent once with the request, never streamed. */
 @Serializable

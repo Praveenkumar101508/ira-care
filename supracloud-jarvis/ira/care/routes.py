@@ -573,7 +573,11 @@ async def device_checkin_answer(checkin_id: uuid.UUID, body: schemas.CheckinAnsw
     principal, device = d
 
     async def work():
-        row = await checkin_cycle.record_answer(principal, device, checkin_id, body.text, via=body.via)
+        try:
+            row = await checkin_cycle.record_answer(principal, device, checkin_id, body.text, via=body.via,
+                                                    choice=body.choice)
+        except checkin_cycle.ChoiceNotAllowed:
+            raise HTTPException(status_code=422, detail="Only a reminder can be answered with Done, Later or Not today.")
         if row is None:
             raise _not_found("No open check-in with that id.")
         return row

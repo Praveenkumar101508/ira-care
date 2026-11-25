@@ -576,6 +576,9 @@ class CheckinAnswer(BaseModel):
     """The person's answer. `text` is empty for a bare "I'm OK" button press."""
     text: str = Field("", max_length=4000)
     via: str = Field("voice", pattern=r"^(voice|button|phone)$")
+    #: A reminder's button on the wrist: "done", "later" or "skip" ("not today"). Only for a
+    #: check-in that asks about a reminder; anything else is refused (care/checkin_cycle.py).
+    choice: Optional[str] = Field(None, pattern=r"^(done|later|skip)$")
 
 
 class AskNow(BaseModel):
