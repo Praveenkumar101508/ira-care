@@ -16,4 +16,4 @@ export function saveSession(s: StoredSession | null): void {
   try { if (s) window.sessionStorage.setItem(KEY, JSON.stringify(s)); else window.sessionStorage.removeItem(KEY); } catch { /* ignore */ }
 }
 
-export const DEFAULT_BASE_URL = process.env.NEXT_PUBLIC_CARE_API_BASE_URL ?? 'http://localhost:8000';
+export { DEFAULT_BASE_URL } from './apiBase';

@@ -18,6 +18,7 @@ tied to its code and test, is `THREAT_MODEL.md` (25 November 2026).
 | Family app dependencies | `npm audit --omit=dev` and `npm audit` | first pass: 23 (1 critical, 5 high) down to 20 (1 critical, 3 high). Second pass (S6): before 20 (1 critical, 3 high, 16 moderate) with `--omit=dev`, 21 with the development tree (one more moderate, `jest-expo`); **after: 0 in both** |
 | Secrets in history | gitleaks (in CI on every PR) | passing |
 | Unauthenticated routes | AST walk over `care/routes.py` | three at the review; four since G3.d added the signed monitoring-centre callback (listed below) |
+| Dashboard Content-Security-Policy in a browser | `scripts/security/csp_browser_check.mjs` (Chromium through Playwright) against a production build (`npm run build && npm start`) and the demo API with seeded fictional people | 21 page loads (sign-in, sign-up, join, the 404 for `/watch`, overview, alerts with an open Help request, all eleven tabs of the person record including the live care tab, visits, team, search, billing): 0 policy violations, every page showed its content; the three negative controls were refused (S7). By hand, the same way: `/watch`, `/presenter` and `/simulator` in a demonstration build, and three pages under `next dev`: 0 violations |
 
 ## Findings and what was done
 
@@ -29,6 +30,7 @@ tied to its code and test, is `THREAT_MODEL.md` (25 November 2026).
 | S4 | High (build-time) | `@xmldom/xmldom` 0.7.13 (XML injection, recursion DoS) under Expo's plist handling. | Override to 0.8.15 (same API). Family app: 75 tests pass, `tsc` clean, `expo config` resolves. |
 | S6 | Critical and high (build-time) | The family app's remaining advisories, all in Expo SDK 52's command-line tools and the Metro bundler, which run on the developer's machine and in CI, not on a phone. See the table below. | npm `overrides` pin patched versions (`tar` 7.5.23, `image-size` 2.1.0, `glob` 14.0.6 where Expo asked for glob 10, `sucrase` 3.35.1, `uuid` 11.1.1). Two of them changed shape, so `patch-package` (pinned 8.0.1, run on `postinstall`) adapts the three callers: `mobile/patches/`. `npm audit`: 0. Checked below. |
 | S5 | — | Dynamic SQL (bandit B608) in the care backend. | Reviewed by hand: every column name comes from a fixed allow-list in the module (`_MEMBER_FIELDS`, `_ROUTINE_FIELDS`, `_MED_FIELDS`, `_SETTINGS_FIELDS`, the visit `allowed` set, retention's `PURGED`, the access-note `COLUMNS`) and every value is a bound parameter. No change needed. |
+| S7 | Medium | The dashboard had no script policy: an injected script could read the session token from `sessionStorage` and send it anywhere. | `dashboard/src/middleware.ts` gives every page a Content-Security-Policy with a fresh 128-bit nonce (`dashboard/src/lib/securityHeaders.ts`): `script-src 'nonce-…' 'strict-dynamic'` with no `'unsafe-inline'` and no `'unsafe-eval'` (eval, and inline `<style>` elements for its error overlay, are added only under `next dev`); `connect-src` is this origin plus the configured API origin (`NEXT_PUBLIC_CARE_API_BASE_URL`; nothing extra when it is empty, the production image's same-origin set-up); `object-src 'none'`, `base-uri 'none'`, `form-action 'self'`, `frame-src 'none'`, `frame-ancestors 'none'`, `img-src 'self'`, and `upgrade-insecure-requests` when the page is served over HTTPS (directly, or through Caddy, which says so in `X-Forwarded-Proto`). Styles: sheets from this origin or with the nonce; `style-src-attr 'unsafe-inline'` only, because about sixty React `style={{…}}` attributes are rendered into the HTML. An attribute cannot run script; what it leaves is restyling of injected markup. The root layout reads the request headers, so every page renders per request and Next.js puts the nonce on its scripts (all routes, the live person record, alerts and emergency views included, are now dynamic). `csp.test.ts` (11) and `security_headers.test.ts`; 4 fail against the old middleware, and the policy check rejects a policy with `'unsafe-inline'` or `'unsafe-eval'` script, a missing nonce, an open `connect-src` and the old policy. In a browser: no violations on 21 page loads; an inline script without the nonce added to a page's HTML did not run, a `fetch` to another origin and a string `setTimeout` were refused. |
 
 ### S6 in detail: family app build tooling, 25 November 2026
 
@@ -109,10 +111,10 @@ release build are what guard them.
 - **Family app build tooling.** Cleared by S6 (overrides and three patched lines), not by an
   Expo SDK upgrade. The upgrade is still worth doing for its own sake, and it needs a device
   test pass; when it happens, the patches and overrides come out as S6 describes.
-- **No script-src policy on the dashboard.** Next.js injects inline scripts, so a strict
-  policy needs per-request nonces in middleware, and `connect-src` needs the deployment's
-  API origin. Until then the token in `sessionStorage` is exposed to any XSS; React's
-  escaping is the main defence.
+- **Dashboard styles and the sign-in server field.** The policy allows inline style attributes
+  (S7). It also means a built dashboard can talk only to the API it was built for: the "Care
+  server" field under Advanced cannot point a production build at another server. That is
+  intended; a deployment with a second API origin needs it added to the policy.
 - **Not done:** a third-party penetration test; a threat model reviewed by someone outside
   the team; mobile certificate pinning; secret rotation drills.
 - One run of the family app's test suite failed once while three other builds ran on the
