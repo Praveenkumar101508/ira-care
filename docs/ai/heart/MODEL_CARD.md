@@ -4,11 +4,16 @@ Heart rate (bpm) from one 8-second window of wrist PPG plus the wrist accelerome
 Register item F3. Status: **evaluated on a public dataset only**. Nothing here has been run
 on the IRA watch.
 
-- Inference path: `supracloud-jarvis/ira/care/heart_estimate.py`. It is classical signal
-  processing and depends only on numpy.
+- Inference paths, both numpy only:
+  - classical: `supracloud-jarvis/ira/care/heart_estimate.py` (signal processing, no weights);
+  - learned: `supracloud-jarvis/ira/care/heart_learned.py`, reading the tree ensemble
+    `supracloud-jarvis/ira/care/models/heart_selector.json` (plain JSON, format `ira-gbt-v1`).
+    With no valid model file it answers with the classical estimator.
 - Training and evaluation: `scripts/training/heart_ppg_dalia.py`
 - Results, every number below: `docs/ai/heart/results.json`
-- Tests (synthetic signals only): `supracloud-jarvis/ira/tests/care/test_heart_estimate.py`
+- Tests: `supracloud-jarvis/ira/tests/care/test_heart_estimate.py` (synthetic signals) and
+  `supracloud-jarvis/ira/tests/care/test_heart_learned.py` (synthetic signals, the model
+  loader, and feature rows recorded at export in `tests/care/fixtures/heart_selector_rows.json`)
 
 ## Intended use
 
@@ -16,13 +21,17 @@ on the IRA watch.
   last week", or a carer-facing chart of the day.
 - **Not a medical device.** It is not for diagnosis, it is not an arrhythmia detector, and
   it is not a basis for treatment.
+- **Not validated on older adults** or on the IRA watch. See Limitations.
 - **Never an alarm on its own.** No alert, escalation or SOS may be raised because of this
-  estimate alone. At the time of writing, nothing in the backend calls this module.
+  estimate alone. At the time of writing, nothing in the backend calls either module; a test
+  (`test_nothing_raises_an_alert_on_the_learned_estimate`) fails if anything in `care/` starts
+  to use the learned one.
 - The function returns **no estimate** in these cases:
   - the input is too short (under 6 s), contains NaN or infinite values, is flat, or is
     saturated;
   - the accelerometer window is missing samples or is not finite;
-  - the spectral confidence is below 0.3.
+  - classical path: the spectral confidence is below 0.3;
+  - learned path: the selected candidate's probability of being within 5 bpm is below 0.5.
   Callers must show "no reading" in those cases and must not fill in a guess.
 
 ## Data and licence
@@ -86,7 +95,7 @@ on the IRA watch.
    the chosen peak. Below 0.3 the answer is "no reliable estimate" (`low_confidence`), and
    the peak is still reported as `candidate_bpm`.
 
-### Learned (training script only): candidate-peak selection
+### Learned (shipped as `care/heart_learned.py` + `models/heart_selector.json`): candidate-peak selection
 
 - For each window, the candidates are:
   - the top 3 local maxima of the raw PPG spectrum;
@@ -102,51 +111,81 @@ on the IRA watch.
   - the ranks;
   - the distance to the classical estimate and to the previous classical estimate;
   - the classical confidence.
+- The features are computed by `candidate_features()` in `care/heart_learned.py`. The
+  training script imports that function, so training and inference run the same code; a
+  test fails if the script re-implements it.
 - A scikit-learn `HistGradientBoostingClassifier` is trained to predict "within 5 bpm of
   the reference". The settings are 200 iterations, learning rate 0.1, 31 leaves,
   L2 regularisation 1.0 and `random_state=20261125`, and they were set once and not
   tuned.
-- It is trained on 14 subjects and tested on the held-out subject.
+- Evaluation: trained on 14 subjects and tested on the held-out subject, for each subject.
 - Selection is causal: the selected candidate maximises
   probability × Gaussian(σ = 15 bpm) around the previous selected value.
+- Below a selected probability of 0.5 the answer is "no reliable estimate". 0.5 ("more
+  likely within 5 bpm than not") was fixed in the code before its coverage was computed;
+  the table below shows the other thresholds for comparison, not as a tuning sweep.
 
-### Which one ships, and why
+### What ships, and how the weights are kept safe
 
-**The classical method ships.** The learned model is clearly more accurate (7.75 against
-13.28 bpm), but:
-
-- it needs scikit-learn at inference, and the backend has numpy only (`numpy==1.26.4` in
-  `requirements.txt` and `requirements-test.txt`; scipy and scikit-learn are not
-  dependencies);
-- the fold-S1 model is 12,200 tree nodes and 748,003 bytes serialised, which is not "tiny"
-  weights;
-- shipping it would mean a pickle, which this project does not load, or a hand-written
-  tree exporter and evaluator that has not been built or tested.
-
-Porting the learned selector to a JSON tree format is the obvious next step if a better
-trend signal is wanted. Its features are all computed by the shipped module already.
+- **The shipped model** is the same classifier trained once on all 15 subjects (256,643
+  candidate rows). Its accuracy is the leave-one-subject-out figure above, the standard
+  estimate for a model trained on everyone.
+- **Format:** the trees are exported to plain JSON (`ira-gbt-v1`): per tree, the split
+  feature, threshold, where a missing value goes, the child indices and the leaf values;
+  plus the baseline and the feature list. **No pickle, and nothing that runs code.**
+  - 200 trees, 12,200 nodes, 467,177 bytes;
+    SHA-256 `3b0863a9a8cf81f906f5475fe54cc3878a38fbe7f7b1cc88b3c851d85f1c35dc`.
+- **Loader checks** (`load_model`): a size limit (4 MiB), the format name, the exact feature
+  list, finite numbers, integer indices (not booleans), every feature index in range, every
+  child after its parent and inside the tree (so evaluation always ends), leaves without
+  children, at most 1,000 trees of at most 4,096 nodes. Anything else is refused, and the
+  tracker then answers with the classical estimator (`method="classical"`), logged.
+- **Equivalence:** at export the script evaluates all 256,643 training rows with the numpy
+  evaluator and with scikit-learn; the largest probability difference was 2.2 × 10⁻¹⁶ (the
+  script refuses to write a model above 10⁻⁹). 56 of those rows, 8 with missing values, are
+  kept as a test fixture with the trainer's probabilities.
+- **Runtime:** loading takes about 25 ms. One window takes about 17 ms (features plus 200
+  trees), against 0.84 ms for the classical path, measured on a shared 4-CPU machine
+  under load. Windows arrive every 2 s.
+- **Which one a caller uses:** both are available; neither is wired to any alert. A caller
+  that wants the better trend signal uses `LearnedHeartTracker`; it falls back by itself.
 
 ### Seeds and reproducibility
 
 - `SEED = 20261125` is set for `random`, numpy and the classifier.
 - Two complete runs produced identical `methods` and confidence-coverage sections in the
   JSON.
+- **Re-verified 2026-11-25** (register F3, REMEDIATION F6):
+  - the archive's SHA-256 matched the recorded one;
+  - the original script, run unchanged, reproduced every number in `methods`, the
+    confidence coverage and the input refusals exactly: classical 13.28 ± 5.01 bpm and
+    learned 7.75 ± 3.23 bpm;
+  - only timings and the pickled model size of fold S1 (748,003 then, 746,983 bytes now,
+    with newer numpy) differed;
+  - after the features moved into `care/heart_learned.py`, the script reproduced the same
+    `methods` and coverage sections again, and exported the shipped model.
 
 ## Command used
 
 ```bash
-pip install numpy==1.26.4 scipy scikit-learn       # scikit-learn 1.9.1 was used
+pip install numpy scipy scikit-learn       # scikit-learn 1.9.1 was used
 python3 -I scripts/training/heart_ppg_dalia.py \
     --data-dir "$DATA_DIR" \
-    --out docs/ai/heart/results.json
+    --out docs/ai/heart/results.json \
+    --model-out supracloud-jarvis/ira/care/models/heart_selector.json \
+    --fixture-out supracloud-jarvis/ira/tests/care/fixtures/heart_selector_rows.json
 ```
 
 `$DATA_DIR` was a temporary directory outside the repository holding the archive and the
 per-subject cache. The command is otherwise exactly as run.
 
-- Run on x86_64 with 4 CPUs, no GPU, 3 worker processes, Python 3.13.18 and numpy 1.26.4.
-- Total time: 110 s, plus the one-off 2.9 GB download and a per-subject cache build of
-  about 7 s per subject.
+- First run: x86_64 with 4 CPUs, no GPU, 3 worker processes, Python 3.13.18 and
+  numpy 1.26.4. Total time 110 s, plus the one-off 2.9 GB download and a per-subject cache
+  build of about 7 s per subject.
+- The run behind the current `results.json` and the shipped model used the same machine
+  type, numpy 2.5.5 and scikit-learn 1.9.1. It took 489 s on a machine shared with other
+  jobs. The backend pins numpy 1.26.4; the inference module uses only basic numpy
+  operations, and its tests run in CI on the pinned version.
 
 ## Results: leave-one-subject-out, MAE in bpm
 
@@ -226,14 +265,29 @@ under rhythmic arm motion, which is the known weakness of spectral methods.
 | 0.5 | 41.6% | 4.54 |
 | 0.6 | 31.1% | 3.11 |
 
+### Probability against error (learned, pooled, leave-one-subject-out)
+
+| Selected probability ≥ | Share of windows kept | MAE (bpm) |
+| --- | --- | --- |
+| 0.0 | 100% | 7.68 |
+| 0.3 | 80.9% | 4.80 |
+| 0.4 | 73.6% | 4.06 |
+| 0.5 (shipped default) | 66.7% | 3.44 |
+| 0.6 | 59.9% | 2.95 |
+| 0.7 | 52.7% | 2.49 |
+
+At about the same share of windows kept (two thirds), the learned path's error is 3.44 bpm
+against 8.51 bpm for the classical path.
+
 ### Runtime and size
 
 | | Classical (shipped) | Learned |
 | --- | --- | --- |
-| Trained parameters | 0 | 12,200 tree nodes (fold S1) |
-| Size | module source, 12,891 bytes | 748,003 bytes serialised (fold S1) |
-| Inference | 0.737 ms per window (one CPU) | 0.019 ms per window for the classifier and selection, plus feature extraction (spectra and the classical tracker, so more than 0.737 ms; not timed separately) |
-| Training | none | 2.33 s per fold (mean) |
+| Trained parameters | 0 | 12,200 tree nodes (shipped model, 200 trees) |
+| Size | module source, 12,891 bytes | `heart_selector.json`, 467,177 bytes |
+| Inference (first run, scikit-learn) | 0.737 ms per window (one CPU) | 0.019 ms per window for the classifier and selection, plus feature extraction |
+| Inference (shipped numpy path, re-run under load) | 0.84 ms per window | 17 ms per window, all included; loading the model about 25 ms |
+| Training | none | 2.33 s per fold (mean) on the first run; 21.7 s under load on the re-run |
 
 ### Development caveat (read this before quoting the classical number)
 

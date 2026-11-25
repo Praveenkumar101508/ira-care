@@ -33,7 +33,6 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import importlib.util
 import io
 import json
 import os
@@ -53,6 +52,13 @@ SEED = 20261125
 random.seed(SEED)
 np.random.seed(SEED)
 
+ROOT = Path(__file__).resolve().parents[2]
+# The shipped modules themselves: the candidate features are computed by the same code at
+# training and at inference (care/heart_learned.py), so the two cannot drift apart.
+sys.path.insert(0, str(ROOT / "supracloud-jarvis" / "ira"))
+from care import heart_estimate as he  # noqa: E402
+from care import heart_learned as hl  # noqa: E402
+
 URL = "https://archive.ics.uci.edu/static/public/495/ppg+dalia.zip"
 ZIP_SHA256 = "5772387956e34e2e2dc4c2ddbeb98cb70569d5112fa4c13ee98a17680b84a1f3"
 SUBJECTS = [f"S{i}" for i in range(1, 16)]
@@ -67,15 +73,10 @@ PUBLISHED = {
             "The paper's site (mdpi.com) was not reachable from the build machine, and neither "
             "the dataset readme nor the UCI page states the number, so it was not re-checked here",
 }
-LEARNED_TRACK_SIGMA_BPM = 15.0
-TOP_K = 3  # candidates taken from each of the raw and the suppressed spectrum
+LEARNED_TRACK_SIGMA_BPM = hl.TRACK_SIGMA_BPM
+LEARNED_PARAMS = {"max_iter": 200, "learning_rate": 0.1, "max_leaf_nodes": 31, "l2_regularization": 1.0,
+                  "random_state": SEED}
 
-ROOT = Path(__file__).resolve().parents[2]
-_spec = importlib.util.spec_from_file_location(
-    "heart_estimate", ROOT / "supracloud-jarvis" / "ira" / "care" / "heart_estimate.py")
-he = importlib.util.module_from_spec(_spec)
-sys.modules["heart_estimate"] = he  # dataclasses look their module up here
-_spec.loader.exec_module(he)
 
 
 def log(msg):
@@ -159,11 +160,6 @@ def acc_win(d, i):
 
 # ── per-subject work: classical variants and learned-model features ──────────
 
-def _local_maxima(x, band):
-    idx = np.where(band[1:-1] & (x[1:-1] >= x[:-2]) & (x[1:-1] > x[2:]))[0] + 1
-    return idx[np.argsort(x[idx])[::-1]]
-
-
 def subject_pass(args):
     cache, subject = args
     d = load_subject(Path(cache), subject)
@@ -177,9 +173,6 @@ def subject_pass(args):
     refusals = {}
     feats, ys, groups_w, cand_bpm = [], [], [], []
     t_classical = 0.0
-    n_bins = int(np.floor(2 * he.BAND_HZ[1] / he.GRID_HZ)) + 2
-    grid = np.arange(n_bins) * he.GRID_HZ
-    band = (grid >= he.BAND_HZ[0]) & (grid <= he.BAND_HZ[1])
     prev_classical = None
     for i in range(n):
         b, a = bvp_win(d, i), acc_win(d, i)
@@ -194,56 +187,31 @@ def subject_pass(args):
         out["classical_no_acc"][i] = tracker_noacc.update(b).candidate_bpm or np.nan
         out["classical_no_tracking"][i] = he.estimate_heart_rate(b, a, acc_scale_g=scale).candidate_bpm or np.nan
 
-        # learned-model candidates and features
+        # learned-model candidates and features (care/heart_learned.py, as at inference)
         x, why = he._check_bvp(b, BVP_HZ)
         if why:
             continue
-        raw = he._power_spectrum(x, BVP_HZ, n_bins)
-        raw = raw / max(raw[band].max(), 1e-300)
-        _, _, sup, score, suppressed = he._spectra(x, BVP_HZ, np.asarray(a, float), ACC_HZ, scale)
-        aa = np.asarray(a, float) * scale
-        accp = sum(he._power_spectrum(aa[:, j], ACC_HZ, n_bins) for j in range(3))
-        acc_amp = np.sqrt(accp / max(accp[band].max(), 1e-300))
-        bp = np.stack([he.bandpass_fft(aa[:, j], ACC_HZ) for j in range(3)], axis=1)
-        motion = float(np.sqrt(np.mean(np.sum(bp ** 2, axis=1))))
-        ks = list(_local_maxima(raw, band)[:TOP_K]) + list(_local_maxima(score, band)[:TOP_K])
-        if r.candidate_bpm is not None:
-            ks.append(int(np.argmin(np.abs(grid * 60 - r.candidate_bpm))))
-        uniq = []
-        for k in ks:
-            if all(abs(k - u) > 6 for u in uniq):
-                uniq.append(k)
-        raw_rank = {k: j for j, k in enumerate(_local_maxima(raw, band))}
-        sc_rank = {k: j for j, k in enumerate(_local_maxima(score, band))}
-        cls = r.candidate_bpm if r.candidate_bpm is not None else np.nan
-        prv = prev_classical if prev_classical is not None else np.nan
-        for k in uniq:
-            f = grid[k]
-            fb = f * 60.0
-            interp = lambda arr, ff: float(np.interp(ff, grid, arr, right=0.0))  # noqa: E731
-            feats.append([fb, raw[k], sup[k], score[k], acc_amp[k], interp(acc_amp, f / 2), interp(acc_amp, 2 * f),
-                          interp(raw, 2 * f), interp(raw, f / 2), np.log10(motion + 1e-6), float(suppressed),
-                          raw_rank.get(k, 20), sc_rank.get(k, 20), fb - cls, abs(fb - cls), fb - prv, abs(fb - prv),
-                          r.confidence, len(uniq)])
-            ys.append(int(abs(fb - label[i]) <= 5.0))
+        bpms, X = hl.candidate_features(x, np.asarray(a, float), r, prev_classical, bvp_hz=BVP_HZ, acc_hz=ACC_HZ,
+                                        acc_scale_g=scale)
+        for fb, row in zip(bpms, X):
+            feats.append(row)
+            ys.append(int(abs(float(fb) - label[i]) <= 5.0))
             groups_w.append(i)
             cand_bpm.append(fb)
         prev_classical = r.candidate_bpm
     return {"subject": subject, "n": n, "label": label, "activity": acts, "out": out,
             "refusals": refusals, "t_classical_s": t_classical,
-            "X": np.array(feats, np.float32), "y": np.array(ys, np.int8),
+            "X": np.array(feats, np.float32).reshape(-1, len(hl.FEATURES)), "y": np.array(ys, np.int8),
             "win": np.array(groups_w, np.int32), "cand_bpm": np.array(cand_bpm, np.float32)}
 
 
-FEATURES = ["cand_bpm", "ppg_raw", "ppg_suppressed", "harmonic_score", "acc_amp", "acc_amp_half", "acc_amp_double",
-            "ppg_raw_double", "ppg_raw_half", "log_motion_rms_g", "suppressed", "rank_raw", "rank_score",
-            "minus_classical", "abs_minus_classical", "minus_prev_classical", "abs_minus_prev_classical",
-            "classical_confidence", "n_candidates"]
+FEATURES = hl.FEATURES
 
 
 def select_learned(p, win, cand_bpm, n):
     """Causal tracking over the classifier's candidate probabilities."""
     est = np.full(n, np.nan)
+    prob = np.full(n, np.nan)
     order = np.argsort(win, kind="stable")
     win, p, cand_bpm = win[order], p[order], cand_bpm[order]
     starts = np.searchsorted(win, np.arange(n))
@@ -259,8 +227,34 @@ def select_learned(p, win, cand_bpm, n):
             sc = sc * np.exp(-0.5 * ((cand_bpm[s:e] - prev) / LEARNED_TRACK_SIGMA_BPM) ** 2)
         j = int(np.argmax(sc))
         est[i] = float(cand_bpm[s + j])
+        prob[i] = float(p[s + j])
         prev = est[i]
-    return est
+    return est, prob
+
+
+def export_ensemble(clf) -> dict:
+    """The trained classifier as plain ``ira-gbt-v1`` JSON (care/heart_learned.py reads it)."""
+    if clf.n_trees_per_iteration_ != 1 or list(clf.classes_) != [0, 1]:
+        raise SystemExit("expected a binary classifier with one tree per iteration")
+    trees = []
+    for (pred,) in clf._predictors:
+        nd = pred.nodes
+        if nd["is_categorical"].any():
+            raise SystemExit("categorical splits are not part of ira-gbt-v1")
+        leaf = nd["is_leaf"].astype(bool)
+        thr = nd["num_threshold"].astype(float)
+        if not np.all(np.isfinite(thr[~leaf])):
+            raise SystemExit("non-finite split threshold")
+        trees.append({
+            "feature": [-1 if lf else int(f) for lf, f in zip(leaf, nd["feature_idx"])],
+            "threshold": [0.0 if lf else float(t) for lf, t in zip(leaf, thr)],
+            "missing_left": [bool(m) and not lf for lf, m in zip(leaf, nd["missing_go_to_left"])],
+            "left": [-1 if lf else int(v) for lf, v in zip(leaf, nd["left"])],
+            "right": [-1 if lf else int(v) for lf, v in zip(leaf, nd["right"])],
+            "value": [float(v) if lf else 0.0 for lf, v in zip(leaf, nd["value"])],
+        })
+    return {"format": hl.FORMAT, "features": list(hl.FEATURES),
+            "baseline": float(np.asarray(clf._baseline_prediction).reshape(-1)[0]), "trees": trees}
 
 
 def mae(est, label):
@@ -275,6 +269,10 @@ def main():
         help="where the archive and the per-subject cache live; keep it outside the repository")
     ap.add_argument("--out", type=Path, default=ROOT / "docs" / "ai" / "heart" / "results.json")
     ap.add_argument("--workers", type=int, default=3)
+    ap.add_argument("--model-out", type=Path, default=None,
+                    help="also train on all 15 subjects and write the shipped model (ira-gbt-v1 JSON) here")
+    ap.add_argument("--fixture-out", type=Path, default=None,
+                    help="with --model-out: write rows and the trainer's probabilities for the equivalence test")
     args = ap.parse_args()
     t_start = time.time()
     from sklearn import __version__ as skl_version
@@ -296,21 +294,21 @@ def main():
 
     # learned model, LOSO
     t0 = time.time()
-    learned, oracle, fold_info, train_times = {}, {}, {}, []
+    learned, learned_prob, oracle, fold_info, train_times = {}, {}, {}, {}, []
     model_bytes = None
     for s in SUBJECTS:
         tr = [per[o] for o in SUBJECTS if o != s]
         X = np.vstack([r["X"] for r in tr])
         y = np.concatenate([r["y"] for r in tr])
-        clf = HistGradientBoostingClassifier(max_iter=200, learning_rate=0.1, max_leaf_nodes=31,
-                                             l2_regularization=1.0, random_state=SEED)
+        clf = HistGradientBoostingClassifier(**LEARNED_PARAMS)
         t1 = time.time()
         clf.fit(X, y)
         train_times.append(time.time() - t1)
         te = per[s]
         t1 = time.perf_counter()
         p = clf.predict_proba(te["X"])[:, 1]
-        est = select_learned(p, te["win"], te["cand_bpm"], te["n"])
+        est, prob = select_learned(p, te["win"], te["cand_bpm"], te["n"])
+        learned_prob[s] = prob
         t_pred = time.perf_counter() - t1
         learned[s] = est
         # diagnostic: the best any selector could do with these candidates
@@ -326,6 +324,48 @@ def main():
             n_nodes = int(sum(len(pred.nodes) for it in clf._predictors for pred in it))
         log(f"learned fold {s}: MAE {mae(est, te['label'])[0]:.2f}")
     t_learned = time.time() - t0
+
+    # learned: probability of the selected candidate against error (MIN_PROBABILITY is fixed in code)
+    lp = np.concatenate([learned_prob[s] for s in SUBJECTS])
+    el = np.concatenate([np.abs(learned[s] - per[s]["label"]) for s in SUBJECTS])
+    learned_coverage = {}
+    for t in (0.0, 0.3, 0.4, hl.MIN_PROBABILITY, 0.6, 0.7):
+        mk = np.nan_to_num(lp, nan=-1.0) >= t
+        learned_coverage[f"{t:.1f}"] = {"share_of_windows": round(float(mk.mean()), 4),
+                                        "mae_bpm_pooled": round(float(np.nanmean(el[mk])), 2) if mk.any() else None}
+    shipped = None
+    if args.model_out is not None:
+        X = np.vstack([per[s]["X"] for s in SUBJECTS])
+        y = np.concatenate([per[s]["y"] for s in SUBJECTS])
+        clf = HistGradientBoostingClassifier(**LEARNED_PARAMS).fit(X, y)
+        doc_model = export_ensemble(clf)
+        doc_model["trained_on"] = "PPG-DaLiA, all 15 subjects (CC BY 4.0); metrics are the leave-one-subject-out ones"
+        doc_model["params"] = {k: v for k, v in LEARNED_PARAMS.items()}
+        text = json.dumps(doc_model, separators=(",", ":")) + "\n"
+        args.model_out.parent.mkdir(parents=True, exist_ok=True)
+        args.model_out.write_text(text, encoding="utf-8")
+        ens = hl.load_model(args.model_out)
+        p_skl = clf.predict_proba(X)[:, 1]
+        p_np = ens.predict_proba(X)
+        max_diff = float(np.max(np.abs(p_skl - p_np)))
+        if max_diff > 1e-9:
+            raise SystemExit(f"exported model disagrees with the trainer: max |dp| = {max_diff}")
+        shipped = {"path": str(args.model_out.relative_to(ROOT)) if args.model_out.is_relative_to(ROOT) else str(args.model_out),
+                   "bytes": len(text.encode()), "sha256": hashlib.sha256(text.encode()).hexdigest(),
+                   "trees": len(doc_model["trees"]), "nodes": int(sum(len(t["feature"]) for t in doc_model["trees"])),
+                   "train_rows": int(len(y)), "max_abs_probability_difference_numpy_vs_sklearn": max_diff}
+        log(f"shipped model: {shipped}")
+        if args.fixture_out is not None:
+            rng = np.random.default_rng(SEED)
+            pick = rng.choice(len(X), 48, replace=False)
+            nan_rows = np.where(np.isnan(X).any(axis=1))[0][:8]
+            pick = np.concatenate([pick, nan_rows])
+            fx = {"note": "rows of training features and the trainer's probabilities for them; "
+                          "the numpy evaluator must reproduce them",
+                  "model_sha256": shipped["sha256"],
+                  "rows": [[None if np.isnan(v) else float(v) for v in X[i]] for i in pick],
+                  "probability": [float(p_skl[i]) for i in pick]}
+            args.fixture_out.write_text(json.dumps(fx, indent=1) + "\n", encoding="utf-8")
 
     methods = {
         "naive": {s: per[s]["out"]["naive"] for s in SUBJECTS},
@@ -390,9 +430,11 @@ def main():
         "published_reference": PUBLISHED,
         "classical_confidence_coverage": coverage,
         "classical_input_refusals": refusals,
+        "learned_probability_coverage": learned_coverage,
+        "learned_min_probability": hl.MIN_PROBABILITY,
+        "shipped_learned_model": shipped,
         "learned_model": {"type": "sklearn HistGradientBoostingClassifier over spectral-peak candidates",
-                          "params": {"max_iter": 200, "learning_rate": 0.1, "max_leaf_nodes": 31,
-                                     "l2_regularization": 1.0, "random_state": SEED},
+                          "params": LEARNED_PARAMS,
                           "features": FEATURES, "candidate_label": "within 5 bpm of the reference",
                           "tracking_sigma_bpm": LEARNED_TRACK_SIGMA_BPM,
                           "serialised_bytes_fold_S1": model_bytes, "tree_nodes_fold_S1": n_nodes,

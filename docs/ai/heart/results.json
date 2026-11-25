@@ -765,6 +765,42 @@
     }
   },
   "classical_input_refusals": {},
+  "learned_probability_coverage": {
+    "0.0": {
+      "share_of_windows": 1.0,
+      "mae_bpm_pooled": 7.68
+    },
+    "0.3": {
+      "share_of_windows": 0.8086,
+      "mae_bpm_pooled": 4.8
+    },
+    "0.4": {
+      "share_of_windows": 0.7355,
+      "mae_bpm_pooled": 4.06
+    },
+    "0.5": {
+      "share_of_windows": 0.6674,
+      "mae_bpm_pooled": 3.44
+    },
+    "0.6": {
+      "share_of_windows": 0.5993,
+      "mae_bpm_pooled": 2.95
+    },
+    "0.7": {
+      "share_of_windows": 0.5271,
+      "mae_bpm_pooled": 2.49
+    }
+  },
+  "learned_min_probability": 0.5,
+  "shipped_learned_model": {
+    "path": "supracloud-jarvis/ira/care/models/heart_selector.json",
+    "bytes": 467177,
+    "sha256": "3b0863a9a8cf81f906f5475fe54cc3878a38fbe7f7b1cc88b3c851d85f1c35dc",
+    "trees": 200,
+    "nodes": 12200,
+    "train_rows": 256643,
+    "max_abs_probability_difference_numpy_vs_sklearn": 2.220446049250313e-16
+  },
   "learned_model": {
     "type": "sklearn HistGradientBoostingClassifier over spectral-peak candidates",
     "params": {
@@ -797,83 +833,83 @@
     ],
     "candidate_label": "within 5 bpm of the reference",
     "tracking_sigma_bpm": 15.0,
-    "serialised_bytes_fold_S1": 748003,
+    "serialised_bytes_fold_S1": 746983,
     "tree_nodes_fold_S1": 12200,
     "folds": {
       "S1": {
         "train_rows": 238384,
         "train_positive_share": 0.2037,
-        "predict_s": 0.082
+        "predict_s": 0.115
       },
       "S2": {
         "train_rows": 240525,
         "train_positive_share": 0.204,
-        "predict_s": 0.079
+        "predict_s": 0.105
       },
       "S3": {
         "train_rows": 239378,
         "train_positive_share": 0.2029,
-        "predict_s": 0.083
+        "predict_s": 0.109
       },
       "S4": {
         "train_rows": 237939,
         "train_positive_share": 0.2074,
-        "predict_s": 0.083
+        "predict_s": 0.114
       },
       "S5": {
         "train_rows": 237621,
         "train_positive_share": 0.2029,
-        "predict_s": 0.089
+        "predict_s": 0.111
       },
       "S6": {
         "train_rows": 246051,
         "train_positive_share": 0.2032,
-        "predict_s": 0.049
+        "predict_s": 0.099
       },
       "S7": {
         "train_rows": 238821,
         "train_positive_share": 0.2015,
-        "predict_s": 0.089
+        "predict_s": 0.117
       },
       "S8": {
         "train_rows": 240454,
         "train_positive_share": 0.2067,
-        "predict_s": 0.098
+        "predict_s": 0.1
       },
       "S9": {
         "train_rows": 239083,
         "train_positive_share": 0.208,
-        "predict_s": 0.105
+        "predict_s": 0.09
       },
       "S10": {
         "train_rows": 235739,
         "train_positive_share": 0.2012,
-        "predict_s": 0.091
+        "predict_s": 0.126
       },
       "S11": {
         "train_rows": 238773,
         "train_positive_share": 0.2041,
-        "predict_s": 0.079
+        "predict_s": 0.081
       },
       "S12": {
         "train_rows": 240918,
         "train_positive_share": 0.2045,
-        "predict_s": 0.073
+        "predict_s": 0.074
       },
       "S13": {
         "train_rows": 238901,
         "train_positive_share": 0.2019,
-        "predict_s": 0.081
+        "predict_s": 0.109
       },
       "S14": {
         "train_rows": 239070,
         "train_positive_share": 0.2028,
-        "predict_s": 0.096
+        "predict_s": 0.11
       },
       "S15": {
         "train_rows": 241345,
         "train_positive_share": 0.2025,
-        "predict_s": 0.076
+        "predict_s": 0.079
       }
     }
   },
@@ -894,19 +930,19 @@
     "MIN_CONFIDENCE": 0.3
   },
   "runtime": {
-    "classical_ms_per_window": 0.737,
+    "classical_ms_per_window": 1.416,
     "classical_module_bytes": 12891,
     "classical_trained_parameters": 0,
-    "learned_train_s_per_fold_mean": 2.33,
-    "learned_predict_and_select_ms_per_window": 0.019,
-    "data_load_s": 3.7,
-    "per_subject_passes_s": 69.9,
-    "learned_loso_s": 36.6,
-    "total_s": 110.2,
+    "learned_train_s_per_fold_mean": 21.71,
+    "learned_predict_and_select_ms_per_window": 0.024,
+    "data_load_s": 4.4,
+    "per_subject_passes_s": 135.8,
+    "learned_loso_s": 327.8,
+    "total_s": 489.1,
     "machine": "x86_64, 4 CPUs, no GPU, 3 worker processes",
     "versions": {
       "python": "3.13.18",
-      "numpy": "1.26.4",
+      "numpy": "2.5.5",
       "scikit-learn": "1.9.1"
     }
   }
