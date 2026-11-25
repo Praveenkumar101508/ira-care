@@ -27,7 +27,8 @@ export function readingLabel(reading: Reading): string {
 export function deviceSummary(device: Device | undefined, now: Date = new Date()): string {
   if (!device) return 'No watch paired';
   const parts: string[] = [];
-  if (device.on_wrist === false) parts.push('off the wrist');
+  // Never guessed: a watch that has not said whether it is worn is 'wrist unknown', not worn.
+  parts.push(device.on_wrist === true ? 'on the wrist' : device.on_wrist === false ? 'off the wrist' : 'wrist unknown');
   if (device.battery_percent !== null && device.battery_percent !== undefined) parts.push(`battery ${device.battery_percent} %`);
   if (device.background_sensor_permission === false) parts.push('sensor permission off');
   parts.push(`synced ${timeAgo(device.last_sync_at, now)}`);

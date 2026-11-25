@@ -53,6 +53,10 @@ test('readings and the watch are described, never judged', () => {
     background_sensor_permission: false, last_sync_at: '2026-11-21T11:00:00Z', last_seen_at: null };
   expect(deviceSummary(device, new Date('2026-11-21T12:00:00Z'))).toBe('off the wrist, battery 12 %, sensor permission off, synced 1 h ago');
   expect(deviceSummary(undefined)).toBe('No watch paired');
+  // Unknown is said, never left to read as worn; worn is said only when the watch said so.
+  const at = new Date('2026-11-21T12:00:00Z');
+  expect(deviceSummary({ ...device, on_wrist: null }, at)).toMatch(/^wrist unknown, /);
+  expect(deviceSummary({ ...device, on_wrist: true }, at)).toMatch(/^on the wrist, /);
 });
 
 test('telephone links keep digits and plus only', () => {

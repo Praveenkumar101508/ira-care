@@ -2,7 +2,7 @@
 
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCard } from '@/components/AlertCard';
 import { Sparkline } from '@/components/Sparkline';
 import { canManage, useApi } from '@/components/useApi';
@@ -11,7 +11,8 @@ import type {
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, InvitationOut, Medication, Memory, MedicationEvent, Person, PersonStatus, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitOutcome, CommunicationProfile,
 } from '@/lib/types';
 import { VISIT_OUTCOME_WORDS } from '@/lib/types';
-import { VISIT_WORDS, byDay, checkinCounts, circleWords, freshness, headline, series, sortAlerts, timeAgo, timeline, visitLine } from '@/lib/view';
+import { VISIT_WORDS, byDay, checkinCounts, circleWords, freshness, headline, series, sortAlerts, timeAgo, timeline, visitLine, wristState } from '@/lib/view';
+import { LiveGate, REFRESH_MS, liveWords, settleAll, type LiveStatus } from '@/lib/live';
 
 /** What was looked at, in a reader's words; who looked, in their role's words rather than a raw identifier. */
 const ACCESS_WORDS: Record<string, string> = { vitals: 'readings', checkins: 'check-ins', medication: 'medication', transcripts: 'transcripts', access_notes: 'entry instructions', reports: 'reports', memory: 'what IRA remembers', alerts: 'alerts' };
@@ -55,32 +56,76 @@ export default function PersonPage() {
   const [pairing, setPairing] = useState<Device | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [live, setLive] = useState<LiveStatus>({ lastOk: null, failures: 0 });
+  const [partial, setPartial] = useState<string[]>([]);
+  const [clock, setClock] = useState(() => new Date());
+  const gate = useRef(new LiveGate());
+
+  // Another person: nothing of the last one may show here, and nothing still in flight for it may land.
+  useEffect(() => {
+    gate.current.next();
+    setStatus(null); setAlerts([]); setCheckins({ checkins: [], answers_included: false }); setVitals([]); setRoutines([]);
+    setMeds([]); setMedEvents([]); setCircle([]); setSettings(null); setConsents(null); setMemory([]); setTranscripts(null);
+    setAccess([]); setReports([]); setVisits([]); setProfile(null); setReminders([]); setEntry(null); setFound(null);
+    setPairing(null); setError(''); setPartial([]); setLive({ lastOk: null, failures: 0 });
+  }, [id]);
 
   const load = useCallback(async () => {
     if (!api) return;
+    const ticket = gate.current.begin();
+    if (ticket === null) return; // a load for this person is already running
     try {
-      const [s, a, c, v, r, m, me, ci, se, co, vi] = await Promise.all([
-        api.status(id), api.alerts(false, id), api.checkins(id), api.vitals(id), api.routines(id), api.medications(id),
-        api.medicationEvents(id), api.circle(id), api.settings(id), api.consents(id), api.visits(id),
-      ]);
-      setStatus(s); setAlerts(a); setCheckins(c); setVitals(v); setRoutines(r); setMeds(m); setMedEvents(me); setCircle(ci); setSettings(se); setConsents(co); setVisits(vi);
-      setError('');
+      // What matters in an emergency first, on its own: the status and the alerts.
+      const [s, a] = await Promise.all([api.status(id), api.alerts(false, id)]);
+      if (!gate.current.current(ticket)) return;
+      setStatus(s); setAlerts(a); setError('');
+      // The rest side by side: one section failing is named, never blanks the record.
+      const { values: v, failed } = await settleAll({
+        checkins: () => api.checkins(id), vitals: () => api.vitals(id), routines: () => api.routines(id),
+        medications: () => api.medications(id), medicationEvents: () => api.medicationEvents(id), circle: () => api.circle(id),
+        settings: () => api.settings(id), consents: () => api.consents(id), visits: () => api.visits(id),
+        ...(tab === 'ira' || tab === 'overview' ? { memory: () => api.memory(id), profile: () => api.profile(id), reminders: () => api.reminders(id) } : {}),
+        ...(tab === 'access' && manage ? { access: () => api.accessLog(id) } : {}),
+        ...(tab === 'reports' ? { reports: () => api.reports(id) } : {}),
+      });
+      if (!gate.current.current(ticket)) return;
+      if (v.checkins) setCheckins(v.checkins); if (v.vitals) setVitals(v.vitals); if (v.routines) setRoutines(v.routines);
+      if (v.medications) setMeds(v.medications); if (v.medicationEvents) setMedEvents(v.medicationEvents); if (v.circle) setCircle(v.circle);
+      if (v.settings) setSettings(v.settings); if (v.consents) setConsents(v.consents); if (v.visits) setVisits(v.visits);
+      if (v.memory) setMemory(v.memory); if (v.profile) setProfile(v.profile); if (v.reminders) setReminders(v.reminders);
+      if (v.access) setAccess(v.access); if (v.reports) setReports(v.reports);
       if (tab === 'ira' || tab === 'overview') {
-        setMemory(await api.memory(id));
-        setProfile(await api.profile(id));
-        setReminders(await api.reminders(id));
-        try { setTranscripts(await api.transcripts(id)); } catch (e) { setTranscripts(e instanceof ApiError && e.status === 403 ? 'refused' : null); }
+        try {
+          const t = await api.transcripts(id);
+          if (gate.current.current(ticket)) setTranscripts(t);
+        } catch (e) {
+          if (gate.current.current(ticket)) setTranscripts(e instanceof ApiError && e.status === 403 ? 'refused' : null);
+        }
       }
-      if (tab === 'access' && manage) setAccess(await api.accessLog(id));
-      if (tab === 'reports') setReports(await api.reports(id));
+      setPartial(failed.map(String));
+      setLive({ lastOk: new Date(), failures: 0 });
     } catch (e) {
-      if (e instanceof ApiError && e.status === 401) window.location.href = '/login';
-      else setError(e instanceof ApiError ? e.message : 'Could not load.');
+      if (!gate.current.current(ticket)) return;
+      if (e instanceof ApiError && e.status === 401) { window.location.href = '/login'; return; }
+      setLive((l) => ({ ...l, failures: l.failures + 1 }));
+      setError(e instanceof ApiError ? e.message : 'Could not load.');
+    } finally {
+      gate.current.end(ticket);
     }
   }, [api, id, tab, manage]);
-  useEffect(() => { void load(); }, [load]);
+  // Live: every REFRESH_MS, and at once when the page comes back into view. Editing a form never
+  // pauses it: each form keeps its own draft, so a refresh cannot overwrite what is being typed.
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), REFRESH_MS);
+    const onVisible = () => { if (document.visibilityState === 'visible') void load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
+  }, [load]);
+  useEffect(() => { const t = window.setInterval(() => setClock(new Date()), 5_000); return () => window.clearInterval(t); }, []);
 
-  if (!ready || !status) return error ? <p className="error">{error}</p> : null;
+  const liveNow = liveWords(live, clock);
+  if (!ready || !status) return error ? <p className="error" role="alert">{error} <span className="muted">{liveNow.words}</span></p> : <p className="muted" aria-live="polite">Loading this record…</p>;
   const person = status.person;
   const name = person.preferred_name || person.display_name;
   const act = async (fn: () => Promise<unknown>) => { setBusy(true); try { await fn(); await load(); } catch (e) { setError(e instanceof ApiError ? e.message : 'Failed.'); } finally { setBusy(false); } };
@@ -90,9 +135,12 @@ export default function PersonPage() {
   return (
     <>
       <h2>{name} <span className="muted" style={{ fontSize: 14 }}>{person.display_name} · {person.timezone} · {person.status}</span></h2>
+      <p data-testid="live" role="status" aria-live="polite" className={liveNow.state === 'live' ? 'muted' : 'error'} style={{ margin: '0 0 6px', fontSize: 13 }}>
+        {liveNow.words}{partial.length ? ` Some sections could not be loaded (${partial.join(', ')}); what they show may be missing.` : ''}
+      </p>
       <p data-testid="headline" style={{ fontSize: 18, margin: '0 0 8px' }}>{headline(status, visits.find((v) => v.status === 'arrived') ?? visits.filter((v) => (v.status === 'planned' || v.status === 'late') && new Date(v.planned_end) > new Date()).sort((x, y) => x.planned_start.localeCompare(y.planned_start))[0] ?? null)}</p>
       <div className="card row">
-        <span><strong>Watch:</strong> {device ? `${device.status}, battery ${device.battery_percent ?? '?'} %, ${device.on_wrist === false ? 'off the wrist' : 'on the wrist'}, synced ${timeAgo(device.last_sync_at)}${device.background_sensor_permission === false ? ', sensor permission OFF' : ''}` : 'none paired'}</span>
+        <span><strong>Watch:</strong> {device ? `${device.status}, battery ${device.battery_percent ?? '?'} %, ${wristState(device).words}, synced ${timeAgo(device.last_sync_at)}${device.background_sensor_permission === false ? ', sensor permission OFF' : ''}` : 'none paired'}</span>
         <span><strong>Check-ins (last 200):</strong> {counts.answered} answered, {counts.missed} missed, {counts.skippedQuiet} at night</span>
         <span><strong>Open alerts:</strong> {status.open_alerts.length}</span>
       </div>
@@ -104,7 +152,7 @@ export default function PersonPage() {
       {tab === 'overview' && (
         <div className="grid" data-testid="overview-tab">
           <div className="card"><strong>The watch</strong>
-            <div>{device ? `${device.status}, battery ${device.battery_percent ?? '?'} %, ${device.on_wrist === false ? 'off the wrist' : device.on_wrist === true ? 'on the wrist' : 'wrist unknown'}` : 'None paired'}</div>
+            <div>{device ? `${device.status}, battery ${device.battery_percent ?? '?'} %, ${wristState(device).words}` : 'None paired'}</div>
             <div className="muted">Last sync {timeAgo(device?.last_sync_at)}{device?.background_sensor_permission === false ? ' · sensor permission OFF' : ''}</div>
           </div>
           <div className="card"><strong>Latest readings</strong>

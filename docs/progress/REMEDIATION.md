@@ -24,11 +24,25 @@ true.
 | A5 | High | `care/providers.py`, care exception logs | The log-only provider logged the first 80 characters of every SMS, call script and monitoring-centre summary (person's name, what happened). Sixteen care log lines printed raw exception messages, which can carry model output or field values. | Provider logs: channel, masked number, length, reference only. Exception logs: the exception type only. | unit: a message with a name, address and heart rate leaves none of it in the log | fixed |
 | A6 | High | `care/routes.py` `POST /people/{id}/talk` | Any member with the act permission (a daughter, a carer, a workspace admin, another wearer) could talk as the person: transcripts, memory, reminders and alerts in the person's name. | Only an active member of THIS person's circle with relationship `self`; checked before the stream starts, so a refusal writes nothing. The watch's device route is unchanged. The phone app offers Talk only to that account. | DB: wearer 200; daughter, carer, admin outside the circle, another wearer 403; other tenant 404; revoked membership 403; nothing written on refusal. Jest: `isWearerOf`. | fixed |
 
+## Group B: dashboard live patient record
+
+| ID | Severity | Where | Finding | Fix | Tests | Status |
+|----|----------|-------|---------|-----|-------|--------|
+| B1 | High | `dashboard/src/app/people/[id]/page.tsx` | The record loaded once and never refreshed. A carer looking at it saw a frozen picture with nothing saying so. | The record refreshes every 30 s, and at once when the page comes back into view. A banner says "Live: updated N s ago", or "Connection lost: reconnecting … may be out of date" after a failure or after 90 s with no update. Loads never overlap. | `person_live.test.tsx`: refreshes after 30 s and says when it last updated; `live.test.ts`: the wording never claims "live" when the record is not | fixed |
+| B1b | High | same | A late answer for the previous person could land on the next person's record, and nothing was cleared when switching. | `LiveGate`: every person switch starts a new generation; an answer from an older one is dropped; all state is cleared on switch. | `live.test.ts`: overlap refused; out-of-order answers show only the newest person | fixed |
+| B1c | Medium | same | All 11 requests ran as one `Promise.all`, so one failing optional section blanked the whole record. | Status and alerts load first, on their own. The other sections load side by side with `allSettled`; a failed section is named on the banner and the rest still shows. | `person_live.test.tsx`: a failed consents section is named and the record still shows | fixed |
+| B1d | — | same | The brief said editing a form must not stop the alert updates, and live data must stay separate from form drafts. | Each form keeps its own draft state, set once, so a refresh cannot overwrite what is being typed, and refreshing never pauses. | (by construction; noted) | fixed |
+| B2 | High | dashboard header (line 95), `headline()`; phone `deviceSummary` | An unknown wrist state (`null`) showed as "on the wrist". The headline said "All well" with the wrist unknown, and also while IRA was still asking whether the person was OK. | `wristState()` has four states: on, off, unknown, and stale ("last known …"). The headline says "All well" only when the watch is known to be worn and synced recently and nothing is open or being asked. Otherwise it says "Needs a look: …" or "IRA is asking whether they are OK". The phone app says "wrist unknown" and "on the wrist" explicitly. | `live.test.ts`, `person_live.test.tsx`, mobile `model.test.ts` | fixed |
+| B3 | — | dashboard | Not done in this branch: progressive loading beyond essential-first, the review of empty, error, offline and permission states on every tab, mobile-width layout, and real-time push for urgent changes (polling only). | — | — | open |
+
 ## Negative control
 
 Migration 112: of the 5 new database tests, run against the code from before 112 on the migrated
 database, 4 fail (binding, scheduler binding, provenance, correction). The fifth passes because
 the old code also wrote nothing for a late answer or a stopped medicine.
+
+Group B: the three page tests in `person_live.test.tsx` all fail against the original page and
+`view.ts`: unknown wrist shown as worn, no refresh, and a failed section blanking the record.
 
 Skipped tests: `main` gives 193 skipped. This branch gives 194 without `psycopg2` installed
 (one new database module) and 544 with it, because four database modules that

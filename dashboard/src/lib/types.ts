@@ -23,7 +23,7 @@ export const OUTCOME_WORDS: Record<AlertOutcome, string> = {
 
 export interface Alert {
   id: string; person_id: string; kind: string; severity: 'notice' | 'urgent' | 'sos';
-  status: 'open' | 'escalating' | 'acknowledged' | 'resolved' | 'cancelled'; opened_at: string;
+  status: 'asking' | 'open' | 'escalating' | 'acknowledged' | 'resolved' | 'cancelled'; opened_at: string;
   current_tier: number; acknowledged_at: string | null; resolved_at: string | null; details: Record<string, unknown>;
   attempts?: Attempt[]; acknowledgements?: Acknowledgement[];
   location_latitude?: number | null; location_longitude?: number | null; location_accuracy_m?: number | null;
