@@ -33,12 +33,12 @@ Nothing is marked done because code or a document exists.
 <!-- completion-summary:begin -->
 | Measure | Value |
 |---|---|
-| Overall, weighted | 66.4 % |
+| Overall, weighted | 67.2 % |
 | Implemented (built, here or before) | 91.2 % |
-| Tested (unit, integration, evaluated or better) | 60.2 % |
+| Tested (unit, integration, evaluated or better) | 62.7 % |
 | Merged and evidenced in this programme | 51.0 % |
 | Safety remediation (section C) | 84.2 % |
-| AI components (section F) | 61.9 % |
+| AI components (section F) | 65.6 % |
 | IRA CARE OS (section E) | 58.0 % |
 | Rows blocked in part by an external dependency | 20 of 51 |
 
@@ -122,7 +122,7 @@ weights stated in that script. No device has been used, so no row is device test
 
 | # | Component | Status | Evidence / blocker |
 |---|---|---|---|
-| F1 | Dataset licence register (PPG-DaLiA, UMAFall, KFall, FallAllD, conversation data, model weights) | pre-existing (partial) | `docs/DATASETS.md`. Re-verification against the original sources, plus permission-request drafts: **not started**. KFall and FallAllD: **needs external** (permission) |
+| F1 | Dataset licence register (PPG-DaLiA, UMAFall, KFall, FallAllD, conversation data, model weights) | unit tested; KFall, FallAllD, SisFall and UMAFall terms: **needs external** (permission or confirmation from the authors) | `fix/dataset-licence-register` · `docs/DATASETS.md` re-verified 2026-11-25 row by row against the original source, or marked not verified with the page to open where the build environment could not reach it; `docs/ai/MODEL_WEIGHTS.md` (every shipped or downloaded model: Gemma 4 E4B, E2B and 12B Apache 2.0, MiniLM encoder Apache 2.0, our own fall model and classifier heads; foundation-only models listed, OmniVoice is CC BY-NC); drafts, not sent, in `docs/legal/dataset_permission_requests/` (KFall, FallAllD, SisFall, UMAFall); test `supracloud-jarvis/ira/tests/readiness/test_dataset_register.py`. Finding: the SisFall copy the shipped watch fall model was trained on (Zenodo 22212281) names no creator, so its CC BY 4.0 label is not the authors' own: the owner must accept that risk or ship the rule detector alone until the authors reply. UMAFall: the owner's CC BY 4.0 and a CC BY-NC repository record disagree; not used |
 | F2 | IRA Care Conversation: new versioned dataset, LoRA / QLoRA run, evaluation, promotion gate | pre-existing experiment | 507 synthetic conversations; rule pass 0.94 base against 0.92 fine-tuned on 50 prompts; the 162-turn product evaluation is a different measure (`docs/MODEL_CHOICE.md`). A new run: **not started**; GPU time: **needs external** (Kaggle account session) |
 | F3 | IRA Care Heart (PPG-DaLiA, subject-independent) | evaluated | #58 · `docs/ai/heart/MODEL_CARD.md`, `docs/ai/heart/results.json`, `scripts/training/heart_ppg_dalia.py`. Leave-one-subject-out on all 15 PPG-DaLiA subjects (CC BY 4.0): classical spectral estimator with accelerometer suppression and tracking 13.28 ± 5.01 bpm MAE (shipped, numpy only: `supracloud-jarvis/ira/care/heart_estimate.py`, tests `supracloud-jarvis/ira/tests/care/test_heart_estimate.py`); learned candidate selection 7.75 ± 3.23 bpm (training script only); Deep PPG 7.65 bpm as reported, not reproduced. Adults 30.6 ± 9.6 years on an Empatica E4: accuracy on the IRA watch and on older adults: **needs external** (recordings with an ECG reference) |
 | F4 | IRA Care Fall (wrist-specific, cross-dataset) | pre-existing model + deterministic fallback | Improvement run: **not started** |
@@ -162,7 +162,9 @@ weights stated in that script. No device has been used, so no row is device test
 - macOS with Apple signing, for the iOS build.
 - Twilio (or similar) credentials, and a decision to pay.
 - A monitoring-centre contract.
-- KFall and FallAllD permissions.
+- KFall and FallAllD permissions, and confirmation of the SisFall and UMAFall terms from their authors
+  (drafts in `docs/legal/dataset_permission_requests/`). SisFall matters most: the shipped watch
+  fall model was trained on it.
 - A Kaggle GPU session.
 - Qualcomm supplier access.
 - A decision on who holds the OS signing keys (release, platform and verified-boot keys) and where, for E4.
