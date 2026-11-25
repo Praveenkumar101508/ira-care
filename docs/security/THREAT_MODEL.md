@@ -41,8 +41,8 @@ off-site bucket.
 
 | # | STRIDE | Threat | Control | Code | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| T9 | T | The dashboard framed by another site (clickjacking) | `frame-ancestors 'none'`, `X-Frame-Options: DENY`, nosniff, no-referrer, HSTS | `dashboard/src/lib/securityHeaders.ts` | `security_headers.test.ts` | controlled |
-| T10 | I | Script injection steals the session token in sessionStorage | React escaping only; no script-src policy yet | `dashboard/src/lib/session.ts` | — | **not controlled** beyond escaping (REVIEW.md residual) |
+| T9 | T | The dashboard framed by another site (clickjacking) | `frame-ancestors 'none'` (in the per-request policy), `X-Frame-Options: DENY`, nosniff, no-referrer, HSTS | `dashboard/src/lib/securityHeaders.ts`, `dashboard/src/middleware.ts` | `security_headers.test.ts`, `csp.test.ts` | controlled |
+| T10 | I | Script injection steals the session token in sessionStorage | React escaping, and a per-request nonce Content-Security-Policy: only scripts with the nonce run (`'strict-dynamic'`, no `'unsafe-inline'` or `'unsafe-eval'`), and `connect-src` is this origin and the configured API only, so a token cannot be sent elsewhere | `dashboard/src/middleware.ts`, `dashboard/src/lib/securityHeaders.ts` | `csp.test.ts`, `scripts/security/csp_browser_check.mjs` | controlled; inline style attributes still allowed (REVIEW.md S6) |
 | T11 | E | Demonstration pages reachable in production | 404 unless the build opts in | `dashboard/src/middleware.ts` | `demo_pages.test.ts` | controlled |
 
 ## Care API
@@ -104,5 +104,5 @@ off-site bucket.
 
 ## Not controlled, in one place
 
-T10 (no script-src policy), T27 (OTA server not on `main`), and the partial items T3, T8, T31 and
-T33. Each is named in `REVIEW.md` or the register with what it needs.
+T27 (OTA server not on `main`), and the partial items T3, T8, T31 and T33. T10 (script
+injection on the dashboard) has been controlled since the nonce policy (REVIEW.md S6). Each is named in `REVIEW.md` or the register with what it needs.

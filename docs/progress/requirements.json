@@ -836,6 +836,14 @@
     },
     {
      "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/csp.test.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "scripts/security/csp_browser_check.mjs"
+    },
+    {
+     "kind": "unit_test",
      "ref": "supracloud-jarvis/ira/tests/readiness/test_threat_model_traceability.py"
     },
     {
