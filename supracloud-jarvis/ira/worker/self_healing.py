@@ -121,7 +121,7 @@ async def _check_system_resources() -> list[dict]:
                 "severity": "high",
             })
     except Exception as e:
-        logger.warning(f"Resource check failed: {e}")
+        logger.warning(f"Resource check failed: {type(e).__name__}")
     return issues
 
 
@@ -300,7 +300,7 @@ async def run_self_healing_check() -> None:
                     json.dumps({"analysis": analysis[:500], "remediation": remediation_log}),
                 )
     except Exception as e:
-        logger.error(f"Failed to log healing event: {e}")
+        logger.error(f"Failed to log healing event: {type(e).__name__}")
 
     # Notify owner for high/critical issues
     critical_issues = [i for i in all_issues if i["severity"] in ("high", "critical")]
@@ -320,7 +320,7 @@ async def run_self_healing_check() -> None:
                 priority="warning",
             )
         except Exception as e:
-            logger.error(f"Self-healing notification failed: {e}")
+            logger.error(f"Self-healing notification failed: {type(e).__name__}")
 
     elapsed = int((time.monotonic() - t0) * 1000)
     logger.info(f"Self-healing cycle complete in {elapsed}ms — {len(all_issues)} issue(s) handled")
@@ -485,4 +485,4 @@ async def run_self_reflection() -> None:
         logger.info(f"Self-reflection stored: {len(reflection)} chars")
 
     except Exception as e:
-        logger.error(f"Self-reflection failed: {e}")
+        logger.error(f"Self-reflection failed: {type(e).__name__}")

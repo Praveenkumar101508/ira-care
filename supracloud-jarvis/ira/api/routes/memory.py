@@ -127,7 +127,7 @@ async def _embed_or_none(content: str):
         vector = await embed_one(content)
         return "[" + ",".join(map(str, vector)) + "]"
     except Exception as e:
-        logger.warning(f"Memory vault: embedding unavailable, storing text only ({e})")
+        logger.warning(f"Memory vault: embedding unavailable, storing text only ({type(e).__name__})")
         return None
 
 

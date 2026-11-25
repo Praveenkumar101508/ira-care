@@ -234,7 +234,7 @@ def _load_model(model_size: str, device: str, compute_type: str) -> WhisperModel
             # Fix #129: surface download/init errors with actionable context so the
             # operator knows what to fix (disk space, network, CUDA availability).
             logger.error(
-                f"Whisper {model_size} failed to load: {e}. "
+                f"Whisper {model_size} failed to load: {type(e).__name__}. "
                 f"Ensure network access is available for the initial model download "
                 f"and that the host has sufficient disk space (~3 GB for large-v3)."
             )

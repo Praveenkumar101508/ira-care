@@ -93,7 +93,7 @@ def _load() -> bool:
             _sr = int(getattr(model.config, "sampling_rate", 44_100))
             logger.info(f"Indic TTS ready (sample_rate={_sr}Hz).")
         except Exception as e:  # noqa: BLE001 — fail soft to Supertonic
-            logger.warning(f"Indic TTS unavailable ({e}); ta/te/kn/ml will use Supertonic 'na'.")
+            logger.warning(f"Indic TTS unavailable ({type(e).__name__}); ta/te/kn/ml will use Supertonic 'na'.")
             _model = None
         finally:
             _loaded = True
@@ -117,7 +117,7 @@ def synthesize_wav_indic(text: str, lang: str = "ta") -> bytes:
         audio = gen.cpu().numpy().squeeze().astype(np.float32)
         return _encode_wav(audio, _sr)
     except Exception as e:  # noqa: BLE001
-        logger.error(f"Indic TTS synthesis failed ({e}); falling back.")
+        logger.error(f"Indic TTS synthesis failed ({type(e).__name__}); falling back.")
         return b""
 
 

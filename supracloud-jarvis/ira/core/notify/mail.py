@@ -150,9 +150,10 @@ def _send_console(message: Message) -> Delivery:
     _OUTBOX.append(message)
     if len(_OUTBOX) > _OUTBOX_LIMIT:
         del _OUTBOX[:-_OUTBOX_LIMIT]
-    # Recipient and subject only. The subject is written by this codebase and
-    # contains no secret; the body is where every link lives.
-    logger.info("mail (console transport) to %s: %s", message.to, message.subject)
+    # Masked recipient and subject only. The subject is written by this codebase and
+    # contains no secret; the body is where every link lives. The full address is
+    # personal data (a family member's, for a care invitation) and stays in the outbox.
+    logger.info("mail (console transport) to %s: %s", _mask_address(message.to), message.subject)
     return Delivery(delivered=True, transport="console")
 
 
@@ -203,3 +204,11 @@ __all__ = [
     "outbox",
     "send",
 ]
+
+
+def _mask_address(address: str) -> str:
+    """`c***@example.com`: enough to tell two recipients apart, not enough to write to."""
+    local, at, domain = (address or "").partition("@")
+    if not at:
+        return "***"
+    return f"{local[:1]}***@{domain}"

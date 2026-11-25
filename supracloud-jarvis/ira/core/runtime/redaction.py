@@ -212,7 +212,30 @@ class RedactionFilter(logging.Filter):
 
 
 def _redact_arg(value: Any) -> Any:
+    if isinstance(value, BaseException) and not exception_text_allowed():
+        # An exception passed as a log argument (`log.warning("failed: %s", exc)`) prints its
+        # message, and a message is where a driver quotes the value it rejected: asyncpg's
+        # DataError names the argument, a model client echoes the request, an SMTP library
+        # the recipient. In a care product that value is a person's words, medication or
+        # address. The type is what an operator needs to triage; the text stays out.
+        return type(value).__name__
     return redact(value) if isinstance(value, str) else value
+
+
+EXCEPTION_TEXT_ENV = "IRA_LOG_EXCEPTION_TEXT"
+
+
+def exception_text_allowed() -> bool:
+    """Exception messages in logs: only when a developer asks by name, never in a
+    production-like environment (where the setting is ignored)."""
+    import os
+    if (os.getenv(EXCEPTION_TEXT_ENV) or "").strip().lower() not in ("1", "true", "yes", "on"):
+        return False
+    try:
+        from core.runtime.environment import get_environment
+        return not get_environment().is_production_like
+    except Exception:  # noqa: BLE001 - unsure means no
+        return False
 
 
 def register_secrets_from_settings(cfg) -> int:

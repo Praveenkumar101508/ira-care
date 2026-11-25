@@ -431,7 +431,7 @@ async def init_checkpointer(pg_conn_string: str) -> None:
         saver_cls = _loaded
     except ImportError as exc:
         _graph_logger.warning(
-            f"AsyncPostgresSaver unavailable ({exc}); falling back to in-memory MemorySaver. "
+            f"AsyncPostgresSaver unavailable ({type(exc).__name__}); falling back to in-memory MemorySaver. "
             "Install langgraph-checkpoint-postgres and psycopg[binary] for persistence."
         )
         saver_cls = None
@@ -458,7 +458,7 @@ async def init_checkpointer(pg_conn_string: str) -> None:
                      else "no checkpoint tables" if recorded is None
                      else f"checkpoint tables at LangGraph migration {recorded}")
             _graph_logger.warning(
-                f"AsyncPostgresSaver unavailable ({exc}); falling back to in-memory "
+                f"AsyncPostgresSaver unavailable ({type(exc).__name__}); falling back to in-memory "
                 f"MemorySaver. {found[0].upper() + found[1:]}; this LangGraph needs migration {latest}. "
                 "Run the database migrations (python -m scripts.migrate apply): "
                 "they create the tables, which the application's role may not.")

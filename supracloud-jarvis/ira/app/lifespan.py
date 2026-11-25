@@ -224,11 +224,11 @@ async def lifespan(app: FastAPI):
 
     # Warm embedding model in background — don't block startup
     _t = asyncio.create_task(_warm_embeddings())
-    _t.add_done_callback(lambda t: t.exception() and logger.warning(f"Embedding warm-up failed: {t.exception()}"))
+    _t.add_done_callback(lambda t: t.exception() and logger.warning(f"Embedding warm-up failed: {type(t.exception()).__name__}"))
 
     # Pre-warm the on-device Supertonic TTS so the first POST /voice/say is not cold.
     _ts = asyncio.create_task(_warm_supertonic())
-    _ts.add_done_callback(lambda t: t.exception() and logger.warning(f"Supertonic warm-up failed: {t.exception()}"))
+    _ts.add_done_callback(lambda t: t.exception() and logger.warning(f"Supertonic warm-up failed: {type(t.exception()).__name__}"))
 
     # Initialise LangGraph checkpointer (AsyncPostgresSaver → persistent state)
     await init_checkpointer(cfg.database_dsn)
@@ -355,7 +355,7 @@ async def _provision_private_owner() -> None:
     except Exception as e:
         logger.error(
             "private owner identity provisioning failed — workspace-scoped "
-            "endpoints will refuse until this is resolved: %s", e,
+            "endpoints will refuse until this is resolved: %s", type(e).__name__,
         )
 
 
@@ -471,7 +471,7 @@ async def _warm_embeddings():
         await asyncio.to_thread(preload_model)
         logger.info("BGE embedding model warmed and ready")
     except Exception as e:
-        logger.warning(f"Embedding model warm-up failed: {e}")
+        logger.warning(f"Embedding model warm-up failed: {type(e).__name__}")
 
     # A2: warm the reranker cross-encoder too (only if enabled) so the first
     # memory query isn't slowed by the one-time model load. Also off the loop:
@@ -483,7 +483,7 @@ async def _warm_embeddings():
             await asyncio.to_thread(preload_reranker)
             logger.info("BGE reranker model warmed and ready")
         except Exception as e:
-            logger.warning(f"Reranker model warm-up failed: {e}")
+            logger.warning(f"Reranker model warm-up failed: {type(e).__name__}")
 
 
 async def _warm_supertonic():
@@ -502,4 +502,4 @@ async def _warm_supertonic():
         else:
             logger.info("Supertonic TTS not available — /voice/say will 503 until installed")
     except Exception as e:
-        logger.info(f"Supertonic warm-up skipped: {e}")
+        logger.info(f"Supertonic warm-up skipped: {type(e).__name__}")

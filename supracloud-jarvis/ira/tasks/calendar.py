@@ -46,7 +46,7 @@ async def sync_calcom_bookings(principal) -> int:
             resp.raise_for_status()
             data = resp.json()
     except Exception as e:
-        logger.warning(f"Cal.com sync failed: {e}")
+        logger.warning(f"Cal.com sync failed: {type(e).__name__}")
         return 0
 
     bookings = data.get("bookings", [])
@@ -85,7 +85,7 @@ async def sync_calcom_bookings(principal) -> int:
                 )
             synced += 1
         except Exception as e:
-            logger.warning(f"Failed to sync booking {event_id}: {e}")
+            logger.warning(f"Failed to sync booking {event_id}: {type(e).__name__}")
 
     if synced:
         logger.info(f"Cal.com: synced {synced} event(s)")
@@ -123,7 +123,7 @@ async def create_calcom_booking(
             resp.raise_for_status()
             return resp.json()
     except Exception as e:
-        logger.error(f"Cal.com booking creation failed: {e}")
+        logger.error(f"Cal.com booking creation failed: {type(e).__name__}")
         return None
 
 
@@ -167,7 +167,7 @@ async def create_calcom_event(
             resp.raise_for_status()
             booking = resp.json()
     except Exception as e:
-        logger.error(f"Cal.com create_calcom_event failed: {e}")
+        logger.error(f"Cal.com create_calcom_event failed: {type(e).__name__}")
         return None
 
     # Persist to local DB so get_upcoming_events works without a live API call
@@ -191,7 +191,7 @@ async def create_calcom_event(
                 booking.get("endTime", start),
             )
     except Exception as e:
-        logger.warning(f"Failed to persist calcom event {external_id}: {e}")
+        logger.warning(f"Failed to persist calcom event {external_id}: {type(e).__name__}")
 
     return booking
 
@@ -217,7 +217,7 @@ async def cancel_calcom_event(principal, external_id: str) -> bool:
             resp = await client.delete(f"/v2/bookings/{external_id}")
             resp.raise_for_status()
     except Exception as e:
-        logger.error(f"Cal.com cancel_calcom_event({external_id}) failed: {e}")
+        logger.error(f"Cal.com cancel_calcom_event({external_id}) failed: {type(e).__name__}")
         return False
 
     # Mark cancelled in local DB regardless of whether the row exists
@@ -230,7 +230,7 @@ async def cancel_calcom_event(principal, external_id: str) -> bool:
                 external_id,
             )
     except Exception as e:
-        logger.warning(f"Failed to mark event {external_id} cancelled locally: {e}")
+        logger.warning(f"Failed to mark event {external_id} cancelled locally: {type(e).__name__}")
 
     return True
 

@@ -73,13 +73,13 @@ async def gather_git_activity(now: datetime) -> str:
             )
             return out.stdout.strip() if out.returncode == 0 else ""
         except Exception as e:  # git missing / not a repo / timeout
-            logger.debug(f"reflection: git history unavailable: {e}")
+            logger.debug(f"reflection: git history unavailable: {type(e).__name__}")
             return ""
 
     try:
         return await asyncio.to_thread(_run)
     except Exception as e:
-        logger.warning(f"reflection: git gather failed (fail-closed): {e}")
+        logger.warning(f"reflection: git gather failed (fail-closed): {type(e).__name__}")
         return ""
 
 
@@ -99,7 +99,7 @@ async def gather_completed_tasks(principal, now: datetime) -> list[str]:
             )
         return [r["title"] for r in rows if r["title"]]
     except Exception as e:
-        logger.warning(f"reflection: completed-task gather failed (fail-closed): {e}")
+        logger.warning(f"reflection: completed-task gather failed (fail-closed): {type(e).__name__}")
         return []
 
 
@@ -133,7 +133,7 @@ async def gather_decision_outcomes(principal, now: datetime) -> list[str]:
             out.append(line)
         return out
     except Exception as e:
-        logger.warning(f"reflection: decision-outcome gather failed (fail-closed): {e}")
+        logger.warning(f"reflection: decision-outcome gather failed (fail-closed): {type(e).__name__}")
         return []
 
 
@@ -206,7 +206,7 @@ async def run_weekly_reflection(
     try:
         summary = (await summarize(messages) or "").strip()
     except Exception as e:
-        logger.warning(f"reflection: summarization failed (fail-closed): {e}")
+        logger.warning(f"reflection: summarization failed (fail-closed): {type(e).__name__}")
         return None
     if not summary:
         return None
@@ -262,4 +262,4 @@ async def _reflection_job() -> None:
     try:
         await run_weekly_reflection()
     except Exception as e:
-        logger.error(f"Weekly reflection failed: {e}", exc_info=True)
+        logger.error(f"Weekly reflection failed: {type(e).__name__}", exc_info=True)

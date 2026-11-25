@@ -73,7 +73,7 @@ async def log_decision(
             )
         decision_id = str(row["id"]) if row else None
     except Exception as e:
-        logger.warning(f"decision_journal.log_decision failed (fail-closed): {e}")
+        logger.warning(f"decision_journal.log_decision failed (fail-closed): {type(e).__name__}")
         return None
 
     if decision_id and about_entity_id:
@@ -113,7 +113,7 @@ async def list_pending_reviews(principal, now: datetime) -> list[dict]:
             for r in rows
         ]
     except Exception as e:
-        logger.warning(f"decision_journal.list_pending_reviews failed (fail-closed): {e}")
+        logger.warning(f"decision_journal.list_pending_reviews failed (fail-closed): {type(e).__name__}")
         return []
 
 
@@ -146,7 +146,7 @@ async def record_outcome(
         updated = int(result.split()[-1]) if result and result.startswith("UPDATE") else 0
         return updated > 0
     except Exception as e:
-        logger.warning(f"decision_journal.record_outcome failed (fail-closed): {e}")
+        logger.warning(f"decision_journal.record_outcome failed (fail-closed): {type(e).__name__}")
         return False
 
 
@@ -169,4 +169,4 @@ async def _link_to_graph(principal, decision_id: str, summary: str, about_entity
             await life_graph.add_edge(
                 principal, decision_entity_id, about_entity_id, "decision_about")
     except Exception as e:
-        logger.debug(f"decision_journal: graph link skipped (non-fatal): {e}")
+        logger.debug(f"decision_journal: graph link skipped (non-fatal): {type(e).__name__}")

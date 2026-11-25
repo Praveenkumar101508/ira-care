@@ -148,7 +148,7 @@ async def notify_report(
             await _send_telegram(title, body, priority, cfg)
             channels_sent.append("telegram")
         except Exception as e:
-            logger.warning(f"Telegram delivery failed: {e}")
+            logger.warning(f"Telegram delivery failed: {type(e).__name__}")
 
     # Email (if configured) — only for warning/critical or briefings
     if cfg.smtp_host and cfg.smtp_user and (priority in ("warning", "critical") or category == "briefing"):
@@ -156,7 +156,7 @@ async def notify_report(
             await _send_email(title, body, category, cfg)
             channels_sent.append("email")
         except Exception as e:
-            logger.warning(f"Email delivery failed: {e}")
+            logger.warning(f"Email delivery failed: {type(e).__name__}")
 
     # Mobile push (Expo) — if enabled and devices are registered (#3 mobile app)
     try:
@@ -167,7 +167,7 @@ async def notify_report(
             if sent:
                 channels_sent.append("mobile")
     except Exception as e:
-        logger.warning(f"Mobile push delivery failed: {e}")
+        logger.warning(f"Mobile push delivery failed: {type(e).__name__}")
 
     # Persist to notifications table
     await _persist(notif_id, category, title, body, priority, channels_sent,

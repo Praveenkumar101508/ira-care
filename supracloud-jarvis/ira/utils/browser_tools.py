@@ -117,7 +117,7 @@ async def browse_and_summarize_website(url: str, query: str) -> dict:
             await browser.close()
 
     except Exception as e:
-        logger.error(f"Playwright navigation failed for {url}: {e}")
+        logger.error(f"Playwright navigation failed for {url}: {type(e).__name__}")
         return {"error": f"Could not load page: {e}", "url": url}
 
     if not page_text.strip():

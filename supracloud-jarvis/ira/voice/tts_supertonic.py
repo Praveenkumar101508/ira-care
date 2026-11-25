@@ -144,7 +144,7 @@ def _load_engine(voice: str):
             try:
                 style = engine.get_voice_style(voice)
             except Exception as e:
-                logger.error(f"Voice '{voice}' not found ({e}); falling back to 'F1'.")
+                logger.error(f"Voice '{voice}' not found ({type(e).__name__}); falling back to 'F1'.")
                 style = engine.get_voice_style("F1")
             _engine, _voice_style = engine, style
             logger.info(
@@ -152,7 +152,7 @@ def _load_engine(voice: str):
                 f"voices={getattr(engine, 'voice_style_names', '?')})."
             )
         except Exception as e:
-            logger.error(f"Supertonic load failed: {e}. TTS will produce silence.")
+            logger.error(f"Supertonic load failed: {type(e).__name__}. TTS will produce silence.")
             _engine, _voice_style = None, None
         finally:
             _loaded = True
@@ -185,7 +185,7 @@ def _synthesise_sync(text: str, speed: float, steps: int, engine, style, lang: s
         )
         return np.asarray(wav, dtype=np.float32)
     except Exception as e:
-        logger.error(f"Supertonic synthesis error: {e}")
+        logger.error(f"Supertonic synthesis error: {type(e).__name__}")
         return None
 
 
@@ -231,7 +231,7 @@ def synthesize_wav(
         try:
             style = engine.get_voice_style(voice)
         except Exception as e:
-            logger.error(f"Voice '{voice}' not found ({e}); using default '{DEFAULT_VOICE}'.")
+            logger.error(f"Voice '{voice}' not found ({type(e).__name__}); using default '{DEFAULT_VOICE}'.")
             style = default_style
     n_steps = DEFAULT_STEPS if steps is None else int(steps)
     synth_lang = _supertonic_lang(lang)

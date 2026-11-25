@@ -107,7 +107,7 @@ async def web_search(query: str, max_results: int = 5) -> list[dict]:
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, _ddg_search, query, n)
     except Exception as e:
-        logger.warning(f"Web search failed ({provider}): {e}")
+        logger.warning(f"Web search failed ({provider}): {type(e).__name__}")
         return []
 
 
@@ -173,7 +173,7 @@ def _ddg_search(query: str, max_results: int) -> list[dict]:
         logger.warning("duckduckgo-search not installed — run: pip install duckduckgo-search")
         return []
     except Exception as e:
-        logger.warning(f"DuckDuckGo search error: {e}")
+        logger.warning(f"DuckDuckGo search error: {type(e).__name__}")
         return []
 
 

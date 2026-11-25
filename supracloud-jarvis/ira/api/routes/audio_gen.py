@@ -217,7 +217,7 @@ async def audio_generate(
         except HTTPException as e:
             yield {"data": _json.dumps({"token": f"\n⚠️ {e.detail}"})}
         except Exception as e:
-            logger.error(f"Audio generation error: {e}", exc_info=True)
+            logger.error(f"Audio generation error: {type(e).__name__}", exc_info=True)
             yield {"data": _json.dumps({"token": f"\n❌ Audio generation error: {str(e)[:200]}"})}
 
         yield {"data": _json.dumps({
@@ -300,7 +300,7 @@ async def audio_transcribe(
         try:
             from voice.stt import AudioTooLong, transcribe_audio_bytes
         except Exception as exc:  # noqa: BLE001 — fall through to the gated fallback
-            logger.info(f"local transcription unavailable ({exc}); considering Replicate")
+            logger.info(f"local transcription unavailable ({type(exc).__name__}); considering Replicate")
             return ""
         try:
             text, _lang, _conf, _pcm = transcribe_audio_bytes(
@@ -310,7 +310,7 @@ async def audio_transcribe(
             too_long.append(exc.seconds)
             return ""
         except Exception as exc:  # noqa: BLE001 — fall through to the gated fallback
-            logger.info(f"local transcription unavailable ({exc}); considering Replicate")
+            logger.info(f"local transcription unavailable ({type(exc).__name__}); considering Replicate")
             return ""
 
     async def gen():
