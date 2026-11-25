@@ -1394,6 +1394,6 @@ numpy) where faster-whisper expects PyAV's, so `import av` is never attempted.
   bundles LGPL native code (`soundfile` with `libsndfile`, which also carries `mpg123` and
   LAME). None is needed by a client that exists. If one is needed later, recording WAV on the
   client is the first choice; a reviewed LGPL exception for `libsndfile` is the second.
-- **Accuracy:** the LibriSpeech test-clean re-run on the new path is not yet recorded; until it is, the 4.24 % in `docs/ai/speech/RESULTS.md` is the PyAV-path figure.
+- **Accuracy:** unchanged. On LibriSpeech test-clean, run before and after in sequence on the same machine, the WER was 4.16 % on both paths with identical errors (132 / 19 / 8); `docs/ai/speech/RESULTS.md`. The 4.24 % recorded earlier came from another package set and stays as the historical benchmark.
 
 What would change it: a client that has to send compressed audio and cannot record WAV.

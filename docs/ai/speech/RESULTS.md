@@ -28,6 +28,34 @@ running it, so device runs are scored the same way when there are devices.
 
 Every utterance, its reference and the recogniser's words are in `results.json`.
 
+## Re-run after PyAV was removed (D-083), 25 November 2026
+
+The same 160 utterances, the same model (`Systran/faster-whisper-small`, revision `536b066`,
+CPU int8, product settings), run twice in sequence on the same machine: first with the code
+and lock as they were before D-083 (PyAV decoding), then with the new decoder
+(`voice/audio_decode.py`, no PyAV). The first figure above (4.24 %) is from an earlier run
+with other package versions; it is kept as the historical benchmark.
+
+| | Before (PyAV path, `main` at `c8dc089`) | After (no PyAV) |
+|---|---|---|
+| Substitutions / deletions / insertions | 132 / 19 / 8 | 132 / 19 / 8 |
+| **WER** | **4.16 %** | **4.16 %** |
+| Median time per utterance | 6.05 s | 9.64 s |
+| CPU time, whole run (user + system) | 1,447 s | 1,167 s |
+| Median decode time per file | not measured | 0.35 ms |
+| Peak memory | 846.7 MiB | 876.7 MiB |
+
+- **Accuracy:** identical, error for error (`results_before_d083.json`, `results_after_d083.json`). Removing PyAV changed nothing the recogniser hears.
+- **Time:** the wall-clock times are not a fair comparison. Both runs shared a 4-CPU container
+  with other builds, at a load average of about 8. The second run used less CPU time (1,167 s
+  against 1,447 s); decoding takes 0.35 ms of each utterance.
+- **Memory:** peak memory rose by 30 MiB, within what other work on the machine explains; it
+  was not isolated.
+- **How the evaluation reads audio:** LibriSpeech is FLAC, which the product no longer reads.
+  The evaluation harness alone converts each file losslessly to 16-bit PCM WAV with
+  `soundfile`, then passes it through the product decoder. `soundfile` is evaluation tooling
+  and is not in the API image.
+
 ## What this does and does not show
 
 - **Not older speakers.** LibriSpeech is read audiobook speech from adult volunteers and records
