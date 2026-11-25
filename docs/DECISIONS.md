@@ -1484,6 +1484,53 @@ What this does not decide: accuracy on the IRA watch or with older adults, and t
 the 20 Hz gyroscope. Both need a physical watch (F7.k and the model card's physical validation
 list). The software cost per window was measured on the JVM and is in the model card.
 
+## D-085 Deployment administrators are a grant the operator writes, never a care role; they send a watch one signed instruction from a closed list (requirements E2.m, E2.o, 25 November 2026)
+
+The watch's device policy (E2.m) keeps developer options, factory reset and safe-mode boot locked
+and accepts only server-signed instructions to open them. #88 built both ends and left the middle
+open: who may ask the server to sign one. A care workspace role must never imply it. A care manager
+runs a care organisation; opening the operating system of a watch on somebody's wrist is fleet
+maintenance, and the people who do it work for whoever operates the deployment.
+
+Decision: a **deployment administrator** is an ordinary signed-in account whose user id holds a live
+row in `deployment_administrators` (migration 122). Nothing else confers it.
+
+- **Identified by the existing sign-in.** No second login, token or key: the account authenticates
+  exactly as everyone else does and is resolved to a Principal by `require_tenant_principal`. The
+  check (`care/deviceadmin.py`) reads only the grant table, never the workspace role, the tenant
+  role, the scopes or `Principal.is_owner`. A care manager, coordinator, carer, viewer, the person
+  themself, a tenant owner and a principal flagged as the deployment owner are all refused (403), and
+  the refusal is logged.
+- **Granted the way OS releases are published.** The operator runs `scripts/deployment_admin.py`
+  with the migrator's credentials, as `scripts/os_release.py` publishes releases (E4.d). The runtime
+  role can write no grant: row-level security admits writes only from `ira_schema_owner`, which the
+  migrator reaches with `SET ROLE`, so even a provisioning step that grants `ira_app` everything
+  (R-47) does not let a request make its caller an administrator. A live grant is readable only on a
+  connection bound to that same account, so the runtime can ask "is this caller an administrator?"
+  and cannot list who is.
+- **Revoked by the operator, effective on the next request.** The account can issue, revoke and read
+  nothing more; whatever it issued that has not expired is withheld from the watch and put on the
+  watch's revocation list, which closes a window it opened.
+- **What it can do: three actions, one watch, at most 15 minutes.** `MAINTENANCE_WINDOW` lifts the
+  developer-options restriction until the instruction expires; `RESTORE_RESTRICTIONS` puts every
+  restriction back now; `FACTORY_RESET` wipes the watch (the reset #88 already allowed through a
+  signed instruction). There is no field for a command, an argument or a restriction name; the API,
+  the table and the watch each refuse anything else. Each instruction names one paired watch by its
+  tenant, workspace and device id, and is worked on a connection bound to that workspace, so a
+  mismatched triple is not found.
+- **Signed as #88 signed it.** ECDSA P-256 over SHA-256 of the exact payload string, with a
+  single-use nonce, verified on the watch with the key built into the image. The key is a separate
+  one from the OTA manifest key and is loaded the same way (`IRA_DEVICE_POLICY_KEY`; none
+  configured means 503, never an unsigned instruction). Ed25519, which the OTA manifests use, was
+  not chosen because not every Android release the device-owner app may run on verifies it.
+- **Audited.** Every instruction keeps who issued it and why; every step (issued, delivered,
+  revoked, applied, refused, restored) is an insert-only row with its actor.
+
+What this does not decide: making the device-policy app the device owner (provisioning, E4.f, needs
+an image), the timer and boot receiver that call the policy on a device, a dashboard screen for
+deployment administrators (the routes exist; the screen does not), and who in the operating
+organisation should hold the grant (an owner decision).
+
 ## D-086 Heart-rate research mode: raw PPG from recorded or simulated signals, returned and never stored (requirement F3.g, 25 November 2026)
 
 Current Wear OS watches give an app finished heart-rate values, not raw PPG, so the learned

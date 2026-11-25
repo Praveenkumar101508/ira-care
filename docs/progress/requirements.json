@@ -1,5 +1,5 @@
 {
- "version": "1.6.0",
+ "version": "1.7.0",
  "methodology": "A fixed, versioned list of atomic requirements for the owner's master directive. Each item is one measurable deliverable with one state. States: not_started; implemented (code or document merged); accepted (functional evidence: unit_test, db_test, build, browser, emulator, model_eval or device; docs_only and config_check never count); verified (integration-level evidence: db_test, browser, emulator, model_eval or device); device_validated (device evidence); blocked_external (cannot progress without something outside the software; blocked_by says what). Every file ref must exist and a PR ref must be #44 or later; acceptance and verification need a qualifying evidence item that names a file, not only a PR. Items are never removed to raise a percentage: blocked and not-started items stay in every denominator. A requirement that changes scope gets a new id and the version is raised. scripts/completion_summary.py enforces these rules and computes the seven measures.",
  "requirements": [
   {
@@ -1803,8 +1803,38 @@
      "ref": "supracloud-jarvis/ira/tests/care/test_devicepolicy.py"
     },
     {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_device_admin_db.py"
+    },
+    {
      "kind": "docs_only",
      "ref": "os/device/ira/ira_watch_cf/SETTINGS_POLICY.md"
+    }
+   ]
+  },
+  {
+   "id": "E2.o",
+   "parent": "E2",
+   "title": "Deployment-administrator instructions: an authority no care role implies, signed single-use instructions from a closed list, revocation and audit, verified and applied by the watch's policy",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_device_admin_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/devicepolicy/DevicePolicyTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_devicepolicy.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/os/DEVICE_POLICY.md"
     }
    ]
   },

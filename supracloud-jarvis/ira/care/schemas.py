@@ -199,6 +199,31 @@ class OsUpdateRequest(BaseModel):
     rollback_index: int = Field(..., ge=0, le=2_147_483_647)
 
 
+class DeviceTarget(BaseModel):
+    """Which workspace a deployment administrator means (care/deviceadmin.py): the care
+    organisation's tenant and workspace. A device or instruction id from elsewhere is not found."""
+    tenant_id: uuid.UUID
+    workspace_id: uuid.UUID
+
+
+class DeviceInstructionCreate(DeviceTarget):
+    """One instruction from the closed list (care/devicepolicy.py ACTIONS); nothing else parses."""
+    device_id: uuid.UUID
+    action: str = Field(..., pattern="^(MAINTENANCE_WINDOW|RESTORE_RESTRICTIONS|FACTORY_RESET)$")
+    minutes: int = Field(10, ge=1, le=15)
+    reason: str = Field(..., min_length=10, max_length=300)
+
+
+class DeviceInstructionRevoke(DeviceTarget):
+    reason: str = Field(..., min_length=10, max_length=200)
+
+
+class DeviceInstructionOutcome(BaseModel):
+    """What the watch did with an instruction it collected."""
+    outcome: str = Field(..., pattern="^(applied|refused|restored)$")
+    reason: str = Field("", max_length=200)
+
+
 class Reading(BaseModel):
     kind: str
     value: float
