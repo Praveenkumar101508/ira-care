@@ -390,7 +390,89 @@ def first_sentence_budget_s() -> float:
 _ADVICE = re.compile(
     r"\b(you should (take|stop|increase|reduce|double)|take (one|two|three|another|an extra|more)\b.*\b(tablet|pill|dose)|"
     r"increase your|reduce your|double your|stop taking|it is safe to|it's safe to|you need to see|see a doctor|"
-    r"call (999|911|112)|dial (999|911|112)|i (would )?recommend|i advise|symptoms? of|you (probably )?have\b)", re.I)
+    r"call (999|911|112)|dial (999|911|112)|i (would )?recommend|i advise|symptoms? of)", re.I)
+
+# Telling the person what they have. Until round 7 any "you have" was refused,
+# which also refused "I hope you have a peaceful evening" and the product's own
+# "Did you have your lunch yet?". The rule now refuses any "you have" it cannot
+# place as plainly social (`_tells_them_what_they_have`):
+#
+# 1. "you have" / "you've got" with a word about health anywhere after it in
+#    the sentence is refused, whatever comes before it ("I hope you have a
+#    fever" too).
+# 2. A hedged or inferred "you have" ("you may have", "you probably have",
+#    "sounds like you have", "I think you've got") is refused unless what
+#    follows is plainly social ("you must have been so proud", "sounds like
+#    you've had a lovely rest"). "You may have missed the bus" is refused: the
+#    guard cannot tell it from "you may have broken your hip".
+# 3. A plain "you have" passes only after a wish or a question ("I hope you
+#    have", "Did you have"), or before something plainly social ("you have a
+#    beautiful garden", "you have family visiting", "you have done so well").
+# A health word missing from `_HEALTH` is still refused by 2 and 3 unless the
+# sentence is social in shape; the list only has to cover social-shaped
+# sentences that mention health.
+_HAVE = re.compile(r"\byou( have( got)?|'ve got|'ve)\b", re.I)
+_HEDGE = re.compile(
+    r"\byou (probably|possibly|likely|maybe|may|might|could|must) (have( got)?|'ve got)\b|"
+    r"\byou'?ve (probably|possibly|likely) got\b|"
+    r"\b(sounds?|looks?|seems?|appears?) (like|as if|as though) you"
+    r"( (probably|possibly|likely|may|might|could|must))?( have( got)?|'ve( got)?)\b|"
+    r"\b(i think|i suspect|i believe|i expect|i'm afraid|i am afraid|i fear|i'm sure|i am sure|i bet|"
+    r"perhaps|maybe|probably|likely|clearly|obviously|definitely|certainly) you( have( got)?|'ve( got)?)\b", re.I)
+_HEALTH = re.compile(
+    r"\b(pain\w*|ache\w*|aching|sore\w*|headache\w*|migraine\w*|fever\w*|temperature|chills?|infect\w*|virus\w*|viral|"
+    r"bacteri\w*|flu|influenza|covid\w*|coronavirus|cold|colds|cough\w*|chest|lungs?|pneumonia|bronchitis|asthma|copd|"
+    r"diabet\w*|sugar|glucose|insulin|blood|pressure|heart\w*|pulse|cancer\w*|tumou?rs?|lumps?|disease\w*|condition\w*|"
+    r"illness\w*|ill|unwell|sick\w*|poorly|syndrome\w*|disorder\w*|deficien\w*|an(a)?emi\w*|dehydrat\w*|uti|urin\w*|"
+    r"bladder|kidney\w*|liver|arthritis|gout|osteopor\w*|fractur\w*|broken|break|sprain\w*|injur\w*|wounds?|bruis\w*|"
+    r"bleed\w*|cuts?|rash\w*|eczema|psoriasis|shingles|allerg\w*|alzheimer\w*|confus\w*|delirium|memory|depress\w*|"
+    r"anxiety|clots?|thromb\w*|dvt|embol\w*|swell\w*|swollen|inflam\w*|nause\w*|vomit\w*|diarrh\w*|constipat\w*|"
+    r"dizz\w*|vertigo|faint\w*|falls?|fallen|seizures?|fits?|shock|symptom\w*|bug|germs?|tablets?|pills?|"
+    r"medicine\w*|medication\w*|dose\w*|(a |the )?(problem|issue|trouble) with your)\b", re.I)
+_SOCIAL_WORD = (
+    r"(lovely|beautiful|wonderful|nice|good|great|fine|kind|warm|gentle|peaceful|restful|relaxing|pleasant|happy|"
+    r"merry|cosy|cozy|busy|quiet|special|splendid|marvellous|fantastic|brilliant|delightful|proud|pleased|glad|"
+    r"delighted|thrilled|excited|lucky|brave|clever|generous|"
+    r"family|friends?|visitors?|company|guests?|visits?|grandchild\w*|children|neighbours?|daughter|son|"
+    r"granddaughter|grandson|sister|brother|niece|nephew|husband|wife|partner|birthday|party|plans?|memories|"
+    r"talent|eye for|way with|green fingers|sense of humour)\b")
+_DET = r"(such |so |very |really |real |quite |so many |so much |lots of |plenty of |many |some |a |an |your |the |(a )?bit of )*"
+# What may follow a hedged "you have" or any "you have": something social, or
+# "been" / "had" before something social ("been so kind", "had a lovely day").
+_SOCIAL_AFTER = re.compile(r"^( got| been| had)? " + _DET + _SOCIAL_WORD, re.I)
+# What may also follow a plain "you have": a finished, ordinary activity.
+_ACTIVITY_AFTER = re.compile(
+    r"^ (done|made|grown|planted|baked|cooked|written|read|achieved|earned|managed|raised|taught|helped|shared|"
+    r"visited|enjoyed|finished|eaten|walked|remembered|worked|told|said|heard|spoken)\b", re.I)
+_SOCIAL_BEFORE = re.compile(
+    r"\b(hope|hoping|wish|wishing|trust|enjoy)\b(\s+[\w']+){0,3}\s+you have$|"
+    r"\b(did|do|does|will|would|can|could|shall|should|have|had|might|may) you have$", re.I)
+_SENTENCE = re.compile(r"[^.!?]+[.!?]*")
+
+
+def _tells_them_what_they_have(text: str) -> bool:
+    """Does the reply tell the person what they have (an illness, a symptom)?
+    Anything it cannot place as social is treated as if it does."""
+    t = text.replace("’", "'").replace("‘", "'")
+    for sentence in _SENTENCE.findall(t):
+        for m in _HEDGE.finditer(sentence):
+            after = sentence[m.end():]
+            if _HEALTH.search(after) or not _SOCIAL_AFTER.search(after):
+                return True
+        for m in _HAVE.finditer(sentence):
+            after = sentence[m.end():]
+            if _HEALTH.search(after):
+                return True
+            if m.group(0).lower().startswith("you've"):
+                continue            # "you've" alone was never refused; only with a health word, or hedged (above)
+            if _SOCIAL_BEFORE.search(sentence[:m.end()]):
+                continue
+            if _SOCIAL_AFTER.search(after) or _ACTIVITY_AFTER.search(after):
+                continue
+            return True
+    return False
+
+
 _ADVICE_ASK = re.compile(
     r"\b(should i (take|stop|have|skip|go|see|call|ring|double|miss)|is it (safe|normal|ok|okay) to|can i (take|skip|miss|stop|have)|"
     r"how (much|many) (\w+ )?(should|can|could|may) i|what('s| is) wrong with me|do i (have|need)|do you think i('ve| have| am| might)|"
@@ -420,7 +502,7 @@ def guard(text: str, *, max_chars: int = 400, one_question: bool = False) -> Gua
         return GuardResult(False, "", "too long")
     if not no_diagnosis_words(t):
         return GuardResult(False, "", "diagnosis word")
-    if _ADVICE.search(t):
+    if _ADVICE.search(t) or _tells_them_what_they_have(t):
         return GuardResult(False, "", "advice")
     if _URL.search(t):
         return GuardResult(False, "", "link")

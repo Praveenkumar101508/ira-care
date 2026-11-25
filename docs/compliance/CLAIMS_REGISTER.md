@@ -48,7 +48,7 @@ there without a row here, or if a row here disagrees with its status there.
 | Only a clear "OK" ends a help check; doubt or silence keeps it open | `test_care_safety_answers_db.py`, `FallCountdownTest.kt`, hazard H15 | software-tested |
 | A medication is recorded as taken only on a clear yes to that exact dose | `test_care_safety_answers.py`, `test_care_safety_answers_db.py`, hazard H14 | software-tested |
 | Never dials the emergency services; the last tier tells people to call 999 | `test_care_monitoring_rules.py::test_the_system_never_dials_the_emergency_services`, hazard H9 | software-tested |
-| The companion gives no medical advice or diagnosis | `care/conversation.py::guard`, `test_care_conversation_rules.py`, hazard H7 | software-tested against listed phrasings; open-ended language **not exhaustively testable** |
+| The companion gives no medical advice or diagnosis | `care/conversation.py::guard`, `test_care_conversation_rules.py`, `test_care_advice_guard_corpus.py`, hazard H7 | software-tested against listed phrasings; open-ended language **not exhaustively testable** |
 | Works offline: Help and readings are kept on the watch and sent when the connection returns, without duplicates | `OfflineQueueTest.kt`, `OutboxTest.kt`, idempotent replay in `care/routes.py`, hazard H18 | software-tested; on real networks **unmeasured** |
 | Each family sees only the person they were invited for | `care/authz.py`, `test_care_isolation_rls.py`, hazard H10 | software-tested |
 

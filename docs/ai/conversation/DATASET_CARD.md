@@ -90,7 +90,10 @@ because that set must stay unseen by a fine-tune.
   have your {subject} yet?" fails `guard()`: its advice pattern `you (probably )?have\b` matches "you have
   your". A model that asks that question word for word would have it refused and replaced by the
   fallback line. Version 1.0.0 therefore uses only "Have you had something to eat?" for meals. The guard
-  is not changed here; narrowing that pattern is a separate, safety-reviewed change.
+  is not changed here; narrowing that pattern is a separate, safety-reviewed change. (That change came
+  in round 7: the guard now lets "Did you have your lunch yet?" through, pinned by
+  `tests/care/test_care_advice_guard_corpus.py`. The dataset is unchanged and still uses only "Have you
+  had something to eat?".)
 - **"No aches today" counts as mentioning pain.** The keyword reader does not handle negation, so a
   negated mention is still a mention. That errs on the safe side, and the label follows the product.
 

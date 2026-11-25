@@ -39,6 +39,9 @@ SOS_KINDS = ("help_requested", "suspected_fall", "heart_rate_outside_range", "no
              "off_wrist_during_check", "concerning_phrase", "missed_checkins")
 RESPONDER_KINDS = ("on_my_way", "arrived", "checked_in_person", "spoke_to_person", "handed_over")
 STREAM_POLL_S = 2.0
+#: How long one stream stays open before the watch reconnects. Read when each
+#: stream starts, so a test can shorten it; production keeps five minutes.
+STREAM_MAX_SECONDS = 300.0
 
 
 def _json(value):
@@ -128,10 +131,12 @@ async def current_for_device(principal: Principal, device: dict) -> dict:
 
 
 async def stream(principal: Principal, device: dict, *, poll_s: float = STREAM_POLL_S,
-                 max_seconds: float = 300.0, now=None) -> AsyncIterator[dict]:
+                 max_seconds: Optional[float] = None, now=None) -> AsyncIterator[dict]:
     """Yield the state at once, then every time it changes, for up to
-    `max_seconds` (the watch reconnects). A heartbeat line every 30 s keeps the
-    connection known to be alive."""
+    `max_seconds` (default `STREAM_MAX_SECONDS`; the watch reconnects). A
+    heartbeat line every 30 s keeps the connection known to be alive."""
+    if max_seconds is None:
+        max_seconds = STREAM_MAX_SECONDS
     last: Optional[str] = None
     started = asyncio.get_event_loop().time()
     silent = 0.0
