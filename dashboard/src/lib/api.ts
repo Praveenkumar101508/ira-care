@@ -1,6 +1,6 @@
 import type { AlertOutcome,
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, Person,
-  AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitCreate, VisitDepart, WorkspaceList, CommunicationProfile, Overview, Capability, Permissions, CarePlan, CarePlanDraft,
+  AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitCreate, VisitDepart, WorkspaceList, CommunicationProfile, Overview, Capability, Permissions, CarePlan, CarePlanDraft, SearchHit, Caseload, PlannedVisit, StaffMember,
 } from './types';
 
 export class ApiError extends Error {
@@ -115,6 +115,11 @@ export class Api {
   profileAccessNotes(id: string) { return this.req<{ allowed: boolean; access_notes: string; home_address: string; emergency_summary: string }>('GET', `/api/v1/care/people/${id}/access-notes`); }
   opsStatus() { return this.req<OpsStatus>('GET', '/api/v1/care/ops/status'); }
   permissions() { return this.req<Permissions>('GET', '/api/v1/care/me/permissions'); }
+  searchAll(q: string) { return this.req<{ query: string; results: SearchHit[] }>('GET', `/api/v1/care/search?q=${encodeURIComponent(q)}`).then((o) => o.results); }
+  caseload() { return this.req<Caseload>('GET', '/api/v1/care/caseload'); }
+  visitPlan() { return this.req<{ visits: PlannedVisit[] }>('GET', '/api/v1/care/visits').then((o) => o.visits); }
+  staff() { return this.req<{ staff: StaffMember[] }>('GET', '/api/v1/care/staff').then((o) => o.staff); }
+  setCoordinator(userId: string, coordinator: boolean) { return this.req<{ user_id: string; coordinator: boolean }>('PUT', `/api/v1/care/staff/${userId}/coordinator`, { coordinator }); }
   carePlan(id: string) { return this.req<{ plan: CarePlan | null }>('GET', `/api/v1/care/people/${id}/plan`).then((o) => o.plan); }
   carePlanHistory(id: string) { return this.req<{ versions: CarePlan[] }>('GET', `/api/v1/care/people/${id}/plan/history`).then((o) => o.versions); }
   saveCarePlan(id: string, body: CarePlanDraft) { return this.req<CarePlan>('POST', `/api/v1/care/people/${id}/plan`, body); }

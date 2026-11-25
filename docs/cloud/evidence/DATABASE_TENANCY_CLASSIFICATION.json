@@ -1,7 +1,7 @@
 {
   "phase": "3B batch 0/1",
   "schema_version": 1,
-  "table_count": 155,
+  "table_count": 156,
   "tables": {
     "access_audit_log": {
       "access": {
@@ -3259,6 +3259,81 @@
         "target_columns": {}
       },
       "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_safety_settings/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_staff_designations": {
+      "access": {
+        "background_worker_call_sites": [],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/staff.py",
+          "supracloud-jarvis/ira/core/privacy/erasure.py"
+        ],
+        "non_test_code_files": 3,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/authz.py",
+          "supracloud-jarvis/ira/care/staff.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/staff.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_staff_designations:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 7,
+        "has_tenant_id": true,
+        "has_user_id": true,
+        "has_workspace_id": true,
+        "policy_count": 3,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on account erasure (care step) or tenant deletion; removing the designation deletes the row",
+        "legal_hold": "n/a",
+        "membership_removal": "the designation stays until a care manager removes it; it has effect only while the account is a workspace member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "DELETE by the care step of account erasure and by ON DELETE CASCADE from users; granted_by is SET NULL",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "A care manager naming a member of the care team COORDINATOR (117, D-080): who, which designation, who named them and when. No health data. Belongs to the account; goes with the account (care step of erasure, ON DELETE CASCADE from users) and with the tenant.",
+      "migration": {
+        "done_by": "117_care_staff_designations.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_staff_designations/",
       "retention": "care_consents.retention_months per person, default 12 months",
       "rls": {
         "already_satisfied": true,

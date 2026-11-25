@@ -1380,8 +1380,17 @@
    "title": "Search across people and records in the dashboard",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_staff_db.py::test_search_never_shows_a_person_outside_the_circle_and_logs_no_words"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/team.test.tsx"
+    }
+   ]
   },
   {
    "id": "D3.h",
@@ -1407,8 +1416,21 @@
    "title": "Staff roles (coordinator, carer, manager) with role-specific screens",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_staff_db.py::test_a_coordinator_plans_visits_for_everyone_and_manages_nothing"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_staff_db.py::test_a_carer_sees_only_their_own_caseload_and_visits"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/team.test.tsx"
+    }
+   ]
   },
   {
    "id": "D3.j",

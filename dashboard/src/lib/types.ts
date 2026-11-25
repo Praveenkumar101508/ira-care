@@ -118,9 +118,10 @@ export interface Capability {
 /** A care organisation's staff role and what it may do (GET /care/me/permissions, care/authz.py). */
 export type StaffAction = 'view_care_plan' | 'edit_care_plan' | 'acknowledge_alerts' | 'record_visits' | 'record_medication'
   | 'set_reminders' | 'manage_people' | 'manage_circle' | 'manage_watches' | 'manage_safety_settings'
-  | 'manage_medication_list' | 'manage_consents';
+  | 'manage_medication_list' | 'manage_consents' | 'search' | 'view_caseload' | 'view_visit_plan'
+  | 'designate_coordinators';
 export interface Permissions {
-  role: string | null; label: string; who: string; sees_everyone: boolean;
+  role: string | null; coordinator?: boolean; label: string; who: string; sees_everyone: boolean;
   can_read: boolean; can_act: boolean; can_manage: boolean; actions: Partial<Record<StaffAction, boolean>>;
 }
 
@@ -136,3 +137,17 @@ export interface CarePlanDraft {
   based_on: number; goals: string; support: string; routine: PlanRoutineItem[]; risks: string; emergency: string;
   review_on: string | null; reason: string;
 }
+
+/** Workspace-wide search (D3.g): people by name, visits, alerts. Never what anyone said. */
+export type SearchKind = 'person' | 'visit' | 'alert';
+export interface SearchHit { kind: SearchKind; id: string; person_id: string; person_name: string; text: string; at: string | null }
+
+/** The care team's views (D-080). */
+export interface CaseloadPerson { person_id: string; name: string; member_id: string; next_visit: string | null }
+export interface CaseloadCarer { user_id: string; name: string; people: CaseloadPerson[] }
+export interface Caseload { everyone: boolean; carers: CaseloadCarer[] }
+export interface PlannedVisit {
+  id: string; person_id: string; person_name: string; planned_start: string; planned_end: string; status: VisitStatus;
+  purpose: string; carer_name: string; carer_member_id: string | null;
+}
+export interface StaffMember { user_id: string; name: string; roles: string[]; people: number; coordinator: boolean }

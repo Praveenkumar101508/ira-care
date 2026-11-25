@@ -1300,3 +1300,36 @@ dashboard shows nothing that changes the record. Hiding a button is a courtesy; 
 checks every request.
 
 Not decided here: a rota, a caseload view per carer, or roles finer than these three.
+
+## D-080 The care coordinator is a carer named by the care manager; search covers names and records, never words (requirements D3.g, D3.i, 25 November 2026)
+
+D-078 named the three workspace roles and left "roles finer than these three" undecided. A care
+organisation needs a fourth: the **coordinator**, who plans visits for everyone and sees every
+carer's caseload, without being able to change who is cared for, the care team, watches, safety
+settings or care plans.
+
+Decision: the coordinator is **not a new workspace role**. A care manager names a `member` of the
+workspace coordinator (`care_staff_designations`, migration 117; `PUT /care/staff/{user_id}/coordinator`).
+Adding a fourth value to `workspace_memberships.role` would have touched the identity migrations, the
+invitation rules and the cloud role map for one care feature; a care-side designation touches none.
+
+- **What it changes:** `authz.sees_everyone` is true for a care manager, the deployment owner and a
+  coordinator, so a coordinator sees every person in the workspace (D-076's rule, widened only for the
+  people the manager named) and can plan, move and cancel visits for them with the carer's existing
+  act-level routes. `GET /care/caseload` shows every carer's caseload; `GET /care/visits` every visit.
+- **What it does not change:** the workspace role is still `member`, so every manage-level route still
+  refuses (people, circle, watches, settings, medication lists, consents, care plans, naming
+  coordinators). Words under consent follow the caller's own circle role, and access notes stay with the
+  care manager or a tier 1 or 2 contact during an alert, so seeing a person does not open what they said
+  or their key safe. A designation on a viewer or a manager has no effect; it counts only on a `member`.
+- **Screens by role:** a care manager sees every caseload, the full visit plan and the coordinator
+  switch; a coordinator sees every caseload and the full visit plan and can plan visits for anyone; a
+  carer sees "My caseload" and the visits of the people they look after; a viewer sees their own
+  caseload (usually empty) and no action. Every screen asks the server, and every route checks again.
+
+Search (`GET /care/search`) covers people by name, visits by purpose or carer, and alerts by kind,
+across the people the caller may see. It never searches check-in answers, transcripts or care-plan
+text: those stay behind the per-person history search, where consent applies. What is typed is matched
+literally (LIKE wildcards escaped, passed as a parameter), searches are rationed to 30 a minute per
+address, and each search is written to the access log once per person it returned, with the kinds of
+record found and never the words typed.

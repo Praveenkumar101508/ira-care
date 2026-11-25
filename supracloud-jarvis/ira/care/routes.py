@@ -29,6 +29,8 @@ from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
+from . import staff as care_staff
+from . import search as care_search
 from . import authz, audit, checkin_cycle, consent, history, onboarding, ops, personal, plans, push, reports, repository as repo, schemas, sos, visits
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
@@ -36,6 +38,8 @@ from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 # and is refused unless its signature is valid). Per client address (P2-03 key).
 PAIR_LIMIT = "10/minute"
 SIGNUP_LIMIT = "3/minute"
+# Workspace-wide search reads across everyone the caller may see: rationed per address.
+SEARCH_LIMIT = "30/minute"
 
 router = APIRouter(prefix="/care", tags=["care"])
 logger = logging.getLogger("ira.care.routes")
@@ -663,7 +667,67 @@ async def put_my_preferences(body: schemas.Preferences, p: Principal = Depends(r
 async def my_permissions(p: Principal = Depends(require_workspace_principal)):
     """This account's staff role and the actions it may take (authz.STAFF_ROLES, ACTIONS), so
     the dashboard shows only what will work. Every route still checks for itself."""
-    return authz.permissions_for(p)
+    async with workspace_connection(p) as conn:
+        coordinator = await authz.is_coordinator(conn, p)
+    return authz.permissions_for(p, coordinator=coordinator)
+
+
+# ── The care team: search, caseloads, the visit plan, coordinators (D-080) ───
+
+@router.get("/search")
+@limiter.limit(SEARCH_LIMIT)
+async def search_workspace(request: Request, q: str = Query(..., min_length=care_search.MIN_QUERY, max_length=200),
+                           limit: int = Query(care_search.MAX_RESULTS, ge=1, le=care_search.MAX_RESULTS),
+                           p: Principal = Depends(require_workspace_principal)):
+    """People by name, visits by purpose or carer, alerts by kind, across the people this
+    caller may see. Never what anyone said. Audited without the words typed."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        return await care_search.search(conn, p, q, limit=limit)
+
+
+@router.get("/caseload")
+async def caseload(p: Principal = Depends(require_workspace_principal)):
+    """Which people each carer covers and their next visit. Every carer's for a care manager
+    or coordinator; only the caller's own for anyone else."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        return await care_staff.caseload(conn, p)
+
+
+@router.get("/visits")
+async def visit_plan(since: Optional[dt.datetime] = Query(None), until: Optional[dt.datetime] = Query(None),
+                     limit: int = Query(200, ge=1, le=1000), p: Principal = Depends(require_workspace_principal)):
+    """Every visit in a window (default: from now to seven days ahead) for the people this
+    caller may see: the coordinator's planning view."""
+    ensure_can_read(p)
+    now = dt.datetime.now(dt.timezone.utc)
+    since = since or now - dt.timedelta(hours=12)
+    until = until or now + dt.timedelta(days=7)
+    if until <= since or until - since > dt.timedelta(days=62):
+        raise HTTPException(status_code=422, detail="The window must be positive and at most 62 days.")
+    async with workspace_connection(p) as conn:
+        return await care_staff.visit_plan(conn, p, since=since, until=until, limit=limit)
+
+
+@router.get("/staff")
+async def list_staff(p: Principal = Depends(require_workspace_principal)):
+    """The care team (everyone with an account in a circle) and who is coordinator. Managers only."""
+    ensure_can_manage(p)
+    async with workspace_connection(p) as conn:
+        return await care_staff.staff(conn)
+
+
+@router.put("/staff/{user_id}/coordinator")
+async def set_coordinator(user_id: uuid.UUID, body: schemas.CoordinatorDesignation,
+                          p: Principal = Depends(require_workspace_principal)):
+    """Name a carer coordinator, or stop. Managers only. Somebody in no circle is "not found"."""
+    ensure_can_manage(p)
+    async with workspace_connection(p) as conn:
+        out = await care_staff.set_coordinator(conn, p, user_id, body.coordinator)
+    if out is None:
+        raise _not_found("Nobody on the care team has that account.")
+    return out
 
 
 # ── The care plan (116) ──────────────────────────────────────────────────────
