@@ -1,5 +1,110 @@
 # IRA CARE: final report
 
+## Round 7: the final closure directive (25 November 2026)
+
+The owner's final software closure directive asked for every remaining independently achievable
+software and AI requirement, five owner decisions acted on, and a final report with an external
+dependency register. Eighteen pull requests, #96 to #113 (plus this one), each squash-merged into
+`main` with every required CI check green. The integrated run is in
+[`VERIFICATION.md`](VERIFICATION.md). The external dependency register is
+[`docs/evidence/DEPENDENCY_REGISTER.md`](../evidence/DEPENDENCY_REGISTER.md); readiness by use is in
+[`GO_NO_GO.md`](GO_NO_GO.md).
+
+### Completion
+
+Snapshot "main after #113", `5e03a2f`, requirements 1.7.0 (253 items; 8 added this round as new scope, none removed).
+
+| Measure | Round 6 (after #94) | Round 7 (after #113) |
+|---|---|---|
+| Hardware-independent software implementation | 87.4 % | 89.5 % (170 / 190) |
+| Hardware-independent software acceptance | 76.0 % | 78.4 % (149 / 190) |
+| Software verification | 32.5 % | 34.6 % (71 / 205) |
+| AI development | 64.1 % | 73.9 % (34 / 46) |
+| OS development | 14.8 % | 17.9 % (5 / 28) |
+| Hardware integration | 0.0 % | 0.0 % (0 / 14) |
+| External and commercial readiness | 2.9 % | 2.9 % (1 / 34) |
+
+150 of 253 requirements are accepted or better; 103 remain:
+- **58** are blocked by something outside the software (60 at round 6: the three fine-tune items F2.e to F2.g were cleared on a Kaggle GPU, and the new F7.k, battery on a real watch, was added);
+- **44** are documents, plans or configuration whose acceptance needs a reviewer, a build host or a device;
+- **1**, the 24-hour soak, is not started.
+
+None is device validated. The 100 % target is not reached, and the figures above say exactly why.
+
+### The owner's decisions, acted on
+
+| Decision | What was done | Result |
+|---|---|---|
+| PyAV licensing | Traced every use; the server now decodes WAV itself (`voice/audio_decode.py`); faster-whisper installed without its PyAV dependency; Dockerfiles refuse to build if `av` is present (#100, D-083) | No PyAV, libx264, libx265 or libavcodec in the lock's environment or the built API image. Speech accuracy unchanged: WER 4.16 % before and after, identical errors (#101). Cost: the server no longer transcribes MP3, M4A, Ogg, Opus, WebM or FLAC uploads; no client in the product sends them |
+| Kaggle SisFall-trained model | Checked with the account's own API | No public copy ever existed: the original upload was refused (`models.create` denied) and the account has no models; the training notebook and both datasets are private. The earlier statement that a copy was published was wrong and is corrected with a dated note (#99) |
+| SisFall policy | The SisFall-trained v1 is out of every build, debug included; the watch refuses any model but the reviewed v3 by hash; training scripts can no longer publish weights (#99, D-082) | Fall v3 (licensed data) ships with the deterministic rule detector as the fallback |
+| Dataset permission requests | Drafts verified; recipients could not be verified because the publishers' sites were refused by the build environment's network. The hosts were then allowed, but delegating the lookup was refused by the session's permission system | **Not sent.** Owner action: send them (see the dependency register) |
+| Release-signing keys | Custody procedure for every key (`docs/security/SIGNING_KEYS.md`); key files and `keystore.properties` git-ignored (they were not); a guard test (#96, #107) | No key was created; the founders make them on their own machines |
+| Obsolete branches | All 52 verified as merged with no unique commits | **Not deleted:** the session's permission system refused the deletion. Owner action: delete them, or allow it |
+
+### Round 7: the merges
+
+| PR | What it delivers |
+| --- | --- |
+| 96 | Signing-key custody procedure; key files ignored; guard test |
+| 97 | Phone app: every npm audit finding cleared (1 critical, 3 high, 16 moderate to 0) without an SDK jump |
+| 98 | Dashboard: strict nonce-based Content Security Policy; 21 pages checked in a browser with no violations |
+| 99 | SisFall model out of every build; training scripts publish nothing; Kaggle record corrected (D-082) |
+| 100 | PyAV no longer ships; the server decodes WAV itself (D-083) |
+| 101 | Speech WER re-run after PyAV removal: unchanged |
+| 102 | Activity estimate end to end: consented hourly summaries, carer trends, no alert path (D-084) |
+| 103 | Deployment administrators: signed, single-use, expiring device instructions (D-085) |
+| 104 | Heart: research-mode raw-PPG pipeline on recorded or simulated signals, never stored, never alerting (D-086) |
+| 105 | Supply chain: watch Gradle licences, artefact scans, CycloneDX SBOMs, third-party notices; GPL readline and GDBM unlinked from the API image (D-087) |
+| 106 | Endorsement technical report, assumptions register, dependency register, architecture diagrams, readiness by use |
+| 107 | Security review, round 7: WAV decoder limits, a request-body limit, key custody |
+| 108 | Production API image from a hashed lock without test tools; licence notices ship with every artefact and in every app (D-088) |
+| 109 | A factory reset needs a second deployment administrator (D-089) |
+| 110 | Dashboard test runner upgraded; development-tree audit clean |
+| 111 | Conversation fine-tune run on Kaggle GPU; the promotion gate keeps the base model (D-090) |
+| 112 | Integrated verification on `main` |
+| 113 | Three defects the verification found: the SOS stream test, the advice guard, Caddy's health check (D-091) |
+
+### The seven intelligence components
+
+| Component | Model or method | Data (licence) | Result | In the product |
+|---|---|---|---|---|
+| Conversation | Gemma 4 E4B / E2B (Apache 2.0) behind IRA's rules | Synthetic dataset 1.1.0 (522 examples, ours) | Base model: 22-step journey 8 of 8 runs with every safety assertion. QLoRA fine-tune (2 × T4, 25 Nov): better quality (0.84 to 0.91) but escalated on 3 of 11 held-out help answers against the base's 9 | Base model; fine-tune **not promoted** (D-090) |
+| Safety | Deterministic rules; models may only be more cautious | Our rules | Advice guard narrowed and tightened (D-091): catches 13 risky phrasings the old rule missed; 44 / 33 corpus | In use |
+| Memory | Consent-controlled per-person store | — | Erasure, retention, consent and isolation covered by the database suites | In use |
+| Fall | v3 MLP + rule detector, recover mode | BITS-2 + UCI HAR (CC BY 4.0) | 246 of 316 held-out falls (0.7785) against 195 for the rule alone; at most 10.30 alarms per hour against 52.84 | Every build (D-080, D-082) |
+| Heart | Classical spectral estimator; learned selector (portable JSON) | PPG-DaLiA (CC BY 4.0) | 13.28 and 7.75 bpm MAE; research pipeline reproduces held-out S1 exactly (11.01 / 8.09) | Classical in use; learned selector in research mode only (D-086) |
+| Activity | WISDM wrist model | WISDM (CC BY 4.0) | Macro-F1 0.790, accuracy 86.6 %, 51 people | Watch summaries to carers under consent; never alerts (D-084) |
+| Speech | faster-whisper `small` (MIT) | LibriSpeech test-clean (CC BY 4.0, evaluation only) | WER 4.16 % (4.24 % historical benchmark) | In use, WAV only |
+
+None is validated on older adults or on the IRA watch, and IRA CARE is not a medical device.
+
+### Readiness
+
+| Use | Decision |
+|---|---|
+| Internal engineering demonstration | **GO** |
+| Investor demonstration | **GO**, with fictional people, test providers and a labelled browser watch |
+| Innovator Founder endorsement demonstration | **GO**, on the same conditions, with the technical endorsement report |
+| Physical-device engineering tests | **NO-GO** until devices exist |
+| Supervised care pilot | **NO-GO**: clinical safety officer, MHRA view, devices, live providers, older-adult accuracy |
+| Commercial release | **NO-GO**: the pilot's needs plus store accounts, signed builds, hosting, penetration test, the OS image |
+| Unsupervised real-world care | **NO-GO** |
+
+### What remains
+
+One requirement is achievable with a resource this environment lacks: the 24-hour wall-clock soak
+(G2.e), which needs a machine that stays up for a day; this container rebooted during the round.
+Everything else that remains is blocked by something outside the software, each one named in
+`completion_summary.py` and grouped, with what is prepared and the next action, in
+`docs/evidence/DEPENDENCY_REGISTER.md`:
+
+- **Owner actions:** send the dataset permission emails; delete the 52 verified-merged branches (or allow it); create the release keys on a founder-controlled machine; a Mozilla Data Collective account for older-speaker evaluation; Google Play and Apple accounts; approval to rent a server; provider credentials.
+- **Third parties:** a clinical safety officer (who should also review the D-091 guard change), an MHRA adviser, a penetration tester, a monitoring-centre contract, the DPO for the ICO guidance, dataset authors.
+- **Machines and devices:** an AOSP build host (about 400 GB disk, 64 GB RAM, 8+ cores, KVM), a KVM host for emulators, a Mac, physical watches and phones, the IRA watch hardware.
+- **Still open in software, deliberately:** step-up authentication for deployment administrators (the session token carries no authentication time; D-089); a dashboard screen for administrators.
+
+
 ## Round 6: the final report (the master directive, 25 November 2026)
 
 This is the final report the owner asked for: every requirement that software alone can finish
