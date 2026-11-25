@@ -58,7 +58,7 @@ Nothing is marked done because code or a document exists.
 | C-13 | Native mobile voice | not started | needs native speech modules; **needs external**: device testing |
 | C-14 | Complete logout isolation | unit tested | #47 · C3 |
 | C-15 | Push-token unregister on sign-out | unit tested | #47 · C3 |
-| C-16 | Secure automatic session renewal | unit tested | #47 · C4. Dashboard session renewal: **not started** |
+| C-16 | Secure automatic session renewal | unit tested | #47 · C4 (phone); `fix/dashboard-session-renewal` · C4b (dashboard) |
 | C-17 | Watch speech-recognition threads and lifecycle | unit tested | #48 · D1 (JVM tests; CI Wear OS and AOSP builds) |
 | C-18 | Watch text-to-speech lifecycle and time limits | unit tested | #48 · D2 |
 | C-19 | Encrypted watch storage | unit tested | #48 · D5 (Keystore hardware backing: **needs external**, device) |
