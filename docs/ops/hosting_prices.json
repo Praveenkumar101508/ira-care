@@ -1,0 +1,12 @@
+{
+  "note": "Fill each price_gbp from the provider's published list price for a UK region, with its URL and the date read. Left null on 25 November 2026: the build environment could not reach any provider's price page or price API (DigitalOcean, Hetzner, OVHcloud, AWS and the Azure retail prices API were all refused by the network). No price here is invented.",
+  "region": "a UK region, to be chosen",
+  "items": {
+    "vm_4vcpu_16gb": {"price_gbp": null, "per": "hour", "source": null, "read_on": null},
+    "managed_postgres_2vcpu_8gb": {"price_gbp": null, "per": "hour", "source": null, "read_on": null},
+    "block_storage_gb": {"price_gbp": null, "per": "GB-month", "source": null, "read_on": null},
+    "object_storage_gb": {"price_gbp": null, "per": "GB-month", "source": null, "read_on": null},
+    "egress_gb": {"price_gbp": null, "per": "GB", "source": null, "read_on": null},
+    "domain_and_tls": {"price_gbp": null, "per": "month", "source": null, "read_on": null}
+  }
+}

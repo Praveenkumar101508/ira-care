@@ -24,6 +24,10 @@ daily life. That is high risk on its face.
 | Alerts, attempts, acknowledgements | System | The record of what happened | Circle and staff | Per-person retention once resolved |
 | Access log | System | Who looked | Managers | Audit retention; not erased with the person |
 | Accounts: email, hashed password, role, phone | Members | Sign-in; being told | The organisation | Account lifetime |
+| Care plan versions (goals, support, routine, risks, emergency instructions, author) | Care managers | Shared plan of care | Anyone who may see the person; written by managers only | With the person; every version kept (D-078) |
+| Email address of circle members; alert emails | Members; system | Being told by email when an alert escalates (off unless configured) | The member; the operator's mail provider | Delivery records per-person retention; message text never logged |
+| Alert hand-over to a monitoring centre (alert kind, address, circle contact) | System | Tier 3 hand-over to an alarm-receiving centre (off unless configured; none contracted) | The centre, under the operator's contract | The centre's retention; ours with the alert |
+| Encrypted database backups, copied off site | System | Recovery | The operator; the storage provider sees only encrypted files | `BACKUP_KEEP_DAYS` locally; the bucket's lifecycle off site |
 
 ## 3. Necessity and proportionality
 
@@ -65,3 +69,38 @@ of the UK by default.
 
 Residual risks are medium in several places until consultation, a security test and a pilot
 have happened. The DPO's sign-off, and whether to consult the ICO, are for the operator.
+
+## 8. Speech recognition (requirement C-13.d, 25 November 2026)
+
+Speech is turned into text by the recogniser of the device the person speaks to. IRA CARE never
+receives, stores or sends audio; only the recognised text reaches IRA, the same as if it were typed.
+
+| Where | Recogniser | Where the audio may be processed | What IRA receives |
+| --- | --- | --- | --- |
+| Watch (`watch/app/src/main/java/care/ira/watch/voice/Listener.kt`) | Android's `SpeechRecognizer`, asked to prefer on-device recognition (`EXTRA_PREFER_OFFLINE`) | On the watch where the platform has an offline model; otherwise the platform's recognition service, which may be a cloud service of the watch's maker or Google, under their terms. The preference is a request, not a guarantee | One utterance's text |
+| Phone (`mobile/src/voice/voice.ts`) | The phone's own recogniser through `expo-speech-recognition` (Apple's Speech framework on iPhone, Google's on Android) | On the device or on Apple's or Google's servers, under their terms; the app does not force on-device recognition | One utterance's text |
+| Care server | None: the care deployment exposes no audio route (`tests/care/test_care_server.py`) | — | — |
+
+Measures:
+
+- The microphone is used only while the person is answering or has pressed Speak; one utterance
+  at a time; no wake word; no recording kept.
+- The permission prompts say that the phone or watch does the listening.
+- What the person says is a transcript under the transcript consent (section 2); the
+  recogniser's own processing is outside IRA CARE's control.
+
+Residual risk: **medium** until the operator has read and recorded the platform terms of the
+watches and phones it supports (Google's and Apple's speech processing terms, and the watch
+maker's), and decided whether to require on-device recognition where the platform offers it.
+That decision belongs in section 6 with the lawful basis. A forced on-device mode is not built.
+
+## 9. Checked against current guidance (25 November 2026)
+
+- **ICO:** the ICO's guidance pages on special category data and on DPIAs (ico.org.uk) could
+  **not** be read from the build environment (the network refused the host). This DPIA has
+  therefore **not** been checked against the ICO's current text; the data protection officer
+  must do so. Nothing here should be read as reflecting the ICO's current guidance.
+- **MHRA:** read on gov.uk on 25 November 2026 (see `INTENDED_PURPOSE.md`): if the product is
+  a medical device, the strengthened post-market surveillance requirements in force in Great
+  Britain since 16 June 2025 add duties on incident data, which this DPIA's retention for alerts
+  and attempts must allow for.
