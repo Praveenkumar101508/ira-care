@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  First-boot runtime-permission grants for the preinstalled IRA CARE watch app.
+  Installed to /product/etc/default-permissions/ by Android.bp (prebuilt_etc). The platform's
+  default-permission policy reads this directory and grants only to apps on the system
+  image, so a sideloaded copy of the app gets nothing from it.
+
+  A PROPOSAL, UNBUILT. Pre-granting the microphone and location to a device worn by an older
+  person is a privacy decision, not a technical one: it needs the owner's approval and the
+  DPIA (docs/compliance/) to say so before this file goes into an image a person wears.
+  The case for it: the person may not be able to read or answer a permission dialog, and
+  the app's Help path needs location once per SOS (never continuously; see the manifest).
+
+  fixed="false" leaves every grant revocable in Settings.
+
+  UNCERTAIN: BODY_SENSORS_BACKGROUND is a hard-restricted permission. Apps on the system
+  image are normally exempt from the restriction, but whether the default-permission policy
+  grants a hard-restricted permission from this file must be checked on the build host
+  (`adb shell dumpsys package care.ira.watch`, granted=true). Newer Android releases also
+  move heart rate from BODY_SENSORS to android.permission.health.READ_HEART_RATE; the
+  manifest and this file follow when the app's target SDK does.
+
+  Copyright 2026 IRA CARE. Licensed under the Apache License, Version 2.0.
+-->
+<exceptions>
+    <exception package="care.ira.watch">
+        <permission name="android.permission.BODY_SENSORS" fixed="false" />
+        <permission name="android.permission.BODY_SENSORS_BACKGROUND" fixed="false" />
+        <permission name="android.permission.ACTIVITY_RECOGNITION" fixed="false" />
+        <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />
+        <permission name="android.permission.RECORD_AUDIO" fixed="false" />
+        <permission name="android.permission.ACCESS_FINE_LOCATION" fixed="false" />
+        <permission name="android.permission.ACCESS_COARSE_LOCATION" fixed="false" />
+    </exception>
+</exceptions>

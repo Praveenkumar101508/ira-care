@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Framework settings for IRA CARE OS: a single-purpose care watch.
+  UNBUILT (docs/os/BUILD.md). Copyright 2026 IRA CARE. Apache License, Version 2.0.
+
+  Every name below is a resource in frameworks/base/core/res/res/values/config.xml in at
+  least some AOSP releases. None could be checked against the release that will be built,
+  because the AOSP source sites are not reachable from this repository's build machine.
+  Each value says how sure we are. A name the target does not define is skipped by the
+  overlay system (it maps resources by name), so a wrong name here fails quietly, not
+  loudly: docs/os/BUILD.md step 9 checks each one on the running device with
+  `adb shell cmd overlay dump care.ira.os.overlay.framework`.
+
+  What is NOT here, on purpose: hiding developer options and factory reset. Those are not
+  overlay settings in AOSP. The standard mechanism is a device-owner policy setting user
+  restrictions (DISALLOW_DEBUGGING_FEATURES, DISALLOW_FACTORY_RESET, DISALLOW_SAFE_BOOT),
+  described in SETTINGS_POLICY.md.
+-->
+<resources>
+    <!-- The panel is round. Used by the framework and by round-aware layouts.
+         Confidence: high for config_windowIsRound (long used by watch builds); medium for
+         config_mainBuiltInDisplayIsRound (believed added in Android 10). -->
+    <bool name="config_windowIsRound">true</bool>
+    <bool name="config_mainBuiltInDisplayIsRound">true</bool>
+
+    <!-- Emergency SOS by pressing the power button repeatedly, kept ON. It is the platform's
+         own route to emergency help and works with the screen off and the device locked.
+         Confidence: high that the name exists (added so OEMs can enable it separately from
+         the camera gesture); default true. On a watch with no cellular modem in the image
+         (Cuttlefish) it can start the gesture but cannot place a call. -->
+    <bool name="config_emergencyGestureEnabled">true</bool>
+
+    <!-- A long press on the power button opens the power menu (1, "global actions"), not
+         an assistant (the newer AOSP default is 5, assistant, and there is no assistant on
+         this image). The power menu carries the platform's Emergency entry.
+         Confidence: high that the name exists; the meaning of each number has changed
+         between releases, so check PhoneWindowManager in the target release. -->
+    <integer name="config_longPressOnPowerBehavior">1</integer>
+
+    <!-- No lock screen by default: the IRA app is the first and only screen, and Help is on
+         it (EMERGENCY_UI.md). A carer or the person can still set a lock in Settings.
+         Confidence: LOW. Believed to exist in recent releases; not confirmed. If absent, the
+         same effect is reached by the provisioning step (EMERGENCY_UI.md, "Lock screen"). -->
+    <bool name="config_disableLockscreenByDefault">true</bool>
+</resources>

@@ -82,11 +82,11 @@ Nothing is marked done because code or a document exists.
 
 | # | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
-| E1 | Distinguish app / launcher / system image / firmware / production OS | not started | |
-| E2 | Product config, launcher, boot animation, settings, emergency UI, services, Cuttlefish image | not started | A full AOSP build needs about 400 GB disk and 64 GB RAM (source.android.com); **this container has neither**. Config, launcher and scripts can be prepared here; a built and booted image needs a build host |
+| E1 | Distinguish app / launcher / system image / firmware / production OS | in progress | `fix/os-product-layer` · `docs/os/ARCHITECTURE.md`: the five layers, what exists (with paths), what is unbuilt, what needs hardware or suppliers; the sensor HAL boundary. Document only; nothing in it is built |
+| E2 | Product config, launcher, boot animation, settings, emergency UI, services, Cuttlefish image | in progress (configuration only); image **needs external** (AOSP build host) | `fix/os-product-layer` · `os/`: Cuttlefish product makefile, privileged prebuilt app with privapp allowlist (empty: the manifest requests no privileged permission), proposed first-boot grants, framework overlay, boot animation specification, settings and emergency-UI notes, build and launch scripts. Readiness tests `tests/readiness/test_os_product_layer.py` check references, the allowlist against the manifest, and that the build script refuses on low resources and never downloads without the opt-in. **The image is unbuilt and has never booted**: a full AOSP build needs about 400 GB disk and 64 GB RAM (source.android.com) and this container has neither. Several AOSP names are marked uncertain (`docs/os/BUILD.md`). IRA as the home screen: **not started**, needs a HOME intent filter in the watch app's aosp flavour (`os/device/ira/ira_watch_cf/HOME_LAUNCHER.md`). Device-owner policy app (developer options, factory reset behind an administrator): **not started** |
 | E3 | Sensor HAL interfaces with simulated drivers | pre-existing (contract) | `docs/hardware/SENSOR_HAL.md`; simulated drivers: **not started** |
-| E4 | Verified boot, Keystore, signed OTA, rollback, provisioning | not started | Hardware-backed parts: **needs external** (target board) |
-| E6 | OS architecture document, build instructions, Qualcomm dependency register | not started | |
+| E4 | Verified boot, Keystore, signed OTA, rollback, provisioning | not started | Plan in `docs/os/ARCHITECTURE.md` section 3 (`fix/os-product-layer`), saying which links can be shown on Cuttlefish and which cannot. Hardware-backed parts: **needs external** (target board). Signing keys: **needs external** (owner's key-custody decision) |
+| E6 | OS architecture document, build instructions, Qualcomm dependency register | in progress | `fix/os-product-layer` · `docs/os/ARCHITECTURE.md`, `docs/os/BUILD.md` (every step marked not run in this repository's CI), `docs/os/QUALCOMM_DEPENDENCIES.md` (14 supplier components with availability, licence and owner action). Running the build steps: **needs external** (AOSP build host). Supplier parts: **needs external** (Qualcomm supplier access) |
 
 ## F. IRA intelligence (seven components)
 
@@ -135,5 +135,6 @@ Nothing is marked done because code or a document exists.
 - KFall and FallAllD permissions.
 - A Kaggle GPU session.
 - Qualcomm supplier access.
+- A decision on who holds the OS signing keys (release, platform and verified-boot keys) and where, for E4.
 - MHRA and clinical-safety review.
 - App store developer accounts.

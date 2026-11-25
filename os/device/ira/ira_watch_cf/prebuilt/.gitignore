@@ -1,0 +1,3 @@
+# The watch APK is a build input copied here by os/scripts/build_cuttlefish.sh.
+# No binary is committed to this repository.
+*.apk

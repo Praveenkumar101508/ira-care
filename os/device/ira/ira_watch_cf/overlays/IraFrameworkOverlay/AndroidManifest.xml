@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Runtime resource overlay on the framework ("android") for IRA CARE OS.
+  UNBUILT (docs/os/BUILD.md). Copyright 2026 IRA CARE. Apache License, Version 2.0.
+  isStatic="true": always enabled, cannot be turned off by a user or an app.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="care.ira.os.overlay.framework">
+    <application android:hasCode="false" />
+    <overlay
+        android:targetPackage="android"
+        android:isStatic="true"
+        android:priority="10" />
+</manifest>
