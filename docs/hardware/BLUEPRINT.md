@@ -11,7 +11,9 @@ repository and is tested.
 Companion files in this folder: `renders/` (the watch as it would look), `turntable.mp4`,
 `viewer.html` (turn it, explode it, tap a part), `ira_watch.blend` and `ira_watch.glb` (the
 model), `COMPONENTS.md` (candidate parts), `SENSOR_HAL.md` (the sensor contract),
-`block_diagram.svg` and `dimensions.svg`.
+`block_diagram.svg` and `dimensions.svg`. The five dimensioned drawing sheets, with print and
+blue PDFs, are listed in [`blueprint/README.md`](blueprint/README.md); `viewer_blueprint.html`
+shows the same watch as a 3D line drawing.
 
 ## 1. Who wears it, and where
 
