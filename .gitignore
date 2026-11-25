@@ -20,6 +20,15 @@ nginx/certs/
 *.key
 *.pem
 *.p12
+
+# Signing keys and the files that point at them (docs/security/SIGNING_KEYS.md). Never commit.
+keystore.properties
+*.jks
+*.keystore
+*.pk8
+*.pfx
+*.p8
+*.mobileprovision
 *.sqlite
 .cloudflared/
 

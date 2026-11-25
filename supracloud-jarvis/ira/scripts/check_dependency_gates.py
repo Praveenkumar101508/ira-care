@@ -45,6 +45,10 @@ IRA_ROOT = Path(__file__).resolve().parents[1]
 REQS = IRA_ROOT / "requirements.txt"
 TEST_REQS = IRA_ROOT / "requirements-test.txt"
 LOCK = IRA_ROOT / "requirements.lock"
+#: Installed with `pip install --no-deps` after requirements.txt: faster-whisper, whose
+#: declared PyAV dependency does not ship (see that file). Its pins and hashes must be the
+#: lock's, or the two installs describe different artifacts.
+NODEPS = IRA_ROOT / "requirements-nodeps.txt"
 
 #: Packages deliberately outside the lock, and why. Absence from the lock is
 #: only acceptable for a name in here.
@@ -185,6 +189,30 @@ def check_lock() -> list[str]:
                 f"{name} (requirements.txt:{line}) is not in the lock and is "
                 f"not in LOCK_EXCLUDED. An exclusion nobody wrote down is an "
                 f"exclusion nobody decided.")
+
+    # requirements-nodeps.txt: same version AND an artifact hash the lock also carries.
+    if NODEPS.is_file():
+        nodeps_text = NODEPS.read_text(encoding="utf-8")
+        for name, (version, line) in sorted(_pins(NODEPS).items()):
+            if name not in locked:
+                problems.append(
+                    f"{name} ({NODEPS.name}:{line}) is not in the lock. Append "
+                    f"{NODEPS.name} to the resolver input — see the lock header.")
+                continue
+            if locked[name][0] != version:
+                problems.append(
+                    f"{name}: {NODEPS.name}:{line} pins {version}, the lock records "
+                    f"{locked[name][0]}.")
+            block = re.search(rf"(?ms)^{re.escape(name)}==\S+ \\\n(.*?)(?=^\S)", nodeps_text + "\nEND")
+            theirs = set(re.findall(r"sha256:([0-9a-f]{64})", block.group(1) if block else ""))
+            lock_block = re.search(rf"(?ims)^{re.escape(name)}==\S+ \\\n(.*?)(?=^\S)", lock_text)
+            ours = set(re.findall(r"sha256:([0-9a-f]{64})", lock_block.group(1) if lock_block else ""))
+            if not theirs:
+                problems.append(f"{name} ({NODEPS.name}:{line}) carries no hash.")
+            elif not theirs <= ours:
+                problems.append(
+                    f"{name}: {NODEPS.name} names hash(es) the lock does not carry: "
+                    f"{sorted(theirs - ours)}.")
 
     # An excluded package must be ABSENT, not merely allowed to differ.
     #

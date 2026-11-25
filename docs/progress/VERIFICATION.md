@@ -16,7 +16,7 @@ runs are their verification. #94 adds a licence check of shipped dependencies to
 | Backend lint (`ruff check .`) | this container | clean | | 0 |
 | Documents tell the truth; requirements valid; evidence index generated | this container | all three pass | | 0 |
 | Dashboard: `tsc`, vitest, `next build` | this container | typecheck clean; 99 tests (19 files); production build | | 0 |
-| Phone app: `tsc`, jest | this container | typecheck clean; 75 tests (16 suites) | | 0 |
+| Phone app: `tsc`, jest | this container | typecheck clean; 79 tests (17 suites) | | 0 |
 | Watch app (Wear OS and AOSP builds, JVM tests); family app native Android build; container images (API, dashboard, backup); secret scan | CI on #88's head, the last code change before `04451d7` | all 11 jobs | | 0 |
 | The 22-step care journey, deterministic | database suite above | passed | | 0 |
 | The 22-step care journey with the real model chain (`gemma4:e4b`, `gemma4:e2b` on CPU) | #90, `docs/evidence/demo/REAL_MODEL_RUN.md` | 8 of 8 runs, every safety assertion held | | 0 |
@@ -24,8 +24,8 @@ runs are their verification. #94 adds a licence check of shipped dependencies to
 | Off-site encrypted backup and restore drill | #86, `docs/evidence/staging/OFFSITE.md` | identical counts after restore | | 0 |
 | Python dependencies (`pip-audit` over `requirements.lock`) | this container | no known vulnerabilities | | |
 | Dashboard production dependencies (`npm audit --omit=dev`) | this container | 0 vulnerabilities | | |
-| Licences of shipped dependencies (`scripts/licence_check.py --check`, K.d) | CI on #94 and this container | 1003 packages (Python 167, dashboard 24, phone 812): none forbidden; 8 reviewed exceptions; one open finding inside the PyAV wheel (GPL x264 and x265), for the owner (`docs/security/LICENCES.md`) | | |
-| Phone app production dependencies | this container | 20 findings (1 critical, 3 high, 16 moderate), all in Expo's CLI and Metro build tooling, none in the app bundle; residual risk in `docs/security/REVIEW.md` until an Expo SDK upgrade | | |
+| Licences of shipped dependencies (`scripts/licence_check.py --check`, K.d) | CI on #94 and this container | 994 packages (Python 167, dashboard 24, phone 803): none forbidden; 8 reviewed exceptions; one open finding inside the PyAV wheel (GPL x264 and x265), for the owner (`docs/security/LICENCES.md`) | | |
+| Phone app production dependencies | this container | 0 vulnerabilities (was 20: 1 critical, 3 high, 16 moderate, all in Expo's CLI and Metro build tooling); cleared by npm overrides and two small patches, `docs/security/REVIEW.md` S6 | | |
 
 ## Not passed here, and why
 
@@ -46,4 +46,4 @@ Datasets added in rounds 5 and 6, each verified at its source on 25 November 202
 `docs/DATASETS.md` (checked by `test_dataset_register.py`): BITS-2 (Zenodo 10013090, CC BY 4.0),
 WISDM (UCI 507, CC BY 4.0), LibriSpeech test-clean (CC BY 4.0, evaluation only). The care
 conversation dataset is synthetic and written in this repository. SisFall stays excluded from
-release builds (D-077); the shipped fall model v3 is trained only on licensed data (D-080).
+every build, debug included (D-077, D-082); the shipped fall model v3 is trained only on licensed data (D-080).

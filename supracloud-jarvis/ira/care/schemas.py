@@ -16,7 +16,9 @@ VITAL_KINDS = ("heart_rate", "steps", "movement", "on_wrist", "battery")
 ROUTINE_KINDS = ("meal", "medication", "activity", "sleep", "social", "other")
 MED_EVENT_STATUSES = ("due", "taken", "missed", "skipped", "unknown")
 CONSENT_KINDS = ("transcripts_family", "transcripts_carer", "transcripts_organisation",
-                 "health_data_family", "data_retention", "topics")
+                 "health_data_family", "data_retention", "topics",
+                 # The watch may send hourly activity estimates and the circle may see them (121, D-084).
+                 "activity_sharing")
 PLATFORMS = ("wearos", "watchos", "other")
 
 
@@ -219,6 +221,26 @@ class DeviceReport(BaseModel):
     on_wrist: Optional[bool] = None
     background_sensor_permission: Optional[bool] = None
     app_version: Optional[str] = Field(None, max_length=40)
+
+
+class ActivityPeriod(BaseModel):
+    """One hour of IRA Care Activity, summarised on the watch (care/activity.py, the data
+    contract). Shapes are checked here; the contract itself in `activity.check_period`."""
+    model_config = {"protected_namespaces": ()}
+    period_start: dt.datetime
+    period_end: dt.datetime
+    model_version: str = Field(..., min_length=1, max_length=80)
+    model_sha256: str = Field(..., pattern=r"^[0-9a-f]{64}$")
+    source: str = Field(..., pattern=r"^(device|simulated)$")
+    seconds: dict[str, int] = Field(default_factory=dict, max_length=16)
+    reasons: dict[str, int] = Field(default_factory=dict, max_length=8)
+    windows: int = Field(..., ge=0, le=360)
+    mean_confidence: Optional[float] = Field(None, ge=0, le=1)
+
+
+class ActivityReport(BaseModel):
+    """Closed hours from the watch, oldest first. Two weeks at most in one request."""
+    periods: list[ActivityPeriod] = Field(..., min_length=1, max_length=336)
 
 
 class LocationFix(BaseModel):

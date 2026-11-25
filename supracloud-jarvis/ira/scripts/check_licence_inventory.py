@@ -110,19 +110,6 @@ NOTABLE = {
     "psycopg-pool": (
         "LGPL-3.0-only. Connection pooling for PostgreSQL. Same LGPL question "
         "as above and the same answer: recorded, not decided."),
-    "av": (
-        "PyAV, arriving with `faster-whisper` (local STT; its audio decoder). "
-        "PyPI metadata says BSD-3-Clause and this gate's pattern therefore does "
-        "NOT flag it — but that answer covers the Python binding only. The "
-        "published wheel BUNDLES FFmpeg: the locked 18.1.0 "
-        "manylinux_2_28_x86_64 wheel ships libavcodec whose compiled-in licence "
-        "string reads 'LGPL version 3 or later', alongside libx264 and libx265, "
-        "which upstream license GPL-2.0-or-later (19.0.1 is the same). Read "
-        "from the artifact on 2026-10-18, not inferred. IRA uses it only to decode audio; nothing is "
-        "modified or statically linked. Declared here so the position is "
-        "visible in a diff rather than hidden behind permissive metadata. "
-        "Recorded, not approved — OWNER DECISION, with the rest of the LGPL "
-        "set."),
     "certifi": "MPL-2.0. File-level copyleft; the CA bundle is not modified.",
     "orjson": "MPL-2.0 AND (Apache-2.0 OR MIT). File-level copyleft.",
     "tqdm": "MPL-2.0 AND MIT. File-level copyleft.",

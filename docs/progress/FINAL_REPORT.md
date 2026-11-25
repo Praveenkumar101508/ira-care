@@ -17,7 +17,7 @@ with every required CI check green. The integrated run is in [`VERIFICATION.md`]
 |---|---|---|
 | Engineering demonstration with fictional people, test notification providers and a clearly labelled virtual or browser watch | **GO** | The 22-step care journey passes end to end against the real API and PostgreSQL, deterministically and with the real model chain (8 of 8 runs); the stack runs as containers with outage recovery, encrypted off-site backups and restore drills; the film was re-recorded on this stack. |
 | Supervised pilot with real people | **NO-GO** | No Clinical Safety Officer has reviewed the hazard log (I.j); MHRA qualification is unconfirmed (I.k); nothing has run on a physical watch or phone; fall, heart, activity and speech accuracy are unmeasured on older adults and on the IRA watch; live SMS, call and email delivery is untested; no monitoring-centre contract. |
-| Commercial release to real users | **NO-GO** | Everything the pilot needs, plus: signed store builds and store accounts, an iOS build, a hosting agreement on a rented server, an independent penetration test, the IRA CARE OS image built and booted, and an Expo SDK upgrade to clear the build-tool advisories. |
+| Commercial release to real users | **NO-GO** | Everything the pilot needs, plus: signed store builds and store accounts, an iOS build, a hosting agreement on a rented server, an independent penetration test, and the IRA CARE OS image built and booted. (The phone app's build-tool advisories listed here at first were cleared without an SDK upgrade: `docs/security/REVIEW.md`, S6.) |
 
 Area by area: [`GO_NO_GO.md`](GO_NO_GO.md). The owner's constraints held throughout: no real
 patient data was collected, no real emergency message was sent, nothing was deployed to real
@@ -68,8 +68,8 @@ None is device validated.
 
 | Model | Data (licence) | Result | Status |
 |---|---|---|---|
-| Fall v3 | BITS-2 (CC BY 4.0) + UCI HAR (CC BY 4.0) | with the rule detector, on the same 316 held-out falls and 2.233 hours of daily activity: 246 falls caught (sensitivity 0.7785) against 195 (0.6171) for the rule alone; at most 10.30 alarms per hour against 52.84 | ships in release builds (D-080) |
-| Fall v1 | SisFall (licence unconfirmed) | evaluated earlier | debug builds only (D-077) |
+| Fall v3 | BITS-2 (CC BY 4.0) + UCI HAR (CC BY 4.0) | with the rule detector, on the same 316 held-out falls and 2.233 hours of daily activity: 246 falls caught (sensitivity 0.7785) against 195 (0.6171) for the rule alone; at most 10.30 alarms per hour against 52.84 | ships in every build, release and debug (D-080, D-082) |
+| Fall v1 | SisFall (licence unconfirmed) | evaluated earlier | in no build of any kind (D-077, D-082); its evaluation kept as a research record |
 | Heart | PPG-DaLiA (CC BY 4.0) | classical 13.28 ± 5.01 bpm, learned selector 7.75 ± 3.23 bpm | classical in use; learned selector blocked on raw PPG (F3.d) |
 | Activity | WISDM (CC BY 4.0) | macro-F1 0.790 across 51 people, subject-grouped | on the watch; no alert depends on it |
 | Speech recognition | faster-whisper `small` (MIT); LibriSpeech test-clean (CC BY 4.0, evaluation only) | WER 4.24 % on read adult speech | in use; older-speaker accuracy unmeasured (F8.c, F8.d) |
@@ -88,7 +88,8 @@ Everything else that remains is blocked by something only the owner or a third p
 - **Third parties:** a monitoring-centre contract (G3.f); a qualified penetration tester (C-22.d); a Clinical Safety Officer (I.j); an MHRA regulatory adviser (I.k); the operator's data protection officer to read the ICO guidance (I.i); dataset authors for KFall, FallAllD and UMAFall (F1.g, F4.f).
 - **Machines and devices:** a Mac with Apple signing (D2.h); a host with KVM for emulator runs (D1.i, K.g); an AOSP build host, about 400 GB of disk and 64 GB of RAM (E2.h onwards); physical watches and phones (C-5.b, D1.j, D2.i, J.f, K.h, and the other device rows); the IRA watch hardware, an ODM and funding (H1–H4.h to H1–H4.j).
 - **A licensing decision:** PyAV (`av`), pulled in by the speech recogniser, declares BSD-3-Clause but bundles FFmpeg built with libx264 and libx265, which are GPL-2.0-or-later. It matters if container images are ever given to an operator rather than run by IRA itself. The options are to replace the audio decoding, use an FFmpeg build without them, or take legal advice (`docs/security/LICENCES.md`).
-- **Owner actions already drafted:** send the dataset permission requests in `docs/legal/dataset_permission_requests/`; withdraw the Kaggle copy of the SisFall-trained model published under Apache 2.0.
+- **Owner actions already drafted:** send the dataset permission requests in `docs/legal/dataset_permission_requests/`.
+- **No Kaggle withdrawal is needed (verified 25 November 2026).** Earlier reports asked the owner to withdraw "the Kaggle copy of the SisFall-trained model published under Apache 2.0". No such copy exists: the original training run's own log (`docs/evidence/training/fall.json`) shows the upload refused (`Permission 'models.create' was denied`); the Kaggle API, listing the training account's models on 25 November 2026, returned "No models found"; and the training notebook and both training datasets are private (`is_private: true` in the kernel metadata and the dataset API). The upload call has been removed from the script and a readiness test stops any training script publishing weights (D-077 correction, D-082).
 
 
 ## Round 5 checkpoint (the master directive, 25 November 2026)
@@ -166,7 +167,7 @@ None is validated on older adults or on the IRA watch, and none is a medical dev
 ### Round 5: needs the owner
 
 - **Fall model v2:** ship it (fewer false alarms, five more missed falls in 316) or keep the rules alone. A decision for the owner and a clinical reviewer.
-- **Withdraw the Kaggle copy** of the SisFall-trained model published under Apache 2.0.
+- **Withdraw the Kaggle copy** of the SisFall-trained model published under Apache 2.0. *(Corrected 25 November 2026: no such copy was ever published; see round 6 and D-082.)*
 - **Send the dataset permission requests** drafted in `docs/legal/dataset_permission_requests/` (SisFall, KFall, FallAllD).
 - **External items, each blocking a named requirement:** a Clinical Safety Officer (I.j), an MHRA adviser (I.k), physical watches and phones, an AOSP build host, signing-key custody, store accounts, SMS and call provider credentials, a server, a monitoring-centre contract, and a penetration tester.
 

@@ -1916,7 +1916,7 @@ async def _listen_then_answer(raw: bytes, name: str, is_video: bool, message: st
     long, no sound, or no speech heard) the reply says so and the model is
     not called.
     """
-    from voice.stt import AudioTooLong, STTUnavailable
+    from voice.stt import AudioTooLong, STTUnavailable, UnsupportedAudio
 
     said = f"Listening to **{name}** on this machine…"
     yield {"data": json.dumps({"token": said})}
@@ -1936,7 +1936,13 @@ async def _listen_then_answer(raw: bytes, name: str, is_video: bool, message: st
         else:   # decoding stopped at the limit, so its full length is unknown
             refusal = f"It runs past {cap}, the longest recording I transcribe here. "
         refusal += "Trim it, or split it and upload the parts."
-    except Exception as exc:   # anything else is about the file: PyAV could not read sound from it
+    except UnsupportedAudio as exc:   # not WAV: this server has no decoder for it, by decision
+        log.info(f"upload transcription refused on {name!r}: unsupported ({exc.kind})")
+        what = "a video" if is_video else exc.kind
+        refusal = (f"I can't read the sound in it: it is {what}, and here I transcribe "
+                   "uncompressed WAV recordings only. Save or convert it as WAV and upload that. "
+                   "I haven't guessed at what it contains.")
+    except Exception as exc:   # anything else is about the file: no sound could be read from it
         log.info(f"upload transcription failed on {name!r}: {type(exc).__name__}")
         refusal = "I couldn't read any sound from it. I haven't guessed at what it contains."
     else:

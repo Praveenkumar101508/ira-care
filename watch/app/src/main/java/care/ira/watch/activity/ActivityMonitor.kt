@@ -4,14 +4,18 @@ import kotlin.math.floor
 
 /**
  * Runs IRA Care Activity on the watch's own motion samples and keeps the latest answer on the
- * watch. Nothing is sent: the backend has no reading kind for it, and a wellbeing context
- * signal is not an alert.
+ * watch. Every 10 s window also goes to [onWindow] as an [ActivityWindow] (a class, `unknown`
+ * or `unavailable` with its reason), which [ActivitySummariser] turns into hourly minutes per
+ * class. Only those hourly summaries can leave the watch, and only under the person's
+ * activity-sharing consent ([ActivitySharing]); no window, sample or probability is sent, and
+ * a wellbeing context signal is never an alert.
  *
  * Samples arrive at whatever rate the sensors give (the accelerometer at about 50 Hz for the
  * fall detector, the gyroscope at about 20 Hz). Every [STEP_MS] of sample time, the last
  * [ActivityFeatures.WINDOW_S] seconds of both are interpolated by timestamp onto one 20 Hz
  * grid and classified. Off the wrist, or when either sensor has a gap, there is no estimate:
- * `latest` becomes null rather than keeping a stale answer. Pure Kotlin, tested on the JVM.
+ * `latest` becomes null rather than keeping a stale answer, and the window is reported as
+ * `unavailable` (off_wrist or sensor_gap). Pure Kotlin, tested on the JVM.
  */
 class ActivityMonitor(
     private val model: ActivityModel,
@@ -33,6 +37,9 @@ class ActivityMonitor(
     /** False while the watch is off the wrist: nothing is estimated and the last answer is cleared. */
     @Volatile var onWrist: Boolean? = null
 
+    /** Every window's outcome, classified or not, in the order they end. Called on the feeding thread. */
+    @Volatile var onWindow: ((ActivityWindow) -> Unit)? = null
+
     /** An accelerometer sample in g (as the fall detector's source gives it). */
     @Synchronized
     fun feedAccelG(atMillis: Long, x: Double, y: Double, z: Double): ActivityEstimate? {
@@ -51,23 +58,39 @@ class ActivityMonitor(
         val keepFrom = now - KEEP_MS
         while (acc.isNotEmpty() && acc.first().atMillis < keepFrom) acc.removeFirst()
         while (gyro.isNotEmpty() && gyro.first().atMillis < keepFrom) gyro.removeFirst()
-        if (onWrist == false) { latest = null; return null }
         if (nextAtMillis == Long.MIN_VALUE) nextAtMillis = now + WINDOW_MS
+        if (onWrist == false) {
+            // Off the wrist: no estimate, and the time is accounted for as unavailable.
+            latest = null
+            if (now >= nextAtMillis) {
+                nextAtMillis = now + STEP_MS
+                emit(ActivityWindow.unavailable(now - WINDOW_MS, now, ActivityLabels.REASON_OFF_WRIST))
+            }
+            return null
+        }
         if (now < nextAtMillis) return null
         val end = minOf(acc.lastOrNull()?.atMillis ?: return null, gyro.lastOrNull()?.atMillis ?: return null)
         val start = end - WINDOW_MS
         // Not yet a full window from both sensors: try again on the next sample.
         if (acc.first().atMillis > start || gyro.first().atMillis > start) return null
         nextAtMillis = now + STEP_MS
-        val a = grid(acc, start) ?: return clear()
-        val g = grid(gyro, start) ?: return clear()
+        val a = grid(acc, start) ?: return clear(start, end)
+        val g = grid(gyro, start) ?: return clear(start, end)
         val est = model.estimate(a, g, ActivityFeatures.FS_HZ)
         latest = if (est.activity == null) null else est
         latestAtMillis = end
+        emit(ActivityWindow.of(est, start, end))
         return est
     }
 
-    private fun clear(): ActivityEstimate? { latest = null; return null }
+    /** A gap in either sensor inside the window: no estimate, and the window is unavailable. */
+    private fun clear(start: Long, end: Long): ActivityEstimate? {
+        latest = null
+        emit(ActivityWindow.unavailable(start, end, ActivityLabels.REASON_SENSOR_GAP))
+        return null
+    }
+
+    private fun emit(w: ActivityWindow) { onWindow?.invoke(w) }
 
     /** The window on a 20 Hz grid from [start], or null when samples do not cover it without a gap. */
     private fun grid(samples: ArrayDeque<Sample>, start: Long): Array<DoubleArray>? {

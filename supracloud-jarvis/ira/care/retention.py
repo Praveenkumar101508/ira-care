@@ -4,8 +4,8 @@ Each person's `care_consents` may carry a `data_retention` record with a
 number of months; without one the default is 12 (care/consent.py). The purge
 removes, per person, everything older than that:
 
-    readings, check-ins, transcripts, medication events, reports,
-    and alerts that are resolved or cancelled (with their attempts and
+    readings, activity estimates, check-ins, transcripts, medication events,
+    reports, and alerts that are resolved or cancelled (with their attempts and
     acknowledgements, by cascade).
 
 It never removes an alert that is still open, acknowledged or escalating, and
@@ -34,6 +34,7 @@ JOB = "care_retention"
 #: The tables purged by age, with the column that dates a row.
 PURGED: tuple[tuple[str, str], ...] = (
     ("care_vitals", "recorded_at"),
+    ("care_activity_periods", "period_start"),
     ("care_transcripts", "created_at"),
     ("care_medication_events", "due_at"),
     ("care_checkins", "scheduled_at"),

@@ -229,7 +229,8 @@ def test_this_environment_reports_the_estimated_path():
     voice stack. The alignment path's ACCURACY is therefore not measured here.
     """
     try:
-        import faster_whisper  # noqa: F401
+        from voice.whisper_engine import load_faster_whisper
+        load_faster_whisper()          # the product's own import: no PyAV
     except ImportError:
         _frames, source = viseme_timestamps(SENTENCE, real_wav(2.0))
         assert source == "estimated"
