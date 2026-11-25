@@ -2,13 +2,13 @@
   "config": {
     "argv": [
       "/opt/node22/bin/node",
-      "/tmp/ira-care-staging/repo/e2e/node_modules/.bin/playwright",
+      "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/node_modules/.bin/playwright",
       "test",
       "--trace",
       "off"
     ],
-    "configFile": "/tmp/ira-care-staging/repo/e2e/playwright.config.ts",
-    "rootDir": "/tmp/ira-care-staging/repo/e2e",
+    "configFile": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/playwright.config.ts",
+    "rootDir": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": false,
@@ -24,7 +24,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/tmp/ira-care-staging/repo/e2e/test-results",
+        "outputDir": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -32,7 +32,7 @@
         },
         "id": "",
         "name": "",
-        "testDir": "/tmp/ira-care-staging/repo/e2e",
+        "testDir": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -83,7 +83,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/ira-care-staging/repo/e2e/journey.spec.ts",
+                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -97,17 +97,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1948,
+                  "duration": 2080,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-24T20:12:17.732Z",
+                  "startTime": "2026-11-25T10:56:45.944Z",
                   "annotations": [
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/ira-care-staging/repo/e2e/journey.spec.ts",
+                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -135,7 +135,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/ira-care-staging/repo/e2e/journey.spec.ts",
+                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -149,17 +149,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 692,
+                  "duration": 854,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-24T20:12:19.779Z",
+                  "startTime": "2026-11-25T10:56:48.158Z",
                   "annotations": [
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/ira-care-staging/repo/e2e/journey.spec.ts",
+                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -187,7 +187,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/ira-care-staging/repo/e2e/journey.spec.ts",
+                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -201,17 +201,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 20949,
+                  "duration": 7544,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-24T20:12:20.479Z",
+                  "startTime": "2026-11-25T10:56:49.025Z",
                   "annotations": [
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/ira-care-staging/repo/e2e/journey.spec.ts",
+                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -239,7 +239,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/ira-care-staging/repo/e2e/journey.spec.ts",
+                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -253,17 +253,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 18187,
+                  "duration": 18355,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-24T20:12:41.439Z",
+                  "startTime": "2026-11-25T10:56:56.589Z",
                   "annotations": [
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/ira-care-staging/repo/e2e/journey.spec.ts",
+                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -291,7 +291,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/ira-care-staging/repo/e2e/journey.spec.ts",
+                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -305,17 +305,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5190,
+                  "duration": 5394,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-24T20:12:59.634Z",
+                  "startTime": "2026-11-25T10:57:14.968Z",
                   "annotations": [
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/ira-care-staging/repo/e2e/journey.spec.ts",
+                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -329,7 +329,119 @@
           ],
           "id": "bf222bad70f76648f722-89a482129aaea0fe06e2",
           "file": "journey.spec.ts",
-          "line": 103,
+          "line": 111,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "live_refresh.spec.ts",
+      "file": "live_refresh.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "the open record picks up a new visit, warns when cut off, and recovers on its own",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/live_refresh.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 91517,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-25T10:57:20.403Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/live_refresh.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ac700daae3985ca0477e-46ad9e5ffe25ecfa8e13",
+          "file": "live_refresh.spec.ts",
+          "line": 17,
+          "column": 5
+        },
+        {
+          "title": "the care team search finds the person and leads to their record",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/live_refresh.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1386,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-25T10:58:51.935Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/live_refresh.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ac700daae3985ca0477e-0a0eded674ee400bc1f0",
+          "file": "live_refresh.spec.ts",
+          "line": 43,
           "column": 5
         }
       ]
@@ -351,7 +463,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/ira-care-staging/repo/e2e/outages.spec.ts",
+                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/outages.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -365,17 +477,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1486,
+                  "duration": 1908,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-24T20:13:04.839Z",
+                  "startTime": "2026-11-25T10:58:53.341Z",
                   "annotations": [
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/ira-care-staging/repo/e2e/outages.spec.ts",
+                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/outages.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -403,7 +515,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/ira-care-staging/repo/e2e/outages.spec.ts",
+                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/outages.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -417,17 +529,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1285,
+                  "duration": 1472,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-24T20:13:06.332Z",
+                  "startTime": "2026-11-25T10:58:55.266Z",
                   "annotations": [
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/ira-care-staging/repo/e2e/outages.spec.ts",
+                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/outages.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -449,9 +561,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-24T20:12:17.278Z",
-    "duration": 50421.302,
-    "expected": 7,
+    "startTime": "2026-11-25T10:56:45.269Z",
+    "duration": 131586.637,
+    "expected": 9,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

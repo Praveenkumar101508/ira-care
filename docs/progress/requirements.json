@@ -396,8 +396,17 @@
    "title": "Live refresh of the person record exercised in a real browser",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "browser",
+     "ref": "e2e/live_refresh.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/staging/e2e_results.json"
+    }
+   ]
   },
   {
    "id": "C-11.a",
@@ -3422,11 +3431,15 @@
    "title": "Playwright journey suite re-run on integrated main",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
+   "state": "verified",
    "evidence": [
     {
      "kind": "browser",
-     "ref": "e2e/journey.spec.ts"
+     "ref": "docs/evidence/staging/e2e_results.json"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/staging/E2E_RERUN.md"
     }
    ]
   },
