@@ -1573,3 +1573,26 @@ database write at all**, rather than a research table.
 
 What this does not decide: using the learned selector on a person. That needs a watch that
 gives the app raw PPG (F3.d) and validation on the IRA watch and older adults (F3.e).
+
+## D-087 The API image drops three Python modules that link GPL and Sleepycat libraries (25 November 2026)
+
+The first scan of what the API image contains (`scripts/supply_chain.py image`) found that the
+base image's CPython links GNU readline and GDBM (GPL-3.0-or-later) and Berkeley DB 5.3
+(Sleepycat) through the standard-library modules `readline`, `_gdbm` and `_dbm`. Nothing in the
+server imports them.
+
+Decision: `deploy/Dockerfile.api` deletes the three extension modules, and the build fails if
+one is still importable. The libraries themselves stay in the image as Debian packages beside
+our code (bash uses readline); that is aggregation, which the policy in
+`docs/security/LICENCES.md` records rather than judges. What the policy judges is what our
+components link, and none links these any more.
+
+- **What it costs:** `import readline` fails (no line editing in an interactive Python prompt
+  inside the container), and `dbm` falls back to its pure-Python `dbm.dumb` store. Neither is
+  used by the server, the worker or the migrations.
+- **Why not another base image:** the official Python images all build these modules; building
+  our own Python, or moving to a distroless base, is a larger change than three deleted files.
+
+What would change it: code that needs GNU readline or GDBM at run time, which would then need a
+reviewed exception or a different library.
+

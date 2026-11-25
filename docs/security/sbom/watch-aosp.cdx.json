@@ -1,0 +1,2651 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "bom-ref": "pkg:maven/androidx.activity/activity-compose@1.9.3",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.activity:activity-compose",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.activity/activity-compose@1.9.3",
+      "type": "library",
+      "version": "1.9.3"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.activity/activity-ktx@1.9.3",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.activity:activity-ktx",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.activity/activity-ktx@1.9.3",
+      "type": "library",
+      "version": "1.9.3"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.activity/activity@1.9.3",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.activity:activity",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.activity/activity@1.9.3",
+      "type": "library",
+      "version": "1.9.3"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.annotation/annotation-experimental@1.4.1",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.annotation:annotation-experimental",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.annotation/annotation-experimental@1.4.1",
+      "type": "library",
+      "version": "1.4.1"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.annotation/annotation-jvm@1.8.1",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.annotation:annotation-jvm",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.annotation/annotation-jvm@1.8.1",
+      "type": "library",
+      "version": "1.8.1"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.annotation/annotation@1.8.1",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.annotation:annotation",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.annotation/annotation@1.8.1",
+      "type": "library",
+      "version": "1.8.1"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.arch.core/core-common@2.2.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.arch.core:core-common",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.arch.core/core-common@2.2.0",
+      "type": "library",
+      "version": "2.2.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.arch.core/core-runtime@2.2.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.arch.core:core-runtime",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.arch.core/core-runtime@2.2.0",
+      "type": "library",
+      "version": "2.2.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.autofill/autofill@1.0.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.autofill:autofill",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.autofill/autofill@1.0.0",
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.collection/collection-jvm@1.4.4",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.collection:collection-jvm",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.collection/collection-jvm@1.4.4",
+      "type": "library",
+      "version": "1.4.4"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.collection/collection-ktx@1.4.4",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.collection:collection-ktx",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.collection/collection-ktx@1.4.4",
+      "type": "library",
+      "version": "1.4.4"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.collection/collection@1.4.4",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.collection:collection",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.collection/collection@1.4.4",
+      "type": "library",
+      "version": "1.4.4"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.animation/animation-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.animation:animation-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.animation/animation-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.animation/animation-core-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.animation:animation-core-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.animation/animation-core-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.animation/animation-core@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.animation:animation-core",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.animation/animation-core@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.animation/animation@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.animation:animation",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.animation/animation@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.foundation/foundation-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.foundation:foundation-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.foundation/foundation-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.foundation/foundation-layout-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.foundation:foundation-layout-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.foundation/foundation-layout-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.foundation/foundation-layout@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.foundation:foundation-layout",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.foundation/foundation-layout@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.foundation/foundation@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.foundation:foundation",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.foundation/foundation@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.material/material-icons-core-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.material:material-icons-core-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.material/material-icons-core-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.material/material-icons-core@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.material:material-icons-core",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.material/material-icons-core@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.material/material-ripple-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.material:material-ripple-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.material/material-ripple-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.material/material-ripple@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.material:material-ripple",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.material/material-ripple@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.runtime/runtime-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.runtime:runtime-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.runtime/runtime-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.runtime/runtime-saveable-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.runtime:runtime-saveable-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.runtime/runtime-saveable-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.runtime/runtime-saveable@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.runtime:runtime-saveable",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.runtime/runtime-saveable@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.runtime/runtime@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.runtime:runtime",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.runtime/runtime@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-geometry-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-geometry-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-geometry-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-geometry@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-geometry",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-geometry@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-graphics-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-graphics-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-graphics-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-graphics@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-graphics",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-graphics@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-text-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-text-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-text-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-text@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-text",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-text@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-tooling-preview-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-tooling-preview-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-tooling-preview-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-tooling-preview@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-tooling-preview",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-tooling-preview@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-unit-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-unit-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-unit-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-unit@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-unit",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-unit@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-util-android@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-util-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-util-android@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui-util@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui-util",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui-util@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.compose.ui/ui@1.7.6",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.compose.ui:ui",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.compose.ui/ui@1.7.6",
+      "type": "library",
+      "version": "1.7.6"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.concurrent/concurrent-futures-ktx@1.1.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.concurrent:concurrent-futures-ktx",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.concurrent/concurrent-futures-ktx@1.1.0",
+      "type": "library",
+      "version": "1.1.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.concurrent/concurrent-futures@1.1.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.concurrent:concurrent-futures",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.concurrent/concurrent-futures@1.1.0",
+      "type": "library",
+      "version": "1.1.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.core/core-ktx@1.15.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.core:core-ktx",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.core/core-ktx@1.15.0",
+      "type": "library",
+      "version": "1.15.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.core/core@1.15.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.core:core",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.core/core@1.15.0",
+      "type": "library",
+      "version": "1.15.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.customview/customview-poolingcontainer@1.0.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.customview:customview-poolingcontainer",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.customview/customview-poolingcontainer@1.0.0",
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.emoji2/emoji2@1.3.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.emoji2:emoji2",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.emoji2/emoji2@1.3.0",
+      "type": "library",
+      "version": "1.3.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.graphics/graphics-path@1.0.1",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.graphics:graphics-path",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.graphics/graphics-path@1.0.1",
+      "type": "library",
+      "version": "1.0.1"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.interpolator/interpolator@1.0.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.interpolator:interpolator",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.interpolator/interpolator@1.0.0",
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-common-jvm@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-common-jvm",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-common-jvm@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-common@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-common",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-common@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-livedata-core-ktx@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-livedata-core-ktx",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-livedata-core-ktx@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-livedata-core@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-livedata-core",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-livedata-core@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-livedata@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-livedata",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-livedata@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-process@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-process",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-process@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-runtime-android@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-runtime-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-runtime-android@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-runtime-compose-android@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-runtime-compose-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-runtime-compose-android@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-runtime-compose@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-runtime-compose",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-runtime-compose@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-runtime-ktx-android@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-runtime-ktx-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-runtime-ktx-android@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-runtime-ktx@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-runtime-ktx",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-runtime-ktx@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-runtime@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-runtime",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-runtime@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-service@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-service",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-service@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-viewmodel-android@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-viewmodel-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-viewmodel-android@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-viewmodel-ktx@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-viewmodel-ktx",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-viewmodel-ktx@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-viewmodel-savedstate@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-viewmodel-savedstate",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-viewmodel-savedstate@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.lifecycle/lifecycle-viewmodel@2.8.7",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.lifecycle:lifecycle-viewmodel",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.lifecycle/lifecycle-viewmodel@2.8.7",
+      "type": "library",
+      "version": "2.8.7"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.profileinstaller/profileinstaller@1.3.1",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.profileinstaller:profileinstaller",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.profileinstaller/profileinstaller@1.3.1",
+      "type": "library",
+      "version": "1.3.1"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.room/room-common@2.6.1",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.room:room-common",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.room/room-common@2.6.1",
+      "type": "library",
+      "version": "2.6.1"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.room/room-ktx@2.6.1",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.room:room-ktx",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.room/room-ktx@2.6.1",
+      "type": "library",
+      "version": "2.6.1"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.room/room-runtime@2.6.1",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.room:room-runtime",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.room/room-runtime@2.6.1",
+      "type": "library",
+      "version": "2.6.1"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.savedstate/savedstate-ktx@1.2.1",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.savedstate:savedstate-ktx",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.savedstate/savedstate-ktx@1.2.1",
+      "type": "library",
+      "version": "1.2.1"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.savedstate/savedstate@1.2.1",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.savedstate:savedstate",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.savedstate/savedstate@1.2.1",
+      "type": "library",
+      "version": "1.2.1"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.sqlite/sqlite-framework@2.4.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.sqlite:sqlite-framework",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.sqlite/sqlite-framework@2.4.0",
+      "type": "library",
+      "version": "2.4.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.sqlite/sqlite@2.4.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.sqlite:sqlite",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.sqlite/sqlite@2.4.0",
+      "type": "library",
+      "version": "2.4.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.startup/startup-runtime@1.1.1",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.startup:startup-runtime",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.startup/startup-runtime@1.1.1",
+      "type": "library",
+      "version": "1.1.1"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.tracing/tracing-ktx@1.2.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.tracing:tracing-ktx",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.tracing/tracing-ktx@1.2.0",
+      "type": "library",
+      "version": "1.2.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.tracing/tracing@1.2.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.tracing:tracing",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.tracing/tracing@1.2.0",
+      "type": "library",
+      "version": "1.2.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.versionedparcelable/versionedparcelable@1.1.1",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.versionedparcelable:versionedparcelable",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.versionedparcelable/versionedparcelable@1.1.1",
+      "type": "library",
+      "version": "1.1.1"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.wear.compose/compose-foundation@1.4.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.wear.compose:compose-foundation",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.wear.compose/compose-foundation@1.4.0",
+      "type": "library",
+      "version": "1.4.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.wear.compose/compose-material-core@1.4.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.wear.compose:compose-material-core",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.wear.compose/compose-material-core@1.4.0",
+      "type": "library",
+      "version": "1.4.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.wear.compose/compose-material@1.4.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.wear.compose:compose-material",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.wear.compose/compose-material@1.4.0",
+      "type": "library",
+      "version": "1.4.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.work/work-runtime-ktx@2.10.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.work:work-runtime-ktx",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.work/work-runtime-ktx@2.10.0",
+      "type": "library",
+      "version": "2.10.0"
+    },
+    {
+      "bom-ref": "pkg:maven/androidx.work/work-runtime@2.10.0",
+      "copyright": "Publisher (POM): The Android Open Source Project",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "androidx.work:work-runtime",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/androidx.work/work-runtime@2.10.0",
+      "type": "library",
+      "version": "2.10.0"
+    },
+    {
+      "bom-ref": "pkg:maven/com.google.guava/listenablefuture@1.0",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "com.google.guava:listenablefuture",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath (aosp only)"
+        }
+      ],
+      "purl": "pkg:maven/com.google.guava/listenablefuture@1.0",
+      "type": "library",
+      "version": "1.0"
+    },
+    {
+      "bom-ref": "pkg:maven/com.squareup.okhttp3/okhttp@4.12.0",
+      "copyright": "Publisher (POM): Square, Inc.",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "com.squareup.okhttp3:okhttp",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/com.squareup.okhttp3/okhttp@4.12.0",
+      "type": "library",
+      "version": "4.12.0"
+    },
+    {
+      "bom-ref": "pkg:maven/com.squareup.okio/okio-jvm@3.6.0",
+      "copyright": "Publisher (POM): Square, Inc.",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "com.squareup.okio:okio-jvm",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/com.squareup.okio/okio-jvm@3.6.0",
+      "type": "library",
+      "version": "3.6.0"
+    },
+    {
+      "bom-ref": "pkg:maven/com.squareup.okio/okio@3.6.0",
+      "copyright": "Publisher (POM): Square, Inc.",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "com.squareup.okio:okio",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/com.squareup.okio/okio@3.6.0",
+      "type": "library",
+      "version": "3.6.0"
+    },
+    {
+      "bom-ref": "pkg:maven/org.jetbrains.kotlin/kotlin-stdlib-common@2.0.21",
+      "copyright": "Publisher (POM): JetBrains",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "org.jetbrains.kotlin:kotlin-stdlib-common",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/org.jetbrains.kotlin/kotlin-stdlib-common@2.0.21",
+      "type": "library",
+      "version": "2.0.21"
+    },
+    {
+      "bom-ref": "pkg:maven/org.jetbrains.kotlin/kotlin-stdlib-jdk7@1.9.10",
+      "copyright": "Publisher (POM): JetBrains",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/org.jetbrains.kotlin/kotlin-stdlib-jdk7@1.9.10",
+      "type": "library",
+      "version": "1.9.10"
+    },
+    {
+      "bom-ref": "pkg:maven/org.jetbrains.kotlin/kotlin-stdlib-jdk8@1.9.10",
+      "copyright": "Publisher (POM): JetBrains",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/org.jetbrains.kotlin/kotlin-stdlib-jdk8@1.9.10",
+      "type": "library",
+      "version": "1.9.10"
+    },
+    {
+      "bom-ref": "pkg:maven/org.jetbrains.kotlin/kotlin-stdlib@2.0.21",
+      "copyright": "Publisher (POM): JetBrains",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "org.jetbrains.kotlin:kotlin-stdlib",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/org.jetbrains.kotlin/kotlin-stdlib@2.0.21",
+      "type": "library",
+      "version": "2.0.21"
+    },
+    {
+      "bom-ref": "pkg:maven/org.jetbrains.kotlinx/kotlinx-coroutines-android@1.9.0",
+      "copyright": "Publisher (POM): JetBrains",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-android",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/org.jetbrains.kotlinx/kotlinx-coroutines-android@1.9.0",
+      "type": "library",
+      "version": "1.9.0"
+    },
+    {
+      "bom-ref": "pkg:maven/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm@1.9.0",
+      "copyright": "Publisher (POM): JetBrains",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm@1.9.0",
+      "type": "library",
+      "version": "1.9.0"
+    },
+    {
+      "bom-ref": "pkg:maven/org.jetbrains.kotlinx/kotlinx-serialization-core-jvm@1.7.3",
+      "copyright": "Publisher (POM): JetBrains",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/org.jetbrains.kotlinx/kotlinx-serialization-core-jvm@1.7.3",
+      "type": "library",
+      "version": "1.7.3"
+    },
+    {
+      "bom-ref": "pkg:maven/org.jetbrains.kotlinx/kotlinx-serialization-json-jvm@1.7.3",
+      "copyright": "Publisher (POM): JetBrains",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/org.jetbrains.kotlinx/kotlinx-serialization-json-jvm@1.7.3",
+      "type": "library",
+      "version": "1.7.3"
+    },
+    {
+      "bom-ref": "pkg:maven/org.jetbrains/annotations@23.0.0",
+      "copyright": "Publisher (POM): JetBrains",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "org.jetbrains:annotations",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/org.jetbrains/annotations@23.0.0",
+      "type": "library",
+      "version": "23.0.0"
+    },
+    {
+      "bom-ref": "pkg:maven/org.tensorflow/tensorflow-lite-api@2.16.1",
+      "copyright": "Copyright (c) 2014, The Regents of the University of California (Regents); Copyright (c) 2014, the respective contributors",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "org.tensorflow:tensorflow-lite-api",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/org.tensorflow/tensorflow-lite-api@2.16.1",
+      "type": "library",
+      "version": "2.16.1"
+    },
+    {
+      "bom-ref": "pkg:maven/org.tensorflow/tensorflow-lite@2.16.1",
+      "copyright": "Copyright (c) 2014, The Regents of the University of California (Regents); Copyright (c) 2014, the respective contributors",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "org.tensorflow:tensorflow-lite",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "release runtime classpath"
+        }
+      ],
+      "purl": "pkg:maven/org.tensorflow/tensorflow-lite@2.16.1",
+      "type": "library",
+      "version": "2.16.1"
+    },
+    {
+      "bom-ref": "model:assets/activity_model.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "06475f27740a2bc9ba7e736333966c94b2325a27c78f2bc9ce36b1395462c445"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Our own weights (trained by IRA CARE; no pretrained start)"
+          }
+        }
+      ],
+      "name": "IRA Care Activity model",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "own"
+        },
+        {
+          "name": "ira:where",
+          "value": "assets/activity_model.json"
+        },
+        {
+          "name": "ira:trained-on",
+          "value": "WISDM Smartphone and Smartwatch Activity and Biometrics"
+        }
+      ],
+      "type": "machine-learning-model",
+      "version": "06475f27740a"
+    },
+    {
+      "bom-ref": "model:assets/fall_model.tflite",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2cab7c9bcbf60de51d7c42f5690ad549bcbf4f13eb6266c35bf5d0a59b063278"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Our own weights (trained by IRA CARE; no pretrained start)"
+          }
+        }
+      ],
+      "name": "IRA fall model v3",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "own"
+        },
+        {
+          "name": "ira:where",
+          "value": "assets/fall_model.tflite"
+        },
+        {
+          "name": "ira:trained-on",
+          "value": "BITS-2 Dataset for Fall Detection"
+        },
+        {
+          "name": "ira:trained-on",
+          "value": "UCI HAR (smartphones)"
+        }
+      ],
+      "type": "machine-learning-model",
+      "version": "2cab7c9bcbf6"
+    },
+    {
+      "bom-ref": "apk:lib/arm64-v8a/libandroidx.graphics.path.so",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "libandroidx.graphics.path.so",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "lib/arm64-v8a in the APK, from androidx.graphics:graphics-path@1.0.1"
+        }
+      ],
+      "type": "library",
+      "version": "arm64-v8a"
+    },
+    {
+      "bom-ref": "apk:lib/arm64-v8a/libtensorflowlite_jni.so",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "libtensorflowlite_jni.so",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "lib/arm64-v8a in the APK, from org.tensorflow:tensorflow-lite@2.16.1"
+        }
+      ],
+      "type": "library",
+      "version": "arm64-v8a"
+    },
+    {
+      "bom-ref": "apk:lib/armeabi-v7a/libandroidx.graphics.path.so",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "libandroidx.graphics.path.so",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "lib/armeabi-v7a in the APK, from androidx.graphics:graphics-path@1.0.1"
+        }
+      ],
+      "type": "library",
+      "version": "armeabi-v7a"
+    },
+    {
+      "bom-ref": "apk:lib/armeabi-v7a/libtensorflowlite_jni.so",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "libtensorflowlite_jni.so",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "lib/armeabi-v7a in the APK, from org.tensorflow:tensorflow-lite@2.16.1"
+        }
+      ],
+      "type": "library",
+      "version": "armeabi-v7a"
+    },
+    {
+      "bom-ref": "apk:lib/x86/libandroidx.graphics.path.so",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "libandroidx.graphics.path.so",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "lib/x86 in the APK, from androidx.graphics:graphics-path@1.0.1"
+        }
+      ],
+      "type": "library",
+      "version": "x86"
+    },
+    {
+      "bom-ref": "apk:lib/x86/libtensorflowlite_jni.so",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "libtensorflowlite_jni.so",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "lib/x86 in the APK, from org.tensorflow:tensorflow-lite@2.16.1"
+        }
+      ],
+      "type": "library",
+      "version": "x86"
+    },
+    {
+      "bom-ref": "apk:lib/x86_64/libandroidx.graphics.path.so",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "libandroidx.graphics.path.so",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "lib/x86_64 in the APK, from androidx.graphics:graphics-path@1.0.1"
+        }
+      ],
+      "type": "library",
+      "version": "x86_64"
+    },
+    {
+      "bom-ref": "apk:lib/x86_64/libtensorflowlite_jni.so",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "libtensorflowlite_jni.so",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "lib/x86_64 in the APK, from org.tensorflow:tensorflow-lite@2.16.1"
+        }
+      ],
+      "type": "library",
+      "version": "x86_64"
+    }
+  ],
+  "dependencies": [
+    {
+      "dependsOn": [
+        "pkg:maven/androidx.activity/activity-compose@1.9.3",
+        "pkg:maven/androidx.activity/activity-ktx@1.9.3",
+        "pkg:maven/androidx.activity/activity@1.9.3",
+        "pkg:maven/androidx.annotation/annotation-experimental@1.4.1",
+        "pkg:maven/androidx.annotation/annotation-jvm@1.8.1",
+        "pkg:maven/androidx.annotation/annotation@1.8.1",
+        "pkg:maven/androidx.arch.core/core-common@2.2.0",
+        "pkg:maven/androidx.arch.core/core-runtime@2.2.0",
+        "pkg:maven/androidx.autofill/autofill@1.0.0",
+        "pkg:maven/androidx.collection/collection-jvm@1.4.4",
+        "pkg:maven/androidx.collection/collection-ktx@1.4.4",
+        "pkg:maven/androidx.collection/collection@1.4.4",
+        "pkg:maven/androidx.compose.animation/animation-android@1.7.6",
+        "pkg:maven/androidx.compose.animation/animation-core-android@1.7.6",
+        "pkg:maven/androidx.compose.animation/animation-core@1.7.6",
+        "pkg:maven/androidx.compose.animation/animation@1.7.6",
+        "pkg:maven/androidx.compose.foundation/foundation-android@1.7.6",
+        "pkg:maven/androidx.compose.foundation/foundation-layout-android@1.7.6",
+        "pkg:maven/androidx.compose.foundation/foundation-layout@1.7.6",
+        "pkg:maven/androidx.compose.foundation/foundation@1.7.6",
+        "pkg:maven/androidx.compose.material/material-icons-core-android@1.7.6",
+        "pkg:maven/androidx.compose.material/material-icons-core@1.7.6",
+        "pkg:maven/androidx.compose.material/material-ripple-android@1.7.6",
+        "pkg:maven/androidx.compose.material/material-ripple@1.7.6",
+        "pkg:maven/androidx.compose.runtime/runtime-android@1.7.6",
+        "pkg:maven/androidx.compose.runtime/runtime-saveable-android@1.7.6",
+        "pkg:maven/androidx.compose.runtime/runtime-saveable@1.7.6",
+        "pkg:maven/androidx.compose.runtime/runtime@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-android@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-geometry-android@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-geometry@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-graphics-android@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-graphics@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-text-android@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-text@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-tooling-preview-android@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-tooling-preview@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-unit-android@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-unit@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-util-android@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui-util@1.7.6",
+        "pkg:maven/androidx.compose.ui/ui@1.7.6",
+        "pkg:maven/androidx.concurrent/concurrent-futures-ktx@1.1.0",
+        "pkg:maven/androidx.concurrent/concurrent-futures@1.1.0",
+        "pkg:maven/androidx.core/core-ktx@1.15.0",
+        "pkg:maven/androidx.core/core@1.15.0",
+        "pkg:maven/androidx.customview/customview-poolingcontainer@1.0.0",
+        "pkg:maven/androidx.emoji2/emoji2@1.3.0",
+        "pkg:maven/androidx.graphics/graphics-path@1.0.1",
+        "pkg:maven/androidx.interpolator/interpolator@1.0.0",
+        "pkg:maven/androidx.lifecycle/lifecycle-common-jvm@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-common@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-livedata-core-ktx@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-livedata-core@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-livedata@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-process@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-runtime-android@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-runtime-compose-android@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-runtime-compose@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-runtime-ktx-android@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-runtime-ktx@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-runtime@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-service@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-viewmodel-android@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-viewmodel-ktx@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-viewmodel-savedstate@2.8.7",
+        "pkg:maven/androidx.lifecycle/lifecycle-viewmodel@2.8.7",
+        "pkg:maven/androidx.profileinstaller/profileinstaller@1.3.1",
+        "pkg:maven/androidx.room/room-common@2.6.1",
+        "pkg:maven/androidx.room/room-ktx@2.6.1",
+        "pkg:maven/androidx.room/room-runtime@2.6.1",
+        "pkg:maven/androidx.savedstate/savedstate-ktx@1.2.1",
+        "pkg:maven/androidx.savedstate/savedstate@1.2.1",
+        "pkg:maven/androidx.sqlite/sqlite-framework@2.4.0",
+        "pkg:maven/androidx.sqlite/sqlite@2.4.0",
+        "pkg:maven/androidx.startup/startup-runtime@1.1.1",
+        "pkg:maven/androidx.tracing/tracing-ktx@1.2.0",
+        "pkg:maven/androidx.tracing/tracing@1.2.0",
+        "pkg:maven/androidx.versionedparcelable/versionedparcelable@1.1.1",
+        "pkg:maven/androidx.wear.compose/compose-foundation@1.4.0",
+        "pkg:maven/androidx.wear.compose/compose-material-core@1.4.0",
+        "pkg:maven/androidx.wear.compose/compose-material@1.4.0",
+        "pkg:maven/androidx.work/work-runtime-ktx@2.10.0",
+        "pkg:maven/androidx.work/work-runtime@2.10.0",
+        "pkg:maven/com.google.guava/listenablefuture@1.0",
+        "pkg:maven/com.squareup.okhttp3/okhttp@4.12.0",
+        "pkg:maven/com.squareup.okio/okio-jvm@3.6.0",
+        "pkg:maven/com.squareup.okio/okio@3.6.0",
+        "pkg:maven/org.jetbrains.kotlin/kotlin-stdlib-common@2.0.21",
+        "pkg:maven/org.jetbrains.kotlin/kotlin-stdlib-jdk7@1.9.10",
+        "pkg:maven/org.jetbrains.kotlin/kotlin-stdlib-jdk8@1.9.10",
+        "pkg:maven/org.jetbrains.kotlin/kotlin-stdlib@2.0.21",
+        "pkg:maven/org.jetbrains.kotlinx/kotlinx-coroutines-android@1.9.0",
+        "pkg:maven/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm@1.9.0",
+        "pkg:maven/org.jetbrains.kotlinx/kotlinx-serialization-core-jvm@1.7.3",
+        "pkg:maven/org.jetbrains.kotlinx/kotlinx-serialization-json-jvm@1.7.3",
+        "pkg:maven/org.jetbrains/annotations@23.0.0",
+        "pkg:maven/org.tensorflow/tensorflow-lite-api@2.16.1",
+        "pkg:maven/org.tensorflow/tensorflow-lite@2.16.1",
+        "model:assets/activity_model.json",
+        "model:assets/fall_model.tflite",
+        "apk:lib/arm64-v8a/libandroidx.graphics.path.so",
+        "apk:lib/arm64-v8a/libtensorflowlite_jni.so",
+        "apk:lib/armeabi-v7a/libandroidx.graphics.path.so",
+        "apk:lib/armeabi-v7a/libtensorflowlite_jni.so",
+        "apk:lib/x86/libandroidx.graphics.path.so",
+        "apk:lib/x86/libtensorflowlite_jni.so",
+        "apk:lib/x86_64/libandroidx.graphics.path.so",
+        "apk:lib/x86_64/libtensorflowlite_jni.so"
+      ],
+      "ref": "artefact:watch-aosp"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "bom-ref": "artefact:watch-aosp",
+      "description": "IRA CARE watch app, plain Android (AOSP) build (release APK)",
+      "name": "watch-aosp",
+      "type": "application"
+    },
+    "properties": [
+      {
+        "name": "ira:generated-by",
+        "value": "scripts/supply_chain.py render"
+      }
+    ]
+  },
+  "specVersion": "1.5",
+  "version": 1
+}

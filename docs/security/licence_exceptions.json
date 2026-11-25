@@ -2,6 +2,36 @@
   "_about": "Reviewed exceptions to the licence policy in docs/security/LICENCES.md. Each entry names the ecosystem, the package and the licence exactly as LICENCES.json records it, and says why it is acceptable. A change of licence upstream stops the entry matching, so the package is reviewed again. scripts/licence_check.py fails on an entry that no longer matches a package.",
   "exceptions": [
     {
+      "ecosystem": "image-api",
+      "licence": "Apache",
+      "package": "huggingface-hub",
+      "reason": "The package's License field says only \"Apache\" and its classifier \"Apache Software License\", with no version. The LICENSE file in the installed wheel (read in the API image) is the Apache License 2.0 text. Installed in the image through requirements-test.txt (the lock pins a different version)."
+    },
+    {
+      "ecosystem": "image-dashboard",
+      "licence": "Apache-2.0 AND LGPL-3.0-or-later AND MIT",
+      "package": "@img/sharp-wasm32",
+      "reason": "WebAssembly build of sharp and libvips. Next.js's file tracing copies only its JavaScript loader into the dashboard image (180 KB, no .wasm file: checked in the built image); on Linux x64 sharp loads the native build instead. Unmodified npm package. It is a separate shared library, loaded at run time and unmodified, and can be replaced with a modified build, which is the LGPL combined-work case. The licence text and notice travel in the image's notices file (docs/legal/notices/)."
+    },
+    {
+      "ecosystem": "native-libraries",
+      "licence": "LGPL-2.1-or-later",
+      "package": "libkeyutils",
+      "reason": "The Linux key-management library (keyutils), bundled by psycopg-binary's wheel in psycopg_binary.libs for Kerberos. The library is LGPL-2.1-or-later (the command-line tools, not shipped, are GPL). It is a separate shared library, loaded at run time and unmodified, and can be replaced with a modified build, which is the LGPL combined-work case. The licence text and notice travel in the image's notices file (docs/legal/notices/)."
+    },
+    {
+      "ecosystem": "native-libraries",
+      "licence": "LGPL-2.1-or-later",
+      "package": "libquadmath",
+      "reason": "GCC's quad-precision maths library, bundled by numpy's wheel in numpy.libs and loaded by OpenBLAS. It is a separate shared library, loaded at run time and unmodified, and can be replaced with a modified build, which is the LGPL combined-work case. The licence text and notice travel in the image's notices file (docs/legal/notices/)."
+    },
+    {
+      "ecosystem": "native-libraries",
+      "licence": "LicenseRef-public-domain",
+      "package": "libselinux",
+      "reason": "SELinux's library, bundled by psycopg-binary's wheel. Its LICENSE says \"This library (libselinux) is public domain software\"; public domain has no SPDX licence id, so it is recorded with a LicenseRef and kept in the notices for attribution."
+    },
+    {
       "ecosystem": "npm-dashboard",
       "licence": "LGPL-3.0-or-later",
       "package": "@img/sharp-libvips-linux-x64",
@@ -18,6 +48,18 @@
       "licence": "NOASSERTION",
       "package": "@segment/loosely-validate-event",
       "reason": "package.json declares no licence, but the LICENSE file in the published 2.0.0 package is the MIT licence text (checked in node_modules). Arrives through expo's command-line tool (@expo/cli via @expo/rudder-sdk-node), not app code."
+    },
+    {
+      "ecosystem": "os-linked",
+      "licence": "LGPL-2.1-or-later",
+      "package": "libc6",
+      "reason": "The GNU C Library of the Debian base image, which every compiled program in the image links. It is the operating system's own shared library, unmodified and replaceable, which is the LGPL combined-work case; Debian ships its licence and notice in /usr/share/doc/libc6/copyright inside the image."
+    },
+    {
+      "ecosystem": "os-linked",
+      "licence": "LGPL-2.1-or-later",
+      "package": "libcrypt1",
+      "reason": "libxcrypt, the password-hashing library of the Debian base image, linked by the base image's CPython (the crypt-related standard library). Operating-system shared library, unmodified and replaceable; Debian ships its licence in /usr/share/doc/libcrypt1/copyright inside the image."
     },
     {
       "ecosystem": "python",
