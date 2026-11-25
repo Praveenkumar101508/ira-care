@@ -52,7 +52,7 @@ rounded up.
 | Sign-up, the organisation, invitations by link with consent captured, acceptance, plan limits (the same, with what only the owner can provide) | needs the owner (enable sign-up and mail) | `tests/tenancy/test_care_onboarding_db.py`; `IRA_CLOUD_REGISTRATION_ENABLED` and an SMTP account |
 | Plans and billing | works (proved by catalogue, limits, status; the billing routes; no price rows; `IRA_PAYMENT_PROVIDER` unset; no live keys) | the billing routes; no price rows; `IRA_PAYMENT_PROVIDER` unset; no live keys |
 | Plans and billing (the same, with what only the owner can provide) | needs the owner (price and configure a provider) | the billing routes; no price rows; `IRA_PAYMENT_PROVIDER` unset; no live keys |
-| Containers, HTTPS proxy, health checks, restart policies | needs the owner | `deploy/`; no container runtime here, so the first `docker compose up` on a rented machine is the proof; `docs/DEPLOY.md` |
+| Containers, HTTPS proxy, health checks, restart policies | works (proved by the containerised stack in `docs/evidence/staging/CONTAINERS.md`: every service healthy, care flow over HTTPS, outage drills, backup and restore; the images built in CI) | `docs/evidence/staging/CONTAINERS.md`, `docs/evidence/staging/containers.json`; on a rented server: needs the owner (G1.e) |
 | Nightly encrypted backups with a proved restore | works (proved by `deploy/backup.sh`, `restore.sh`, the CI round trip, the local run (151 tables, 104 migrations before and after)) | `deploy/backup.sh`, `restore.sh`, the CI round trip, the local run (151 tables, 104 migrations before and after) |
 | Soak: 200 people, a simulated day, no missed escalations, job timings | works (proved by the measurement in `scripts/soak_24h.py`: 20 of 20 escalated, 0 missing, 0 late; pass timings in STATUS.md) | `scripts/soak_24h.py`: 20 of 20 escalated, 0 missing, 0 late; pass timings in STATUS.md |
 | Release builds: watch (minified, unsigned here), family app (profiles, no submission), icons, listings, Data safety answers | needs the owner | a signing key, store accounts, a build-service project, submissions |
@@ -96,6 +96,27 @@ rounded up.
 | Every readiness row is in one of three states (works, needs hardware, needs the owner) and names a proof that exists; CI fails otherwise | works (proved by `scripts/check_docs_truth.py` over this file, run locally and as the CI job "Readiness tells the truth" in `.github/workflows/test.yml`) | `scripts/check_docs_truth.py`, `docs/DECISIONS.md` (D-068) |
 | Care push only to the circle's registered phones; tickets, receipts and delivery state on the alert; a second family never receives the first's alert; a removed member and a revoked token stop receiving | works (proved by log-only provider by default; `tests/care/test_care_push_rules.py` (guard), `tests/tenancy/test_care_push_db.py` (8 tests)) | `tests/care/test_care_push_rules.py` (guard), `tests/tenancy/test_care_push_db.py` (8 tests) |
 | Care push only to the circle's registered phones; tickets, receipts and delivery state on the alert; a second family never receives the first's alert; a removed member and a revoked token stop receiving (the same, with what only the owner can provide) | needs the owner (set `IRA_CARE_PUSH_PROVIDER=expo` for real phones) | `tests/care/test_care_push_rules.py` (guard), `tests/tenancy/test_care_push_db.py` (8 tests) |
+
+## Round 5 (the master directive, pull requests 63 to 80)
+
+| Feature | State | Proof or blocker |
+| --- | --- | --- |
+| The 22-step care journey, end to end against the real API and PostgreSQL (D-079) | works (proved by `tests/tenancy/test_care_journey_db.py`) | `docs/demo/CARE_JOURNEY_22.md` |
+| The 22-step care journey on a physical watch and phone | needs hardware | a physical watch and phone (J.f) |
+| "All well" never shown when monitoring is paused, messages fail, the page is stale or the watch is offline | works (proved by `tests/tenancy/test_care_delivery_db.py`, `dashboard/src/__tests__/view.test.ts`, `FaceTextTest.kt`) | `dashboard/src/__tests__/person_live.test.tsx` |
+| Demonstration pages refused in production builds | works (proved by `dashboard/src/__tests__/demo_pages.test.ts`) | `dashboard/src/middleware.ts` |
+| Watch storage never written unencrypted when its key fails; Help still queued | works (proved by `DegradedStorageTest.kt`) | on a watch with a broken Keystore: needs hardware |
+| Care plans as versioned, insert-only records; staff roles served to the dashboard | works (proved by `tests/tenancy/test_care_plans_db.py`, `tests/care/test_care_staff_roles.py`) | `dashboard/src/__tests__/care_plan.test.tsx` |
+| A coordinator role and separate staff screens (rota, caseload) | needs the owner (decide whether they are wanted; D-078) | requirement D3.i, not started |
+| Rate limits on the open care routes; dashboard security headers; patched build dependencies | works (proved by `tests/care/test_care_public_rate_limits.py`, `dashboard/src/__tests__/security_headers.test.ts`) | `docs/security/REVIEW.md` |
+| Independent penetration test | needs the owner (contract a qualified tester) | requirement C-22.d |
+| Hazard log and claims register tied to code and tests | works (proved by `tests/readiness/test_hazard_log_traceability.py`, `tests/readiness/test_claims_register.py`) | drafts for a Clinical Safety Officer: needs the owner (I.j) |
+| Container images built and checked in CI; backups that cannot fail silently | works (proved by the CI job `images` in `.github/workflows/test.yml`, `tests/readiness/test_backup_image.py`) | `deploy/Dockerfile.backup` |
+| Heart: learned selector as checked JSON trees, numpy only (7.75 bpm on PPG-DaLiA, reproduced) | works (proved by `tests/care/test_heart_learned.py`, `docs/ai/heart/results.json`) | not yet used by any product path; on older adults and the IRA watch: needs hardware |
+| Activity: wrist model on WISDM (macro-F1 0.790, subject-grouped) | works (proved by `tests/care/test_activity_estimate.py`, `docs/ai/activity/results.json`) | not yet used by any product path or on the watch |
+| Fall model v2 on licensed data (BITS-2) | needs the owner (ship it or not: fewer false alarms, 5 more missed falls in 316; with a clinical reviewer) | `docs/ai/fall/MODEL_CARD_V2.md`, `docs/ai/fall/results_v2.json` |
+| Completion measured from fixed atomic requirements, seven measures, append-only history | works (proved by `tests/readiness/test_requirements_framework.py`) | `docs/progress/requirements.json`, `docs/progress/completion_history.json` |
+| IRA CARE OS image built and booted | needs the owner (an AOSP build host: about 400 GB disk, 64 GB RAM) | `os/scripts/build_cuttlefish.sh` refused this machine |
 
 ## What "needs hardware" means here
 

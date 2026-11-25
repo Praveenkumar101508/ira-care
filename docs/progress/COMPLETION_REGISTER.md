@@ -41,20 +41,36 @@ dated record to `docs/progress/completion_history.json`, which is append-only.
 The numbers below are quoted from one dated snapshot, so they stay true when later pull requests
 change the requirements; run the script for the current figures.
 
-At snapshot **main after #66**, `08766d2` (recorded 2026-11-25):
+At snapshot **main after #80**, `eec19a0` (recorded 2026-11-25, requirements 1.4.0):
 
 | Measure | Done / total | % |
 |---|---|---|
-| Hardware-independent software implementation | 121 / 177 | 68.4 % |
-| Hardware-independent software acceptance | 104 / 177 | 58.8 % |
-| Software verification | 45 / 191 | 23.6 % |
-| AI development (accepted, area ai) | 17 / 37 | 45.9 % |
+| Hardware-independent software implementation | 136 / 183 | 74.3 % |
+| Hardware-independent software acceptance | 116 / 183 | 63.4 % |
+| Software verification | 53 / 197 | 26.9 % |
+| AI development (accepted, area ai) | 21 / 39 | 53.8 % |
 | OS development (accepted, area os, hardware-independent) | 2 / 27 | 7.4 % |
 | Hardware integration (accepted, area hardware) | 0 / 14 | 0.0 % |
 | External and commercial readiness (accepted, area external) | 0 / 34 | 0.0 % |
 
-104 of 239 requirements are accepted or better; 135 remain, 47 of them blocked by something
+116 of 245 requirements are accepted or better; 129 remain, 46 of them blocked by something
 outside the software. None is device validated: no physical device has been used.
+
+Change since the previous snapshot, **main after #66** (`08766d2`, requirements 1.0.0).
+Six requirements were added between the two (239 to 245 items), so the denominators differ.
+Three were added already met (C-19.c degraded watch storage, D3.k staff roles as built, F3.f the
+portable heart selector) and three were added unmet (F4.h a fall model that passes its shipping
+gate, J.h and G2.i, both met since). No requirement was removed and none was reworded.
+
+| Measure | main after #66 | main after #80 | Change |
+|---|---|---|---|
+| Hardware-independent software implementation | 68.4 % | 74.3 % | +5.9 points |
+| Hardware-independent software acceptance | 58.8 % | 63.4 % | +4.6 points |
+| Software verification | 23.6 % | 26.9 % | +3.3 points |
+| AI development (accepted, area ai) | 45.9 % | 53.8 % | +7.9 points |
+| OS development (accepted, area os, hardware-independent) | 7.4 % | 7.4 % | +0.0 points |
+| Hardware integration (accepted, area hardware) | 0.0 % | 0.0 % | +0.0 points |
+| External and commercial readiness (accepted, area external) | 0.0 % | 0.0 % | +0.0 points |
 
 The history's first entry recomputes the audit baseline (`1f41c5d`, before #44) as a lower bound,
 crediting only evidence present there verbatim (for example, software acceptance 32 / 177).
@@ -166,7 +182,7 @@ edited since are not credited.
 
 | # | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
-| J | Integrated live demonstration, the 32 steps, presenter guide | browser tested | `fix/demo-rerun` · `docs/demo/RERUN.md`: scripted scenarios and the browser demo re-run on the remediated stack (fake model, log-only providers); two defects found and fixed (REMEDIATION B4, B5). Film voice-over and devices: not re-run |
+| J | Integrated live demonstration, the 22-step care journey (D-079), presenter guide | integration tested | #79 · the 22 steps against the real API and PostgreSQL (`docs/demo/CARE_JOURNEY_22.md`); #64 · `docs/demo/RERUN.md`: scripted scenarios and the browser demo re-run on the remediated stack (fake model, log-only providers); two defects found and fixed (REMEDIATION B4, B5). Film voice-over and devices: not re-run |
 | K | Full verification on integrated `main` (every suite, builds, load, outage, backup, licence scan) | integration tested | `docs/progress/VERIFICATION.md`: backend unit and database suites, dashboard, phone, watch builds, outage, backup and restore, secret scan, licences. Load (24 h soak): not run. Device, emulator and OS image runs: **needs external** |
 | L | Endorsement evidence pack, GO / NO-GO decisions | not started | |
 
