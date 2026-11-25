@@ -28,6 +28,24 @@ These are the only words used, and each means exactly this:
 
 Nothing is marked done because code or a document exists.
 
+## Weighted completion
+
+<!-- completion-summary:begin -->
+| Measure | Value |
+|---|---|
+| Overall, weighted | 64.1 % |
+| Implemented (built, here or before) | 91.2 % |
+| Tested (unit, integration, evaluated or better) | 54.3 % |
+| Merged and evidenced in this programme | 51.0 % |
+| Safety remediation (section C) | 84.2 % |
+| AI components (section F) | 56.9 % |
+| IRA CARE OS (section E) | 58.0 % |
+| Rows blocked in part by an external dependency | 20 of 51 |
+
+Computed by `scripts/completion_summary.py` from the status column, with the fixed scores and
+weights stated in that script. No device has been used, so no row is device tested.
+<!-- completion-summary:end -->
+
 ## Pull requests in this programme
 
 | PR | Branch | Group | State |
@@ -38,6 +56,18 @@ Nothing is marked done because code or a document exists.
 | [#47](https://github.com/Praveenkumar101508/ira-care/pull/47) | `fix/phone-session-and-talk` | C3/C4: sign-out isolation, session renewal | merged, CI green |
 | [#48](https://github.com/Praveenkumar101508/ira-care/pull/48) | `fix/watch-speech-and-storage` | D: Help before speech, speech core, encrypted per-wearer storage | merged, CI green |
 | [#49](https://github.com/Praveenkumar101508/ira-care/pull/49) | `fix/completion-register` | this register | merged |
+| [#50](https://github.com/Praveenkumar101508/ira-care/pull/50) | `fix/completion-register` | register: groups A2 and D merged | merged, CI green |
+| [#51](https://github.com/Praveenkumar101508/ira-care/pull/51) | `fix/care-authz-and-outages` | E: person-level authorisation (D-076), outage recovery | merged, CI green |
+| [#52](https://github.com/Praveenkumar101508/ira-care/pull/52) | `fix/dashboard-session-renewal` | C4b: dashboard session renewal | merged, CI green |
+| [#53](https://github.com/Praveenkumar101508/ira-care/pull/53) | `fix/watch-explicit-unpair` | D7: explicit unpair with warning, migration 114 | merged, CI green |
+| [#54](https://github.com/Praveenkumar101508/ira-care/pull/54) | `fix/dashboard-dark-mode` | C5: dark-mode and high-contrast colours | merged, CI green |
+| [#55](https://github.com/Praveenkumar101508/ira-care/pull/55) | `fix/log-exception-text` | A5b: exception text out of logs across the backend | merged, CI green |
+| [#56](https://github.com/Praveenkumar101508/ira-care/pull/56) | `fix/mobile-talk-streaming` | C1: phone Talk streaming | merged, CI green |
+| [#57](https://github.com/Praveenkumar101508/ira-care/pull/57) | `fix/product-capabilities` | F1: what IRA measures and what it does not (D4) | merged, CI green |
+| [#58](https://github.com/Praveenkumar101508/ira-care/pull/58) | `fix/ai-heart-ppg-dalia` | F3: IRA Care Heart, evaluated on PPG-DaLiA | merged, CI green |
+| [#59](https://github.com/Praveenkumar101508/ira-care/pull/59) | `fix/os-product-layer` | E1/E2/E6: OS product layer and docs | merged, CI green |
+| [#60](https://github.com/Praveenkumar101508/ira-care/pull/60) | `fix/watch-home-screen` | D8: watch app as the OS home screen | merged, CI green |
+| [#61](https://github.com/Praveenkumar101508/ira-care/pull/61) | `fix/mobile-voice` | C2: phone voice in and out | merged, CI green |
 
 ## C. Software safety remediation (the 24 items)
 
@@ -48,14 +78,14 @@ Nothing is marked done because code or a document exists.
 | C-3 | Dose identity, timing, provenance, correction history | integration tested | #44 · A3, A3d, A3e (migration 112) |
 | C-4 | No false safety-check confirmation | integration tested | #44 · A4 |
 | C-5 | No false fall-countdown cancellation | unit tested | #44 · A4b (JVM tests; CI Gradle build) |
-| C-6 | Sensitive log protection | unit tested | #44 · A5 (care); `fix/log-exception-text` · A5b (rest of the backend) |
+| C-6 | Sensitive log protection | unit tested | #44 · A5 (care); #55 · A5b (rest of the backend) |
 | C-7 | Wearer-only conversation | integration tested | #44 · A6 |
 | C-8 | Delivery states and verified callbacks | integration tested | #46 · A2-3 |
 | C-9 | Dispatch concurrency and retries | integration tested | #46 · A2-1, A2-2 |
 | C-10 | Live patient-record refresh | unit tested | #45 · B1 (component tests; not browser tested) |
 | C-11 | Unknown and stale wrist status | unit tested | #45 · B2 |
 | C-12 | Mobile conversation streaming | unit tested | #56 · C1 (`expo/fetch`, incremental NDJSON). On-device check: **needs external**, a device build |
-| C-13 | Native mobile voice | unit tested | `fix/mobile-voice` · C2 (speech out and in; one utterance; no recording kept). Device check and elderly-speech accuracy: **needs external** (device build, consented recordings); DPIA to cover platform recognisers |
+| C-13 | Native mobile voice | unit tested | #61 · C2 (speech out and in; one utterance; no recording kept). Device check and elderly-speech accuracy: **needs external** (device build, consented recordings); DPIA to cover platform recognisers |
 | C-14 | Complete logout isolation | unit tested | #47 · C3 |
 | C-15 | Push-token unregister on sign-out | unit tested | #47 · C3 |
 | C-16 | Secure automatic session renewal | unit tested | #47 · C4 (phone); #52 · C4b (dashboard) |
@@ -63,7 +93,7 @@ Nothing is marked done because code or a document exists.
 | C-18 | Watch text-to-speech lifecycle and time limits | unit tested | #48 · D2 |
 | C-19 | Encrypted watch storage | unit tested | #48 · D5 (Keystore hardware backing: **needs external**, device) |
 | C-20 | Atomic offline-queue and outbox writes | unit tested | #48 · D5 |
-| C-21 | Secure unpairing and re-pairing | integration tested | #48 · D5 (kept per wearer); `fix/watch-explicit-unpair` · D7 (explicit unpair with warning, migration 114). On-device UI check: **needs external**, a watch |
+| C-21 | Secure unpairing and re-pairing | integration tested | #48 · D5 (kept per wearer); #53 · D7 (explicit unpair with warning, migration 114). On-device UI check: **needs external**, a watch |
 | C-22 | Backend and person-level authorisation review | integration tested | #51 · REMEDIATION E1 (D-076) |
 | C-23 | Accessibility and interface consistency | unit tested | Automated accessibility checks from round 4; #54 · C5 (dark-mode and high-contrast colour review, measured). A screen-reader pass on real devices: **needs external** |
 | C-24 | Full-system outage and recovery tests | integration tested | #51 · REMEDIATION E2–E5 |
@@ -76,17 +106,17 @@ Nothing is marked done because code or a document exists.
 | D1b | AOSP application flavour | pre-existing | CI builds both flavours |
 | D2 | Phone app, wearer / family / carer experiences, personalisation | pre-existing | Round 4 one-app work. iOS build: **needs external** (macOS, signing). Play and App Store: **needs external** (developer accounts) |
 | D3 | Care dashboard: overview, record, visits, alerts, reports, audit, search | pre-existing; live record improved | #45. Care plans as a separate object, staff role screens: **not started** |
-| D4 | Product promises reconciled (food-intake check, camera, SpO2, ECG, HRV, sleep, blood pressure, hearing access) | unit tested | `fix/product-capabilities` · REMEDIATION F1: one capability list; not-available measurements are refused and never shown with a value. New sensors: **needs external** (hardware, validation) |
+| D4 | Product promises reconciled (food-intake check, camera, SpO2, ECG, HRV, sleep, blood pressure, hearing access) | unit tested | #57 · REMEDIATION F1: one capability list; not-available measurements are refused and never shown with a value. New sensors: **needs external** (hardware, validation) |
 
 ## E. IRA CARE OS (AOSP)
 
 | # | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
-| E1 | Distinguish app / launcher / system image / firmware / production OS | in progress | `fix/os-product-layer` · `docs/os/ARCHITECTURE.md`: the five layers, what exists (with paths), what is unbuilt, what needs hardware or suppliers; the sensor HAL boundary. Document only; nothing in it is built |
-| E2 | Product config, launcher, boot animation, settings, emergency UI, services, Cuttlefish image | in progress (configuration only); image **needs external** (AOSP build host) | `fix/os-product-layer` · `os/`: Cuttlefish product makefile, privileged prebuilt app with privapp allowlist (empty: the manifest requests no privileged permission), proposed first-boot grants, framework overlay, boot animation specification, settings and emergency-UI notes, build and launch scripts. Readiness tests `tests/readiness/test_os_product_layer.py` check references, the allowlist against the manifest, and that the build script refuses on low resources and never downloads without the opt-in. **The image is unbuilt and has never booted**: a full AOSP build needs about 400 GB disk and 64 GB RAM (source.android.com) and this container has neither. Several AOSP names are marked uncertain (`docs/os/BUILD.md`). IRA as the home screen: **not started**, needs a HOME intent filter in the watch app's aosp flavour (`os/device/ira/ira_watch_cf/HOME_LAUNCHER.md`). Device-owner policy app (developer options, factory reset behind an administrator): **not started**; app side of the home screen done (`fix/watch-home-screen`, REMEDIATION D8) |
+| E1 | Distinguish app / launcher / system image / firmware / production OS | unit tested | #59 · `docs/os/ARCHITECTURE.md`: the five layers, what exists (with paths), what is unbuilt, what needs hardware or suppliers; the sensor HAL boundary. Document only; nothing in it is built |
+| E2 | Product config, launcher, boot animation, settings, emergency UI, services, Cuttlefish image | unit tested (configuration only); image **needs external** (AOSP build host) | #59 · `os/`: Cuttlefish product makefile, privileged prebuilt app with privapp allowlist (empty: the manifest requests no privileged permission), proposed first-boot grants, framework overlay, boot animation specification, settings and emergency-UI notes, build and launch scripts. Readiness tests `tests/readiness/test_os_product_layer.py` check references, the allowlist against the manifest, and that the build script refuses on low resources and never downloads without the opt-in. **The image is unbuilt and has never booted**: a full AOSP build needs about 400 GB disk and 64 GB RAM (source.android.com) and this container has neither. Several AOSP names are marked uncertain (`docs/os/BUILD.md`). IRA as the home screen: **not started**, needs a HOME intent filter in the watch app's aosp flavour (`os/device/ira/ira_watch_cf/HOME_LAUNCHER.md`). Device-owner policy app (developer options, factory reset behind an administrator): **not started**; app side of the home screen done (#60, REMEDIATION D8) |
 | E3 | Sensor HAL interfaces with simulated drivers | pre-existing (contract) | `docs/hardware/SENSOR_HAL.md`; simulated drivers: **not started** |
-| E4 | Verified boot, Keystore, signed OTA, rollback, provisioning | not started | Plan in `docs/os/ARCHITECTURE.md` section 3 (`fix/os-product-layer`), saying which links can be shown on Cuttlefish and which cannot. Hardware-backed parts: **needs external** (target board). Signing keys: **needs external** (owner's key-custody decision) |
-| E6 | OS architecture document, build instructions, Qualcomm dependency register | in progress | `fix/os-product-layer` · `docs/os/ARCHITECTURE.md`, `docs/os/BUILD.md` (every step marked not run in this repository's CI), `docs/os/QUALCOMM_DEPENDENCIES.md` (14 supplier components with availability, licence and owner action). Running the build steps: **needs external** (AOSP build host). Supplier parts: **needs external** (Qualcomm supplier access) |
+| E4 | Verified boot, Keystore, signed OTA, rollback, provisioning | not started | Plan in `docs/os/ARCHITECTURE.md` section 3 (#59), saying which links can be shown on Cuttlefish and which cannot. Hardware-backed parts: **needs external** (target board). Signing keys: **needs external** (owner's key-custody decision) |
+| E6 | OS architecture document, build instructions, Qualcomm dependency register | unit tested | #59 · `docs/os/ARCHITECTURE.md`, `docs/os/BUILD.md` (every step marked not run in this repository's CI), `docs/os/QUALCOMM_DEPENDENCIES.md` (14 supplier components with availability, licence and owner action). Running the build steps: **needs external** (AOSP build host). Supplier parts: **needs external** (Qualcomm supplier access) |
 
 ## F. IRA intelligence (seven components)
 
@@ -94,7 +124,7 @@ Nothing is marked done because code or a document exists.
 |---|---|---|---|
 | F1 | Dataset licence register (PPG-DaLiA, UMAFall, KFall, FallAllD, conversation data, model weights) | pre-existing (partial) | `docs/DATASETS.md`. Re-verification against the original sources, plus permission-request drafts: **not started**. KFall and FallAllD: **needs external** (permission) |
 | F2 | IRA Care Conversation: new versioned dataset, LoRA / QLoRA run, evaluation, promotion gate | pre-existing experiment | 507 synthetic conversations; rule pass 0.94 base against 0.92 fine-tuned on 50 prompts; the 162-turn product evaluation is a different measure (`docs/MODEL_CHOICE.md`). A new run: **not started**; GPU time: **needs external** (Kaggle account session) |
-| F3 | IRA Care Heart (PPG-DaLiA, subject-independent) | evaluated | `docs/ai/heart/MODEL_CARD.md`, `docs/ai/heart/results.json`, `scripts/training/heart_ppg_dalia.py`. Leave-one-subject-out on all 15 PPG-DaLiA subjects (CC BY 4.0): classical spectral estimator with accelerometer suppression and tracking 13.28 ± 5.01 bpm MAE (shipped, numpy only: `supracloud-jarvis/ira/care/heart_estimate.py`, tests `supracloud-jarvis/ira/tests/care/test_heart_estimate.py`); learned candidate selection 7.75 ± 3.23 bpm (training script only); Deep PPG 7.65 bpm as reported, not reproduced. Adults 30.6 ± 9.6 years on an Empatica E4: accuracy on the IRA watch and on older adults: **needs external** (recordings with an ECG reference) |
+| F3 | IRA Care Heart (PPG-DaLiA, subject-independent) | evaluated | #58 · `docs/ai/heart/MODEL_CARD.md`, `docs/ai/heart/results.json`, `scripts/training/heart_ppg_dalia.py`. Leave-one-subject-out on all 15 PPG-DaLiA subjects (CC BY 4.0): classical spectral estimator with accelerometer suppression and tracking 13.28 ± 5.01 bpm MAE (shipped, numpy only: `supracloud-jarvis/ira/care/heart_estimate.py`, tests `supracloud-jarvis/ira/tests/care/test_heart_estimate.py`); learned candidate selection 7.75 ± 3.23 bpm (training script only); Deep PPG 7.65 bpm as reported, not reproduced. Adults 30.6 ± 9.6 years on an Empatica E4: accuracy on the IRA watch and on older adults: **needs external** (recordings with an ECG reference) |
 | F4 | IRA Care Fall (wrist-specific, cross-dataset) | pre-existing model + deterministic fallback | Improvement run: **not started** |
 | F5 | IRA Care Safety (deterministic rules, model only more cautious) | integration tested | #44 (A1, A2, A4) |
 | F6 | IRA Care Memory (consent, correction, deletion) | pre-existing | Correction and deletion routes exist; re-verification: **not started** |
@@ -122,7 +152,7 @@ Nothing is marked done because code or a document exists.
 | # | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
 | J | Integrated live demonstration, the 32 steps, presenter guide | pre-existing demo | `docs/demo/`. Re-running it on the remediated stack: **not started** |
-| K | Full verification on integrated `main` (every suite, builds, load, outage, backup, licence scan) | not started | Each PR runs CI. One integrated run after all merges is still to do |
+| K | Full verification on integrated `main` (every suite, builds, load, outage, backup, licence scan) | integration tested | `docs/progress/VERIFICATION.md`: backend unit and database suites, dashboard, phone, watch builds, outage, backup and restore, secret scan, licences. Load (24 h soak): not run. Device, emulator and OS image runs: **needs external** |
 | L | Endorsement evidence pack, GO / NO-GO decisions | not started | |
 
 ## External blockers (owner actions)
