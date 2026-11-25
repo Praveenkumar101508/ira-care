@@ -184,6 +184,8 @@ def test_training_and_inference_share_one_feature_function():
 
 
 def test_nothing_raises_an_alert_on_the_learned_estimate():
+    # The one user is the research pipeline (D-086), which only the research route uses and no
+    # alert-path module can reach: tests/care/test_heart_research.py checks that import graph.
     care = Path(hl.__file__).parent
     users = [p.name for p in care.rglob("*.py") if p.name != "heart_learned.py" and "heart_learned" in p.read_text()]
-    assert users == [], f"wellbeing trend only; no alert path may consume it: {users}"
+    assert users == ["heart_research.py"], f"wellbeing trend only; no alert path may consume it: {users}"

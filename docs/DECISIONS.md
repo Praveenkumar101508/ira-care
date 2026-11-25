@@ -1368,3 +1368,46 @@ text: those stay behind the per-person history search, where consent applies. Wh
 literally (LIKE wildcards escaped, passed as a parameter), searches are rationed to 30 a minute per
 address, and each search is written to the access log once per person it returned, with the kinds of
 record found and never the words typed.
+
+## D-086 Heart-rate research mode: raw PPG from recorded or simulated signals, returned and never stored (requirement F3.g, 25 November 2026)
+
+Current Wear OS watches give an app finished heart-rate values, not raw PPG, so the learned
+candidate selector cannot run on a person's watch (F3.d stays blocked). The owner asked for the
+whole raw-PPG pipeline to be built now, in research mode, on recorded (PPG-DaLiA) or simulated
+signals, clearly separated from real measurements and unable to trigger an alert.
+
+Decision: **an endpoint that processes a research recording and returns the result, with no
+database write at all**, rather than a research table.
+
+- **Where:** `care/heart_research.py` (data contract, windowing, signal quality, inference,
+  provenance, built-in samples), `POST /care/research/heart/run` and
+  `GET /care/research/heart/samples`, and the dashboard page `/research/heart`.
+- **Provenance labels:** every heart reading's source is one of `simulated`,
+  `research_recording` or `device`. The research path accepts and produces only the first two:
+  `device` input is refused by the request schema and again by the pipeline, and a result object
+  cannot be built with any other source, or marked as a measurement or as able to alert.
+- **Why no table:** nothing about a research run belongs to a person, and a table would be one
+  more place a research value could be read back as a reading. The route takes no person, opens
+  no database connection and writes nothing; the result says `stored: false`. The readings table
+  already refuses both research sources (`care_vitals.source` CHECK allows `watch`, `phone`,
+  `manual`, `simulator`), so a future change that tried to store one would fail in the
+  database; `tests/tenancy/test_heart_research_db.py` proves that, and that a research run
+  writes no reading, alert, access-log or check-in row while the same values from a paired
+  watch do open a safety check. No migration was needed.
+- **Never an alert:** no module on the alert path (continuous rules, monitoring, ask-first,
+  escalation, SOS, falls, the repository, the worker and the others listed in
+  `tests/care/test_heart_research.py`) can reach `care/heart_research.py` through its imports;
+  only `care/routes.py` uses it. A negative control shows the check catches an indirect import.
+- **Who:** care managers and the deployment owner only (`run_heart_research`, manage level),
+  bound to their verified workspace; carers and viewers get 403. Runs are limited to 10 a minute
+  per address and to 600 s of signal per call, and run off the event loop.
+- **Screens:** the research page is reached from the top bar (care managers only), is headed
+  "Research — not a measurement of this person", and is never linked from a person's record;
+  the person page has no research content (a dashboard test checks both). The page refuses to
+  draw any result that is not marked research, unstored and non-alerting.
+- **Thresholds** (motion rejection at 0.5 g band-limited accelerometer RMS, 2% sampling-rate
+  tolerance, a gap at 1.5 sample periods, 1 s start offset) were fixed before the held-out
+  evaluation and not tuned on it.
+
+What this does not decide: using the learned selector on a person. That needs a watch that
+gives the app raw PPG (F3.d) and validation on the IRA watch and older adults (F3.e).

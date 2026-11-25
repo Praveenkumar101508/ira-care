@@ -23,9 +23,11 @@ on the IRA watch.
   it is not a basis for treatment.
 - **Not validated on older adults** or on the IRA watch. See Limitations.
 - **Never an alarm on its own.** No alert, escalation or SOS may be raised because of this
-  estimate alone. At the time of writing, nothing in the backend calls either module; a test
-  (`test_nothing_raises_an_alert_on_the_learned_estimate`) fails if anything in `care/` starts
-  to use the learned one.
+  estimate alone. The only caller of either module is the research pipeline
+  (`care/heart_research.py`, see "Research mode" below), which only the research route uses and
+  which no alert-path module can reach; `test_nothing_raises_an_alert_on_the_learned_estimate`
+  fails if anything else in `care/` starts to use the learned one, and
+  `tests/care/test_heart_research.py` checks the import graph of the alert path.
 - The function returns **no estimate** in these cases:
   - the input is too short (under 6 s), contains NaN or infinite values, is flat, or is
     saturated;
@@ -324,6 +326,83 @@ On PPG-DaLiA, the same ablation is visible in the table:
 - naive: 19.67 bpm;
 - classical without ACC: 19.70 bpm;
 - classical with ACC: 13.28 bpm.
+
+## Research mode: the raw-PPG pipeline on recorded or simulated signals (F3.g, D-086)
+
+Because no watch gives the app raw PPG yet (F3.d), the whole pipeline runs in **research mode**
+only: on the PPG-DaLiA excerpt in the repository or on a simulated signal, never on a person.
+`care/heart_research.py`, `POST /api/v1/care/research/heart/run` (care managers only; nothing
+stored) and the dashboard page `/research/heart` ("Research — not a measurement of this
+person").
+
+- **Data contract.** PPG at 20–512 Hz, accelerometer at 10–512 Hz in `g`, `m/s2` or the E4's
+  raw 1/64 g counts (`e4_raw`); optional per-sample timestamps, which must be strictly
+  increasing, one per sample and within 2% of the declared rate; the two streams must start
+  within 1 s of each other and overlap for at least one window; at most 600 s and 80,000 samples
+  a stream per call. A null sample is a missing sample. Windows are 8 s every 2 s from the later
+  start, cut by time, which on PPG-DaLiA is exactly the label windowing.
+- **Signal quality.** A window with a gap (an interval over 1.5 sample periods, or too few
+  samples) or a missing sample is unavailable; the classical input checks (flat, saturated,
+  not finite) are reused; band-limited accelerometer RMS above **0.5 g** is `motion_artefact`.
+  The classical spectral concentration is reported as the quality index. An unavailable window
+  never carries a number, only the reason.
+- **Inference.** `LearnedHeartTracker` (which runs the classical tracker inside it). The learned
+  answer is reported when its probability is at least 0.5; otherwise the classical answer when
+  its confidence is at least 0.3, marked as a fallback with the reason (`no_model`,
+  `no_accelerometer`, `learned_low_confidence`); otherwise "unavailable". Confidence is reported
+  with its kind (probability within 5 bpm, or spectral concentration).
+- **Provenance on every result:** pipeline version, the learned model's version
+  (`heart_selector@3b0863a9a8cf`), SHA-256, size, trees and training data, the classical
+  settings, and the recording's source (`simulated` or `research_recording`), dataset, licence
+  and attribution. `device` is refused.
+- **Thresholds** (0.5 g, 2%, 1.5 periods, 1 s) were fixed before the evaluation below and not
+  tuned on it.
+
+### Held-out check (`docs/ai/heart/research_pipeline_eval.json`)
+
+The shipped model saw every subject, so the check uses the leave-one-subject-out fold model for
+**S1** (the first subject, chosen before running), trained by
+`scripts/training/heart_research_holdout.py` with the same settings and seed (not shipped;
+SHA-256 `31670471ecfc…`), and runs the research pipeline over S1's whole recording.
+
+| S1, 4,603 windows | MAE (bpm) | Windows |
+| --- | --- | --- |
+| Classical candidate, every window | 11.01 | 4,603 |
+| Learned candidate, every window | 8.09 | 4,603 |
+| Reported by the pipeline (learned or classical fallback) | 7.19 | 3,565 (77.5%) |
+| of which learned (probability ≥ 0.5) | 4.59 | 2,768 |
+| of which classical fallback after a low learned probability | 16.23 | 797 |
+| Unavailable: low confidence 809, motion artefact 229 | — | 1,038 |
+
+- **Reproduction:** every one of the 4,603 windows matched the evaluation script's own path:
+  classical candidates identical, learned selections equal to 0.1 bpm. The all-window MAEs are
+  exactly the S1 figures in `results.json` (11.01 and 8.09). This is a check that the research
+  pipeline runs the evaluated estimators unchanged, not a new accuracy number.
+- **Finding: the classical fallback after a low learned probability is poor.** Those 797
+  windows score 16.23 bpm, against 4.59 for the confident learned answers. The fallback was
+  asked for and is kept as specified (changing it after seeing held-out data would be tuning on
+  it), but this one subject says that "unavailable" would be the better answer there. Any
+  product use must re-decide this on separate data.
+- **Excerpt in the repository** (S1, 1,800–2,100 s, transient and cycling, 147 windows):
+  classical 12.65, learned 3.61 (fold model) and 3.48 (shipped model, which saw S1); reported
+  3.98 on 117 windows (fold) and 4.11 on 120 (shipped). The motion gate rejected no window of
+  the excerpt and 229 of S1's (5%). `test_the_excerpt_reproduces_the_held_out_evaluation` fails
+  if the pipeline's excerpt numbers move.
+- One subject and a 5-minute excerpt: nothing here generalises beyond them.
+
+### Processing time and memory (`docs/ai/heart/research_benchmark.json`)
+
+`scripts/training/heart_research_benchmark.py`, 5 repeats of the excerpt and the three
+simulations (1,140 windows), on the shared 4-CPU machine:
+
+| | Per window, mean | median | 95th percentile | max | Python peak allocation per run |
+| --- | --- | --- | --- | --- | --- |
+| Learned with classical fallback | 12.6 ms | 12.5 ms | 20.2 ms | 41.9 ms | 0.80 MiB |
+| Classical only | 0.92 ms | 0.91 ms | 1.60 ms | 3.63 ms | 0.77 MiB |
+
+Loading the model took 29.8 ms; the process's maximum resident set went from 31.0 to 44.1 MiB
+over the whole benchmark. On the held-out run, under heavier load, the mean was 14.6 ms a
+window. Windows arrive every 2 s. Each result also reports its own per-window time.
 
 ## Limitations
 

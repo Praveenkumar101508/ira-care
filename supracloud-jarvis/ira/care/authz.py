@@ -156,6 +156,8 @@ ACTIONS: dict[str, tuple[str, tuple[str, ...]]] = {
     "view_caseload": ("read", ("GET /care/caseload",)),
     "view_visit_plan": ("read", ("GET /care/visits",)),
     "designate_coordinators": ("manage", ("GET /care/staff", "PUT /care/staff/{user_id}/coordinator")),
+    # research mode (D-086): recorded or simulated signals, never a person's reading
+    "run_heart_research": ("manage", ("GET /care/research/heart/samples", "POST /care/research/heart/run")),
 }
 
 _LEVEL = {"read": can_read, "act": can_act, "manage": can_manage}

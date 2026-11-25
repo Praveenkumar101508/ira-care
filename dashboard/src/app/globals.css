@@ -66,3 +66,22 @@ details.advanced { margin: 8px 0 14px; } details.advanced summary { cursor: poin
   input, select, textarea { max-width: 100%; }
   main { padding: 16px; }
 }
+/* Research mode (D-086): a recorded or simulated signal, never a person's reading. */
+.research-banner { border: 2px dashed var(--urgent); border-radius: 12px; padding: 10px 14px; margin: 0 0 12px; background: var(--card); }
+.research-banner p { margin: 6px 0 0; }
+.research-chart { margin: 0 0 12px; }
+.research-line { stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.line-signal, .line-reported { stroke: var(--notice); }
+.line-motion { stroke: var(--fill-muted); }
+.line-classical { stroke: var(--urgent); }
+.line-learned { stroke: var(--ok); }
+.line-reported { stroke-width: 2.5; }
+.line-reference { stroke: var(--text); stroke-dasharray: 4 3; }
+.research-legend { display: inline-flex; flex-wrap: wrap; gap: 10px; margin-left: 8px; }
+.research-key::before { content: ""; display: inline-block; width: 14px; height: 3px; margin-right: 4px; vertical-align: middle; background: var(--text); }
+.research-key.line-classical::before { background: var(--urgent); } .research-key.line-learned::before { background: var(--ok); }
+.research-key.line-reported::before { background: var(--notice); }
+.research-table-wrap { overflow-x: auto; margin-bottom: 12px; }
+.research-table { border-collapse: collapse; font-size: 0.9em; min-width: 100%; }
+.research-table th, .research-table td { border-bottom: 1px solid var(--border); padding: 4px 8px; text-align: left; vertical-align: top; }
+.research-unavailable td { color: var(--muted); }
