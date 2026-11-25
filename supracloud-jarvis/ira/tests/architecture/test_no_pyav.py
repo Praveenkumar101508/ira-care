@@ -32,6 +32,7 @@ IRA_ROOT = Path(__file__).resolve().parents[2]
 REPO = IRA_ROOT.parents[1]
 
 MANIFESTS = ("requirements.txt", "requirements-test.txt", "requirements-nodeps.txt",
+             "requirements-api.txt", "requirements-api.lock",
              "requirements.lock", "requirements-torch.txt", "requirements-torch.lock")
 #: The only module allowed to import faster_whisper.
 ENGINE = IRA_ROOT / "voice" / "whisper_engine.py"

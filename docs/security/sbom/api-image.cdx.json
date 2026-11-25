@@ -23,7 +23,7 @@
       "version": "base image"
     },
     {
-      "bom-ref": "pkg:pypi/annotated-doc@0.0.7",
+      "bom-ref": "pkg:pypi/annotated-doc@0.0.5",
       "copyright": "Copyright (c) 2025 Sebasti\u00e1n Ram\u00edrez",
       "licenses": [
         {
@@ -41,9 +41,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/annotated-doc@0.0.7",
+      "purl": "pkg:pypi/annotated-doc@0.0.5",
       "type": "library",
-      "version": "0.0.7"
+      "version": "0.0.5"
     },
     {
       "bom-ref": "pkg:pypi/annotated-types@0.8.0",
@@ -69,7 +69,7 @@
       "version": "0.8.0"
     },
     {
-      "bom-ref": "pkg:pypi/anyio@4.16.0",
+      "bom-ref": "pkg:pypi/anyio@4.14.2",
       "copyright": "Copyright (c) 2018 Alex Gr\u00f6nholm",
       "licenses": [
         {
@@ -87,9 +87,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/anyio@4.16.0",
+      "purl": "pkg:pypi/anyio@4.14.2",
       "type": "library",
-      "version": "4.16.0"
+      "version": "4.14.2"
     },
     {
       "bom-ref": "pkg:pypi/apscheduler@3.10.4",
@@ -115,7 +115,7 @@
       "version": "3.10.4"
     },
     {
-      "bom-ref": "pkg:pypi/asgiref@3.13.0",
+      "bom-ref": "pkg:pypi/asgiref@3.12.1",
       "copyright": "Copyright (c) Django Software Foundation and individual contributors.",
       "licenses": [
         {
@@ -133,9 +133,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/asgiref@3.13.0",
+      "purl": "pkg:pypi/asgiref@3.12.1",
       "type": "library",
-      "version": "3.13.0"
+      "version": "3.12.1"
     },
     {
       "bom-ref": "pkg:pypi/asyncpg@0.30.0",
@@ -207,7 +207,7 @@
       "version": "1.43.67"
     },
     {
-      "bom-ref": "pkg:pypi/botocore@1.43.127",
+      "bom-ref": "pkg:pypi/botocore@1.43.70",
       "copyright": "Copyright 2012-2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.; Copyright 2013 Kenneth Reitz; Copyright 2008-2011 Andrey Petrov and contributors (see CONTRIBUTORS.txt),",
       "licenses": [
         {
@@ -225,12 +225,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/botocore@1.43.127",
+      "purl": "pkg:pypi/botocore@1.43.70",
       "type": "library",
-      "version": "1.43.127"
+      "version": "1.43.70"
     },
     {
-      "bom-ref": "pkg:pypi/certifi@2026.11.20",
+      "bom-ref": "pkg:pypi/certifi@2026.10.19",
       "copyright": "Author (package metadata): Kenneth Reitz",
       "licenses": [
         {
@@ -248,9 +248,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/certifi@2026.11.20",
+      "purl": "pkg:pypi/certifi@2026.10.19",
       "type": "library",
-      "version": "2026.11.20"
+      "version": "2026.10.19"
     },
     {
       "bom-ref": "pkg:pypi/cffi@2.1.1",
@@ -276,7 +276,7 @@
       "version": "2.1.1"
     },
     {
-      "bom-ref": "pkg:pypi/chardet@7.7.0",
+      "bom-ref": "pkg:pypi/chardet@7.5.1",
       "copyright": "Copyright (c) 2026 Dan Blanchard",
       "licenses": [
         {
@@ -294,12 +294,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/chardet@7.7.0",
+      "purl": "pkg:pypi/chardet@7.5.1",
       "type": "library",
-      "version": "7.7.0"
+      "version": "7.5.1"
     },
     {
-      "bom-ref": "pkg:pypi/charset-normalizer@3.5.3",
+      "bom-ref": "pkg:pypi/charset-normalizer@3.5.0",
       "copyright": "Copyright (c) 2025 TAHRI Ahmed R.",
       "licenses": [
         {
@@ -317,12 +317,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/charset-normalizer@3.5.3",
+      "purl": "pkg:pypi/charset-normalizer@3.5.0",
       "type": "library",
-      "version": "3.5.3"
+      "version": "3.5.0"
     },
     {
-      "bom-ref": "pkg:pypi/click@8.5.1",
+      "bom-ref": "pkg:pypi/click@8.4.2",
       "copyright": "Copyright 2014 Pallets",
       "licenses": [
         {
@@ -340,35 +340,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/click@8.5.1",
+      "purl": "pkg:pypi/click@8.4.2",
       "type": "library",
-      "version": "8.5.1"
+      "version": "8.4.2"
     },
     {
-      "bom-ref": "pkg:pypi/coloredlogs@15.0.1",
-      "copyright": "Copyright (c) 2020 Peter Odding",
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ],
-      "name": "coloredlogs",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/coloredlogs@15.0.1",
-      "type": "library",
-      "version": "15.0.1"
-    },
-    {
-      "bom-ref": "pkg:pypi/cryptography@50.0.2",
+      "bom-ref": "pkg:pypi/cryptography@50.0.0",
       "copyright": "Copyright (c) Individual contributors.",
       "licenses": [
         {
@@ -386,9 +363,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/cryptography@50.0.2",
+      "purl": "pkg:pypi/cryptography@50.0.0",
       "type": "library",
-      "version": "50.0.2"
+      "version": "50.0.0"
     },
     {
       "bom-ref": "pkg:pypi/ctranslate2@4.8.3",
@@ -414,7 +391,7 @@
       "version": "4.8.3"
     },
     {
-      "bom-ref": "pkg:pypi/deprecated@3.0.1",
+      "bom-ref": "pkg:pypi/deprecated@1.3.1",
       "copyright": "Copyright (c) 2017 Laurent LAPORTE",
       "licenses": [
         {
@@ -432,9 +409,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/deprecated@3.0.1",
+      "purl": "pkg:pypi/deprecated@1.3.1",
       "type": "library",
-      "version": "3.0.1"
+      "version": "1.3.1"
     },
     {
       "bom-ref": "pkg:pypi/distro@1.9.0",
@@ -483,7 +460,7 @@
       "version": "2.9.2"
     },
     {
-      "bom-ref": "pkg:pypi/email-validator@2.4.0",
+      "bom-ref": "pkg:pypi/email-validator@2.3.0",
       "copyright": "Author (package metadata): Joshua Tauberer",
       "licenses": [
         {
@@ -501,9 +478,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/email-validator@2.4.0",
+      "purl": "pkg:pypi/email-validator@2.3.0",
       "type": "library",
-      "version": "2.4.0"
+      "version": "2.3.0"
     },
     {
       "bom-ref": "pkg:pypi/et-xmlfile@2.0.0",
@@ -575,7 +552,7 @@
       "version": "1.2.1"
     },
     {
-      "bom-ref": "pkg:pypi/filelock@4.3.1",
+      "bom-ref": "pkg:pypi/filelock@4.2.4",
       "copyright": "Copyright (c) 2025 Bern\u00e1t G\u00e1bor and contributors",
       "licenses": [
         {
@@ -593,9 +570,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/filelock@4.3.1",
+      "purl": "pkg:pypi/filelock@4.2.4",
       "type": "library",
-      "version": "4.3.1"
+      "version": "4.2.4"
     },
     {
       "bom-ref": "pkg:pypi/flatbuffers@25.12.19",
@@ -621,7 +598,7 @@
       "version": "25.12.19"
     },
     {
-      "bom-ref": "pkg:pypi/fsspec@2026.9.0",
+      "bom-ref": "pkg:pypi/fsspec@2026.7.0",
       "copyright": "Copyright (c) 2018, Martin Durant",
       "licenses": [
         {
@@ -639,12 +616,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/fsspec@2026.9.0",
+      "purl": "pkg:pypi/fsspec@2026.7.0",
       "type": "library",
-      "version": "2026.9.0"
+      "version": "2026.7.0"
     },
     {
-      "bom-ref": "pkg:pypi/googleapis-common-protos@1.76.0",
+      "bom-ref": "pkg:pypi/googleapis-common-protos@1.75.1",
       "copyright": "Author (package metadata): Google LLC",
       "licenses": [
         {
@@ -662,9 +639,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/googleapis-common-protos@1.76.0",
+      "purl": "pkg:pypi/googleapis-common-protos@1.75.1",
       "type": "library",
-      "version": "1.76.0"
+      "version": "1.75.1"
     },
     {
       "bom-ref": "pkg:pypi/h11@0.16.0",
@@ -690,7 +667,7 @@
       "version": "0.16.0"
     },
     {
-      "bom-ref": "pkg:pypi/hf-xet@1.8.0",
+      "bom-ref": "pkg:pypi/hf-xet@1.6.0",
       "copyright": "Author (package metadata): Rajat Arya, Jared Sulzdorf, Di Xiao, Assaf Vayner, Hoyt Koepke",
       "licenses": [
         {
@@ -708,32 +685,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/hf-xet@1.8.0",
+      "purl": "pkg:pypi/hf-xet@1.6.0",
       "type": "library",
-      "version": "1.8.0"
-    },
-    {
-      "bom-ref": "pkg:pypi/httpcore2@2.16.2",
-      "copyright": "Copyright \u00a9 2026 to present Pydantic Services Inc. and individual contributors.",
-      "licenses": [
-        {
-          "expression": "BSD-3-Clause"
-        }
-      ],
-      "name": "httpcore2",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/httpcore2@2.16.2",
-      "type": "library",
-      "version": "2.16.2"
+      "version": "1.6.0"
     },
     {
       "bom-ref": "pkg:pypi/httpcore@1.0.9",
@@ -759,29 +713,6 @@
       "version": "1.0.9"
     },
     {
-      "bom-ref": "pkg:pypi/httpx2@2.16.2",
-      "copyright": "Copyright \u00a9 2026 to present Pydantic Services Inc. and individual contributors.",
-      "licenses": [
-        {
-          "expression": "BSD-3-Clause"
-        }
-      ],
-      "name": "httpx2",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/httpx2@2.16.2",
-      "type": "library",
-      "version": "2.16.2"
-    },
-    {
       "bom-ref": "pkg:pypi/httpx@0.27.2",
       "copyright": "Author (package metadata): Tom Christie",
       "licenses": [
@@ -805,37 +736,14 @@
       "version": "0.27.2"
     },
     {
-      "bom-ref": "pkg:pypi/huggingface-hub@0.36.2",
+      "bom-ref": "pkg:pypi/huggingface-hub@1.27.0",
       "copyright": "Author (package metadata): Hugging Face, Inc.",
       "licenses": [
         {
-          "expression": "Apache"
+          "expression": "Apache-2.0"
         }
       ],
       "name": "huggingface-hub",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "excepted"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/huggingface-hub@0.36.2",
-      "type": "library",
-      "version": "0.36.2"
-    },
-    {
-      "bom-ref": "pkg:pypi/humanfriendly@10.0",
-      "copyright": "Copyright (c) 2021 Peter Odding",
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ],
-      "name": "humanfriendly",
       "properties": [
         {
           "name": "ira:licence-status",
@@ -846,12 +754,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/humanfriendly@10.0",
+      "purl": "pkg:pypi/huggingface-hub@1.27.0",
       "type": "library",
-      "version": "10.0"
+      "version": "1.27.0"
     },
     {
-      "bom-ref": "pkg:pypi/idna@3.20",
+      "bom-ref": "pkg:pypi/idna@3.18",
       "copyright": "Copyright (c) 2013-2026, Kim Davies and contributors.",
       "licenses": [
         {
@@ -869,35 +777,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/idna@3.20",
+      "purl": "pkg:pypi/idna@3.18",
       "type": "library",
-      "version": "3.20"
+      "version": "3.18"
     },
     {
-      "bom-ref": "pkg:pypi/iniconfig@2.3.1",
-      "copyright": "Copyright (c) 2010 - 2023 Holger Krekel and others",
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ],
-      "name": "iniconfig",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/iniconfig@2.3.1",
-      "type": "library",
-      "version": "2.3.1"
-    },
-    {
-      "bom-ref": "pkg:pypi/jiter@0.19.0",
+      "bom-ref": "pkg:pypi/jiter@0.16.0",
       "copyright": "Copyright (c) 2022 to present Samuel Colvin",
       "licenses": [
         {
@@ -915,9 +800,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/jiter@0.19.0",
+      "purl": "pkg:pypi/jiter@0.16.0",
       "type": "library",
-      "version": "0.19.0"
+      "version": "0.16.0"
     },
     {
       "bom-ref": "pkg:pypi/jmespath@1.1.0",
@@ -943,7 +828,7 @@
       "version": "1.1.0"
     },
     {
-      "bom-ref": "pkg:pypi/jsonpatch@1.48",
+      "bom-ref": "pkg:pypi/jsonpatch@1.33",
       "copyright": "Author (package metadata): Stefan K\u00f6gl",
       "licenses": [
         {
@@ -961,12 +846,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/jsonpatch@1.48",
+      "purl": "pkg:pypi/jsonpatch@1.33",
       "type": "library",
-      "version": "1.48"
+      "version": "1.33"
     },
     {
-      "bom-ref": "pkg:pypi/jsonpointer@3.12",
+      "bom-ref": "pkg:pypi/jsonpointer@3.1.1",
       "copyright": "Author (package metadata): Stefan K\u00f6gl",
       "licenses": [
         {
@@ -984,9 +869,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/jsonpointer@3.12",
+      "purl": "pkg:pypi/jsonpointer@3.1.1",
       "type": "library",
-      "version": "3.12"
+      "version": "3.1.1"
     },
     {
       "bom-ref": "pkg:pypi/langchain-core@1.5.4",
@@ -1012,7 +897,7 @@
       "version": "1.5.4"
     },
     {
-      "bom-ref": "pkg:pypi/langchain-protocol@0.0.22",
+      "bom-ref": "pkg:pypi/langchain-protocol@0.0.18",
       "copyright": "Copyright (c) 2026 LangChain, Inc.",
       "licenses": [
         {
@@ -1030,9 +915,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/langchain-protocol@0.0.22",
+      "purl": "pkg:pypi/langchain-protocol@0.0.18",
       "type": "library",
-      "version": "0.0.22"
+      "version": "0.0.18"
     },
     {
       "bom-ref": "pkg:pypi/langgraph-checkpoint-postgres@3.1.3",
@@ -1058,7 +943,7 @@
       "version": "3.1.3"
     },
     {
-      "bom-ref": "pkg:pypi/langgraph-checkpoint@4.3.2",
+      "bom-ref": "pkg:pypi/langgraph-checkpoint@4.3.0",
       "copyright": "Copyright (c) 2024 LangChain, Inc.",
       "licenses": [
         {
@@ -1076,12 +961,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/langgraph-checkpoint@4.3.2",
+      "purl": "pkg:pypi/langgraph-checkpoint@4.3.0",
       "type": "library",
-      "version": "4.3.2"
+      "version": "4.3.0"
     },
     {
-      "bom-ref": "pkg:pypi/langgraph-prebuilt@1.1.3",
+      "bom-ref": "pkg:pypi/langgraph-prebuilt@1.1.0",
       "copyright": "Copyright (c) 2024 LangChain, Inc.",
       "licenses": [
         {
@@ -1099,12 +984,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/langgraph-prebuilt@1.1.3",
+      "purl": "pkg:pypi/langgraph-prebuilt@1.1.0",
       "type": "library",
-      "version": "1.1.3"
+      "version": "1.1.0"
     },
     {
-      "bom-ref": "pkg:pypi/langgraph-sdk@0.4.14",
+      "bom-ref": "pkg:pypi/langgraph-sdk@0.4.7",
       "copyright": "Copyright (c) 2024 LangChain, Inc.",
       "licenses": [
         {
@@ -1122,9 +1007,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/langgraph-sdk@0.4.14",
+      "purl": "pkg:pypi/langgraph-sdk@0.4.7",
       "type": "library",
-      "version": "0.4.14"
+      "version": "0.4.7"
     },
     {
       "bom-ref": "pkg:pypi/langgraph@1.2.11",
@@ -1150,8 +1035,8 @@
       "version": "1.2.11"
     },
     {
-      "bom-ref": "pkg:pypi/langsmith@0.16.2",
-      "copyright": "Copyright 2026 langChain",
+      "bom-ref": "pkg:pypi/langsmith@0.10.18",
+      "copyright": "Author (package metadata): LangChain",
       "licenses": [
         {
           "expression": "MIT"
@@ -1168,9 +1053,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/langsmith@0.16.2",
+      "purl": "pkg:pypi/langsmith@0.10.18",
       "type": "library",
-      "version": "0.16.2"
+      "version": "0.10.18"
     },
     {
       "bom-ref": "pkg:pypi/limits@5.8.0",
@@ -1196,8 +1081,8 @@
       "version": "5.8.0"
     },
     {
-      "bom-ref": "pkg:pypi/lxml@6.1.3",
-      "copyright": "Copyright (c) 2004 Infrae. All rights reserved.; Copyright (C) 1998-2012 Daniel Veillard. All Rights Reserved.; Copyright (C) The Libxml2 Contributors.; Copyright (C) 2001-2002 Daniel Veillard. All Rights Reserved.; Copyright (C) 2001-2002 Thomas Broyer, Charlie Bozeman and Daniel Veillard.",
+      "bom-ref": "pkg:pypi/lxml@6.1.1",
+      "copyright": "Copyright (c) 2004 Infrae. All rights reserved.",
       "licenses": [
         {
           "expression": "BSD-3-Clause"
@@ -1214,78 +1099,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/lxml@6.1.3",
+      "purl": "pkg:pypi/lxml@6.1.1",
       "type": "library",
-      "version": "6.1.3"
-    },
-    {
-      "bom-ref": "pkg:pypi/markupsafe@3.0.4",
-      "copyright": "Copyright 2010 Pallets",
-      "licenses": [
-        {
-          "expression": "BSD-3-Clause"
-        }
-      ],
-      "name": "markupsafe",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/markupsafe@3.0.4",
-      "type": "library",
-      "version": "3.0.4"
-    },
-    {
-      "bom-ref": "pkg:pypi/moto@5.2.2",
-      "copyright": "Copyright 2012 Steve Pulec",
-      "licenses": [
-        {
-          "expression": "Apache-2.0"
-        }
-      ],
-      "name": "moto",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/moto@5.2.2",
-      "type": "library",
-      "version": "5.2.2"
-    },
-    {
-      "bom-ref": "pkg:pypi/mpmath@1.3.0",
-      "copyright": "Copyright (c) 2005-2021 Fredrik Johansson and mpmath contributors",
-      "licenses": [
-        {
-          "expression": "BSD"
-        }
-      ],
-      "name": "mpmath",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/mpmath@1.3.0",
-      "type": "library",
-      "version": "1.3.0"
+      "version": "6.1.1"
     },
     {
       "bom-ref": "pkg:pypi/numpy@1.26.4",
@@ -1311,7 +1127,7 @@
       "version": "1.26.4"
     },
     {
-      "bom-ref": "pkg:pypi/onnxruntime@1.20.1",
+      "bom-ref": "pkg:pypi/onnxruntime@1.31.0",
       "copyright": "Author (package metadata): Microsoft Corporation",
       "licenses": [
         {
@@ -1329,9 +1145,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/onnxruntime@1.20.1",
+      "purl": "pkg:pypi/onnxruntime@1.31.0",
       "type": "library",
-      "version": "1.20.1"
+      "version": "1.31.0"
     },
     {
       "bom-ref": "pkg:pypi/openai@1.58.1",
@@ -1656,7 +1472,7 @@
       "version": "0.66b2"
     },
     {
-      "bom-ref": "pkg:pypi/orjson@3.13.0",
+      "bom-ref": "pkg:pypi/orjson@3.11.9",
       "licenses": [
         {
           "expression": "MPL-2.0 AND (Apache-2.0 OR MIT)"
@@ -1673,12 +1489,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/orjson@3.13.0",
+      "purl": "pkg:pypi/orjson@3.11.9",
       "type": "library",
-      "version": "3.13.0"
+      "version": "3.11.9"
     },
     {
-      "bom-ref": "pkg:pypi/ormsgpack@1.13.1",
+      "bom-ref": "pkg:pypi/ormsgpack@1.12.2",
       "copyright": "Author (package metadata): Aviram Hassan, Emanuele Giaquinta",
       "licenses": [
         {
@@ -1696,16 +1512,16 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/ormsgpack@1.13.1",
+      "purl": "pkg:pypi/ormsgpack@1.12.2",
       "type": "library",
-      "version": "1.13.1"
+      "version": "1.12.2"
     },
     {
-      "bom-ref": "pkg:pypi/packaging@26.4",
+      "bom-ref": "pkg:pypi/packaging@24.2",
       "copyright": "Copyright (c) Donald Stufft and individual contributors.",
       "licenses": [
         {
-          "expression": "Apache-2.0 OR BSD-2-Clause"
+          "expression": "Apache-2.0 AND BSD"
         }
       ],
       "name": "packaging",
@@ -1719,9 +1535,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/packaging@26.4",
+      "purl": "pkg:pypi/packaging@24.2",
       "type": "library",
-      "version": "26.4"
+      "version": "24.2"
     },
     {
       "bom-ref": "pkg:pypi/passlib@1.7.4",
@@ -1793,30 +1609,7 @@
       "version": "25.0.1"
     },
     {
-      "bom-ref": "pkg:pypi/pluggy@1.7.0",
-      "copyright": "Copyright (c) 2015 holger krekel (rather uses bitbucket/hpk42)",
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ],
-      "name": "pluggy",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/pluggy@1.7.0",
-      "type": "library",
-      "version": "1.7.0"
-    },
-    {
-      "bom-ref": "pkg:pypi/protobuf@7.36.2",
+      "bom-ref": "pkg:pypi/protobuf@7.35.1",
       "copyright": "Copyright 2008 Google Inc. All rights reserved.",
       "licenses": [
         {
@@ -1834,9 +1627,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/protobuf@7.36.2",
+      "purl": "pkg:pypi/protobuf@7.35.1",
       "type": "library",
-      "version": "7.36.2"
+      "version": "7.35.1"
     },
     {
       "bom-ref": "pkg:pypi/psutil@6.1.0",
@@ -1885,7 +1678,7 @@
       "version": "3.2.3"
     },
     {
-      "bom-ref": "pkg:pypi/psycopg-pool@3.3.3",
+      "bom-ref": "pkg:pypi/psycopg-pool@3.3.1",
       "copyright": "Author (package metadata): Daniele Varrazzo",
       "licenses": [
         {
@@ -1903,9 +1696,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/psycopg-pool@3.3.3",
+      "purl": "pkg:pypi/psycopg-pool@3.3.1",
       "type": "library",
-      "version": "3.3.3"
+      "version": "3.3.1"
     },
     {
       "bom-ref": "pkg:pypi/psycopg@3.2.3",
@@ -1931,8 +1724,8 @@
       "version": "3.2.3"
     },
     {
-      "bom-ref": "pkg:pypi/pycparser@3.12",
-      "copyright": "Copyright (c) 2008-2027, Eli Bendersky",
+      "bom-ref": "pkg:pypi/pycparser@3.0",
+      "copyright": "Copyright (c) 2008-2022, Eli Bendersky",
       "licenses": [
         {
           "expression": "BSD-3-Clause"
@@ -1949,9 +1742,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/pycparser@3.12",
+      "purl": "pkg:pypi/pycparser@3.0",
       "type": "library",
-      "version": "3.12"
+      "version": "3.0"
     },
     {
       "bom-ref": "pkg:pypi/pydantic-core@2.23.4",
@@ -2092,52 +1885,6 @@
       "version": "6.21.4"
     },
     {
-      "bom-ref": "pkg:pypi/pytest-asyncio@0.24.0",
-      "copyright": "Author (package metadata): Tin Tvrtkovi\u0107 <tinchester@gmail.com>",
-      "licenses": [
-        {
-          "expression": "Apache-2.0"
-        }
-      ],
-      "name": "pytest-asyncio",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/pytest-asyncio@0.24.0",
-      "type": "library",
-      "version": "0.24.0"
-    },
-    {
-      "bom-ref": "pkg:pypi/pytest@8.3.3",
-      "copyright": "Copyright (c) 2004 Holger Krekel and others",
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ],
-      "name": "pytest",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/pytest@8.3.3",
-      "type": "library",
-      "version": "8.3.3"
-    },
-    {
       "bom-ref": "pkg:pypi/python-dateutil@2.9.0",
       "copyright": "Copyright 2017- dateutil contributors (see AUTHORS file); Copyright (c) 2015- - dateutil contributors (see AUTHORS file)",
       "licenses": [
@@ -2253,7 +2000,7 @@
       "version": "1.0.2"
     },
     {
-      "bom-ref": "pkg:pypi/pytz@2026.6",
+      "bom-ref": "pkg:pypi/pytz@2026.3.post1",
       "copyright": "Author (package metadata): Stuart Bishop",
       "licenses": [
         {
@@ -2271,9 +2018,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/pytz@2026.6",
+      "purl": "pkg:pypi/pytz@2026.3.post1",
       "type": "library",
-      "version": "2026.6"
+      "version": "2026.3.post1"
     },
     {
       "bom-ref": "pkg:pypi/pyyaml@6.0.2",
@@ -2391,30 +2138,7 @@
       "version": "2.34.2"
     },
     {
-      "bom-ref": "pkg:pypi/responses@0.26.3",
-      "copyright": "Copyright 2015 David Cramer",
-      "licenses": [
-        {
-          "expression": "Apache-2.0"
-        }
-      ],
-      "name": "responses",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/responses@0.26.3",
-      "type": "library",
-      "version": "0.26.3"
-    },
-    {
-      "bom-ref": "pkg:pypi/s3transfer@0.19.3",
+      "bom-ref": "pkg:pypi/s3transfer@0.19.2",
       "copyright": "Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.",
       "licenses": [
         {
@@ -2432,9 +2156,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/s3transfer@0.19.3",
+      "purl": "pkg:pypi/s3transfer@0.19.2",
       "type": "library",
-      "version": "0.19.3"
+      "version": "0.19.2"
     },
     {
       "bom-ref": "pkg:pypi/six@1.17.0",
@@ -2529,7 +2253,7 @@
       "version": "2.1.3"
     },
     {
-      "bom-ref": "pkg:pypi/starlette@1.10.0",
+      "bom-ref": "pkg:pypi/starlette@1.6.0",
       "copyright": "Author (package metadata): Tom Christie",
       "licenses": [
         {
@@ -2547,32 +2271,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/starlette@1.10.0",
+      "purl": "pkg:pypi/starlette@1.6.0",
       "type": "library",
-      "version": "1.10.0"
-    },
-    {
-      "bom-ref": "pkg:pypi/sympy@1.14.0",
-      "copyright": "Copyright (c) 2006-2023 SymPy Development Team; Copyright (c) 2006-2018 SymPy Development Team,; Copyright (c) 2014 Matthew Rocklin; Copyright (c) 2009-2023, PyDy Authors; Copyright 2016, latex2sympy",
-      "licenses": [
-        {
-          "expression": "BSD"
-        }
-      ],
-      "name": "sympy",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/sympy@1.14.0",
-      "type": "library",
-      "version": "1.14.0"
+      "version": "1.6.0"
     },
     {
       "bom-ref": "pkg:pypi/tenacity@9.0.0",
@@ -2598,8 +2299,8 @@
       "version": "9.0.0"
     },
     {
-      "bom-ref": "pkg:pypi/tokenizers@0.21.0",
-      "copyright": "Author (package metadata): Anthony MOI <m.anthony.moi@gmail.com>",
+      "bom-ref": "pkg:pypi/tokenizers@0.22.2",
+      "copyright": "Author (package metadata): Nicolas Patry, Anthony Moi",
       "licenses": [
         {
           "expression": "Apache-2.0"
@@ -2616,12 +2317,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/tokenizers@0.21.0",
+      "purl": "pkg:pypi/tokenizers@0.22.2",
       "type": "library",
-      "version": "0.21.0"
+      "version": "0.22.2"
     },
     {
-      "bom-ref": "pkg:pypi/tqdm@4.70.1",
+      "bom-ref": "pkg:pypi/tqdm@4.70.0",
       "copyright": "Copyright (c) 2013 noamraph",
       "licenses": [
         {
@@ -2639,32 +2340,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/tqdm@4.70.1",
+      "purl": "pkg:pypi/tqdm@4.70.0",
       "type": "library",
-      "version": "4.70.1"
-    },
-    {
-      "bom-ref": "pkg:pypi/truststore@0.10.5",
-      "copyright": "Copyright (c) 2022 Seth Michael Larson",
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ],
-      "name": "truststore",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/truststore@0.10.5",
-      "type": "library",
-      "version": "0.10.5"
+      "version": "4.70.0"
     },
     {
       "bom-ref": "pkg:pypi/typing-extensions@4.16.0",
@@ -2690,7 +2368,7 @@
       "version": "4.16.0"
     },
     {
-      "bom-ref": "pkg:pypi/typing-inspection@0.4.5",
+      "bom-ref": "pkg:pypi/typing-inspection@0.4.4",
       "copyright": "Copyright (c) Pydantic Services Inc. 2025 to present",
       "licenses": [
         {
@@ -2708,12 +2386,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/typing-inspection@0.4.5",
+      "purl": "pkg:pypi/typing-inspection@0.4.4",
       "type": "library",
-      "version": "0.4.5"
+      "version": "0.4.4"
     },
     {
-      "bom-ref": "pkg:pypi/tzlocal@5.4.5",
+      "bom-ref": "pkg:pypi/tzlocal@5.4.4",
       "copyright": "Copyright 2011-2017 Lennart Regebro",
       "licenses": [
         {
@@ -2731,9 +2409,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/tzlocal@5.4.5",
+      "purl": "pkg:pypi/tzlocal@5.4.4",
       "type": "library",
-      "version": "5.4.5"
+      "version": "5.4.4"
     },
     {
       "bom-ref": "pkg:pypi/urllib3@2.8.0",
@@ -2759,7 +2437,7 @@
       "version": "2.8.0"
     },
     {
-      "bom-ref": "pkg:pypi/uuid-utils@0.19.0",
+      "bom-ref": "pkg:pypi/uuid-utils@0.17.0",
       "copyright": "Copyright \u00a9 2023, Amin Alaee.",
       "licenses": [
         {
@@ -2777,13 +2455,13 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/uuid-utils@0.19.0",
+      "purl": "pkg:pypi/uuid-utils@0.17.0",
       "type": "library",
-      "version": "0.19.0"
+      "version": "0.17.0"
     },
     {
-      "bom-ref": "pkg:pypi/uvicorn@0.54.0",
-      "copyright": "Author (package metadata): Tom Christie",
+      "bom-ref": "pkg:pypi/uvicorn@0.32.1",
+      "copyright": "Author (package metadata): Tom Christie, Marcelo Trylesinski",
       "licenses": [
         {
           "expression": "BSD-3-Clause"
@@ -2800,12 +2478,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/uvicorn@0.54.0",
+      "purl": "pkg:pypi/uvicorn@0.32.1",
       "type": "library",
-      "version": "0.54.0"
+      "version": "0.32.1"
     },
     {
-      "bom-ref": "pkg:pypi/websockets@17.4",
+      "bom-ref": "pkg:pypi/websockets@15.0.1",
       "copyright": "Copyright (c) Aymeric Augustin and contributors",
       "licenses": [
         {
@@ -2823,35 +2501,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/websockets@17.4",
+      "purl": "pkg:pypi/websockets@15.0.1",
       "type": "library",
-      "version": "17.4"
+      "version": "15.0.1"
     },
     {
-      "bom-ref": "pkg:pypi/werkzeug@3.1.9",
-      "copyright": "Copyright 2007 Pallets",
-      "licenses": [
-        {
-          "expression": "BSD-3-Clause"
-        }
-      ],
-      "name": "werkzeug",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/werkzeug@3.1.9",
-      "type": "library",
-      "version": "3.1.9"
-    },
-    {
-      "bom-ref": "pkg:pypi/wrapt@2.5.2",
+      "bom-ref": "pkg:pypi/wrapt@2.3.0",
       "copyright": "Copyright (c) 2013-2026, Graham Dumpleton",
       "licenses": [
         {
@@ -2869,12 +2524,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/wrapt@2.5.2",
+      "purl": "pkg:pypi/wrapt@2.3.0",
       "type": "library",
-      "version": "2.5.2"
+      "version": "2.3.0"
     },
     {
-      "bom-ref": "pkg:pypi/xlsxwriter@3.3.4",
+      "bom-ref": "pkg:pypi/xlsxwriter@3.2.9",
       "copyright": "Author (package metadata): John McNamara",
       "licenses": [
         {
@@ -2892,35 +2547,12 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/xlsxwriter@3.3.4",
+      "purl": "pkg:pypi/xlsxwriter@3.2.9",
       "type": "library",
-      "version": "3.3.4"
+      "version": "3.2.9"
     },
     {
-      "bom-ref": "pkg:pypi/xmltodict@1.0.4",
-      "copyright": "Copyright (C) 2012 Martin Blech and individual contributors.",
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ],
-      "name": "xmltodict",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/usr/local/lib/python3.12/site-packages"
-        }
-      ],
-      "purl": "pkg:pypi/xmltodict@1.0.4",
-      "type": "library",
-      "version": "1.0.4"
-    },
-    {
-      "bom-ref": "pkg:pypi/xxhash@4.1.0",
+      "bom-ref": "pkg:pypi/xxhash@4.0.0",
       "copyright": "Copyright (c) 2014-2026, Yue Du",
       "licenses": [
         {
@@ -2938,9 +2570,9 @@
           "value": "/usr/local/lib/python3.12/site-packages"
         }
       ],
-      "purl": "pkg:pypi/xxhash@4.1.0",
+      "purl": "pkg:pypi/xxhash@4.0.0",
       "type": "library",
-      "version": "4.1.0"
+      "version": "4.0.0"
     },
     {
       "bom-ref": "pkg:pypi/zstandard@0.25.0",
@@ -5479,7 +5111,7 @@
         },
         {
           "name": "ira:linked-by",
-          "value": "CPython (base image, built from source), asyncpg@0.30.0, bcrypt@4.0.1, cffi@2.1.1, chardet@7.7.0, charset-normalizer@3.5.3, cryptography@50.0.2, ctranslate2@4.8.3, hf-xet@1.8.0, jiter@0.19.0, lxml@6.1.3, markupsafe@3.0.4, numpy@1.26.4, onnxruntime@1.20.1, orjson@3.13.0, ormsgpack@1.13.1, pillow@13.0.0, protobuf@7.36.2, psutil@6.1.0, psycopg-binary@3.2.3, pydantic-core@2.23.4, pyyaml@6.0.2, tokenizers@0.21.0, uuid-utils@0.19.0, websockets@17.4, wrapt@2.5.2, xxhash@4.1.0, zstandard@0.25.0"
+          "value": "CPython (base image, built from source), asyncpg@0.30.0, bcrypt@4.0.1, cffi@2.1.1, chardet@7.5.1, charset-normalizer@3.5.0, cryptography@50.0.0, ctranslate2@4.8.3, hf-xet@1.6.0, jiter@0.16.0, lxml@6.1.1, numpy@1.26.4, onnxruntime@1.31.0, orjson@3.11.9, ormsgpack@1.12.2, pillow@13.0.0, protobuf@7.35.1, psutil@6.1.0, psycopg-binary@3.2.3, pydantic-core@2.23.4, pyyaml@6.0.2, tokenizers@0.22.2, uuid-utils@0.17.0, websockets@15.0.1, wrapt@2.3.0, xxhash@4.0.0, zstandard@0.25.0"
         }
       ],
       "purl": "pkg:deb/debian/libc6@2.41-12+deb13u5",
@@ -5739,7 +5371,7 @@
         },
         {
           "name": "ira:linked-by",
-          "value": "bcrypt@4.0.1, cryptography@50.0.2, ctranslate2@4.8.3, hf-xet@1.8.0, jiter@0.19.0, numpy@1.26.4, onnxruntime@1.20.1, ormsgpack@1.13.1, pillow@13.0.0, pydantic-core@2.23.4, tokenizers@0.21.0, uuid-utils@0.19.0"
+          "value": "bcrypt@4.0.1, cryptography@50.0.0, ctranslate2@4.8.3, hf-xet@1.6.0, jiter@0.16.0, numpy@1.26.4, onnxruntime@1.31.0, ormsgpack@1.12.2, pillow@13.0.0, pydantic-core@2.23.4, tokenizers@0.22.2, uuid-utils@0.17.0"
         }
       ],
       "purl": "pkg:deb/debian/libgcc-s1@14.2.0-19",
@@ -6931,7 +6563,7 @@
         },
         {
           "name": "ira:linked-by",
-          "value": "ctranslate2@4.8.3, onnxruntime@1.20.1, pillow@13.0.0, protobuf@7.36.2, tokenizers@0.21.0"
+          "value": "ctranslate2@4.8.3, onnxruntime@1.31.0, pillow@13.0.0, protobuf@7.35.1, tokenizers@0.22.2"
         }
       ],
       "purl": "pkg:deb/debian/libstdc++6@14.2.0-19",
@@ -8093,63 +7725,55 @@
     {
       "dependsOn": [
         "binary:CPython (base image, built from source)",
-        "pkg:pypi/annotated-doc@0.0.7",
+        "pkg:pypi/annotated-doc@0.0.5",
         "pkg:pypi/annotated-types@0.8.0",
-        "pkg:pypi/anyio@4.16.0",
+        "pkg:pypi/anyio@4.14.2",
         "pkg:pypi/apscheduler@3.10.4",
-        "pkg:pypi/asgiref@3.13.0",
+        "pkg:pypi/asgiref@3.12.1",
         "pkg:pypi/asyncpg@0.30.0",
         "pkg:pypi/bcrypt@4.0.1",
         "pkg:pypi/boto3@1.43.67",
-        "pkg:pypi/botocore@1.43.127",
-        "pkg:pypi/certifi@2026.11.20",
+        "pkg:pypi/botocore@1.43.70",
+        "pkg:pypi/certifi@2026.10.19",
         "pkg:pypi/cffi@2.1.1",
-        "pkg:pypi/chardet@7.7.0",
-        "pkg:pypi/charset-normalizer@3.5.3",
-        "pkg:pypi/click@8.5.1",
-        "pkg:pypi/coloredlogs@15.0.1",
-        "pkg:pypi/cryptography@50.0.2",
+        "pkg:pypi/chardet@7.5.1",
+        "pkg:pypi/charset-normalizer@3.5.0",
+        "pkg:pypi/click@8.4.2",
+        "pkg:pypi/cryptography@50.0.0",
         "pkg:pypi/ctranslate2@4.8.3",
-        "pkg:pypi/deprecated@3.0.1",
+        "pkg:pypi/deprecated@1.3.1",
         "pkg:pypi/distro@1.9.0",
         "pkg:pypi/dnspython@2.9.2",
-        "pkg:pypi/email-validator@2.4.0",
+        "pkg:pypi/email-validator@2.3.0",
         "pkg:pypi/et-xmlfile@2.0.0",
         "pkg:pypi/fastapi@0.141.1",
         "pkg:pypi/faster-whisper@1.2.1",
-        "pkg:pypi/filelock@4.3.1",
+        "pkg:pypi/filelock@4.2.4",
         "pkg:pypi/flatbuffers@25.12.19",
-        "pkg:pypi/fsspec@2026.9.0",
-        "pkg:pypi/googleapis-common-protos@1.76.0",
+        "pkg:pypi/fsspec@2026.7.0",
+        "pkg:pypi/googleapis-common-protos@1.75.1",
         "pkg:pypi/h11@0.16.0",
-        "pkg:pypi/hf-xet@1.8.0",
-        "pkg:pypi/httpcore2@2.16.2",
+        "pkg:pypi/hf-xet@1.6.0",
         "pkg:pypi/httpcore@1.0.9",
-        "pkg:pypi/httpx2@2.16.2",
         "pkg:pypi/httpx@0.27.2",
-        "pkg:pypi/huggingface-hub@0.36.2",
-        "pkg:pypi/humanfriendly@10.0",
-        "pkg:pypi/idna@3.20",
-        "pkg:pypi/iniconfig@2.3.1",
-        "pkg:pypi/jiter@0.19.0",
+        "pkg:pypi/huggingface-hub@1.27.0",
+        "pkg:pypi/idna@3.18",
+        "pkg:pypi/jiter@0.16.0",
         "pkg:pypi/jmespath@1.1.0",
-        "pkg:pypi/jsonpatch@1.48",
-        "pkg:pypi/jsonpointer@3.12",
+        "pkg:pypi/jsonpatch@1.33",
+        "pkg:pypi/jsonpointer@3.1.1",
         "pkg:pypi/langchain-core@1.5.4",
-        "pkg:pypi/langchain-protocol@0.0.22",
+        "pkg:pypi/langchain-protocol@0.0.18",
         "pkg:pypi/langgraph-checkpoint-postgres@3.1.3",
-        "pkg:pypi/langgraph-checkpoint@4.3.2",
-        "pkg:pypi/langgraph-prebuilt@1.1.3",
-        "pkg:pypi/langgraph-sdk@0.4.14",
+        "pkg:pypi/langgraph-checkpoint@4.3.0",
+        "pkg:pypi/langgraph-prebuilt@1.1.0",
+        "pkg:pypi/langgraph-sdk@0.4.7",
         "pkg:pypi/langgraph@1.2.11",
-        "pkg:pypi/langsmith@0.16.2",
+        "pkg:pypi/langsmith@0.10.18",
         "pkg:pypi/limits@5.8.0",
-        "pkg:pypi/lxml@6.1.3",
-        "pkg:pypi/markupsafe@3.0.4",
-        "pkg:pypi/moto@5.2.2",
-        "pkg:pypi/mpmath@1.3.0",
+        "pkg:pypi/lxml@6.1.1",
         "pkg:pypi/numpy@1.26.4",
-        "pkg:pypi/onnxruntime@1.20.1",
+        "pkg:pypi/onnxruntime@1.31.0",
         "pkg:pypi/openai@1.58.1",
         "pkg:pypi/openpyxl@3.1.5",
         "pkg:pypi/opentelemetry-api@1.45.2",
@@ -8164,62 +7788,54 @@
         "pkg:pypi/opentelemetry-sdk@1.45.2",
         "pkg:pypi/opentelemetry-semantic-conventions@0.66b2",
         "pkg:pypi/opentelemetry-util-http@0.66b2",
-        "pkg:pypi/orjson@3.13.0",
-        "pkg:pypi/ormsgpack@1.13.1",
-        "pkg:pypi/packaging@26.4",
+        "pkg:pypi/orjson@3.11.9",
+        "pkg:pypi/ormsgpack@1.12.2",
+        "pkg:pypi/packaging@24.2",
         "pkg:pypi/passlib@1.7.4",
         "pkg:pypi/pillow@13.0.0",
         "pkg:pypi/pip@25.0.1",
-        "pkg:pypi/pluggy@1.7.0",
-        "pkg:pypi/protobuf@7.36.2",
+        "pkg:pypi/protobuf@7.35.1",
         "pkg:pypi/psutil@6.1.0",
         "pkg:pypi/psycopg-binary@3.2.3",
-        "pkg:pypi/psycopg-pool@3.3.3",
+        "pkg:pypi/psycopg-pool@3.3.1",
         "pkg:pypi/psycopg@3.2.3",
-        "pkg:pypi/pycparser@3.12",
+        "pkg:pypi/pycparser@3.0",
         "pkg:pypi/pydantic-core@2.23.4",
         "pkg:pypi/pydantic-settings@2.6.1",
         "pkg:pypi/pydantic@2.9.2",
         "pkg:pypi/pyjwt@2.15.0",
         "pkg:pypi/pyotp@2.9.0",
         "pkg:pypi/pypdf@6.21.4",
-        "pkg:pypi/pytest-asyncio@0.24.0",
-        "pkg:pypi/pytest@8.3.3",
         "pkg:pypi/python-dateutil@2.9.0",
         "pkg:pypi/python-docx@1.1.2",
         "pkg:pypi/python-dotenv@1.2.4",
         "pkg:pypi/python-multipart@0.0.31",
         "pkg:pypi/python-pptx@1.0.2",
-        "pkg:pypi/pytz@2026.6",
+        "pkg:pypi/pytz@2026.3.post1",
         "pkg:pypi/pyyaml@6.0.2",
         "pkg:pypi/redis@5.2.0",
         "pkg:pypi/reportlab@4.2.5",
         "pkg:pypi/requests-toolbelt@1.0.0",
         "pkg:pypi/requests@2.34.2",
-        "pkg:pypi/responses@0.26.3",
-        "pkg:pypi/s3transfer@0.19.3",
+        "pkg:pypi/s3transfer@0.19.2",
         "pkg:pypi/six@1.17.0",
         "pkg:pypi/slowapi@0.1.9",
         "pkg:pypi/sniffio@1.3.1",
         "pkg:pypi/sse-starlette@2.1.3",
-        "pkg:pypi/starlette@1.10.0",
-        "pkg:pypi/sympy@1.14.0",
+        "pkg:pypi/starlette@1.6.0",
         "pkg:pypi/tenacity@9.0.0",
-        "pkg:pypi/tokenizers@0.21.0",
-        "pkg:pypi/tqdm@4.70.1",
-        "pkg:pypi/truststore@0.10.5",
+        "pkg:pypi/tokenizers@0.22.2",
+        "pkg:pypi/tqdm@4.70.0",
         "pkg:pypi/typing-extensions@4.16.0",
-        "pkg:pypi/typing-inspection@0.4.5",
-        "pkg:pypi/tzlocal@5.4.5",
+        "pkg:pypi/typing-inspection@0.4.4",
+        "pkg:pypi/tzlocal@5.4.4",
         "pkg:pypi/urllib3@2.8.0",
-        "pkg:pypi/uuid-utils@0.19.0",
-        "pkg:pypi/uvicorn@0.54.0",
-        "pkg:pypi/websockets@17.4",
-        "pkg:pypi/werkzeug@3.1.9",
-        "pkg:pypi/wrapt@2.5.2",
-        "pkg:pypi/xlsxwriter@3.3.4",
-        "pkg:pypi/xmltodict@1.0.4",
-        "pkg:pypi/xxhash@4.1.0",
+        "pkg:pypi/uuid-utils@0.17.0",
+        "pkg:pypi/uvicorn@0.32.1",
+        "pkg:pypi/websockets@15.0.1",
+        "pkg:pypi/wrapt@2.3.0",
+        "pkg:pypi/xlsxwriter@3.2.9",
+        "pkg:pypi/xxhash@4.0.0",
         "pkg:pypi/zstandard@0.25.0",
         "model:/app/care/models/activity_model.json",
         "model:/app/care/models/classifier_heads.json",

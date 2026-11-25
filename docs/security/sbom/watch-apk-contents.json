@@ -9,6 +9,12 @@
         "what": "attribution for the activity model's training data"
       },
       {
+        "file": "assets/THIRD_PARTY_NOTICES.txt",
+        "sha256": "3509bc08370b5c449abf1d8862f7a3bc70594c8190bb3e769ab5e67801da3dbe",
+        "size": 26026,
+        "what": "the third-party notices of this build (About, Open-source licences)"
+      },
+      {
         "file": "assets/activity_model.json",
         "sha256": "06475f27740a2bc9ba7e736333966c94b2325a27c78f2bc9ce36b1395462c445",
         "size": 242171,
@@ -103,6 +109,12 @@
         "sha256": "75d1e0d4e44d49c8e7550a62b72af2b76a3994a41a06f2dbcdfd04de085226c2",
         "size": 706,
         "what": "attribution for the activity model's training data"
+      },
+      {
+        "file": "assets/THIRD_PARTY_NOTICES.txt",
+        "sha256": "d40529f68c353426c594e3cd7a2829a3900f43c41fa6577c41063b244f297d7e",
+        "size": 29839,
+        "what": "the third-party notices of this build (About, Open-source licences)"
       },
       {
         "file": "assets/activity_model.json",

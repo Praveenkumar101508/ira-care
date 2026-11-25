@@ -370,6 +370,16 @@ jobs:
           echo "migrations in the image: $n"; test "$n" -gt 100
       - name: The backup image can encrypt and dump
         run: docker run --rm --network none --entrypoint sh ira-care/backup:ci -c 'openssl version && pg_dump --version && curl --version && test -x /usr/local/bin/backup.sh && test -x /usr/local/bin/restore.sh && test -x /usr/local/bin/offsite.sh'
+      - name: Each image carries its third-party notices
+        run: |
+          for i in api dashboard backup; do
+            docker run --rm --network none --entrypoint cat "ira-care/$i:ci" /usr/share/doc/ira-care/THIRD_PARTY_NOTICES.txt | cmp - "docs/legal/notices/$i-image.txt"
+          done
+      - name: The API image loads the care server and worker from its locked packages alone
+        run: |
+          docker run --rm --network none -e IRA_SECRET_KEY=ci-placeholder -e IRA_ADMIN_PASSWORD=ci-placeholder \
+            -e POSTGRES_PASSWORD=ci-placeholder -e REDIS_PASSWORD=ci-placeholder \
+            --entrypoint python ira-care/api:ci -c "import care.server, care.worker"
       - name: What the images contain, against the licence policy (docs/security/sbom/)
         run: |
           mkdir -p sbom-out

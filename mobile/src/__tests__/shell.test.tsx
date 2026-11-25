@@ -84,7 +84,7 @@ test("a carer sees today's visits with I've arrived, and the last handover", () 
   expect(text(byId(tree, 'card-handover'))).toContain('Ate well.');
 });
 
-test('settings has the seven sections, each with an accessible label, and the appearance controls change the appearance', () => {
+test('settings has the eight sections, each with an accessible label, and the appearance controls change the appearance', () => {
   let current = DEFAULT_APPEARANCE;
   const el = () => (
     <SettingsTab appearance={current} onAppearance={(x) => { current = x; }} experience="wearer" circle={[]} consents={null} pushRegistered={false}
@@ -92,7 +92,7 @@ test('settings has the seven sections, each with an accessible label, and the ap
   );
   const r = renderer.create(<ThemeProvider appearance={current}>{el()}</ThemeProvider>);
   const sections = all(r.toJSON() as Node).filter((n) => String(n.props.testID ?? '').startsWith('settings-'));
-  expect(sections).toHaveLength(7);
+  expect(sections).toHaveLength(8);
   for (const s of sections) expect(typeof s.props.accessibilityLabel).toBe('string');
   press(r, 'settings-appearance');
   press(r, 'mode-dark');

@@ -51,7 +51,7 @@ How the cells are read (checked by
 ## In the foundation code only, not in the IRA CARE deployment
 
 The backend this product grew from (`supracloud-jarvis/`) names more models. The IRA CARE image
-(`deploy/Dockerfile.api`) installs `requirements-test.txt`, not the full model stack, and no
+(`deploy/Dockerfile.api`) installs `requirements-api.lock` (what the care server and worker load), not the full model stack, and no
 care code path loads these. They are listed so that nobody enables one without seeing its terms.
 
 | Model | Source and revision | Used for | Licence | Commercial use | Conditions and use restrictions | Verified (2026-11-25) | Attribution |

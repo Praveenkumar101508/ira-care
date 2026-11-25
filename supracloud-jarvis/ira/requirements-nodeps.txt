@@ -1,5 +1,5 @@
 # Packages installed WITHOUT their declared dependencies, after requirements.txt
-# (or requirements-test.txt):
+# (or requirements-test.txt, or in the API image requirements-api.lock):
 #
 #   pip install --no-deps --require-hashes -r requirements-nodeps.txt
 #
