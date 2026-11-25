@@ -11,7 +11,7 @@ release keys (docs/os/BUILD.md, E4.c, E4.g).
     python -m scripts.os_release withdraw --dsn DSN --id RELEASE_ID
     python -m scripts.os_release list --dsn DSN
 
-`keygen` prints a new OTA signing key for IRA_OTA_SIGNING_KEY and its public key for the
+`keygen` prints a new OTA signing key for IRA_OTA_MANIFEST_KEY and its public key for the
 image. Store the private half as a secret on the server only; it is printed once and never
 written to disk by this script.
 """
@@ -86,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     if args.cmd == "keygen":
         private, public = keygen()
-        print(f"IRA_OTA_SIGNING_KEY={private}")
+        print(f"IRA_OTA_MANIFEST_KEY={private}")
         print(f"public key (for the image): {public}")
         return 0
     return asyncio.run(_run(args))

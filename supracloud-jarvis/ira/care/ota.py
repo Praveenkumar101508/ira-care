@@ -38,7 +38,7 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
-SIGNING_KEY_ENV = "IRA_OTA_SIGNING_KEY"   # base64 of the 32-byte Ed25519 private key seed
+SIGNING_KEY_ENV = "IRA_OTA_MANIFEST_KEY"   # base64 of the 32-byte Ed25519 private key seed
 MANIFEST_SCHEMA = 1
 MANIFEST_LIFETIME = dt.timedelta(hours=1)
 
