@@ -1473,13 +1473,21 @@
           "status": "allowed",
           "version": "1.0.0"
         },
-        "@isaacs/cliui@8.0.2": {
+        "@isaacs/fs-minipass@4.0.1": {
           "declared": "ISC",
           "licence": "ISC",
-          "name": "@isaacs/cliui",
+          "name": "@isaacs/fs-minipass",
           "source": "package.json license",
           "status": "allowed",
-          "version": "8.0.2"
+          "version": "4.0.1"
+        },
+        "@isaacs/nonrecursive-glob-match@1.1.0": {
+          "declared": "BlueOak-1.0.0",
+          "licence": "BlueOak-1.0.0",
+          "name": "@isaacs/nonrecursive-glob-match",
+          "source": "package.json license",
+          "status": "allowed",
+          "version": "1.1.0"
         },
         "@isaacs/ttlcache@1.4.1": {
           "declared": "ISC",
@@ -1632,14 +1640,6 @@
           "source": "package.json license",
           "status": "allowed",
           "version": "3.1.1"
-        },
-        "@pkgjs/parseargs@0.11.0": {
-          "declared": "MIT",
-          "licence": "MIT",
-          "name": "@pkgjs/parseargs",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "0.11.0"
         },
         "@react-native/assets-registry@0.76.9": {
           "declared": "MIT",
@@ -1994,14 +1994,6 @@
           "status": "allowed",
           "version": "5.0.1"
         },
-        "ansi-regex@6.6.0": {
-          "declared": "MIT",
-          "licence": "MIT",
-          "name": "ansi-regex",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "6.6.0"
-        },
         "ansi-styles@3.2.1": {
           "declared": "MIT",
           "licence": "MIT",
@@ -2025,14 +2017,6 @@
           "source": "package.json license",
           "status": "allowed",
           "version": "5.2.0"
-        },
-        "ansi-styles@6.2.3": {
-          "declared": "MIT",
-          "licence": "MIT",
-          "name": "ansi-styles",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "6.2.3"
         },
         "any-promise@1.3.0": {
           "declared": "MIT",
@@ -2274,6 +2258,14 @@
           "status": "allowed",
           "version": "1.0.2"
         },
+        "balanced-match@4.0.4": {
+          "declared": "MIT",
+          "licence": "MIT",
+          "name": "balanced-match",
+          "source": "package.json license",
+          "status": "allowed",
+          "version": "4.0.4"
+        },
         "base64-js@1.5.1": {
           "declared": "MIT",
           "licence": "MIT",
@@ -2346,13 +2338,13 @@
           "status": "allowed",
           "version": "1.1.22"
         },
-        "brace-expansion@2.1.8": {
+        "brace-expansion@5.1.0": {
           "declared": "MIT",
           "licence": "MIT",
           "name": "brace-expansion",
           "source": "package.json license",
           "status": "allowed",
-          "version": "2.1.8"
+          "version": "5.1.0"
         },
         "braces@3.0.3": {
           "declared": "MIT",
@@ -2530,13 +2522,13 @@
           "status": "allowed",
           "version": "0.0.2"
         },
-        "chownr@2.0.0": {
-          "declared": "ISC",
-          "licence": "ISC",
+        "chownr@3.0.0": {
+          "declared": "BlueOak-1.0.0",
+          "licence": "BlueOak-1.0.0",
           "name": "chownr",
           "source": "package.json license",
           "status": "allowed",
-          "version": "2.0.0"
+          "version": "3.0.0"
         },
         "chrome-launcher@0.15.2": {
           "declared": "Apache-2.0",
@@ -2970,14 +2962,6 @@
           "status": "allowed",
           "version": "1.0.1"
         },
-        "eastasianwidth@0.2.0": {
-          "declared": "MIT",
-          "licence": "MIT",
-          "name": "eastasianwidth",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "0.2.0"
-        },
         "ee-first@1.1.1": {
           "declared": "MIT",
           "licence": "MIT",
@@ -3001,14 +2985,6 @@
           "source": "package.json license",
           "status": "allowed",
           "version": "8.0.0"
-        },
-        "emoji-regex@9.2.2": {
-          "declared": "MIT",
-          "licence": "MIT",
-          "name": "emoji-regex",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "9.2.2"
         },
         "encodeurl@1.0.4": {
           "declared": "MIT",
@@ -3394,6 +3370,14 @@
           "status": "allowed",
           "version": "3.0.5"
         },
+        "fdir@6.5.0": {
+          "declared": "MIT",
+          "licence": "MIT",
+          "name": "fdir",
+          "source": "package.json license",
+          "status": "allowed",
+          "version": "6.5.0"
+        },
         "fetch-retry@4.1.1": {
           "declared": "MIT",
           "licence": "MIT",
@@ -3490,14 +3474,6 @@
           "status": "allowed",
           "version": "0.3.5"
         },
-        "foreground-child@3.3.1": {
-          "declared": "ISC",
-          "licence": "ISC",
-          "name": "foreground-child",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "3.3.1"
-        },
         "form-data@3.0.5": {
           "declared": "MIT",
           "licence": "MIT",
@@ -3545,14 +3521,6 @@
           "source": "package.json license",
           "status": "allowed",
           "version": "9.1.0"
-        },
-        "fs-minipass@2.1.0": {
-          "declared": "ISC",
-          "licence": "ISC",
-          "name": "fs-minipass",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "2.1.0"
         },
         "fs-minipass@3.0.3": {
           "declared": "ISC",
@@ -3658,13 +3626,13 @@
           "status": "allowed",
           "version": "5.1.2"
         },
-        "glob@10.5.0": {
-          "declared": "ISC",
-          "licence": "ISC",
+        "glob@14.0.6": {
+          "declared": "BlueOak-1.0.0",
+          "licence": "BlueOak-1.0.0",
           "name": "glob",
           "source": "package.json license",
           "status": "allowed",
-          "version": "10.5.0"
+          "version": "14.0.6"
         },
         "glob@7.2.3": {
           "declared": "ISC",
@@ -3826,13 +3794,13 @@
           "status": "allowed",
           "version": "5.3.2"
         },
-        "image-size@1.2.1": {
+        "image-size@2.1.0": {
           "declared": "MIT",
           "licence": "MIT",
           "name": "image-size",
           "source": "package.json license",
           "status": "allowed",
-          "version": "1.2.1"
+          "version": "2.1.0"
         },
         "import-fresh@2.0.0": {
           "declared": "MIT",
@@ -4121,14 +4089,6 @@
           "source": "package.json license",
           "status": "allowed",
           "version": "5.2.1"
-        },
-        "jackspeak@3.4.3": {
-          "declared": "BlueOak-1.0.0",
-          "licence": "BlueOak-1.0.0",
-          "name": "jackspeak",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "3.4.3"
         },
         "jest-environment-node@29.7.0": {
           "declared": "MIT",
@@ -4434,6 +4394,14 @@
           "status": "allowed",
           "version": "10.4.3"
         },
+        "lru-cache@11.5.3": {
+          "declared": "BlueOak-1.0.0",
+          "licence": "BlueOak-1.0.0",
+          "name": "lru-cache",
+          "source": "package.json license",
+          "status": "allowed",
+          "version": "11.5.3"
+        },
         "lru-cache@5.1.1": {
           "declared": "ISC",
           "licence": "ISC",
@@ -4690,6 +4658,14 @@
           "status": "allowed",
           "version": "2.1.0"
         },
+        "minimatch@11.0.9": {
+          "declared": "BlueOak-1.0.0",
+          "licence": "BlueOak-1.0.0",
+          "name": "minimatch",
+          "source": "package.json license",
+          "status": "allowed",
+          "version": "11.0.9"
+        },
         "minimatch@3.1.5": {
           "declared": "ISC",
           "licence": "ISC",
@@ -4697,14 +4673,6 @@
           "source": "package.json license",
           "status": "allowed",
           "version": "3.1.5"
-        },
-        "minimatch@9.0.9": {
-          "declared": "ISC",
-          "licence": "ISC",
-          "name": "minimatch",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "9.0.9"
         },
         "minimist@1.2.8": {
           "declared": "MIT",
@@ -4746,14 +4714,6 @@
           "status": "allowed",
           "version": "3.3.6"
         },
-        "minipass@5.0.0": {
-          "declared": "ISC",
-          "licence": "ISC",
-          "name": "minipass",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "5.0.0"
-        },
         "minipass@7.1.3": {
           "declared": "BlueOak-1.0.0",
           "licence": "BlueOak-1.0.0",
@@ -4762,13 +4722,13 @@
           "status": "allowed",
           "version": "7.1.3"
         },
-        "minizlib@2.1.2": {
+        "minizlib@3.1.0": {
           "declared": "MIT",
           "licence": "MIT",
           "name": "minizlib",
           "source": "package.json license",
           "status": "allowed",
-          "version": "2.1.2"
+          "version": "3.1.0"
         },
         "mkdirp@0.5.6": {
           "declared": "MIT",
@@ -5114,14 +5074,6 @@
           "status": "allowed",
           "version": "2.2.0"
         },
-        "package-json-from-dist@1.0.1": {
-          "declared": "BlueOak-1.0.0",
-          "licence": "BlueOak-1.0.0",
-          "name": "package-json-from-dist",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "1.0.1"
-        },
         "parse-json@4.0.0": {
           "declared": "MIT",
           "licence": "MIT",
@@ -5194,13 +5146,13 @@
           "status": "allowed",
           "version": "1.0.7"
         },
-        "path-scurry@1.11.1": {
+        "path-scurry@3.0.0": {
           "declared": "BlueOak-1.0.0",
           "licence": "BlueOak-1.0.0",
           "name": "path-scurry",
           "source": "package.json license",
           "status": "allowed",
-          "version": "1.11.1"
+          "version": "3.0.0"
         },
         "path-type@4.0.0": {
           "declared": "MIT",
@@ -5233,6 +5185,14 @@
           "source": "package.json license",
           "status": "allowed",
           "version": "3.0.2"
+        },
+        "picomatch@4.0.7": {
+          "declared": "MIT",
+          "licence": "MIT",
+          "name": "picomatch",
+          "source": "package.json license",
+          "status": "allowed",
+          "version": "4.0.7"
         },
         "pify@4.0.1": {
           "declared": "MIT",
@@ -5393,14 +5353,6 @@
           "source": "package.json license",
           "status": "allowed",
           "version": "1.2.3"
-        },
-        "queue@6.0.2": {
-          "declared": "MIT",
-          "licence": "MIT",
-          "name": "queue",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "6.0.2"
         },
         "range-parser@1.2.1": {
           "declared": "MIT",
@@ -5842,14 +5794,6 @@
           "status": "allowed",
           "version": "3.0.7"
         },
-        "signal-exit@4.1.0": {
-          "declared": "ISC",
-          "licence": "ISC",
-          "name": "signal-exit",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "4.1.0"
-        },
         "simple-plist@1.3.1": {
           "declared": "MIT",
           "licence": "MIT",
@@ -5986,14 +5930,6 @@
           "status": "allowed",
           "version": "4.2.3"
         },
-        "string-width@5.1.2": {
-          "declared": "MIT",
-          "licence": "MIT",
-          "name": "string-width",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "5.1.2"
-        },
         "strip-ansi@5.2.0": {
           "declared": "MIT",
           "licence": "MIT",
@@ -6009,14 +5945,6 @@
           "source": "package.json license",
           "status": "allowed",
           "version": "6.0.1"
-        },
-        "strip-ansi@7.2.0": {
-          "declared": "MIT",
-          "licence": "MIT",
-          "name": "strip-ansi",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "7.2.0"
         },
         "strip-eof@1.0.0": {
           "declared": "MIT",
@@ -6058,13 +5986,13 @@
           "status": "allowed",
           "version": "0.1.3"
         },
-        "sucrase@3.35.0": {
+        "sucrase@3.35.1": {
           "declared": "MIT",
           "licence": "MIT",
           "name": "sucrase",
           "source": "package.json license",
           "status": "allowed",
-          "version": "3.35.0"
+          "version": "3.35.1"
         },
         "supports-color@5.5.0": {
           "declared": "MIT",
@@ -6106,13 +6034,13 @@
           "status": "allowed",
           "version": "1.0.0"
         },
-        "tar@6.2.1": {
-          "declared": "ISC",
-          "licence": "ISC",
+        "tar@7.5.23": {
+          "declared": "BlueOak-1.0.0",
+          "licence": "BlueOak-1.0.0",
           "name": "tar",
           "source": "package.json license",
           "status": "allowed",
-          "version": "6.2.1"
+          "version": "7.5.23"
         },
         "temp-dir@2.0.0": {
           "declared": "MIT",
@@ -6185,6 +6113,14 @@
           "source": "package.json license",
           "status": "allowed",
           "version": "5.0.0"
+        },
+        "tinyglobby@0.2.17": {
+          "declared": "MIT",
+          "licence": "MIT",
+          "name": "tinyglobby",
+          "source": "package.json license",
+          "status": "allowed",
+          "version": "0.2.17"
         },
         "tmpl@1.0.5": {
           "declared": "BSD-3-Clause",
@@ -6410,21 +6346,13 @@
           "status": "allowed",
           "version": "1.0.1"
         },
-        "uuid@7.0.3": {
+        "uuid@11.1.1": {
           "declared": "MIT",
           "licence": "MIT",
           "name": "uuid",
           "source": "package.json license",
           "status": "allowed",
-          "version": "7.0.3"
-        },
-        "uuid@8.3.2": {
-          "declared": "MIT",
-          "licence": "MIT",
-          "name": "uuid",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "8.3.2"
+          "version": "11.1.1"
         },
         "validate-npm-package-name@5.0.1": {
           "declared": "ISC",
@@ -6554,14 +6482,6 @@
           "status": "allowed",
           "version": "7.0.0"
         },
-        "wrap-ansi@8.1.0": {
-          "declared": "MIT",
-          "licence": "MIT",
-          "name": "wrap-ansi",
-          "source": "package.json license",
-          "status": "allowed",
-          "version": "8.1.0"
-        },
         "wrappy@1.0.2": {
           "declared": "ISC",
           "licence": "ISC",
@@ -6673,6 +6593,14 @@
           "source": "package.json license",
           "status": "allowed",
           "version": "4.0.0"
+        },
+        "yallist@5.0.0": {
+          "declared": "BlueOak-1.0.0",
+          "licence": "BlueOak-1.0.0",
+          "name": "yallist",
+          "source": "package.json license",
+          "status": "allowed",
+          "version": "5.0.0"
         },
         "yargs-parser@21.1.1": {
           "declared": "ISC",

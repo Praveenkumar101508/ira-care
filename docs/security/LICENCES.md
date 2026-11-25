@@ -11,7 +11,7 @@ longer matches what is installed.
 |---|---|---|
 | `python` | every package pinned in `supracloud-jarvis/ira/requirements.lock` (167) | the installed package's metadata: `License-Expression`, then a recognisable `License` field, then the licence classifiers |
 | `npm-dashboard` | the dashboard's production dependency tree (`npm ls --omit=dev --all`, 24 packages) | each package's own `package.json` (`license`, or the old `licenses` field) |
-| `npm-mobile` | the phone app's production dependency tree (812 packages) | the same |
+| `npm-mobile` | the phone app's production dependency tree (803 packages) | the same |
 
 Development-only packages (test runners, type checkers, linters) are left out: they do not ship.
 
