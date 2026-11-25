@@ -87,13 +87,6 @@
       "version": "26.1.0"
     },
     {
-      "bom-ref": "pkg:pypi/av@18.1.0",
-      "name": "av",
-      "purl": "pkg:pypi/av@18.1.0",
-      "type": "library",
-      "version": "18.1.0"
-    },
-    {
       "bom-ref": "pkg:pypi/bcrypt@4.0.1",
       "name": "bcrypt",
       "purl": "pkg:pypi/bcrypt@4.0.1",
@@ -1266,9 +1259,6 @@
       "ref": "pkg:pypi/attrs@26.1.0"
     },
     {
-      "ref": "pkg:pypi/av@18.1.0"
-    },
-    {
       "ref": "pkg:pypi/bcrypt@4.0.1"
     },
     {
@@ -1770,7 +1760,7 @@
         "value": "NOT IN THIS DOCUMENT \u2014 a requirements file carries no licence metadata. See dependency-licences.json."
       }
     ],
-    "timestamp": "2026-11-13T20:56:11.433188+00:00",
+    "timestamp": "2026-11-25T18:59:08.870148+00:00",
     "tools": {
       "components": [
         {
@@ -1876,5 +1866,5 @@
   },
   "serialNumber": "urn:uuid:fbfcff22-11e6-40bf-8ef2-91e4d82f9887",
   "specVersion": "1.6",
-  "version": 22
+  "version": 23
 }

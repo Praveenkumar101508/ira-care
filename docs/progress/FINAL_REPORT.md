@@ -17,7 +17,7 @@ with every required CI check green. The integrated run is in [`VERIFICATION.md`]
 |---|---|---|
 | Engineering demonstration with fictional people, test notification providers and a clearly labelled virtual or browser watch | **GO** | The 22-step care journey passes end to end against the real API and PostgreSQL, deterministically and with the real model chain (8 of 8 runs); the stack runs as containers with outage recovery, encrypted off-site backups and restore drills; the film was re-recorded on this stack. |
 | Supervised pilot with real people | **NO-GO** | No Clinical Safety Officer has reviewed the hazard log (I.j); MHRA qualification is unconfirmed (I.k); nothing has run on a physical watch or phone; fall, heart, activity and speech accuracy are unmeasured on older adults and on the IRA watch; live SMS, call and email delivery is untested; no monitoring-centre contract. |
-| Commercial release to real users | **NO-GO** | Everything the pilot needs, plus: signed store builds and store accounts, an iOS build, a hosting agreement on a rented server, an independent penetration test, the IRA CARE OS image built and booted, and an Expo SDK upgrade to clear the build-tool advisories. |
+| Commercial release to real users | **NO-GO** | Everything the pilot needs, plus: signed store builds and store accounts, an iOS build, a hosting agreement on a rented server, an independent penetration test, and the IRA CARE OS image built and booted. (The phone app's build-tool advisories listed here at first were cleared without an SDK upgrade: `docs/security/REVIEW.md`, S6.) |
 
 Area by area: [`GO_NO_GO.md`](GO_NO_GO.md). The owner's constraints held throughout: no real
 patient data was collected, no real emergency message was sent, nothing was deployed to real

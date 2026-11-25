@@ -367,33 +367,12 @@ def _wav(seconds=3.0, rate=44100, channels=2) -> bytes:
     return buf.getvalue()
 
 
-def _live_webm(seconds=3.0, rate=48000) -> bytes:
-    """Opus in WebM as a browser's MediaRecorder writes it: no stated length."""
-    av = pytest.importorskip("av")
-    import numpy as np
-    buf = io.BytesIO()
-    with av.open(buf, "w", format="webm", options={"live": "1"}) as out:
-        stream = out.add_stream("libopus", rate=rate)
-        stream.layout = "mono"
-        t = np.arange(int(rate * seconds)) / rate
-        pcm = (0.3 * np.sin(2 * np.pi * 440 * t) * 32767).astype(np.int16)
-        for i in range(0, pcm.size, 960):
-            frame = av.AudioFrame.from_ndarray(pcm[i:i + 960].reshape(1, -1), format="s16", layout="mono")
-            frame.sample_rate = rate
-            for packet in stream.encode(frame):
-                out.mux(packet)
-        for packet in stream.encode(None):
-            out.mux(packet)
-    data = buf.getvalue()
-    with av.open(io.BytesIO(data)) as probe:
-        assert probe.duration is None, "the fixture states its length; it no longer tests counting"
-    return data
+_MP3 = b"ID3\x04\x00\x00\x00\x00\x00\x21" + b"\x00" * 40 + b"\xff\xfb\x90\x64" + b"\x55" * 400
 
 
 @pytest.fixture
 def local_whisper(monkeypatch):
     """The real decode and length check; the Whisper model itself replaced."""
-    pytest.importorskip("av")
     import voice.stt as stt
     heard: list = []
 
@@ -407,34 +386,31 @@ def local_whisper(monkeypatch):
     return heard
 
 
-@pytest.mark.parametrize("make, name, ctype, says", [
-    (_wav, "note.wav", "audio/wav", "It is about 3 s long, and here I transcribe recordings up to 1 s."),
-    (_live_webm, "note.webm", "audio/webm", "It runs past 1 s, the longest recording I transcribe here."),
-])
-def test_the_limit_is_kept_by_the_real_decoder(make, name, ctype, says, local_whisper, monkeypatch):
+def test_the_limit_is_kept_by_the_real_decoder(local_whisper, monkeypatch):
     import api.routes.chat as chatmod
-    content = make()
+    content = _wav()
     monkeypatch.setattr(chatmod, "_UPLOAD_AUDIO_MAX_SECONDS", 1)
-    tokens, prompts, _ = _upload(content, name, ctype, monkeypatch)
-    assert says in tokens and prompts == [] and local_whisper == []
+    tokens, prompts, _ = _upload(content, "note.wav", "audio/wav", monkeypatch)
+    assert "It is about 3 s long, and here I transcribe recordings up to 1 s." in tokens
+    assert prompts == [] and local_whisper == []
     monkeypatch.setattr(chatmod, "_UPLOAD_AUDIO_MAX_SECONDS", 600)
-    tokens, prompts, _ = _upload(content, name, ctype, monkeypatch)
+    tokens, prompts, _ = _upload(content, "note.wav", "audio/wav", monkeypatch)
     assert "hello from the recording" in prompts[0][1]["content"] and "3 s, transcribed here" in tokens
     assert local_whisper and abs(local_whisper[0] - 48000) < 1600   # 3 s at 16 kHz
 
 
-@pytest.mark.parametrize("make", [_wav, _live_webm])
-def test_the_bounded_decoder_hears_what_faster_whisper_hears(make):
-    pytest.importorskip("faster_whisper")
-    import numpy as np
-    from faster_whisper.audio import decode_audio
-
-    import voice.stt as stt
-    content = make()
-    ours = stt._decode_to_16k_mono(content, max_seconds=600)
-    theirs = decode_audio(io.BytesIO(content), sampling_rate=16000)
-    assert ours.dtype == np.float32 and ours.size == theirs.size
-    assert np.array_equal(ours, theirs)
+@pytest.mark.parametrize("content, name, ctype, says", [
+    (_MP3, "meeting.mp3", "audio/mpeg", "it is an MP3 file"),
+    (b"\x1a\x45\xdf\xa3" + b"\x00" * 400, "note.webm", "audio/webm", "it is a WebM or Matroska file"),
+    (MP4, "clip.mp4", "video/mp4", "it is a video"),
+], ids=["mp3", "webm", "mp4-video"])
+def test_a_format_this_server_does_not_decode_is_named_and_not_answered(
+        content, name, ctype, says, local_whisper, monkeypatch):
+    """PyAV is not shipped (docs/security/LICENCES.md): only WAV is decoded here. The reply
+    says what the file is and how to send it, and nothing is guessed or sent elsewhere."""
+    tokens, prompts, saved = _upload(content, name, ctype, monkeypatch)
+    assert says in tokens and "uncompressed WAV" in tokens and "haven't guessed" in tokens
+    assert prompts == [] and local_whisper == [] and saved.await_count == 2
 
 
 # ── Review fixes (stabilization of #167) ──────────────────────────────────────

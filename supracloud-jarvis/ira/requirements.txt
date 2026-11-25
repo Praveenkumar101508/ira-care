@@ -122,15 +122,24 @@ croniter==3.0.3                 # Cron expression parsing for recurring reminder
 livekit-api==0.7.1              # LiveKit AccessToken factory for /voice/token
 
 # ── Local speech-to-text (POST /voice/transcribe, /voice/say lip-sync timings) ─
-# voice/stt.py imports faster-whisper, and until this line it was listed only in
-# voice/requirements.txt — the manifest of the dormant LiveKit container under
-# future-scale/. The native install (setup-windows.ps1, start-ira.sh) installs THIS
-# file, so on the supported path /voice/transcribe could never transcribe.
+# voice/stt.py runs faster-whisper (MIT, pure Python). It is NOT listed here: it is installed
+# from requirements-nodeps.txt with `pip install --no-deps`, AFTER this file, because it
+# declares a hard dependency on PyAV (`av`) and pip has no way to install a package without
+# one of its declared dependencies. PyAV's wheels bundle FFmpeg built with the GPL encoders
+# libx264 and libx265, and the owner decided it does not ship (docs/security/LICENCES.md).
+# faster-whisper imports PyAV only for its file decoder; IRA decodes audio itself
+# (voice/audio_decode.py, WAV with the standard library and numpy) and loads faster-whisper
+# through voice/whisper_engine.py, which puts that decoder where faster-whisper looks for its
+# own. tests/architecture/test_no_pyav.py keeps `av` out of every manifest and the lock.
 #
-# MIT, pure Python. It pulls ctranslate2 (MIT; CPU wheels for Linux x86_64/aarch64,
-# macOS arm64/x86_64 and Windows amd64), onnxruntime (MIT; Silero VAD), tokenizers
-# and PyAV. PyAV's wheels bundle FFmpeg, which is LGPL — declared in
-# scripts/check_licence_inventory.py NOTABLE, because PyPI metadata says BSD-3.
+# faster-whisper's other dependencies, pinned here because --no-deps will not fetch them, at
+# the versions the lock resolved (its `Requires-Dist`: ctranslate2>=4,<5; huggingface-hub>=0.21;
+# tokenizers>=0.13,<1; onnxruntime>=1.14,<2; tqdm):
+ctranslate2==4.8.3              # MIT. The Whisper inference engine (CPU wheels, no torch).
+onnxruntime==1.31.0             # MIT. Silero voice-activity filter (vad_filter=True).
+huggingface-hub==1.27.0         # Apache-2.0. Fetches the pinned checkpoint (MOD-02).
+tokenizers==0.22.2              # Apache-2.0.
+tqdm==4.70.0                    # MPL-2.0 AND MIT.
 #
 # The Whisper WEIGHTS are a separate artefact, fetched from the Hub at a pinned
 # revision through core/models/artefacts.py (MOD-02), never at `main`.
@@ -138,15 +147,6 @@ livekit-api==0.7.1              # LiveKit AccessToken factory for /voice/token
 # Supertonic (TTS) is deliberately NOT here: its package is MIT but its weights are
 # OpenRAIL-M, which is awaiting the owner's licence determination. /voice/say keeps
 # its documented 503 until then.
-faster-whisper==1.2.1
-av==18.1.0                      # MUST stay below 19 while faster-whisper is 1.2.1. It declares
-                                 # `av>=11` with no ceiling, so a fresh install resolves PyAV
-                                 # 19.0.1 — which REMOVED the `metadata_errors=` argument that
-                                 # faster_whisper.audio.decode_audio passes to av.open(). Every
-                                 # decode then raises TypeError and /voice/transcribe returns 422.
-                                 # Found by running it, not by reading a changelog; guarded by
-                                 # tests/test_native_stt.py. 18.1.0: 0 advisories, abi3 wheels
-                                 # for cp311+ on Linux, macOS and Windows.
 
 # ── Biometric voice verification ──────────────────────────────────────────────
 # ECAPA-TDNN speaker embedding model (~100MB download on first run)

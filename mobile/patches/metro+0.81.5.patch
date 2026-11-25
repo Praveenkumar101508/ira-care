@@ -1,0 +1,17 @@
+diff --git a/node_modules/metro/src/Assets.js b/node_modules/metro/src/Assets.js
+index a94d722..6c5e260 100644
+--- a/node_modules/metro/src/Assets.js
++++ b/node_modules/metro/src/Assets.js
+@@ -3,7 +3,11 @@
+ const AssetPaths = require("./node-haste/lib/AssetPaths");
+ const crypto = require("crypto");
+ const fs = require("fs");
+-const getImageSize = require("image-size");
++const { imageSize } = require("image-size");
++// image-size 2 (pinned by an npm override for GHSA-5p2g-fcmc-qvqq and GHSA-w3rx-r6r6-pgpr)
++// takes only a buffer; image-size 1 also took a file path. Metro passes both.
++const getImageSize = (input) =>
++  imageSize(typeof input === "string" ? fs.readFileSync(input) : input);
+ const path = require("path");
+ function isAssetTypeAnImage(type) {
+   return (

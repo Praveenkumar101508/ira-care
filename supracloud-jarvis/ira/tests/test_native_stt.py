@@ -9,7 +9,9 @@ and each has a guard here:
      retryable=false — blaming the user's recording. It is now 503.
   2. Once installed, faster-whisper 1.2.1 resolved PyAV 19, which removed the
      `metadata_errors=` argument its decoder passes, so every decode raised
-     TypeError. `av` is pinned, and the REAL decoder is exercised below.
+     TypeError. PyAV has since been removed altogether (its FFmpeg carries GPL
+     encoders; docs/security/LICENCES.md): IRA decodes WAV itself
+     (voice/audio_decode.py), and that REAL decoder is exercised below.
   3. The checkpoint was fetched by bare name — faster-whisper maps it to a Hub
      repository at `main`, the MOD-02 shape. It now resolves through
      `core/models/artefacts.py`, and an unpinned name is refused.
@@ -104,20 +106,18 @@ def test_route_still_answers_422_for_audio_it_cannot_decode(monkeypatch):
 
     monkeypatch.setattr(stt, "transcribe_audio_bytes", _undecodable)
     r = TestClient(_voice_app()).post(
-        "/api/v1/voice/transcribe", files={"audio": ("u.webm", b"junk", "audio/webm")})
+        "/api/v1/voice/transcribe", files={"audio": ("u.wav", b"RIFF junk", "audio/wav")})
     assert r.status_code == 422, r.text
 
 
-# ── 2. The real decoder, against the pinned PyAV ─────────────────────────────
+# ── 2. The real decoder ──────────────────────────────────────────────────────
 
 def test_the_real_decoder_reads_a_wav():
-    """faster_whisper.audio.decode_audio → av.open(..., metadata_errors=...).
+    """The route's own decode of a WAV it did not write: resampled to 16 kHz.
 
-    PyAV 19 removed that argument; with it every decode raised TypeError and the
-    route answered 422 on perfectly good audio. Runs in CI because
-    requirements-test.txt installs both packages at the pinned versions.
+    Under PyAV 19 every decode raised TypeError and the route answered 422 on
+    perfectly good audio. The decoder is now IRA's own and needs no package.
     """
-    pytest.importorskip("faster_whisper")
     import voice.stt as stt
 
     audio = stt._decode_to_16k_mono(_wav(seconds=1.0, rate=22_050))
