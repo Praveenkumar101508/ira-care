@@ -294,11 +294,12 @@ async def audio_transcribe(
     data_url = f"data:{file.content_type or 'audio/mpeg'};base64,{audio_b64}"
 
     too_long: list[float | None] = []
+    unsupported: list[str] = []
 
     def _local_transcribe() -> str:
         """Local faster-whisper. Returns "" when it isn't available."""
         try:
-            from voice.stt import AudioTooLong, transcribe_audio_bytes
+            from voice.stt import AudioTooLong, UnsupportedAudio, transcribe_audio_bytes
         except Exception as exc:  # noqa: BLE001 — fall through to the gated fallback
             logger.info(f"local transcription unavailable ({type(exc).__name__}); considering Replicate")
             return ""
@@ -308,6 +309,9 @@ async def audio_transcribe(
             return (text or "").strip()
         except AudioTooLong as exc:   # the file, not the engine: no fallback for it
             too_long.append(exc.seconds)
+            return ""
+        except UnsupportedAudio as exc:   # the format, not the engine: no fallback either
+            unsupported.append(exc.kind)
             return ""
         except Exception as exc:  # noqa: BLE001 — fall through to the gated fallback
             logger.info(f"local transcription unavailable ({type(exc).__name__}); considering Replicate")
@@ -325,6 +329,13 @@ async def audio_transcribe(
             yield {"data": _json.dumps({"token": (
                 f"⚠️ This recording is {length}; here I transcribe up to {minutes} minutes. "
                 "Split it and send the parts. It was not sent anywhere.\n"
+            )})}
+            yield {"data": _json.dumps({"done": True, "agent": "audio_transcribe", "latency_ms": 0})}
+            return
+        if unsupported:
+            yield {"data": _json.dumps({"token": (
+                f"⚠️ This file is {unsupported[0]}; here I transcribe uncompressed WAV recordings only. "
+                "Convert it to WAV and send it again. It was not sent anywhere.\n"
             )})}
             yield {"data": _json.dumps({"done": True, "agent": "audio_transcribe", "latency_ms": 0})}
             return

@@ -192,6 +192,32 @@ async def test_transcription_refuses_external_fallback_when_the_switch_is_off(
     assert not any("transcript" in e for e in events)
 
 
+@pytest.mark.asyncio
+async def test_a_format_the_server_does_not_decode_is_not_sent_out_even_when_allowed(
+    external_on, monkeypatch,
+):
+    """Only WAV is decoded here (PyAV does not ship; docs/security/LICENCES.md). A file in
+    another format is refused by name and NOT handed to the external fallback: before PyAV
+    was removed it was transcribed on the box, so sending it out now would widen what
+    leaves the machine without anyone deciding to."""
+    import httpx
+
+    import voice.stt as stt
+
+    monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **kw: pytest.fail("no egress"))
+    monkeypatch.setattr(stt, "stt_engine_installed", lambda: True)
+    monkeypatch.setattr(stt, "_load_model", lambda *a: pytest.fail("the model was loaded"))
+    from config import get_settings
+    monkeypatch.setattr(get_settings(), "replicate_api_token", "r8_configured", raising=False)
+
+    events = await _run_transcribe(monkeypatch)      # its bytes are not a WAV (see below)
+    text = " ".join(e.get("token", "") for e in events)
+
+    assert "uncompressed WAV recordings only" in text and "not sent anywhere" in text
+    assert "a format this server does not recognise" in text
+    assert not any("transcript" in e for e in events)
+
+
 async def _run_transcribe(monkeypatch) -> list[dict]:
     """Drive /audio/transcribe's SSE generator and collect the JSON payloads."""
     import json

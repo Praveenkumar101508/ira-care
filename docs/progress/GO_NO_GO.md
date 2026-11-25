@@ -11,7 +11,7 @@ round 5 checkpoint in `FINAL_REPORT.md` area by area. There are three uses:
 | Area | Demo | Pilot | Release | Evidence | What blocks the next step |
 | --- | --- | --- | --- | --- | --- |
 | Care backend (API, worker, escalation, delivery) | GO | NO-GO | NO-GO | `docs/progress/VERIFICATION.md`; `supracloud-jarvis/ira/tests/tenancy/test_care_journey_db.py` | Live SMS and call delivery untested (G3.e); CSO sign-off (I.j) |
-| Data isolation and security | GO | NO-GO | NO-GO | `docs/security/REVIEW.md`, `docs/security/THREAT_MODEL.md` | Independent penetration test (C-22.d); no script-src policy on the dashboard |
+| Data isolation and security | GO | NO-GO | NO-GO | `docs/security/REVIEW.md`, `docs/security/THREAT_MODEL.md` | Independent penetration test (C-22.d) |
 | Dashboard | GO | NO-GO | NO-GO | `dashboard/src/__tests__/`; the Playwright journey | Accessibility pass on real assistive technology |
 | Family phone app | GO | NO-GO | NO-GO | `mobile/src/__tests__/`; CI's native Android release build of the family app (`mobile-android` job) | Signed store builds, iOS build (D2.h), device runs (D2.i) |
 | Watch app | GO (browser watch or emulator-free demo) | NO-GO | NO-GO | CI's "Watch app (Wear OS and AOSP)" job in `.github/workflows/test.yml` (builds and JVM tests on every change) | A physical watch (D1.j); release signing key (D1b.c) |

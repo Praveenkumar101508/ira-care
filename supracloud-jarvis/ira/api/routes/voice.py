@@ -211,7 +211,7 @@ VOICE_MAX_BYTES = 25 * 1024 * 1024
 @router.post("/transcribe", response_model=TranscribeResponse)
 async def transcribe(
     request: Request,
-    audio: UploadFile = File(..., description="Recorded utterance (webm/opus or WAV)."),
+    audio: UploadFile = File(..., description="Recorded utterance as WAV (PCM or float)."),
     _user: str = Depends(require_auth),
 ):
     """Transcribe an uploaded utterance locally with faster-whisper (sovereign — the
@@ -227,10 +227,10 @@ async def transcribe(
     if not blob:
         raise HTTPException(status_code=400, detail="No audio uploaded.")
 
-    # Lazy import: faster-whisper + PyAV are heavy and only on the voice host — keep
-    # them out of module import so this route loads (and tests) without them.
+    # Lazy import: faster-whisper is heavy and only on the voice host — keep it out of
+    # module import so this route loads (and tests) without it.
     try:
-        from voice.stt import AudioTooLong, STTUnavailable, transcribe_audio_bytes
+        from voice.stt import AudioTooLong, STTUnavailable, UnsupportedAudio, transcribe_audio_bytes
     except Exception as e:  # noqa: BLE001
         logger.error(f"Local STT engine unavailable: {type(e).__name__}")
         raise HTTPException(status_code=503, detail="Local STT engine unavailable.")
@@ -244,6 +244,13 @@ async def transcribe(
         raise HTTPException(
             status_code=413,
             detail=f"The recording is longer than {limit}, the most a spoken command can be.")
+    except UnsupportedAudio as e:
+        # Not WAV, or WAV in a coding this server does not read. Said plainly, so the
+        # client can convert rather than retry the same bytes (voice/audio_decode.py).
+        logger.info(f"Transcription refused: unsupported audio ({e.kind})")
+        raise HTTPException(
+            status_code=415,
+            detail=f"This recording is {e.kind}. Send it as an uncompressed WAV file (PCM).")
     except STTUnavailable as e:
         # The engine, not the audio: faster-whisper missing, an unpinned
         # WHISPER_MODEL, or a failed model load. This used to fall through to the
