@@ -86,7 +86,7 @@ async def gather_recurring_themes(principal, now: datetime) -> list[SurfacedItem
                 window_start,
             )
     except Exception as e:
-        logger.warning(f"heartbeat: recurrence fetch failed (fail-closed): {e}")
+        logger.warning(f"heartbeat: recurrence fetch failed (fail-closed): {type(e).__name__}")
         return []
 
     if not rows:
@@ -134,7 +134,7 @@ async def gather_calendar_deadlines(principal, now: datetime) -> list[SurfacedIt
                 horizon_days,
             )
     except Exception as e:
-        logger.warning(f"heartbeat: calendar fetch failed (fail-closed): {e}")
+        logger.warning(f"heartbeat: calendar fetch failed (fail-closed): {type(e).__name__}")
         return []
 
     items: list[SurfacedItem] = []
@@ -182,7 +182,7 @@ async def gather_open_loops(principal, now: datetime) -> list[SurfacedItem]:
                          f"it by now — still unresolved?"),
             ))
     except Exception as e:
-        logger.warning(f"heartbeat: open-loop journal scan failed (fail-closed): {e}")
+        logger.warning(f"heartbeat: open-loop journal scan failed (fail-closed): {type(e).__name__}")
 
     # Source 2 — memory: unfulfilled-promise phrasing older than the grace window.
     try:
@@ -208,7 +208,7 @@ async def gather_open_loops(principal, now: datetime) -> list[SurfacedItem]:
                 message=f'Open loop: "{snippet}" — did that ever get closed?',
             ))
     except Exception as e:
-        logger.warning(f"heartbeat: open-loop memory scan failed (fail-closed): {e}")
+        logger.warning(f"heartbeat: open-loop memory scan failed (fail-closed): {type(e).__name__}")
 
     return items
 

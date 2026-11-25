@@ -48,7 +48,7 @@ Nothing is marked done because code or a document exists.
 | C-3 | Dose identity, timing, provenance, correction history | integration tested | #44 · A3, A3d, A3e (migration 112) |
 | C-4 | No false safety-check confirmation | integration tested | #44 · A4 |
 | C-5 | No false fall-countdown cancellation | unit tested | #44 · A4b (JVM tests; CI Gradle build) |
-| C-6 | Sensitive log protection | unit tested | #44 · A5. Logs outside `care/` not swept: **not started** |
+| C-6 | Sensitive log protection | unit tested | #44 · A5 (care); `fix/log-exception-text` · A5b (rest of the backend) |
 | C-7 | Wearer-only conversation | integration tested | #44 · A6 |
 | C-8 | Delivery states and verified callbacks | integration tested | #46 · A2-3 |
 | C-9 | Dispatch concurrency and retries | integration tested | #46 · A2-1, A2-2 |

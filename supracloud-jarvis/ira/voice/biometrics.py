@@ -95,7 +95,7 @@ def _get_encoder():
         logger.info("ECAPA-TDNN speaker encoder loaded")
         return encoder
     except Exception as e:
-        logger.error(f"Failed to load ECAPA-TDNN model: {e}")
+        logger.error(f"Failed to load ECAPA-TDNN model: {type(e).__name__}")
         return None
 
 
@@ -136,7 +136,7 @@ def _compute_embedding_sync(audio_bytes: bytes) -> Optional[list[float]]:
                 vec = vec / norm
         return vec.tolist()
     except Exception as e:
-        logger.warning(f"Embedding computation failed: {e}")
+        logger.warning(f"Embedding computation failed: {type(e).__name__}")
         return None
 
 
@@ -441,7 +441,7 @@ async def save_owner_profile(embeddings: list[list[float]], *,
         logger.info(f"Owner voice profile saved ({len(embeddings)} reference segments)")
         return True
     except Exception as e:
-        logger.error(f"Failed to save owner voice profile: {e}")
+        logger.error(f"Failed to save owner voice profile: {type(e).__name__}")
         return False
 
 
@@ -614,4 +614,4 @@ async def _record_biometric_attempt(session_id: str, *, similarity: float,
                 session_id, similarity, threshold, authenticated, failure_reason,
             )
     except Exception as audit_err:
-        logger.debug(f"Biometric audit write failed (non-fatal): {audit_err}")
+        logger.debug(f"Biometric audit write failed (non-fatal): {type(audit_err).__name__}")

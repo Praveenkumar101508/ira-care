@@ -52,7 +52,7 @@ try:
     from voice.biometrics import is_owner_authenticated  # noqa: F401
     logger.info("Biometric pipeline: ACTIVE — ECAPA-TDNN speaker verification ready")
 except ImportError as _bio_err:
-    logger.warning(f"Biometric pipeline: DISABLED — {_bio_err}")
+    logger.warning(f"Biometric pipeline: DISABLED — {type(_bio_err).__name__}")
 
 
 def _get_voice_config() -> dict:
@@ -168,7 +168,7 @@ class IRALLMStream(llm.LLMStream):
                     elif data.get("done"):
                         break
         except Exception as e:  # noqa: BLE001 — graceful spoken fallback
-            logger.error(f"IRA API stream error: {e}")
+            logger.error(f"IRA API stream error: {type(e).__name__}")
             self._emit("I'm sorry, I encountered a brief issue. Please try again.")
 
 

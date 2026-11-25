@@ -369,7 +369,7 @@ async def _read_new_log_lines() -> list[str]:
                 )
         return lines
     except Exception as e:
-        logger.warning(f"Could not read nginx log: {e}")
+        logger.warning(f"Could not read nginx log: {type(e).__name__}")
         return []
 
 

@@ -136,7 +136,7 @@ async def _run_single_agent(
                 latency_ms=int((time.monotonic() - t0) * 1000),
             )
         except Exception as e:
-            logger.error(f"Expert agent '{name}' failed: {e}")
+            logger.error(f"Expert agent '{name}' failed: {type(e).__name__}")
             return AgentResult(
                 name=name,
                 label=label,

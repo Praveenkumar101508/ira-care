@@ -38,4 +38,6 @@ async def test_any_other_provisioning_failure_is_logged_and_startup_continues(
 
     await _provision_private_owner()
 
-    assert any("read-only replica" in r.getMessage() for r in caplog.records)
+    # Logged by type only: an exception's text stays out of the logs (remediation A5b).
+    logged = [r.getMessage() for r in caplog.records if "provisioning failed" in r.getMessage()]
+    assert logged and all("RuntimeError" in m and "read-only replica" not in m for m in logged)
