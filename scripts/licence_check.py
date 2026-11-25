@@ -6,7 +6,7 @@
     python3 scripts/licence_check.py --check --only npm-dashboard
     python3 scripts/licence_check.py --write --only npm-mobile
 
-Three ecosystems are covered:
+Four ecosystems are covered:
 
   python          the packages pinned in supracloud-jarvis/ira/requirements.lock, read from the
                   installed distribution metadata of the interpreter running this script
@@ -14,6 +14,12 @@ Three ecosystems are covered:
                   classifiers). Run it with an interpreter that has the lock installed.
   npm-dashboard   the production dependency tree of dashboard/ (npm ls --omit=dev --all)
   npm-mobile      the production dependency tree of mobile/, read the same way
+  gradle-watch    the release runtime classpath of both watch flavours (wearos, aosp), resolved
+                  by Gradle through scripts/ci/gradle_runtime_deps.init.gradle; each module's
+                  licence is read from its POM in the Gradle cache (following <parent> POMs).
+                  Modules with POM packaging carry no code (a bill of materials, or a Kotlin
+                  Multiplatform root whose code is in the -jvm module listed beside it); they
+                  are listed apart under "no_code_modules".
 
 Every licence is classified by `classify`: permissive licences are allowed; copyleft (GPL,
 AGPL, LGPL and the like), source-available, non-commercial and unknown or missing licences are
@@ -25,15 +31,20 @@ An ecosystem is "visible" when this run can read it: the lock is installed at it
 versions (python), or node_modules is installed (npm). `--check` regenerates every visible
 ecosystem and fails if the committed docs/security/LICENCES.json differs. An ecosystem that is
 not visible is skipped with a note, except that the Python section is still compared with the
-lock's names and versions. Naming an ecosystem with --only makes it required: not being able
+lock's names and versions. The Gradle ecosystem is visible when the Android SDK is configured
+(ANDROID_HOME, ANDROID_SDK_ROOT or watch/local.properties); extra Gradle arguments (an init
+script with a repository mirror, say) can be passed in LICENCE_CHECK_GRADLE_ARGS. Naming an ecosystem with --only makes it required: not being able
 to see it is then a failure, not a skip.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import shlex
 import subprocess
+import xml.etree.ElementTree as ET
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -43,7 +54,18 @@ INVENTORY = ROOT / "docs" / "security" / "LICENCES.json"
 EXCEPTIONS = ROOT / "docs" / "security" / "licence_exceptions.json"
 LOCK = ROOT / "supracloud-jarvis" / "ira" / "requirements.lock"
 NPM_PROJECTS = {"npm-dashboard": ROOT / "dashboard", "npm-mobile": ROOT / "mobile"}
-ECOSYSTEMS = ("python", "npm-dashboard", "npm-mobile")
+#: Gradle ecosystems: project directory, module, {flavour: release runtime configuration}.
+GRADLE_PROJECTS = {
+    "gradle-watch": (ROOT / "watch", ":app", {"wearos": "wearosReleaseRuntimeClasspath",
+                                              "aosp": "aospReleaseRuntimeClasspath"}),
+}
+GRADLE_INIT = ROOT / "scripts" / "ci" / "gradle_runtime_deps.init.gradle"
+ECOSYSTEMS = ("python", "npm-dashboard", "npm-mobile", "gradle-watch")
+#: Exceptions may also name what scripts/supply_chain.py finds inside the built artefacts:
+#: packages only in an image, native libraries bundled in wheels, and OS libraries our own
+#: code links.
+EXCEPTION_ECOSYSTEMS = ECOSYSTEMS + ("image-api", "image-dashboard", "image-backup",
+                                     "native-libraries", "os-linked")
 NOASSERTION = "NOASSERTION"  # the SPDX word for "no licence information"
 
 # ---------------------------------------------------------------------------------------------
@@ -59,7 +81,19 @@ ALLOWED = frozenset(s.lower() for s in (
     "BSD-3-Clause-Clear", "Apache-2.0", "PSF-2.0", "Python-2.0", "Python-2.0.1", "CNRI-Python",
     "MPL-2.0", "CC0-1.0", "Unlicense", "BlueOak-1.0.0", "Zlib", "BSL-1.0", "CC-BY-3.0",
     "CC-BY-4.0", "HPND",
+    # Permissive licences of native libraries found inside the built artefacts (wheels' bundled
+    # libraries, OS libraries our code links): each keeps a notice, none adds copyleft.
+    "FTL", "IJG", "libtiff", "libpng-2.0", "PostgreSQL", "OLDAP-2.8",
+    "BSD-Attribution-HPND-disclaimer", "curl", "blessing", "bzip2-1.0.6", "MIT-open-group",
+    "ICU", "Unicode-3.0",
 ))
+
+#: Licence exceptions (the SPDX "WITH" clause) that make a GPL id acceptable to link: the GCC
+#: Runtime Library Exception lets any program ship with GCC's runtime (libgcc, libstdc++,
+#: libgfortran, libgomp) under its own terms. Other exceptions (Classpath, say) are reviewed one
+#: by one.
+ALLOWED_WITH = {"gcc-exception-3.1": ("GPL-3.0-or-later", "GPL-3.0-only", "GPL-3.0",
+                                      "GPL-3.0+")}
 
 #: Forbidden families, checked in order; the first match gives the reason.
 FORBIDDEN = (
@@ -102,6 +136,30 @@ ALIASES = {
     "gnu affero general public license v3": "AGPL-3.0",
     "gnu affero general public license v3 or later (agplv3+)": "AGPL-3.0-or-later",
     "server side public license (sspl)": "SSPL-1.0",
+    # Maven POM <license><name> spellings
+    "the apache software license, version 2.0": "Apache-2.0",
+    "the apache license, version 2.0": "Apache-2.0",
+    "apache license, version 2.0.": "Apache-2.0",
+    "apache 2": "Apache-2.0", "apache-2.0": "Apache-2.0", "apache license 2": "Apache-2.0",
+    "apache software license - version 2.0": "Apache-2.0",
+    "the mit license (mit)": "MIT", "mit-0": "MIT-0",
+    "bsd-3-clause": "BSD-3-Clause", "bsd-2-clause": "BSD-2-Clause",
+    "the bsd license": "BSD", "new bsd license (3-clause)": "BSD-3-Clause",
+    "eclipse public license 1.0": "EPL-1.0", "eclipse public license - v 1.0": "EPL-1.0",
+    "eclipse public license v2.0": "EPL-2.0", "eclipse public license - v 2.0": "EPL-2.0",
+    "gnu general public license, version 2 with the classpath exception":
+        "GPL-2.0-only WITH Classpath-exception-2.0",
+}
+
+#: Licence URLs, for POMs whose <name> is not recognised. Compared without scheme or "www.".
+LICENCE_URLS = {
+    "apache.org/licenses/license-2.0": "Apache-2.0",
+    "apache.org/licenses/license-2.0.txt": "Apache-2.0",
+    "apache.org/licenses/license-2.0.html": "Apache-2.0",
+    "opensource.org/licenses/mit": "MIT", "opensource.org/licenses/mit-license.php": "MIT",
+    "opensource.org/licenses/bsd-3-clause": "BSD-3-Clause",
+    "opensource.org/licenses/bsd-2-clause": "BSD-2-Clause",
+    "opensource.org/licenses/apache-2.0": "Apache-2.0",
 }
 
 
@@ -175,6 +233,8 @@ class _Parser:
             exception = self._take()
             if exception in ("(", ")"):
                 raise ValueError("WITH needs an exception id")
+            if tok in ALLOWED_WITH.get(exception.lower(), ()):
+                return []
         reason = _id_reason(tok)
         return [reason] if reason else []
 
@@ -224,7 +284,7 @@ def exception_problems(exceptions: list[dict]) -> list[str]:
         if set(e) != {"ecosystem", "package", "licence", "reason"}:
             out.append(f"{label}: fields must be exactly ecosystem, package, licence, reason")
             continue
-        if e["ecosystem"] not in ECOSYSTEMS:
+        if e["ecosystem"] not in EXCEPTION_ECOSYSTEMS:
             out.append(f"{label}: unknown ecosystem")
         if len(" ".join(str(e["reason"]).split())) < 40:
             out.append(f"{label}: the reason must say why in a sentence, not a word")
@@ -383,18 +443,148 @@ def npm_section(ecosystem: str, exceptions: list[dict]) -> dict:
 
 
 # ---------------------------------------------------------------------------------------------
+# Gradle: the release runtime classpath, read from each module's POM in the Gradle cache
+# ---------------------------------------------------------------------------------------------
+
+_POM_NS = "{http://maven.apache.org/POM/4.0.0}"
+
+
+def gradle_user_home() -> Path:
+    return Path(os.environ.get("GRADLE_USER_HOME") or Path.home() / ".gradle")
+
+
+def gradle_visible(project: Path) -> tuple[bool, str]:
+    if not (project / "gradlew").is_file():
+        return False, f"{project.relative_to(ROOT)}/gradlew is missing"
+    sdk = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
+    if not sdk and not (project / "local.properties").is_file():
+        return False, "the Android SDK is not configured (ANDROID_HOME or local.properties)"
+    return True, ""
+
+
+def gradle_modules(ecosystem: str) -> dict[str, list[str]]:
+    """{flavour: ["group:module:version", ...]} as Gradle resolves the release runtime
+    classpath. The init script fails rather than print a partial list."""
+    project, module, configs = GRADLE_PROJECTS[ecosystem]
+    extra = shlex.split(os.environ.get("LICENCE_CHECK_GRADLE_ARGS", ""))
+    cmd = ["./gradlew", "-q", "--console=plain", "-I", str(GRADLE_INIT), *extra,
+           f"{module}:iraRuntimeDeps", "-PiraConfigurations=" + ",".join(configs.values())]
+    run = subprocess.run(cmd, cwd=project, capture_output=True, text=True, timeout=1800,
+                         check=False)
+    line = next((x for x in run.stdout.splitlines() if x.startswith("IRA-RUNTIME-DEPS ")), None)
+    if run.returncode != 0 or line is None:
+        raise RuntimeError(f"gradle in {project} failed: {(run.stderr or run.stdout)[-800:]}")
+    resolved = json.loads(line.split(" ", 1)[1])
+    return {flavour: resolved[conf] for flavour, conf in configs.items()}
+
+
+def pom_path(group: str, module: str, version: str, home: Path | None = None) -> Path | None:
+    base = (home or gradle_user_home()) / "caches" / "modules-2" / "files-2.1"
+    hits = sorted((base / group / module / version).glob(f"*/{module}-{version}.pom"))
+    return hits[0] if hits else None
+
+
+def _pom_text(el, tag: str) -> str:
+    found = el.find(_POM_NS + tag) if el is not None else None
+    if found is None:
+        found = el.find(tag) if el is not None else None
+    return " ".join((found.text or "").split()) if found is not None else ""
+
+
+def _pom_root(path: Path):
+    return ET.parse(path).getroot()
+
+
+def _maven_licence(name: str, url: str) -> str:
+    key = " ".join(name.split()).lower()
+    if key in ALIASES:
+        return ALIASES[key]
+    u = re.sub(r"^https?://(www\.)?", "", url.strip().lower()).rstrip("/")
+    if u in LICENCE_URLS:
+        return LICENCE_URLS[u]
+    return name.strip() or url  # an SPDX id already ("Apache-2.0"), or unknown and forbidden
+
+
+def pom_declared(group: str, module: str, version: str,
+                 home: Path | None = None) -> tuple[str, str, str]:
+    """(declared licence, where it came from, POM packaging) for one module. Follows <parent>
+    when a POM names no licence, as Maven does."""
+    path = pom_path(group, module, version, home)
+    if path is None:
+        return "", "no POM in the Gradle cache", "unknown"
+    root = _pom_root(path)
+    packaging = _pom_text(root, "packaging") or "jar"
+    coord = f"{group}:{module}:{version}"
+    for _ in range(8):
+        lic = root.find(_POM_NS + "licenses")
+        if lic is None:
+            lic = root.find("licenses")
+        names = []
+        for el in list(lic) if lic is not None else []:
+            mapped = _maven_licence(_pom_text(el, "name"), _pom_text(el, "url"))
+            if mapped and mapped not in names:
+                names.append(mapped)
+        if names:
+            declared = names[0] if len(names) == 1 else " AND ".join(
+                f"({n})" if " " in n else n for n in names)
+            source = "POM" if coord == f"{group}:{module}:{version}" else f"parent POM {coord}"
+            return declared, source, packaging
+        parent = root.find(_POM_NS + "parent")
+        if parent is None:
+            parent = root.find("parent")
+        if parent is None:
+            break
+        coord = ":".join(_pom_text(parent, t) for t in ("groupId", "artifactId", "version"))
+        ppath = pom_path(*coord.split(":"), home=home)
+        if ppath is None:
+            return "", f"parent POM {coord} not in the Gradle cache", packaging
+        root = _pom_root(ppath)
+    return "", "POM names no licence", packaging
+
+
+def gradle_section(ecosystem: str, exceptions: list[dict]) -> dict:
+    project, module, configs = GRADLE_PROJECTS[ecosystem]
+    by_flavour = gradle_modules(ecosystem)
+    packages: dict[str, dict] = {}
+    no_code: set[str] = set()
+    flavours: dict[str, list[str]] = {}
+    for flavour, coords in sorted(by_flavour.items()):
+        keys = []
+        for coord in coords:
+            group, name, version = coord.split(":")
+            declared, source, packaging = pom_declared(group, name, version)
+            if packaging == "pom":  # a bill of materials or a multiplatform root: no code
+                no_code.add(f"{group}:{name}@{version}")
+                continue
+            key = f"{group}:{name}@{version}"
+            packages[key] = entry(ecosystem, f"{group}:{name}", version, declared, source,
+                                  exceptions)
+            keys.append(key)
+        flavours[flavour] = sorted(keys)
+    return {"source": (f"{project.relative_to(ROOT)} {module}: "
+                       + ", ".join(configs.values())
+                       + " (Gradle), each module's POM"),
+            "flavours": flavours, "no_code_modules": sorted(no_code),
+            "packages": dict(sorted(packages.items()))}
+
+
+# ---------------------------------------------------------------------------------------------
 # Inventory
 # ---------------------------------------------------------------------------------------------
 
 def visible(ecosystem: str) -> tuple[bool, str]:
     if ecosystem == "python":
         return python_visible(locked())
+    if ecosystem in GRADLE_PROJECTS:
+        return gradle_visible(GRADLE_PROJECTS[ecosystem][0])
     return npm_visible(NPM_PROJECTS[ecosystem])
 
 
 def section(ecosystem: str, exceptions: list[dict]) -> dict:
     if ecosystem == "python":
         return python_section(exceptions)
+    if ecosystem in GRADLE_PROJECTS:
+        return gradle_section(ecosystem, exceptions)
     return npm_section(ecosystem, exceptions)
 
 

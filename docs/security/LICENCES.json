@@ -1,5 +1,1103 @@
 {
   "ecosystems": {
+    "gradle-watch": {
+      "flavours": {
+        "aosp": [
+          "androidx.activity:activity-compose@1.9.3",
+          "androidx.activity:activity-ktx@1.9.3",
+          "androidx.activity:activity@1.9.3",
+          "androidx.annotation:annotation-experimental@1.4.1",
+          "androidx.annotation:annotation-jvm@1.8.1",
+          "androidx.annotation:annotation@1.8.1",
+          "androidx.arch.core:core-common@2.2.0",
+          "androidx.arch.core:core-runtime@2.2.0",
+          "androidx.autofill:autofill@1.0.0",
+          "androidx.collection:collection-jvm@1.4.4",
+          "androidx.collection:collection-ktx@1.4.4",
+          "androidx.collection:collection@1.4.4",
+          "androidx.compose.animation:animation-android@1.7.6",
+          "androidx.compose.animation:animation-core-android@1.7.6",
+          "androidx.compose.animation:animation-core@1.7.6",
+          "androidx.compose.animation:animation@1.7.6",
+          "androidx.compose.foundation:foundation-android@1.7.6",
+          "androidx.compose.foundation:foundation-layout-android@1.7.6",
+          "androidx.compose.foundation:foundation-layout@1.7.6",
+          "androidx.compose.foundation:foundation@1.7.6",
+          "androidx.compose.material:material-icons-core-android@1.7.6",
+          "androidx.compose.material:material-icons-core@1.7.6",
+          "androidx.compose.material:material-ripple-android@1.7.6",
+          "androidx.compose.material:material-ripple@1.7.6",
+          "androidx.compose.runtime:runtime-android@1.7.6",
+          "androidx.compose.runtime:runtime-saveable-android@1.7.6",
+          "androidx.compose.runtime:runtime-saveable@1.7.6",
+          "androidx.compose.runtime:runtime@1.7.6",
+          "androidx.compose.ui:ui-android@1.7.6",
+          "androidx.compose.ui:ui-geometry-android@1.7.6",
+          "androidx.compose.ui:ui-geometry@1.7.6",
+          "androidx.compose.ui:ui-graphics-android@1.7.6",
+          "androidx.compose.ui:ui-graphics@1.7.6",
+          "androidx.compose.ui:ui-text-android@1.7.6",
+          "androidx.compose.ui:ui-text@1.7.6",
+          "androidx.compose.ui:ui-tooling-preview-android@1.7.6",
+          "androidx.compose.ui:ui-tooling-preview@1.7.6",
+          "androidx.compose.ui:ui-unit-android@1.7.6",
+          "androidx.compose.ui:ui-unit@1.7.6",
+          "androidx.compose.ui:ui-util-android@1.7.6",
+          "androidx.compose.ui:ui-util@1.7.6",
+          "androidx.compose.ui:ui@1.7.6",
+          "androidx.concurrent:concurrent-futures-ktx@1.1.0",
+          "androidx.concurrent:concurrent-futures@1.1.0",
+          "androidx.core:core-ktx@1.15.0",
+          "androidx.core:core@1.15.0",
+          "androidx.customview:customview-poolingcontainer@1.0.0",
+          "androidx.emoji2:emoji2@1.3.0",
+          "androidx.graphics:graphics-path@1.0.1",
+          "androidx.interpolator:interpolator@1.0.0",
+          "androidx.lifecycle:lifecycle-common-jvm@2.8.7",
+          "androidx.lifecycle:lifecycle-common@2.8.7",
+          "androidx.lifecycle:lifecycle-livedata-core-ktx@2.8.7",
+          "androidx.lifecycle:lifecycle-livedata-core@2.8.7",
+          "androidx.lifecycle:lifecycle-livedata@2.8.7",
+          "androidx.lifecycle:lifecycle-process@2.8.7",
+          "androidx.lifecycle:lifecycle-runtime-android@2.8.7",
+          "androidx.lifecycle:lifecycle-runtime-compose-android@2.8.7",
+          "androidx.lifecycle:lifecycle-runtime-compose@2.8.7",
+          "androidx.lifecycle:lifecycle-runtime-ktx-android@2.8.7",
+          "androidx.lifecycle:lifecycle-runtime-ktx@2.8.7",
+          "androidx.lifecycle:lifecycle-runtime@2.8.7",
+          "androidx.lifecycle:lifecycle-service@2.8.7",
+          "androidx.lifecycle:lifecycle-viewmodel-android@2.8.7",
+          "androidx.lifecycle:lifecycle-viewmodel-ktx@2.8.7",
+          "androidx.lifecycle:lifecycle-viewmodel-savedstate@2.8.7",
+          "androidx.lifecycle:lifecycle-viewmodel@2.8.7",
+          "androidx.profileinstaller:profileinstaller@1.3.1",
+          "androidx.room:room-common@2.6.1",
+          "androidx.room:room-ktx@2.6.1",
+          "androidx.room:room-runtime@2.6.1",
+          "androidx.savedstate:savedstate-ktx@1.2.1",
+          "androidx.savedstate:savedstate@1.2.1",
+          "androidx.sqlite:sqlite-framework@2.4.0",
+          "androidx.sqlite:sqlite@2.4.0",
+          "androidx.startup:startup-runtime@1.1.1",
+          "androidx.tracing:tracing-ktx@1.2.0",
+          "androidx.tracing:tracing@1.2.0",
+          "androidx.versionedparcelable:versionedparcelable@1.1.1",
+          "androidx.wear.compose:compose-foundation@1.4.0",
+          "androidx.wear.compose:compose-material-core@1.4.0",
+          "androidx.wear.compose:compose-material@1.4.0",
+          "androidx.work:work-runtime-ktx@2.10.0",
+          "androidx.work:work-runtime@2.10.0",
+          "com.google.guava:listenablefuture@1.0",
+          "com.squareup.okhttp3:okhttp@4.12.0",
+          "com.squareup.okio:okio-jvm@3.6.0",
+          "com.squareup.okio:okio@3.6.0",
+          "org.jetbrains.kotlin:kotlin-stdlib-common@2.0.21",
+          "org.jetbrains.kotlin:kotlin-stdlib-jdk7@1.9.10",
+          "org.jetbrains.kotlin:kotlin-stdlib-jdk8@1.9.10",
+          "org.jetbrains.kotlin:kotlin-stdlib@2.0.21",
+          "org.jetbrains.kotlinx:kotlinx-coroutines-android@1.9.0",
+          "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm@1.9.0",
+          "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm@1.7.3",
+          "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm@1.7.3",
+          "org.jetbrains:annotations@23.0.0",
+          "org.tensorflow:tensorflow-lite-api@2.16.1",
+          "org.tensorflow:tensorflow-lite@2.16.1"
+        ],
+        "wearos": [
+          "androidx.activity:activity-compose@1.9.3",
+          "androidx.activity:activity-ktx@1.9.3",
+          "androidx.activity:activity@1.9.3",
+          "androidx.annotation:annotation-experimental@1.4.1",
+          "androidx.annotation:annotation-jvm@1.8.1",
+          "androidx.annotation:annotation@1.8.1",
+          "androidx.arch.core:core-common@2.2.0",
+          "androidx.arch.core:core-runtime@2.2.0",
+          "androidx.autofill:autofill@1.0.0",
+          "androidx.collection:collection-jvm@1.4.4",
+          "androidx.collection:collection-ktx@1.4.4",
+          "androidx.collection:collection@1.4.4",
+          "androidx.compose.animation:animation-android@1.7.6",
+          "androidx.compose.animation:animation-core-android@1.7.6",
+          "androidx.compose.animation:animation-core@1.7.6",
+          "androidx.compose.animation:animation@1.7.6",
+          "androidx.compose.foundation:foundation-android@1.7.6",
+          "androidx.compose.foundation:foundation-layout-android@1.7.6",
+          "androidx.compose.foundation:foundation-layout@1.7.6",
+          "androidx.compose.foundation:foundation@1.7.6",
+          "androidx.compose.material:material-icons-core-android@1.7.6",
+          "androidx.compose.material:material-icons-core@1.7.6",
+          "androidx.compose.material:material-ripple-android@1.7.6",
+          "androidx.compose.material:material-ripple@1.7.6",
+          "androidx.compose.runtime:runtime-android@1.7.6",
+          "androidx.compose.runtime:runtime-saveable-android@1.7.6",
+          "androidx.compose.runtime:runtime-saveable@1.7.6",
+          "androidx.compose.runtime:runtime@1.7.6",
+          "androidx.compose.ui:ui-android@1.7.6",
+          "androidx.compose.ui:ui-geometry-android@1.7.6",
+          "androidx.compose.ui:ui-geometry@1.7.6",
+          "androidx.compose.ui:ui-graphics-android@1.7.6",
+          "androidx.compose.ui:ui-graphics@1.7.6",
+          "androidx.compose.ui:ui-text-android@1.7.6",
+          "androidx.compose.ui:ui-text@1.7.6",
+          "androidx.compose.ui:ui-tooling-preview-android@1.7.6",
+          "androidx.compose.ui:ui-tooling-preview@1.7.6",
+          "androidx.compose.ui:ui-unit-android@1.7.6",
+          "androidx.compose.ui:ui-unit@1.7.6",
+          "androidx.compose.ui:ui-util-android@1.7.6",
+          "androidx.compose.ui:ui-util@1.7.6",
+          "androidx.compose.ui:ui@1.7.6",
+          "androidx.concurrent:concurrent-futures-ktx@1.1.0",
+          "androidx.concurrent:concurrent-futures@1.1.0",
+          "androidx.core:core-ktx@1.15.0",
+          "androidx.core:core@1.15.0",
+          "androidx.customview:customview-poolingcontainer@1.0.0",
+          "androidx.emoji2:emoji2@1.3.0",
+          "androidx.graphics:graphics-path@1.0.1",
+          "androidx.health:health-services-client@1.0.0",
+          "androidx.interpolator:interpolator@1.0.0",
+          "androidx.lifecycle:lifecycle-common-jvm@2.8.7",
+          "androidx.lifecycle:lifecycle-common@2.8.7",
+          "androidx.lifecycle:lifecycle-livedata-core-ktx@2.8.7",
+          "androidx.lifecycle:lifecycle-livedata-core@2.8.7",
+          "androidx.lifecycle:lifecycle-livedata@2.8.7",
+          "androidx.lifecycle:lifecycle-process@2.8.7",
+          "androidx.lifecycle:lifecycle-runtime-android@2.8.7",
+          "androidx.lifecycle:lifecycle-runtime-compose-android@2.8.7",
+          "androidx.lifecycle:lifecycle-runtime-compose@2.8.7",
+          "androidx.lifecycle:lifecycle-runtime-ktx-android@2.8.7",
+          "androidx.lifecycle:lifecycle-runtime-ktx@2.8.7",
+          "androidx.lifecycle:lifecycle-runtime@2.8.7",
+          "androidx.lifecycle:lifecycle-service@2.8.7",
+          "androidx.lifecycle:lifecycle-viewmodel-android@2.8.7",
+          "androidx.lifecycle:lifecycle-viewmodel-ktx@2.8.7",
+          "androidx.lifecycle:lifecycle-viewmodel-savedstate@2.8.7",
+          "androidx.lifecycle:lifecycle-viewmodel@2.8.7",
+          "androidx.profileinstaller:profileinstaller@1.3.1",
+          "androidx.room:room-common@2.6.1",
+          "androidx.room:room-ktx@2.6.1",
+          "androidx.room:room-runtime@2.6.1",
+          "androidx.savedstate:savedstate-ktx@1.2.1",
+          "androidx.savedstate:savedstate@1.2.1",
+          "androidx.sqlite:sqlite-framework@2.4.0",
+          "androidx.sqlite:sqlite@2.4.0",
+          "androidx.startup:startup-runtime@1.1.1",
+          "androidx.tracing:tracing-ktx@1.2.0",
+          "androidx.tracing:tracing@1.2.0",
+          "androidx.versionedparcelable:versionedparcelable@1.1.1",
+          "androidx.wear.compose:compose-foundation@1.4.0",
+          "androidx.wear.compose:compose-material-core@1.4.0",
+          "androidx.wear.compose:compose-material@1.4.0",
+          "androidx.work:work-runtime-ktx@2.10.0",
+          "androidx.work:work-runtime@2.10.0",
+          "com.google.code.findbugs:jsr305@3.0.2",
+          "com.google.errorprone:error_prone_annotations@2.28.0",
+          "com.google.guava:failureaccess@1.0.2",
+          "com.google.guava:guava@33.3.1-android",
+          "com.google.guava:listenablefuture@9999.0-empty-to-avoid-conflict-with-guava",
+          "com.google.j2objc:j2objc-annotations@3.0.0",
+          "com.google.protobuf:protobuf-javalite@3.21.8",
+          "com.squareup.okhttp3:okhttp@4.12.0",
+          "com.squareup.okio:okio-jvm@3.6.0",
+          "com.squareup.okio:okio@3.6.0",
+          "org.checkerframework:checker-qual@3.43.0",
+          "org.jetbrains.kotlin:kotlin-stdlib-common@2.0.21",
+          "org.jetbrains.kotlin:kotlin-stdlib-jdk7@1.9.10",
+          "org.jetbrains.kotlin:kotlin-stdlib-jdk8@1.9.10",
+          "org.jetbrains.kotlin:kotlin-stdlib@2.0.21",
+          "org.jetbrains.kotlinx:kotlinx-coroutines-android@1.9.0",
+          "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm@1.9.0",
+          "org.jetbrains.kotlinx:kotlinx-coroutines-guava@1.9.0",
+          "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm@1.7.3",
+          "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm@1.7.3",
+          "org.jetbrains:annotations@23.0.0",
+          "org.tensorflow:tensorflow-lite-api@2.16.1",
+          "org.tensorflow:tensorflow-lite@2.16.1"
+        ]
+      },
+      "no_code_modules": [
+        "androidx.compose:compose-bom@2024.12.01",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-bom@1.9.0",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core@1.9.0",
+        "org.jetbrains.kotlinx:kotlinx-serialization-bom@1.7.3",
+        "org.jetbrains.kotlinx:kotlinx-serialization-core@1.7.3",
+        "org.jetbrains.kotlinx:kotlinx-serialization-json@1.7.3"
+      ],
+      "packages": {
+        "androidx.activity:activity-compose@1.9.3": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.activity:activity-compose",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.9.3"
+        },
+        "androidx.activity:activity-ktx@1.9.3": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.activity:activity-ktx",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.9.3"
+        },
+        "androidx.activity:activity@1.9.3": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.activity:activity",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.9.3"
+        },
+        "androidx.annotation:annotation-experimental@1.4.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.annotation:annotation-experimental",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.4.1"
+        },
+        "androidx.annotation:annotation-jvm@1.8.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.annotation:annotation-jvm",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.8.1"
+        },
+        "androidx.annotation:annotation@1.8.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.annotation:annotation",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.8.1"
+        },
+        "androidx.arch.core:core-common@2.2.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.arch.core:core-common",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.2.0"
+        },
+        "androidx.arch.core:core-runtime@2.2.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.arch.core:core-runtime",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.2.0"
+        },
+        "androidx.autofill:autofill@1.0.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.autofill:autofill",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.0.0"
+        },
+        "androidx.collection:collection-jvm@1.4.4": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.collection:collection-jvm",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.4.4"
+        },
+        "androidx.collection:collection-ktx@1.4.4": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.collection:collection-ktx",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.4.4"
+        },
+        "androidx.collection:collection@1.4.4": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.collection:collection",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.4.4"
+        },
+        "androidx.compose.animation:animation-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.animation:animation-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.animation:animation-core-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.animation:animation-core-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.animation:animation-core@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.animation:animation-core",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.animation:animation@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.animation:animation",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.foundation:foundation-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.foundation:foundation-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.foundation:foundation-layout-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.foundation:foundation-layout-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.foundation:foundation-layout@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.foundation:foundation-layout",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.foundation:foundation@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.foundation:foundation",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.material:material-icons-core-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.material:material-icons-core-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.material:material-icons-core@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.material:material-icons-core",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.material:material-ripple-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.material:material-ripple-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.material:material-ripple@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.material:material-ripple",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.runtime:runtime-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.runtime:runtime-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.runtime:runtime-saveable-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.runtime:runtime-saveable-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.runtime:runtime-saveable@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.runtime:runtime-saveable",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.runtime:runtime@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.runtime:runtime",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-geometry-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-geometry-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-geometry@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-geometry",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-graphics-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-graphics-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-graphics@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-graphics",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-text-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-text-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-text@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-text",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-tooling-preview-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-tooling-preview-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-tooling-preview@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-tooling-preview",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-unit-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-unit-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-unit@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-unit",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-util-android@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-util-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui-util@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui-util",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.compose.ui:ui@1.7.6": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.compose.ui:ui",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.6"
+        },
+        "androidx.concurrent:concurrent-futures-ktx@1.1.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.concurrent:concurrent-futures-ktx",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.1.0"
+        },
+        "androidx.concurrent:concurrent-futures@1.1.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.concurrent:concurrent-futures",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.1.0"
+        },
+        "androidx.core:core-ktx@1.15.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.core:core-ktx",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.15.0"
+        },
+        "androidx.core:core@1.15.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.core:core",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.15.0"
+        },
+        "androidx.customview:customview-poolingcontainer@1.0.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.customview:customview-poolingcontainer",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.0.0"
+        },
+        "androidx.emoji2:emoji2@1.3.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.emoji2:emoji2",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.3.0"
+        },
+        "androidx.graphics:graphics-path@1.0.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.graphics:graphics-path",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.0.1"
+        },
+        "androidx.health:health-services-client@1.0.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.health:health-services-client",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.0.0"
+        },
+        "androidx.interpolator:interpolator@1.0.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.interpolator:interpolator",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.0.0"
+        },
+        "androidx.lifecycle:lifecycle-common-jvm@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-common-jvm",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-common@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-common",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-livedata-core-ktx@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-livedata-core-ktx",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-livedata-core@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-livedata-core",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-livedata@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-livedata",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-process@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-process",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-runtime-android@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-runtime-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-runtime-compose-android@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-runtime-compose-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-runtime-compose@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-runtime-compose",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-runtime-ktx-android@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-runtime-ktx-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-runtime-ktx@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-runtime-ktx",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-runtime@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-runtime",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-service@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-service",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-viewmodel-android@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-viewmodel-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-viewmodel-ktx@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-viewmodel-ktx",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-viewmodel-savedstate@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-viewmodel-savedstate",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.lifecycle:lifecycle-viewmodel@2.8.7": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.lifecycle:lifecycle-viewmodel",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.8.7"
+        },
+        "androidx.profileinstaller:profileinstaller@1.3.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.profileinstaller:profileinstaller",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.3.1"
+        },
+        "androidx.room:room-common@2.6.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.room:room-common",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.6.1"
+        },
+        "androidx.room:room-ktx@2.6.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.room:room-ktx",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.6.1"
+        },
+        "androidx.room:room-runtime@2.6.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.room:room-runtime",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.6.1"
+        },
+        "androidx.savedstate:savedstate-ktx@1.2.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.savedstate:savedstate-ktx",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.2.1"
+        },
+        "androidx.savedstate:savedstate@1.2.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.savedstate:savedstate",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.2.1"
+        },
+        "androidx.sqlite:sqlite-framework@2.4.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.sqlite:sqlite-framework",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.4.0"
+        },
+        "androidx.sqlite:sqlite@2.4.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.sqlite:sqlite",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.4.0"
+        },
+        "androidx.startup:startup-runtime@1.1.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.startup:startup-runtime",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.1.1"
+        },
+        "androidx.tracing:tracing-ktx@1.2.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.tracing:tracing-ktx",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.2.0"
+        },
+        "androidx.tracing:tracing@1.2.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.tracing:tracing",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.2.0"
+        },
+        "androidx.versionedparcelable:versionedparcelable@1.1.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.versionedparcelable:versionedparcelable",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.1.1"
+        },
+        "androidx.wear.compose:compose-foundation@1.4.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.wear.compose:compose-foundation",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.4.0"
+        },
+        "androidx.wear.compose:compose-material-core@1.4.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.wear.compose:compose-material-core",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.4.0"
+        },
+        "androidx.wear.compose:compose-material@1.4.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.wear.compose:compose-material",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.4.0"
+        },
+        "androidx.work:work-runtime-ktx@2.10.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.work:work-runtime-ktx",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.10.0"
+        },
+        "androidx.work:work-runtime@2.10.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "androidx.work:work-runtime",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.10.0"
+        },
+        "com.google.code.findbugs:jsr305@3.0.2": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "com.google.code.findbugs:jsr305",
+          "source": "POM",
+          "status": "allowed",
+          "version": "3.0.2"
+        },
+        "com.google.errorprone:error_prone_annotations@2.28.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "com.google.errorprone:error_prone_annotations",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.28.0"
+        },
+        "com.google.guava:failureaccess@1.0.2": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "com.google.guava:failureaccess",
+          "source": "parent POM com.google.guava:guava-parent:26.0-android",
+          "status": "allowed",
+          "version": "1.0.2"
+        },
+        "com.google.guava:guava@33.3.1-android": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "com.google.guava:guava",
+          "source": "parent POM com.google.guava:guava-parent:33.3.1-android",
+          "status": "allowed",
+          "version": "33.3.1-android"
+        },
+        "com.google.guava:listenablefuture@1.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "com.google.guava:listenablefuture",
+          "source": "parent POM com.google.guava:guava-parent:26.0-android",
+          "status": "allowed",
+          "version": "1.0"
+        },
+        "com.google.guava:listenablefuture@9999.0-empty-to-avoid-conflict-with-guava": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "com.google.guava:listenablefuture",
+          "source": "parent POM com.google.guava:guava-parent:26.0-android",
+          "status": "allowed",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava"
+        },
+        "com.google.j2objc:j2objc-annotations@3.0.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "com.google.j2objc:j2objc-annotations",
+          "source": "POM",
+          "status": "allowed",
+          "version": "3.0.0"
+        },
+        "com.google.protobuf:protobuf-javalite@3.21.8": {
+          "declared": "BSD-3-Clause",
+          "licence": "BSD-3-Clause",
+          "name": "com.google.protobuf:protobuf-javalite",
+          "source": "parent POM com.google.protobuf:protobuf-parent:3.21.8",
+          "status": "allowed",
+          "version": "3.21.8"
+        },
+        "com.squareup.okhttp3:okhttp@4.12.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "com.squareup.okhttp3:okhttp",
+          "source": "POM",
+          "status": "allowed",
+          "version": "4.12.0"
+        },
+        "com.squareup.okio:okio-jvm@3.6.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "com.squareup.okio:okio-jvm",
+          "source": "POM",
+          "status": "allowed",
+          "version": "3.6.0"
+        },
+        "com.squareup.okio:okio@3.6.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "com.squareup.okio:okio",
+          "source": "POM",
+          "status": "allowed",
+          "version": "3.6.0"
+        },
+        "org.checkerframework:checker-qual@3.43.0": {
+          "declared": "MIT",
+          "licence": "MIT",
+          "name": "org.checkerframework:checker-qual",
+          "source": "POM",
+          "status": "allowed",
+          "version": "3.43.0"
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-common@2.0.21": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "org.jetbrains.kotlin:kotlin-stdlib-common",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.0.21"
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk7@1.9.10": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.9.10"
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8@1.9.10": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.9.10"
+        },
+        "org.jetbrains.kotlin:kotlin-stdlib@2.0.21": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "org.jetbrains.kotlin:kotlin-stdlib",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.0.21"
+        },
+        "org.jetbrains.kotlinx:kotlinx-coroutines-android@1.9.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "org.jetbrains.kotlinx:kotlinx-coroutines-android",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.9.0"
+        },
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm@1.9.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.9.0"
+        },
+        "org.jetbrains.kotlinx:kotlinx-coroutines-guava@1.9.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "org.jetbrains.kotlinx:kotlinx-coroutines-guava",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.9.0"
+        },
+        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm@1.7.3": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.3"
+        },
+        "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm@1.7.3": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm",
+          "source": "POM",
+          "status": "allowed",
+          "version": "1.7.3"
+        },
+        "org.jetbrains:annotations@23.0.0": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "org.jetbrains:annotations",
+          "source": "POM",
+          "status": "allowed",
+          "version": "23.0.0"
+        },
+        "org.tensorflow:tensorflow-lite-api@2.16.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "org.tensorflow:tensorflow-lite-api",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.16.1"
+        },
+        "org.tensorflow:tensorflow-lite@2.16.1": {
+          "declared": "Apache-2.0",
+          "licence": "Apache-2.0",
+          "name": "org.tensorflow:tensorflow-lite",
+          "source": "POM",
+          "status": "allowed",
+          "version": "2.16.1"
+        }
+      },
+      "source": "watch :app: wearosReleaseRuntimeClasspath, aospReleaseRuntimeClasspath (Gradle), each module's POM"
+    },
     "npm-dashboard": {
       "packages": {
         "@img/colour@1.1.0": {

@@ -3697,6 +3697,14 @@
     {
      "kind": "config_check",
      "ref": "scripts/licence_check.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_supply_chain.py"
+    },
+    {
+     "kind": "config_check",
+     "ref": "scripts/supply_chain.py"
     }
    ]
   },

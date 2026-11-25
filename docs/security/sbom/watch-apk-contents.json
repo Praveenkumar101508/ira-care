@@ -1,0 +1,194 @@
+{
+  "aosp": {
+    "apk": "watch/app/build/outputs/apk/aosp/release/app-aosp-release-unsigned.apk",
+    "assets": [
+      {
+        "file": "assets/NOTICE-activity-model.txt",
+        "sha256": "75d1e0d4e44d49c8e7550a62b72af2b76a3994a41a06f2dbcdfd04de085226c2",
+        "size": 706,
+        "what": "attribution for the activity model's training data"
+      },
+      {
+        "file": "assets/activity_model.json",
+        "sha256": "06475f27740a2bc9ba7e736333966c94b2325a27c78f2bc9ce36b1395462c445",
+        "size": 242171,
+        "what": "IRA Care Activity model (WISDM, CC BY 4.0)"
+      },
+      {
+        "file": "assets/fall_model.json",
+        "sha256": "f9490a6e6b36d461c6996e6bb92351fab6f5de99db2cda97e3d98a6f6a9743b5",
+        "size": 625,
+        "what": "IRA fall model v3 metadata"
+      },
+      {
+        "file": "assets/fall_model.tflite",
+        "sha256": "2cab7c9bcbf60de51d7c42f5690ad549bcbf4f13eb6266c35bf5d0a59b063278",
+        "size": 18216,
+        "what": "IRA fall model v3 (BITS-2 and UCI HAR, CC BY 4.0)"
+      }
+    ],
+    "library_version_files_checked": 56,
+    "native_libraries": [
+      {
+        "abi": "arm64-v8a",
+        "file": "libandroidx.graphics.path.so",
+        "from": [
+          "androidx.graphics:graphics-path@1.0.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "arm64-v8a",
+        "file": "libtensorflowlite_jni.so",
+        "from": [
+          "org.tensorflow:tensorflow-lite@2.16.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "armeabi-v7a",
+        "file": "libandroidx.graphics.path.so",
+        "from": [
+          "androidx.graphics:graphics-path@1.0.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "armeabi-v7a",
+        "file": "libtensorflowlite_jni.so",
+        "from": [
+          "org.tensorflow:tensorflow-lite@2.16.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "x86",
+        "file": "libandroidx.graphics.path.so",
+        "from": [
+          "androidx.graphics:graphics-path@1.0.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "x86",
+        "file": "libtensorflowlite_jni.so",
+        "from": [
+          "org.tensorflow:tensorflow-lite@2.16.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "x86_64",
+        "file": "libandroidx.graphics.path.so",
+        "from": [
+          "androidx.graphics:graphics-path@1.0.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "x86_64",
+        "file": "libtensorflowlite_jni.so",
+        "from": [
+          "org.tensorflow:tensorflow-lite@2.16.1"
+        ],
+        "licence": "Apache-2.0"
+      }
+    ]
+  },
+  "wearos": {
+    "apk": "watch/app/build/outputs/apk/wearos/release/app-wearos-release-unsigned.apk",
+    "assets": [
+      {
+        "file": "assets/NOTICE-activity-model.txt",
+        "sha256": "75d1e0d4e44d49c8e7550a62b72af2b76a3994a41a06f2dbcdfd04de085226c2",
+        "size": 706,
+        "what": "attribution for the activity model's training data"
+      },
+      {
+        "file": "assets/activity_model.json",
+        "sha256": "06475f27740a2bc9ba7e736333966c94b2325a27c78f2bc9ce36b1395462c445",
+        "size": 242171,
+        "what": "IRA Care Activity model (WISDM, CC BY 4.0)"
+      },
+      {
+        "file": "assets/fall_model.json",
+        "sha256": "f9490a6e6b36d461c6996e6bb92351fab6f5de99db2cda97e3d98a6f6a9743b5",
+        "size": 625,
+        "what": "IRA fall model v3 metadata"
+      },
+      {
+        "file": "assets/fall_model.tflite",
+        "sha256": "2cab7c9bcbf60de51d7c42f5690ad549bcbf4f13eb6266c35bf5d0a59b063278",
+        "size": 18216,
+        "what": "IRA fall model v3 (BITS-2 and UCI HAR, CC BY 4.0)"
+      }
+    ],
+    "library_version_files_checked": 58,
+    "native_libraries": [
+      {
+        "abi": "arm64-v8a",
+        "file": "libandroidx.graphics.path.so",
+        "from": [
+          "androidx.graphics:graphics-path@1.0.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "arm64-v8a",
+        "file": "libtensorflowlite_jni.so",
+        "from": [
+          "org.tensorflow:tensorflow-lite@2.16.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "armeabi-v7a",
+        "file": "libandroidx.graphics.path.so",
+        "from": [
+          "androidx.graphics:graphics-path@1.0.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "armeabi-v7a",
+        "file": "libtensorflowlite_jni.so",
+        "from": [
+          "org.tensorflow:tensorflow-lite@2.16.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "x86",
+        "file": "libandroidx.graphics.path.so",
+        "from": [
+          "androidx.graphics:graphics-path@1.0.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "x86",
+        "file": "libtensorflowlite_jni.so",
+        "from": [
+          "org.tensorflow:tensorflow-lite@2.16.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "x86_64",
+        "file": "libandroidx.graphics.path.so",
+        "from": [
+          "androidx.graphics:graphics-path@1.0.1"
+        ],
+        "licence": "Apache-2.0"
+      },
+      {
+        "abi": "x86_64",
+        "file": "libtensorflowlite_jni.so",
+        "from": [
+          "org.tensorflow:tensorflow-lite@2.16.1"
+        ],
+        "licence": "Apache-2.0"
+      }
+    ]
+  }
+}

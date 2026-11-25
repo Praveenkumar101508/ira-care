@@ -1,0 +1,348 @@
+{
+  "_about": "Reviewed licences of native code that is not a package in its own right: libraries bundled inside Python wheels (scripts/supply_chain.py finds them in the built image's site-packages/*.libs directories, keyed by library name without auditwheel's hash), and OS libraries that our own components link directly (ELF DT_NEEDED), keyed by OS package name. The licence is the library's own, not the whole source package's. Evidence says where it was read. A bundled or linked library missing here fails the image check. Copyright lines are copied from the licence files shipped in the wheel; an empty list means the wheel ships none for that library, and the notices say so.",
+  "bundled": {
+    "libXau": {
+      "copyright": [
+        "Copyright 1988, 1993, 1994, 1998 The Open Group"
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json)",
+      "licence": "MIT-open-group"
+    },
+    "libavif": {
+      "copyright": [
+        "Copyright 2019 Joe Drago. All rights reserved."
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json)",
+      "licence": "BSD-2-Clause"
+    },
+    "libbrotlicommon": {
+      "copyright": [
+        "Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors."
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json)",
+      "licence": "MIT"
+    },
+    "libbrotlidec": {
+      "copyright": [
+        "Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors."
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json)",
+      "licence": "MIT"
+    },
+    "libcom_err": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (com_err, distributed with MIT Kerberos)",
+      "licence": "MIT"
+    },
+    "libcrypto": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (OpenSSL 3)",
+      "licence": "Apache-2.0"
+    },
+    "libctranslate2": {
+      "copyright": [],
+      "evidence": "ctranslate2's own library; the wheel's metadata declares MIT",
+      "licence": "MIT"
+    },
+    "libfreetype": {
+      "copyright": [],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json); FreeType is dual FTL or GPL-2.0, and the FTL option is taken",
+      "licence": "FTL"
+    },
+    "libgfortran": {
+      "copyright": [
+        "Copyright (C) 2002-2017 Free Software Foundation, Inc."
+      ],
+      "evidence": "stated in numpy-1.26.4.dist-info/LICENSE.txt (bundled-library section)",
+      "licence": "GPL-3.0-or-later WITH GCC-exception-3.1"
+    },
+    "libgomp": {
+      "copyright": [],
+      "evidence": "GCC runtime library: GPL-3.0-or-later with the GCC Runtime Library Exception 3.1 (upstream licence); the ctranslate2 wheel does not state it",
+      "licence": "GPL-3.0-or-later WITH GCC-exception-3.1"
+    },
+    "libgssapi_krb5": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (MIT Kerberos: MIT-style notices, recorded as MIT as Alpine's krb5 package does)",
+      "licence": "MIT"
+    },
+    "libharfbuzz": {
+      "copyright": [
+        "Copyright \u00a9 2010-2022 Google, Inc.",
+        "Copyright \u00a9 2004,2007,2008,2009,2010,2013,2021,2022,2023 Red Hat, Inc.",
+        "Copyright \u00a9 2005,2006,2020,2021,2022,2023 Behdad Esfahbod",
+        "and the further HarfBuzz contributors listed in Pillow's licence file"
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json) (the \"Old MIT\" licence)",
+      "licence": "MIT"
+    },
+    "libjpeg": {
+      "copyright": [],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json) (libjpeg-turbo)",
+      "licence": "IJG AND BSD-3-Clause"
+    },
+    "libk5crypto": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (MIT Kerberos)",
+      "licence": "MIT"
+    },
+    "libkeyutils": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (keyutils: the library is LGPL-2.1-or-later, the command-line tools GPL-2.0)",
+      "licence": "LGPL-2.1-or-later"
+    },
+    "libkrb5": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (MIT Kerberos)",
+      "licence": "MIT"
+    },
+    "libkrb5support": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (MIT Kerberos)",
+      "licence": "MIT"
+    },
+    "liblber": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (OpenLDAP)",
+      "licence": "OLDAP-2.8"
+    },
+    "liblcms2": {
+      "copyright": [
+        "Copyright (c) 1998-2020 Marti Maria Saguer"
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json)",
+      "licence": "MIT"
+    },
+    "libldap": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (OpenLDAP)",
+      "licence": "OLDAP-2.8"
+    },
+    "liblzma": {
+      "copyright": [],
+      "evidence": "xz 5.8.4 (the version in the file name): liblzma has been 0BSD since xz 5.6.0; Pillow's licence file still quotes the older public-domain statement",
+      "licence": "0BSD"
+    },
+    "libopenblas64_p": {
+      "copyright": [
+        "Copyright (c) 2011-2014, The OpenBLAS Project",
+        "Copyright (c) 1992-2013 The University of Tennessee and The University of Tennessee Research Foundation (LAPACK, bundled in OpenBLAS)"
+      ],
+      "evidence": "stated in numpy-1.26.4.dist-info/LICENSE.txt (bundled-library section)",
+      "licence": "BSD-3-Clause"
+    },
+    "libopenjp2": {
+      "copyright": [],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json)",
+      "licence": "BSD-2-Clause"
+    },
+    "libpcre": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (PCRE 8.x)",
+      "licence": "BSD-3-Clause"
+    },
+    "libpng16": {
+      "copyright": [
+        "Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.",
+        "Copyright (c) 2000-2002, 2004, 2006-2018 Glenn Randers-Pehrson"
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json)",
+      "licence": "libpng-2.0"
+    },
+    "libpq": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices",
+      "licence": "PostgreSQL"
+    },
+    "libquadmath": {
+      "copyright": [
+        "Copyright (C) 2010-2019 Free Software Foundation, Inc."
+      ],
+      "evidence": "stated in numpy-1.26.4.dist-info/LICENSE.txt (bundled-library section)",
+      "licence": "LGPL-2.1-or-later"
+    },
+    "libsasl2": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (Cyrus SASL)",
+      "licence": "BSD-Attribution-HPND-disclaimer"
+    },
+    "libselinux": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (libselinux's LICENSE: \"This library (libselinux) is public domain software\")",
+      "licence": "LicenseRef-public-domain"
+    },
+    "libsharpyuv": {
+      "copyright": [
+        "Copyright (c) 2010, Google Inc. All rights reserved."
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json) (part of libwebp)",
+      "licence": "BSD-3-Clause"
+    },
+    "libssl": {
+      "copyright": [],
+      "evidence": "upstream project licence; the psycopg-binary wheel bundles this library but states only its own LGPL-3.0 licence, so the text must come from our notices (OpenSSL 3)",
+      "licence": "Apache-2.0"
+    },
+    "libtiff": {
+      "copyright": [
+        "Copyright (c) 1988-1997 Sam Leffler",
+        "Copyright (c) 1991-1997 Silicon Graphics, Inc."
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json)",
+      "licence": "libtiff"
+    },
+    "libwebp": {
+      "copyright": [
+        "Copyright (c) 2010, Google Inc. All rights reserved."
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json)",
+      "licence": "BSD-3-Clause"
+    },
+    "libwebpdemux": {
+      "copyright": [
+        "Copyright (c) 2010, Google Inc. All rights reserved."
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json) (part of libwebp)",
+      "licence": "BSD-3-Clause"
+    },
+    "libwebpmux": {
+      "copyright": [
+        "Copyright (c) 2010, Google Inc. All rights reserved."
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json) (part of libwebp)",
+      "licence": "BSD-3-Clause"
+    },
+    "libxcb": {
+      "copyright": [
+        "Copyright (C) 2001-2006 Bart Massey, Jamey Sharp, and Josh Triplett."
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json)",
+      "licence": "X11"
+    },
+    "libzstd": {
+      "copyright": [
+        "Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved."
+      ],
+      "evidence": "stated in Pillow's licence file (dist-info/licenses/LICENSE) and its bundled SBOM (dist-info/sboms/pillow-13.0.0.cdx.json); zstd is dual BSD-3-Clause or GPL-2.0, and the BSD option is taken",
+      "licence": "BSD-3-Clause"
+    }
+  },
+  "os_linked": {
+    "icu-libs": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image",
+      "licence": "ICU"
+    },
+    "krb5-libs": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image (MIT Kerberos)",
+      "licence": "MIT"
+    },
+    "libbz2-1.0": {
+      "evidence": "the library's own licence (upstream); Debian's copyright file for the source package also names the licences of its programs and build files",
+      "licence": "bzip2-1.0.6"
+    },
+    "libc6": {
+      "evidence": "the library's own licence (upstream); Debian's copyright file for the source package also names the licences of its programs and build files (GNU C Library)",
+      "licence": "LGPL-2.1-or-later"
+    },
+    "libcrypt1": {
+      "evidence": "the library's own licence (upstream); Debian's copyright file for the source package also names the licences of its programs and build files (libxcrypt)",
+      "licence": "LGPL-2.1-or-later"
+    },
+    "libcrypto3": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image",
+      "licence": "Apache-2.0"
+    },
+    "libedit": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image",
+      "licence": "BSD-3-Clause"
+    },
+    "libffi8": {
+      "evidence": "the library's own licence (upstream); Debian's copyright file for the source package also names the licences of its programs and build files",
+      "licence": "MIT"
+    },
+    "libgcc": {
+      "evidence": "GCC runtime library: GPL-3.0-or-later with the GCC Runtime Library Exception 3.1 (upstream licence); Alpine's field says GPL-2.0-or-later AND LGPL-2.1-or-later for the whole gcc source package",
+      "licence": "GPL-3.0-or-later WITH GCC-exception-3.1"
+    },
+    "libgcc-s1": {
+      "evidence": "GCC runtime library: GPL-3.0-or-later with the GCC Runtime Library Exception 3.1 (upstream licence)",
+      "licence": "GPL-3.0-or-later WITH GCC-exception-3.1"
+    },
+    "libldap": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image",
+      "licence": "OLDAP-2.8"
+    },
+    "liblzma5": {
+      "evidence": "the library's own licence (upstream); Debian's copyright file for the source package also names the licences of its programs and build files (xz 5.8: liblzma is 0BSD since 5.6.0)",
+      "licence": "0BSD"
+    },
+    "libncursesw6": {
+      "evidence": "the library's own licence (upstream); Debian's copyright file for the source package also names the licences of its programs and build files (ncurses)",
+      "licence": "X11"
+    },
+    "libsqlite3-0": {
+      "evidence": "the library's own licence (upstream); Debian's copyright file for the source package also names the licences of its programs and build files (SQLite is in the public domain, with the SQLite blessing)",
+      "licence": "blessing"
+    },
+    "libssl3": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image",
+      "licence": "Apache-2.0"
+    },
+    "libssl3t64": {
+      "evidence": "the library's own licence (upstream); Debian's copyright file for the source package also names the licences of its programs and build files (OpenSSL 3)",
+      "licence": "Apache-2.0"
+    },
+    "libstdc++": {
+      "evidence": "GCC runtime library: GPL-3.0-or-later with the GCC Runtime Library Exception 3.1 (upstream licence); Alpine's field says GPL-2.0-or-later AND LGPL-2.1-or-later for the whole gcc source package",
+      "licence": "GPL-3.0-or-later WITH GCC-exception-3.1"
+    },
+    "libstdc++6": {
+      "evidence": "GCC runtime library: GPL-3.0-or-later with the GCC Runtime Library Exception 3.1 (upstream licence)",
+      "licence": "GPL-3.0-or-later WITH GCC-exception-3.1"
+    },
+    "libtinfo6": {
+      "evidence": "the library's own licence (upstream); Debian's copyright file for the source package also names the licences of its programs and build files (ncurses)",
+      "licence": "X11"
+    },
+    "libuuid": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image",
+      "licence": "BSD-3-Clause"
+    },
+    "libuuid1": {
+      "evidence": "the library's own licence (upstream); Debian's copyright file for the source package also names the licences of its programs and build files (util-linux libuuid)",
+      "licence": "BSD-3-Clause"
+    },
+    "libxml2": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image",
+      "licence": "MIT"
+    },
+    "libxslt": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image",
+      "licence": "X11"
+    },
+    "llvm21-libs": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image (Apache-2.0); LLVM's own licence carries the LLVM exception",
+      "licence": "Apache-2.0 WITH LLVM-exception"
+    },
+    "lz4-libs": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image says BSD-2-Clause AND GPL-2.0-or-later for the source package; the library (lib/) is BSD-2-Clause, the command-line tool GPL-2.0-or-later",
+      "licence": "BSD-2-Clause"
+    },
+    "musl": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image",
+      "licence": "MIT"
+    },
+    "zlib": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image",
+      "licence": "Zlib"
+    },
+    "zlib1g": {
+      "evidence": "the library's own licence (upstream); Debian's copyright file for the source package also names the licences of its programs and build files",
+      "licence": "Zlib"
+    },
+    "zstd-libs": {
+      "evidence": "Alpine's package licence field (apk L:), read in the image; the BSD option is taken",
+      "licence": "BSD-3-Clause OR GPL-2.0-or-later"
+    }
+  }
+}

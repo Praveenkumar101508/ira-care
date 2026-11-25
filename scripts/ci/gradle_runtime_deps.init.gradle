@@ -1,0 +1,30 @@
+// Prints the resolved external modules of named configurations as one JSON line, for
+// scripts/licence_check.py (the gradle-watch ecosystem). Used as an init script, so the
+// watch build itself is unchanged:
+//
+//   ./gradlew -q -I scripts/ci/gradle_runtime_deps.init.gradle :app:iraRuntimeDeps \
+//       -PiraConfigurations=wearosReleaseRuntimeClasspath,aospReleaseRuntimeClasspath
+//
+// A dependency that cannot be resolved fails the task: a partial list is never printed.
+allprojects { p ->
+    p.tasks.register("iraRuntimeDeps") {
+        doLast {
+            def names = (p.findProperty("iraConfigurations") ?: "").toString().split(",").findAll { it }
+            if (names.isEmpty()) throw new GradleException("pass -PiraConfigurations=a,b")
+            def out = new TreeMap()
+            names.each { name ->
+                def conf = p.configurations.findByName(name)
+                if (conf == null) throw new GradleException("no configuration named " + name)
+                def result = conf.incoming.resolutionResult
+                def failed = result.allDependencies.findAll {
+                    it instanceof org.gradle.api.artifacts.result.UnresolvedDependencyResult
+                }.collect { it.requested.displayName }
+                if (!failed.isEmpty()) throw new GradleException(name + ": unresolved " + failed)
+                out[name] = result.allComponents.collect { it.id }.findAll {
+                    it instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier
+                }.collect { it.group + ":" + it.module + ":" + it.version }.unique().sort()
+            }
+            println("IRA-RUNTIME-DEPS " + groovy.json.JsonOutput.toJson(out))
+        }
+    }
+}
