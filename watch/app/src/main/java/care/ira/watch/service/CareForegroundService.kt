@@ -248,12 +248,16 @@ class CareForegroundService : LifecycleService() {
                 is CheckinController.Action.RequestHelp -> {
                     // Written to the outbox first, so a kill or a reboot cannot lose it; then
                     // the person is told the truth: it is being sent, not that help is coming.
+                    // Nothing slow comes before the outbox: a location fix waits at most
+                    // HELP_FIX_MS (null then: the server says "location unknown", never guesses),
+                    // and IRA speaks only after the request is written down and being sent.
+                    // Speaking first let a slow or stuck speech engine hold the request back.
                     deps.status.value = deps.status.value.copy(sos = SosState.Sending)
-                    deps.speaker.speak("Sending your request for help. Stay where you are.", louder = true)
-                    val fix = deps.location.currentFix()   // null when unavailable: the server says so, never guesses
+                    val fix = deps.location.currentFix(HELP_FIX_MS)
                     deps.outbox.enqueue(Outbox.KIND_HELP, CareApi.PATH_HELP, json.encodeToString(HelpRequest(via = action.via, location = fix)))
                     deps.status.value = deps.status.value.copy(urgentPending = deps.outbox.size())
                     deps.sync.drainOutbox()
+                    deps.speaker.speak("Sending your request for help. Stay where you are.", louder = true)
                     deps.status.value.sos.text()?.let { deps.speaker.speak(it, louder = true) }
                 }
                 CheckinController.Action.Nothing -> {}
@@ -344,6 +348,8 @@ class CareForegroundService : LifecycleService() {
     }
 
     companion object {
+        /** How long a Help request waits for a location fix before it is written to the outbox. */
+        const val HELP_FIX_MS = 2_000L
         const val NOTIFICATION_ID = 1
         const val ACTION_OK = "care.ira.watch.OK"
         const val ACTION_HELP = "care.ira.watch.HELP"

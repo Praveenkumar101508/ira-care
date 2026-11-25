@@ -44,6 +44,17 @@ true.
 | B2 | High | dashboard header (line 95), `headline()`; phone `deviceSummary` | An unknown wrist state (`null`) showed as "on the wrist". The headline said "All well" with the wrist unknown, and also while IRA was still asking whether the person was OK. | `wristState()` has four states: on, off, unknown, and stale ("last known …"). The headline says "All well" only when the watch is known to be worn and synced recently and nothing is open or being asked. Otherwise it says "Needs a look: …" or "IRA is asking whether they are OK". The phone app says "wrist unknown" and "on the wrist" explicitly. | `live.test.ts`, `person_live.test.tsx`, mobile `model.test.ts` | fixed |
 | B3 | — | dashboard | Not done in this branch: progressive loading beyond essential-first, the review of empty, error, offline and permission states on every tab, mobile-width layout, and real-time push for urgent changes (polling only). | — | — | open |
 
+## Group D: watch speech, storage and the Help path
+
+| ID | Severity | Where | Finding | Fix | Tests | Status |
+|----|----------|-------|---------|-----|-------|--------|
+| D0 | Critical | `service/CareForegroundService.kt`, Help | The watch spoke "Sending your request for help" and waited up to 15 s for a location fix before writing the Help request to the outbox, even though the comment said the outbox came first. Speech had no time limit, so a stuck speech engine could hold the request back indefinitely. | Help is now: location (at most 2 s; no fix means "location unknown", never a guess), then outbox and send, then speech. | (Android service: built by CI; the speech time limit it relies on is tested below) | fixed |
+| D1 | High | `voice/Listener.kt` | `SpeechRecognizer` was created from a background thread (Android requires the main thread), a new recogniser was made for every answer and never destroyed, and cancellation called `cancel()` from any thread. | `RecognizerListener` (pure Kotlin) handles every recogniser call on the main thread: one at a time, destroyed after each answer including on timeout and cancellation, late results ignored, and no recogniser on the watch means "nothing heard". `AndroidListener` only adapts the platform recogniser. | `SpeechCoreTest`: 6 listening tests | fixed |
+| D2 | High | `voice/Speaker.kt` | The first sentence could be lost because the engine was not ready yet; there was no time limit, so a stuck engine hung the caller; each sentence replaced the progress listener, so an earlier waiter never resumed; "louder" set the volume to maximum and never put it back. | `EngineSpeaker` (pure Kotlin): waits for the engine to be ready (at most 4 s), one sentence at a time, each with its own id and a time limit based on its length (then stopped), and the volume restored after "louder", including on timeout. | `SpeechCoreTest`: 5 speaking tests | fixed |
+| D3 | — | fall countdown | — | Done in group A (A4b). | — | fixed |
+| D5 | High | `outbox/Outbox.kt`, `queue/OfflineQueue.kt`, `pairing/PairingStore.kt`, manifest | (a) A rewrite truncated the file before writing it, so a crash mid-rewrite lost every queued urgent event, including an unsent Help. (b) Unreadable lines were dropped silently. (c) Everything was stored in plain text, including the device token and location. (d) Queued events and readings did not record whose they were, so after re-pairing to another person they would be sent in the new person's name. (e) Backup was not turned off (Android's default is on). | (a) `AtomicFiles`: a rewrite goes to a temporary file, is synced and renamed; appends are synced; a leftover temporary file is cleaned up. (b) Unreadable lines go to `<file>.unreadable` and are counted. (c) AES-256-GCM per line with a key in the Android Keystore; older plain text is still read and sealed on the next write; if the Keystore is broken, an urgent event is still written in plain text rather than lost. The pairing values are sealed, and saved with `commit()`. (d) `WearerFiles`: one file per wearer; the old single file goes to the wearer paired when the update first runs. (e) `allowBackup=false` plus data-extraction rules that exclude everything. | `SecureStorageTest` 11; `OfflineQueueTest` +2 | fixed |
+| D4, D6 | Medium | foreground service, permissions, platform behaviour | Not reviewed here: reboot and Doze behaviour, permission revocation, Bluetooth and LTE changes, emulator and physical-device tests. | — | — | open (needs emulator or device) |
+
 ## Negative control
 
 Migration 112: of the 5 new database tests, run against the code from before 112 on the migrated
@@ -57,6 +68,21 @@ account A's person ("Ada-only-for-A") on account B's home screen.
 
 Group B: the three page tests in `person_live.test.tsx` all fail against the original page and
 `view.ts`: unknown wrist shown as worn, no refresh, and a failed section blanking the record.
+
+Group D: the old `Listener`, `Speaker` and storage were Android-only, with no place for a test
+to hook in, so the new tests cannot run against them unchanged. Instead each original defect
+was planted back into the new code and the tests were run:
+- no destroy: 3 failures;
+- no volume restore: 2;
+- no speech time limit: 1;
+- no one-at-a-time: 1;
+- a rewrite with no crash recovery: 1;
+- unreadable lines dropped silently: 1;
+- one file for every wearer: 2.
+
+The tests were compiled outside Gradle with kotlinc 2.0.21 (coroutines 1.9.0, serialization 1.7.3,
+OkHttp 4.12.0). 53 JVM tests pass. The Android adapters (`AndroidListener`, `AndroidSpeaker`,
+`KeystoreKey`, `PairingStore`, the manifest) are compiled only by CI's Wear OS and AOSP builds.
 
 Skipped tests: `main` gives 193 skipped. This branch gives 194 without `psycopg2` installed
 (one new database module) and 544 with it, because four database modules that
