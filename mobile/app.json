@@ -49,6 +49,13 @@
         {
           "sounds": []
         }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "IRA CARE uses the microphone only while you hold a conversation with IRA, so you can speak instead of typing.",
+          "speechRecognitionPermission": "Your phone turns what you say to IRA into text, so you can speak instead of typing. IRA CARE keeps only that text, the same as typing, and no recording."
+        }
       ]
     ],
     "extra": {
