@@ -138,7 +138,8 @@ print_plan() {
   say "  2. repo sync -c -j<cpus>                                    (about 250 GB)"
   say "  3. build or take the signed aospRelease watch APK, check it, copy it to"
   say "     device/ira/ira_watch_cf/prebuilt/IraCareWatch.apk"
-  say "  4. copy os/device/ira to ${AOSP_DIR}/device/ira"
+  say "  4. copy os/device/ira to ${AOSP_DIR}/device/ira and render"
+  say "     device/ira/ira_watch_cf/bootanimation/bootanimation.zip (os/scripts/make_bootanimation.py)"
   say "  5. check that ${INHERITED_MK} exists in the checkout"
   say "  6. source build/envsetup.sh && lunch ${LUNCH_TARGET} && m"
 }
@@ -219,6 +220,8 @@ main() {
   mkdir -p "$AOSP_DIR/device"
   cp -a "$REPO_ROOT/os/device/ira" "$AOSP_DIR/device/ira"
   prepare_watch_apk
+  python3 -c 'import PIL' 2>/dev/null || { err "MISSING: Pillow (python3 -m pip install pillow) renders the boot animation."; exit 4; }
+  python3 "$REPO_ROOT/os/scripts/make_bootanimation.py" "$AOSP_DIR/device/ira/ira_watch_cf/bootanimation/bootanimation.zip"
 
   if [[ ! -f "$AOSP_DIR/$INHERITED_MK" ]]; then
     err "STOPPED: $INHERITED_MK is not in this AOSP checkout."

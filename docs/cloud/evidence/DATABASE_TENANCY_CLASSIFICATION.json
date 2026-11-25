@@ -1,7 +1,7 @@
 {
   "phase": "3B batch 0/1",
   "schema_version": 1,
-  "table_count": 155,
+  "table_count": 156,
   "tables": {
     "access_audit_log": {
       "access": {
@@ -8326,6 +8326,66 @@
         ],
         "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
         "update": "tenant_id = current_setting('app.tenant_id', true)::uuid"
+      }
+    },
+    "os_releases": {
+      "access": {
+        "background_worker_call_sites": [],
+        "delete_call_sites": [],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/ota.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/ota.py",
+          "supracloud-jarvis/ira/scripts/os_release.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:platform:os_releases:{key}",
+      "classification": "REFERENCE_DATA",
+      "current": {
+        "column_count": 11,
+        "has_tenant_id": false,
+        "has_user_id": false,
+        "has_workspace_id": false,
+        "policy_count": 0,
+        "rls_enabled": false,
+        "rls_forced": false
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": false,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "platform operation only",
+        "legal_hold": "n/a",
+        "membership_removal": "unaffected",
+        "tenant_deletion": "unaffected",
+        "user_deletion": "unaffected",
+        "workspace_deletion": "unaffected"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required \u2014 no secret or biometric material"
+      },
+      "justification": "E4.d. The IRA CARE OS images this deployment may offer to its watches over the air: version, build fingerprint, verified-boot rollback index, the payload's location, size and SHA-256, the staged-rollout percentage. Platform-authored operator configuration, not tenant data: a watch's update must not depend on which care organisation it is enrolled with, and no workspace may publish an image. Published, staged and withdrawn only by the operator with the migrator's credentials (scripts/os_release.py).",
+      "migration": {
+        "done_by": "120_os_releases.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "platform/os_releases/",
+      "retention": "indefinite (platform data)",
+      "rls": {
+        "reason": "global by classification; protected by role grants, not RLS: ira_app holds SELECT only, so the route that offers updates cannot publish, stage or withdraw one (tests/tenancy/test_os_update_db.py)",
+        "required": false
       }
     },
     "owner_profile": {

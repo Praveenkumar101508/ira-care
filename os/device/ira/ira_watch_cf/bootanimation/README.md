@@ -1,8 +1,10 @@
 # IRA CARE OS boot animation (specification only)
 
-No frames and no `bootanimation.zip` exist yet. This folder holds the specification as text;
-`desc.txt` is the real control file the zip will carry. Nothing here has been shown on a
-device or on Cuttlefish.
+`os/scripts/make_bootanimation.py` renders the frames and `bootanimation.zip` from this
+specification, deterministically (a placeholder mark until the real artwork exists), and
+`os/scripts/build_cuttlefish.sh` runs it into the AOSP checkout; the zip is never committed.
+`test_os_product_layer.py` checks the zip's format and that it is reproducible. Nothing here has
+been shown on a device or on Cuttlefish.
 
 ## What the person sees
 

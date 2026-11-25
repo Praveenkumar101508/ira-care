@@ -1,0 +1,3 @@
+# bootanimation.zip is rendered by os/scripts/make_bootanimation.py on the build host.
+# No binary is committed to this repository.
+*.zip

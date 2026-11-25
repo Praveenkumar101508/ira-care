@@ -1,0 +1,32 @@
+//
+// IRA CARE OS simulated sensors (E3.c, E3.d, E3.e).
+//
+// UNBUILT. Soong has never read this file (docs/os/BUILD.md). The signal model,
+// sim_signals.cpp, is compiled and tested on the host by
+// supracloud-jarvis/ira/tests/readiness/test_os_sensor_sim.py; the HAL service around it is not.
+// Not in the product's PRODUCT_PACKAGES: it is for the simulated image only, added on the build
+// host as README.md says, never in an image a person wears.
+//
+// Copyright 2026 IRA CARE. Licensed under the Apache License, Version 2.0.
+//
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+cc_binary {
+    name: "android.hardware.sensors-service.ira-sim",
+    vendor: true,
+    relative_install_path: "hw",
+    srcs: [
+        "sim_signals.cpp",
+        "SimSensorsHal.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "libbinder_ndk",
+        // UNCERTAIN: the AIDL sensors NDK library's versioned name in the checked-out release.
+        "android.hardware.sensors-V2-ndk",
+    ],
+    cflags: ["-Wall", "-Werror"],
+}
