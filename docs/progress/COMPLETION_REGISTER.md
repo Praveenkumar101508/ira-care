@@ -33,9 +33,9 @@ Nothing is marked done because code or a document exists.
 <!-- completion-summary:begin -->
 | Measure | Value |
 |---|---|
-| Overall, weighted | 65.1 % |
+| Overall, weighted | 66.4 % |
 | Implemented (built, here or before) | 91.2 % |
-| Tested (unit, integration, evaluated or better) | 56.8 % |
+| Tested (unit, integration, evaluated or better) | 60.2 % |
 | Merged and evidenced in this programme | 51.0 % |
 | Safety remediation (section C) | 84.2 % |
 | AI components (section F) | 61.9 % |
@@ -151,7 +151,7 @@ weights stated in that script. No device has been used, so no row is device test
 
 | # | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
-| J | Integrated live demonstration, the 32 steps, presenter guide | pre-existing demo | `docs/demo/`. Re-running it on the remediated stack: **not started** |
+| J | Integrated live demonstration, the 32 steps, presenter guide | browser tested | `fix/demo-rerun` · `docs/demo/RERUN.md`: scripted scenarios and the browser demo re-run on the remediated stack (fake model, log-only providers); two defects found and fixed (REMEDIATION B4, B5). Film voice-over and devices: not re-run |
 | K | Full verification on integrated `main` (every suite, builds, load, outage, backup, licence scan) | integration tested | `docs/progress/VERIFICATION.md`: backend unit and database suites, dashboard, phone, watch builds, outage, backup and restore, secret scan, licences. Load (24 h soak): not run. Device, emulator and OS image runs: **needs external** |
 | L | Endorsement evidence pack, GO / NO-GO decisions | not started | |
 

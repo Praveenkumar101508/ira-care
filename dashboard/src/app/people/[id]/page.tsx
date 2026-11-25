@@ -34,7 +34,8 @@ const MEASURED = ['heart_rate', 'steps', 'movement', 'on_wrist', 'battery'];
 export default function PersonPage() {
   const { id } = useParams<{ id: string }>();
   const search = useSearchParams();
-  const tab = (search.get('tab') as Tab | null) ?? 'overview';
+  // An unknown or old tab name (a bookmark, an old link) shows the overview, never a blank page.
+  const tab: Tab = (TABS as readonly string[]).includes(search.get('tab') ?? '') ? (search.get('tab') as Tab) : 'overview';
   const { api, session, ready } = useApi();
   const manage = canManage(session);
 
