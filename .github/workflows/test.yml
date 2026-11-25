@@ -97,7 +97,9 @@ jobs:
           cache: pip
           cache-dependency-path: supracloud-jarvis/ira/requirements-test.txt
       - name: Install test dependencies
-        run: pip install -r requirements-test.txt
+        run: |
+          pip install -r requirements-test.txt
+          pip install --no-deps --require-hashes -r requirements-nodeps.txt
       - name: Run the suite (database tests skip here; they run in backend-database)
         run: python -m pytest -q -p no:cacheprovider tests
 
@@ -142,7 +144,9 @@ jobs:
           cache: pip
           cache-dependency-path: supracloud-jarvis/ira/requirements-test.txt
       - name: Install test dependencies
-        run: pip install -r requirements-test.txt psycopg2-binary
+        run: |
+          pip install -r requirements-test.txt psycopg2-binary
+          pip install --no-deps --require-hashes -r requirements-nodeps.txt
       - name: Provision database roles
         run: |
           psql -h localhost -U postgres -d iratest -v ON_ERROR_STOP=1 \
@@ -272,6 +276,14 @@ jobs:
       - name: The AOSP flavour carries no Google service dependency
         working-directory: .
         run: bash scripts/ci/check_watch_aosp_deps.sh
+      - name: Build both release APKs (what ships)
+        run: ./gradlew --no-daemon --console=plain assembleWearosRelease assembleAospRelease
+      - name: Licence check of the release runtime classpath (both flavours)
+        working-directory: .
+        run: python3 scripts/licence_check.py --check --only gradle-watch
+      - name: The release APKs contain what the classpath says (native libraries, models)
+        working-directory: .
+        run: python3 scripts/supply_chain.py apk --check
 
   mobile:
     name: Family app (Expo)
@@ -358,6 +370,24 @@ jobs:
           echo "migrations in the image: $n"; test "$n" -gt 100
       - name: The backup image can encrypt and dump
         run: docker run --rm --network none --entrypoint sh ira-care/backup:ci -c 'openssl version && pg_dump --version && curl --version && test -x /usr/local/bin/backup.sh && test -x /usr/local/bin/restore.sh && test -x /usr/local/bin/offsite.sh'
+      - name: What the images contain, against the licence policy (docs/security/sbom/)
+        run: |
+          mkdir -p sbom-out
+          python3 scripts/supply_chain.py image api ira-care/api:ci --base python:3.12-slim --check --out sbom-out/api-image.inventory.json
+          python3 scripts/supply_chain.py image dashboard ira-care/dashboard:ci --base node:22-alpine --check --out sbom-out/dashboard-image.inventory.json
+          python3 scripts/supply_chain.py image backup ira-care/backup:ci --base postgres:16-alpine --check --out sbom-out/backup-image.inventory.json
+      - name: Full CycloneDX SBOMs of the images (syft, pinned by checksum)
+        run: |
+          v=1.18.1; sum=066c251652221e4d44fcc4d115ce3df33a91769da38c830a8533199db2f65aab
+          curl -fsSLo syft.tgz "https://github.com/anchore/syft/releases/download/v$v/syft_${v}_linux_amd64.tar.gz"
+          echo "$sum  syft.tgz" | sha256sum -c
+          tar xzf syft.tgz syft
+          for i in api dashboard backup; do ./syft "docker:ira-care/$i:ci" -q -o "cyclonedx-json=sbom-out/$i-image.syft.cdx.json"; done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-sboms
+          path: sbom-out/
+          retention-days: 30
 
   dashboard:
     name: Carer dashboard (Next.js)

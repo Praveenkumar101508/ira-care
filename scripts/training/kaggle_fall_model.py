@@ -1,5 +1,10 @@
 # IRA CARE: train the fall and activity model on Kaggle's free GPU.
 #
+# RESEARCH RECORD ONLY. This trained fall model v1, on a SisFall copy whose original terms are not
+# confirmed. v1 is in no build of any kind (D-077 for release, D-082 for debug and demonstration);
+# every build carries v3 (scripts/training/fall_model_v3.py, BITS-2 and UCI HAR only). Its results
+# are kept in docs/evidence/training/fall.json. Do not use this script's output in any product.
+#
 # Runs as a private Kaggle script kernel (pushed by scripts/training/run_kaggle.py with
 # enable_gpu and enable_internet). It downloads only public, commercially licensed data
 # (SisFall from Zenodo record 22212281, labelled CC BY 4.0 but NOT the authors' own release:
@@ -225,12 +230,7 @@ metrics = {
 }
 log("METRICS " + json.dumps(metrics))
 log("TFLITE_B64 " + base64.b64encode(tfl).decode())
-# Also keep the artefacts as a private Kaggle model when the notebook's own identity allows it.
-try:
-    import kagglehub
-    handle = f"{os.environ.get('KAGGLE_USERNAME', 'owner')}/ira-care-fall-model/tfLite/v1"
-    kagglehub.model_upload(handle, ".", license_name="Apache 2.0", version_notes="SisFall + UCI HAR, subject-wise split")
-    log(f"KAGGLE_MODEL {handle}")
-except Exception as exc:  # noqa: BLE001
-    log(f"KAGGLE_MODEL_UPLOAD_SKIPPED {type(exc).__name__}: {str(exc)[:200]}")
+# The weights come back only through the private notebook's own log (TFLITE_B64 above). A training
+# script never publishes model weights anywhere (D-082): the original run's attempt to keep a Kaggle
+# model copy was refused by Kaggle ("models.create" denied) and has been removed.
 log(f"DONE in {round(time.time() - T0)} s")

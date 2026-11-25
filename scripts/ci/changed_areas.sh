@@ -21,9 +21,11 @@ shared=false
 echo "$files" | grep -qE '^(\.github/|scripts/ci/|supracloud-jarvis/postgres/|deploy/|\.gitleaksignore)' && shared=true
 area() { if [ "$shared" = true ] || echo "$files" | grep -qE "$2"; then echo "$1=true"; else echo "$1=false"; fi; }
 # The licence check (scripts/licence_check.py, docs/security/LICENCES.json and its exceptions)
-# runs in the mobile and dashboard jobs, and its tests in the backend jobs.
-lic='scripts/licence_check\.py|docs/security/(LICENCES\.json|licence_exceptions\.json)'
+# runs in the watch, mobile and dashboard jobs, and its tests in the backend jobs. The image
+# scan (scripts/supply_chain.py, docs/security/sbom/, the native-library review) runs in the
+# images job, which follows the backend area.
+lic='scripts/(licence_check|supply_chain)\.py|docs/security/(LICENCES\.json|licence_exceptions\.json|native_libraries\.json|sbom/)|docs/legal/(notices/|licences/|copyright_notices\.json|THIRD_PARTY_NOTICES\.md)'
 area backend "^(supracloud-jarvis/|scripts/|e2e/|tests/|$lic)"
-area watch '^watch/'
+area watch "^(watch/|$lic)"
 area mobile "^(mobile/|$lic)"
 area dashboard "^(dashboard/|$lic)"

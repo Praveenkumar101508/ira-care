@@ -164,10 +164,9 @@ def _whisper_word_frames(wav_bytes: bytes) -> list[dict] | None:
     model in memory.
     """
     try:
-        from voice.stt import DEFAULT_HTTP_WHISPER_MODEL, _load_model
-        from faster_whisper.audio import decode_audio
+        from voice.stt import DEFAULT_HTTP_WHISPER_MODEL, _decode_to_16k_mono, _load_model
 
-        audio = decode_audio(io.BytesIO(wav_bytes), sampling_rate=16_000)
+        audio = _decode_to_16k_mono(wav_bytes)
         model = _load_model(DEFAULT_HTTP_WHISPER_MODEL, "cpu", "int8")
         segments, _info = model.transcribe(
             audio,

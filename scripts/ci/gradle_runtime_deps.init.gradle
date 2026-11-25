@@ -1,0 +1,58 @@
+// Prints the resolved external modules of named configurations, and the POM file of each
+// module and of every <parent> POM it names, as one JSON line, for scripts/licence_check.py
+// (the gradle-watch ecosystem). Used as an init script, so the watch build itself is unchanged:
+//
+//   ./gradlew -q -I scripts/ci/gradle_runtime_deps.init.gradle :app:iraRuntimeDeps \
+//       -PiraConfigurations=wearosReleaseRuntimeClasspath,aospReleaseRuntimeClasspath
+//
+// The POMs are fetched through Gradle's own artifact resolution, from the build's repositories.
+// Resolving a configuration can use Gradle Module Metadata (.module files) alone, so whether a
+// POM happens to sit in the local cache depends on the machine; asking for it here does not.
+// A dependency or a POM that cannot be resolved fails the task: a partial list is never printed.
+allprojects { p ->
+    p.tasks.register("iraRuntimeDeps") {
+        doLast {
+            def names = (p.findProperty("iraConfigurations") ?: "").toString().split(",").findAll { it }
+            if (names.isEmpty()) throw new GradleException("pass -PiraConfigurations=a,b")
+            def out = new TreeMap()
+            def modules = new TreeSet()
+            names.each { name ->
+                def conf = p.configurations.findByName(name)
+                if (conf == null) throw new GradleException("no configuration named " + name)
+                def result = conf.incoming.resolutionResult
+                def failed = result.allDependencies.findAll {
+                    it instanceof org.gradle.api.artifacts.result.UnresolvedDependencyResult
+                }.collect { it.requested.displayName }
+                if (!failed.isEmpty()) throw new GradleException(name + ": unresolved " + failed)
+                out[name] = result.allComponents.collect { it.id }.findAll {
+                    it instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier
+                }.collect { it.group + ":" + it.module + ":" + it.version }.unique().sort()
+                modules.addAll(out[name])
+            }
+            def poms = new TreeMap()
+            def pending = new ArrayList(modules)
+            while (!pending.isEmpty()) {
+                def coord = pending.remove(0)
+                if (poms.containsKey(coord)) continue
+                def parts = coord.split(":")
+                def query = p.dependencies.createArtifactResolutionQuery()
+                    .forModule(parts[0], parts[1], parts[2])
+                    .withArtifacts(org.gradle.maven.MavenModule, org.gradle.maven.MavenPomArtifact)
+                    .execute()
+                def files = query.resolvedComponents.collectMany {
+                    it.getArtifacts(org.gradle.maven.MavenPomArtifact)
+                }.findAll {
+                    it instanceof org.gradle.api.artifacts.result.ResolvedArtifactResult
+                }.collect { it.file }
+                if (files.isEmpty()) throw new GradleException("no POM could be resolved for " + coord)
+                poms[coord] = files[0].absolutePath
+                def parent = new groovy.xml.XmlSlurper().parse(files[0]).parent
+                if (parent.size() > 0) {
+                    pending.add(parent.groupId.text() + ":" + parent.artifactId.text() + ":" + parent.version.text())
+                }
+            }
+            println("IRA-RUNTIME-DEPS " + groovy.json.JsonOutput.toJson(
+                [configurations: out, poms: poms]))
+        }
+    }
+}

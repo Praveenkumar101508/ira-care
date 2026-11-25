@@ -1,0 +1,149 @@
+{
+  "what": "the research pipeline (care/heart_research.py) on a PPG-DaLiA subject held out from the learned model",
+  "held_out_subject": "S1",
+  "why_a_fold_model": "the shipped model was trained on all 15 subjects, so no subject is held out from it; the fold model is the leave-one-subject-out model for this subject, same settings and seed",
+  "fold_model": {
+    "sha256": "31670471ecfc8f54c21afed225c305d791838596edafaa4c71923a63ca558fa4",
+    "bytes": 466401,
+    "train_rows": 238384,
+    "max_abs_probability_difference_numpy_vs_sklearn": 2.220446049250313e-16,
+    "kept_in_repository": false
+  },
+  "reproduces_evaluation_script": {
+    "windows_compared": 4603,
+    "classical_identical": 4603,
+    "learned_within_0_05_bpm": 4603,
+    "note": "the pipeline rounds the selected candidate to 0.1 bpm, as LearnedHeartTracker does; the script's selection is rounded the same way before comparing"
+  },
+  "results_json_loso_mae_bpm": {
+    "classical": 11.01,
+    "learned": 8.09
+  },
+  "whole_recording": {
+    "windows": 4603,
+    "classical_all_windows": {
+      "mae_bpm": 11.01,
+      "windows": 4603
+    },
+    "learned_all_windows": {
+      "mae_bpm": 8.09,
+      "windows": 4603
+    },
+    "reported": {
+      "mae_bpm": 7.19,
+      "windows": 3565
+    },
+    "reported_share_of_windows": 0.7745,
+    "reported_learned": {
+      "mae_bpm": 4.59,
+      "windows": 2768
+    },
+    "reported_classical_fallback": {
+      "mae_bpm": 16.23,
+      "windows": 797
+    },
+    "unavailable_by_reason": {
+      "low_confidence": 809,
+      "motion_artefact": 229
+    },
+    "resources": {
+      "total_ms": 67377.6,
+      "per_window_ms_mean": 14.638,
+      "per_window_ms_max": 48.549,
+      "max_rss_mib": 366.2
+    },
+    "pipeline_s": 67.5
+  },
+  "excerpt": {
+    "file": {
+      "path": "supracloud-jarvis/ira/care/research_samples/ppg_dalia_s1_excerpt.json",
+      "bytes": 237086,
+      "sha256": "09b31c7050cc137d4e4cb68a01f89df3aa0472ca6ac3fa573ce4aec15bb68ec3"
+    },
+    "runs": {
+      "fold_model_without_S1": {
+        "windows": 147,
+        "classical_all_windows": {
+          "mae_bpm": 12.65,
+          "windows": 147
+        },
+        "learned_all_windows": {
+          "mae_bpm": 3.61,
+          "windows": 147
+        },
+        "reported": {
+          "mae_bpm": 3.98,
+          "windows": 117
+        },
+        "reported_share_of_windows": 0.7959,
+        "reported_learned": {
+          "mae_bpm": 2.08,
+          "windows": 101
+        },
+        "reported_classical_fallback": {
+          "mae_bpm": 16.0,
+          "windows": 16
+        },
+        "unavailable_by_reason": {
+          "low_confidence": 30
+        },
+        "resources": {
+          "total_ms": 1905.38,
+          "per_window_ms_mean": 12.962,
+          "per_window_ms_max": 19.458,
+          "max_rss_mib": 366.2
+        },
+        "learned_model": "heart_selector@31670471ecfc"
+      },
+      "shipped_model_trained_on_all_15": {
+        "windows": 147,
+        "classical_all_windows": {
+          "mae_bpm": 12.65,
+          "windows": 147
+        },
+        "learned_all_windows": {
+          "mae_bpm": 3.48,
+          "windows": 147
+        },
+        "reported": {
+          "mae_bpm": 4.11,
+          "windows": 120
+        },
+        "reported_share_of_windows": 0.8163,
+        "reported_learned": {
+          "mae_bpm": 1.84,
+          "windows": 103
+        },
+        "reported_classical_fallback": {
+          "mae_bpm": 17.88,
+          "windows": 17
+        },
+        "unavailable_by_reason": {
+          "low_confidence": 27
+        },
+        "resources": {
+          "total_ms": 2051.3,
+          "per_window_ms_mean": 13.954,
+          "per_window_ms_max": 27.942,
+          "max_rss_mib": 366.2
+        },
+        "learned_model": "heart_selector@3b0863a9a8cf"
+      }
+    }
+  },
+  "thresholds": {
+    "motion_reject_g": 0.5,
+    "classical_min_confidence": 0.3,
+    "learned_min_probability": 0.5,
+    "note": "fixed before this evaluation; not tuned on it"
+  },
+  "runtime": {
+    "total_s": 1853.2,
+    "machine": "x86_64, 4 CPUs, no GPU, shared with other jobs",
+    "versions": {
+      "python": "3.13.18",
+      "numpy": "2.5.5",
+      "scikit-learn": "1.9.1"
+    }
+  }
+}

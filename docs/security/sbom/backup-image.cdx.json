@@ -1,0 +1,1173 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "bom-ref": "binary:PostgreSQL (base image, built from source)",
+      "licenses": [
+        {
+          "expression": "PostgreSQL"
+        }
+      ],
+      "name": "PostgreSQL (base image, built from source)",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "base-image"
+        },
+        {
+          "name": "ira:where",
+          "value": "/usr/local (postgres:16-alpine)"
+        }
+      ],
+      "type": "application",
+      "version": "base image"
+    },
+    {
+      "bom-ref": "binary:gosu (base image)",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "gosu (base image)",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "base-image"
+        },
+        {
+          "name": "ira:where",
+          "value": "/usr/local/bin/gosu (postgres:16-alpine)"
+        }
+      ],
+      "type": "application",
+      "version": "base image"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/.postgresql-rundeps@20261118.213249",
+      "licenses": [
+        {
+          "license": {
+            "name": "NOASSERTION"
+          }
+        }
+      ],
+      "name": ".postgresql-rundeps",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/.postgresql-rundeps@20261118.213249",
+      "type": "library",
+      "version": "20261118.213249"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/alpine-baselayout-data@3.7.2-r1",
+      "licenses": [
+        {
+          "expression": "GPL-2.0-only"
+        }
+      ],
+      "name": "alpine-baselayout-data",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/alpine-baselayout-data@3.7.2-r1",
+      "type": "library",
+      "version": "3.7.2-r1"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/alpine-baselayout@3.7.2-r1",
+      "licenses": [
+        {
+          "expression": "GPL-2.0-only"
+        }
+      ],
+      "name": "alpine-baselayout",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/alpine-baselayout@3.7.2-r1",
+      "type": "library",
+      "version": "3.7.2-r1"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/alpine-keys@2.6-r0",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "alpine-keys",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/alpine-keys@2.6-r0",
+      "type": "library",
+      "version": "2.6-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/alpine-release@3.24.4-r0",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "alpine-release",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/alpine-release@3.24.4-r0",
+      "type": "library",
+      "version": "3.24.4-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/apk-tools@3.0.9-r0",
+      "licenses": [
+        {
+          "expression": "GPL-2.0-only"
+        }
+      ],
+      "name": "apk-tools",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/apk-tools@3.0.9-r0",
+      "type": "library",
+      "version": "3.0.9-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/bash@5.3.9-r1",
+      "licenses": [
+        {
+          "expression": "GPL-3.0-or-later"
+        }
+      ],
+      "name": "bash",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/bash@5.3.9-r1",
+      "type": "library",
+      "version": "5.3.9-r1"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/busybox-binsh@1.37.0-r31",
+      "licenses": [
+        {
+          "expression": "GPL-2.0-only"
+        }
+      ],
+      "name": "busybox-binsh",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/busybox-binsh@1.37.0-r31",
+      "type": "library",
+      "version": "1.37.0-r31"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/busybox@1.37.0-r31",
+      "licenses": [
+        {
+          "expression": "GPL-2.0-only"
+        }
+      ],
+      "name": "busybox",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/busybox@1.37.0-r31",
+      "type": "library",
+      "version": "1.37.0-r31"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/ca-certificates-bundle@20261020-r0",
+      "licenses": [
+        {
+          "expression": "MPL-2.0 AND MIT"
+        }
+      ],
+      "name": "ca-certificates-bundle",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/ca-certificates-bundle@20261020-r0",
+      "type": "library",
+      "version": "20261020-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/gdbm@1.26-r0",
+      "licenses": [
+        {
+          "expression": "GPL-3.0-or-later"
+        }
+      ],
+      "name": "gdbm",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/gdbm@1.26-r0",
+      "type": "library",
+      "version": "1.26-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/icu-data-full@78.1-r0",
+      "licenses": [
+        {
+          "expression": "ICU"
+        }
+      ],
+      "name": "icu-data-full",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/icu-data-full@78.1-r0",
+      "type": "library",
+      "version": "78.1-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/icu-libs@78.1-r0",
+      "licenses": [
+        {
+          "expression": "ICU"
+        }
+      ],
+      "name": "icu-libs",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/icu-libs@78.1-r0",
+      "type": "library",
+      "version": "78.1-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/keyutils-libs@1.6.3-r4",
+      "licenses": [
+        {
+          "expression": "GPL-2.0-or-later AND LGPL-2.0-or-later"
+        }
+      ],
+      "name": "keyutils-libs",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/keyutils-libs@1.6.3-r4",
+      "type": "library",
+      "version": "1.6.3-r4"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/krb5-conf@1.0-r2",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "krb5-conf",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/krb5-conf@1.0-r2",
+      "type": "library",
+      "version": "1.0-r2"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/krb5-libs@1.22.3-r0",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "krb5-libs",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/krb5-libs@1.22.3-r0",
+      "type": "library",
+      "version": "1.22.3-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libapk@3.0.9-r0",
+      "licenses": [
+        {
+          "expression": "GPL-2.0-only"
+        }
+      ],
+      "name": "libapk",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libapk@3.0.9-r0",
+      "type": "library",
+      "version": "3.0.9-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libcom_err@1.47.4-r0",
+      "licenses": [
+        {
+          "expression": "GPL-2.0-or-later AND LGPL-2.0-or-later AND BSD-3-Clause AND MIT"
+        }
+      ],
+      "name": "libcom_err",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libcom_err@1.47.4-r0",
+      "type": "library",
+      "version": "1.47.4-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libcrypto3@3.5.9-r0",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "libcrypto3",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libcrypto3@3.5.9-r0",
+      "type": "library",
+      "version": "3.5.9-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libedit@20260508.3.1-r1",
+      "licenses": [
+        {
+          "expression": "BSD-3-Clause"
+        }
+      ],
+      "name": "libedit",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libedit@20260508.3.1-r1",
+      "type": "library",
+      "version": "20260508.3.1-r1"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libffi@3.5.2-r1",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "libffi",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libffi@3.5.2-r1",
+      "type": "library",
+      "version": "3.5.2-r1"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libgcc@15.2.0-r5",
+      "licenses": [
+        {
+          "expression": "GPL-3.0-or-later WITH GCC-exception-3.1"
+        }
+      ],
+      "name": "libgcc",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libgcc@15.2.0-r5",
+      "type": "library",
+      "version": "15.2.0-r5"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libldap@2.6.15-r0",
+      "licenses": [
+        {
+          "expression": "OLDAP-2.8"
+        }
+      ],
+      "name": "libldap",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libldap@2.6.15-r0",
+      "type": "library",
+      "version": "2.6.15-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libncursesw@6.6_p20260516-r0",
+      "licenses": [
+        {
+          "expression": "X11"
+        }
+      ],
+      "name": "libncursesw",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libncursesw@6.6_p20260516-r0",
+      "type": "library",
+      "version": "6.6_p20260516-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libsasl@2.1.28-r9",
+      "licenses": [
+        {
+          "expression": "BSD-3-Clause-Attribution AND BSD-4-Clause"
+        }
+      ],
+      "name": "libsasl",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libsasl@2.1.28-r9",
+      "type": "library",
+      "version": "2.1.28-r9"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libssl3@3.5.9-r0",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "libssl3",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libssl3@3.5.9-r0",
+      "type": "library",
+      "version": "3.5.9-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libstdc++@15.2.0-r5",
+      "licenses": [
+        {
+          "expression": "GPL-3.0-or-later WITH GCC-exception-3.1"
+        }
+      ],
+      "name": "libstdc++",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libstdc++@15.2.0-r5",
+      "type": "library",
+      "version": "15.2.0-r5"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libuuid@2.42.3-r1",
+      "licenses": [
+        {
+          "expression": "BSD-3-Clause"
+        }
+      ],
+      "name": "libuuid",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libuuid@2.42.3-r1",
+      "type": "library",
+      "version": "2.42.3-r1"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libverto@0.3.2-r2",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "libverto",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libverto@0.3.2-r2",
+      "type": "library",
+      "version": "0.3.2-r2"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libxml2@2.13.9-r2",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "libxml2",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libxml2@2.13.9-r2",
+      "type": "library",
+      "version": "2.13.9-r2"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/libxslt@1.1.43-r4",
+      "licenses": [
+        {
+          "expression": "X11"
+        }
+      ],
+      "name": "libxslt",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/libxslt@1.1.43-r4",
+      "type": "library",
+      "version": "1.1.43-r4"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/llvm21-libs@21.1.8-r1",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 WITH LLVM-exception"
+        }
+      ],
+      "name": "llvm21-libs",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/llvm21-libs@21.1.8-r1",
+      "type": "library",
+      "version": "21.1.8-r1"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/lz4-libs@1.10.0-r1",
+      "licenses": [
+        {
+          "expression": "BSD-2-Clause"
+        }
+      ],
+      "name": "lz4-libs",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/lz4-libs@1.10.0-r1",
+      "type": "library",
+      "version": "1.10.0-r1"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/musl-utils@1.2.6-r3",
+      "licenses": [
+        {
+          "expression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
+        }
+      ],
+      "name": "musl-utils",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/musl-utils@1.2.6-r3",
+      "type": "library",
+      "version": "1.2.6-r3"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/musl@1.2.6-r3",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "musl",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/musl@1.2.6-r3",
+      "type": "library",
+      "version": "1.2.6-r3"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/ncurses-terminfo-base@6.6_p20260516-r0",
+      "licenses": [
+        {
+          "expression": "X11"
+        }
+      ],
+      "name": "ncurses-terminfo-base",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/ncurses-terminfo-base@6.6_p20260516-r0",
+      "type": "library",
+      "version": "6.6_p20260516-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/nss_wrapper@1.1.12-r1",
+      "licenses": [
+        {
+          "expression": "BSD-3-Clause"
+        }
+      ],
+      "name": "nss_wrapper",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/nss_wrapper@1.1.12-r1",
+      "type": "library",
+      "version": "1.1.12-r1"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/readline@8.3.3-r1",
+      "licenses": [
+        {
+          "expression": "GPL-3.0-or-later"
+        }
+      ],
+      "name": "readline",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/readline@8.3.3-r1",
+      "type": "library",
+      "version": "8.3.3-r1"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/scanelf@1.3.9-r1",
+      "licenses": [
+        {
+          "expression": "GPL-2.0-only"
+        }
+      ],
+      "name": "scanelf",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/scanelf@1.3.9-r1",
+      "type": "library",
+      "version": "1.3.9-r1"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/ssl_client@1.37.0-r31",
+      "licenses": [
+        {
+          "expression": "GPL-2.0-only"
+        }
+      ],
+      "name": "ssl_client",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/ssl_client@1.37.0-r31",
+      "type": "library",
+      "version": "1.37.0-r31"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/tzdata@2026f-r0",
+      "licenses": [
+        {
+          "expression": "Public-Domain"
+        }
+      ],
+      "name": "tzdata",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/tzdata@2026f-r0",
+      "type": "library",
+      "version": "2026f-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/xz-libs@5.8.4-r0",
+      "licenses": [
+        {
+          "expression": "GPL-2.0-or-later AND 0BSD AND Public-Domain AND LGPL-2.1-or-later"
+        }
+      ],
+      "name": "xz-libs",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/xz-libs@5.8.4-r0",
+      "type": "library",
+      "version": "5.8.4-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/zlib@1.4-r0",
+      "licenses": [
+        {
+          "expression": "Zlib"
+        }
+      ],
+      "name": "zlib",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/zlib@1.4-r0",
+      "type": "library",
+      "version": "1.4-r0"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/zstd-libs@1.5.7-r2",
+      "licenses": [
+        {
+          "expression": "BSD-3-Clause OR GPL-2.0-or-later"
+        }
+      ],
+      "name": "zstd-libs",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "allowed"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        },
+        {
+          "name": "ira:linked-by",
+          "value": "PostgreSQL (base image, built from source)"
+        }
+      ],
+      "purl": "pkg:apk/alpine/zstd-libs@1.5.7-r2",
+      "type": "library",
+      "version": "1.5.7-r2"
+    },
+    {
+      "bom-ref": "pkg:apk/alpine/zstd@1.5.7-r2",
+      "licenses": [
+        {
+          "expression": "BSD-3-Clause OR GPL-2.0-or-later"
+        }
+      ],
+      "name": "zstd",
+      "properties": [
+        {
+          "name": "ira:licence-status",
+          "value": "os-package"
+        },
+        {
+          "name": "ira:where",
+          "value": "base image"
+        }
+      ],
+      "purl": "pkg:apk/alpine/zstd@1.5.7-r2",
+      "type": "library",
+      "version": "1.5.7-r2"
+    }
+  ],
+  "dependencies": [
+    {
+      "dependsOn": [
+        "binary:PostgreSQL (base image, built from source)",
+        "binary:gosu (base image)",
+        "pkg:apk/alpine/.postgresql-rundeps@20261118.213249",
+        "pkg:apk/alpine/alpine-baselayout-data@3.7.2-r1",
+        "pkg:apk/alpine/alpine-baselayout@3.7.2-r1",
+        "pkg:apk/alpine/alpine-keys@2.6-r0",
+        "pkg:apk/alpine/alpine-release@3.24.4-r0",
+        "pkg:apk/alpine/apk-tools@3.0.9-r0",
+        "pkg:apk/alpine/bash@5.3.9-r1",
+        "pkg:apk/alpine/busybox-binsh@1.37.0-r31",
+        "pkg:apk/alpine/busybox@1.37.0-r31",
+        "pkg:apk/alpine/ca-certificates-bundle@20261020-r0",
+        "pkg:apk/alpine/gdbm@1.26-r0",
+        "pkg:apk/alpine/icu-data-full@78.1-r0",
+        "pkg:apk/alpine/icu-libs@78.1-r0",
+        "pkg:apk/alpine/keyutils-libs@1.6.3-r4",
+        "pkg:apk/alpine/krb5-conf@1.0-r2",
+        "pkg:apk/alpine/krb5-libs@1.22.3-r0",
+        "pkg:apk/alpine/libapk@3.0.9-r0",
+        "pkg:apk/alpine/libcom_err@1.47.4-r0",
+        "pkg:apk/alpine/libcrypto3@3.5.9-r0",
+        "pkg:apk/alpine/libedit@20260508.3.1-r1",
+        "pkg:apk/alpine/libffi@3.5.2-r1",
+        "pkg:apk/alpine/libgcc@15.2.0-r5",
+        "pkg:apk/alpine/libldap@2.6.15-r0",
+        "pkg:apk/alpine/libncursesw@6.6_p20260516-r0",
+        "pkg:apk/alpine/libsasl@2.1.28-r9",
+        "pkg:apk/alpine/libssl3@3.5.9-r0",
+        "pkg:apk/alpine/libstdc++@15.2.0-r5",
+        "pkg:apk/alpine/libuuid@2.42.3-r1",
+        "pkg:apk/alpine/libverto@0.3.2-r2",
+        "pkg:apk/alpine/libxml2@2.13.9-r2",
+        "pkg:apk/alpine/libxslt@1.1.43-r4",
+        "pkg:apk/alpine/llvm21-libs@21.1.8-r1",
+        "pkg:apk/alpine/lz4-libs@1.10.0-r1",
+        "pkg:apk/alpine/musl-utils@1.2.6-r3",
+        "pkg:apk/alpine/musl@1.2.6-r3",
+        "pkg:apk/alpine/ncurses-terminfo-base@6.6_p20260516-r0",
+        "pkg:apk/alpine/nss_wrapper@1.1.12-r1",
+        "pkg:apk/alpine/readline@8.3.3-r1",
+        "pkg:apk/alpine/scanelf@1.3.9-r1",
+        "pkg:apk/alpine/ssl_client@1.37.0-r31",
+        "pkg:apk/alpine/tzdata@2026f-r0",
+        "pkg:apk/alpine/xz-libs@5.8.4-r0",
+        "pkg:apk/alpine/zlib@1.4-r0",
+        "pkg:apk/alpine/zstd-libs@1.5.7-r2",
+        "pkg:apk/alpine/zstd@1.5.7-r2"
+      ],
+      "ref": "artefact:backup-image"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "bom-ref": "artefact:backup-image",
+      "description": "IRA CARE backup container image (deploy/Dockerfile.backup)",
+      "name": "backup-image",
+      "type": "container"
+    },
+    "properties": [
+      {
+        "name": "ira:generated-by",
+        "value": "scripts/supply_chain.py render"
+      }
+    ]
+  },
+  "specVersion": "1.5",
+  "version": 1
+}

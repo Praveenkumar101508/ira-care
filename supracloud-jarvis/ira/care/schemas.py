@@ -4,7 +4,7 @@ from __future__ import annotations
 import datetime as dt
 import re
 import uuid
-from typing import Optional
+from typing import Annotated, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -16,7 +16,9 @@ VITAL_KINDS = ("heart_rate", "steps", "movement", "on_wrist", "battery")
 ROUTINE_KINDS = ("meal", "medication", "activity", "sleep", "social", "other")
 MED_EVENT_STATUSES = ("due", "taken", "missed", "skipped", "unknown")
 CONSENT_KINDS = ("transcripts_family", "transcripts_carer", "transcripts_organisation",
-                 "health_data_family", "data_retention", "topics")
+                 "health_data_family", "data_retention", "topics",
+                 # The watch may send hourly activity estimates and the circle may see them (121, D-084).
+                 "activity_sharing")
 PLATFORMS = ("wearos", "watchos", "other")
 
 
@@ -197,6 +199,31 @@ class OsUpdateRequest(BaseModel):
     rollback_index: int = Field(..., ge=0, le=2_147_483_647)
 
 
+class DeviceTarget(BaseModel):
+    """Which workspace a deployment administrator means (care/deviceadmin.py): the care
+    organisation's tenant and workspace. A device or instruction id from elsewhere is not found."""
+    tenant_id: uuid.UUID
+    workspace_id: uuid.UUID
+
+
+class DeviceInstructionCreate(DeviceTarget):
+    """One instruction from the closed list (care/devicepolicy.py ACTIONS); nothing else parses."""
+    device_id: uuid.UUID
+    action: str = Field(..., pattern="^(MAINTENANCE_WINDOW|RESTORE_RESTRICTIONS|FACTORY_RESET)$")
+    minutes: int = Field(10, ge=1, le=15)
+    reason: str = Field(..., min_length=10, max_length=300)
+
+
+class DeviceInstructionRevoke(DeviceTarget):
+    reason: str = Field(..., min_length=10, max_length=200)
+
+
+class DeviceInstructionOutcome(BaseModel):
+    """What the watch did with an instruction it collected."""
+    outcome: str = Field(..., pattern="^(applied|refused|restored)$")
+    reason: str = Field("", max_length=200)
+
+
 class Reading(BaseModel):
     kind: str
     value: float
@@ -219,6 +246,26 @@ class DeviceReport(BaseModel):
     on_wrist: Optional[bool] = None
     background_sensor_permission: Optional[bool] = None
     app_version: Optional[str] = Field(None, max_length=40)
+
+
+class ActivityPeriod(BaseModel):
+    """One hour of IRA Care Activity, summarised on the watch (care/activity.py, the data
+    contract). Shapes are checked here; the contract itself in `activity.check_period`."""
+    model_config = {"protected_namespaces": ()}
+    period_start: dt.datetime
+    period_end: dt.datetime
+    model_version: str = Field(..., min_length=1, max_length=80)
+    model_sha256: str = Field(..., pattern=r"^[0-9a-f]{64}$")
+    source: str = Field(..., pattern=r"^(device|simulated)$")
+    seconds: dict[str, int] = Field(default_factory=dict, max_length=16)
+    reasons: dict[str, int] = Field(default_factory=dict, max_length=8)
+    windows: int = Field(..., ge=0, le=360)
+    mean_confidence: Optional[float] = Field(None, ge=0, le=1)
+
+
+class ActivityReport(BaseModel):
+    """Closed hours from the watch, oldest first. Two weeks at most in one request."""
+    periods: list[ActivityPeriod] = Field(..., min_length=1, max_length=336)
 
 
 class LocationFix(BaseModel):
@@ -654,3 +701,57 @@ class CarePlanVersion(BaseModel):
 class CoordinatorDesignation(BaseModel):
     """Name a member of the care team coordinator, or stop (D-081)."""
     coordinator: bool
+
+
+# ── Research mode: heart rate from a recorded or simulated raw signal (D-086) ──
+# Never a person's reading: there is no person field, the source can only be simulated or a
+# research recording, and nothing from these bodies is stored (care/heart_research.py).
+
+RESEARCH_MAX_SAMPLES = 80_000
+
+
+class ResearchStreamIn(BaseModel):
+    fs_hz: float = Field(..., gt=0, le=1024)
+    unit: str = Field("", max_length=24)
+    t0_s: float = Field(0.0, ge=-1e9, le=1e9)
+    timestamps_s: Optional[list[float]] = Field(None, max_length=RESEARCH_MAX_SAMPLES)
+
+
+class ResearchPpgIn(ResearchStreamIn):
+    # null marks a missing sample
+    samples: list[Optional[float]] = Field(..., min_length=1, max_length=RESEARCH_MAX_SAMPLES)
+
+
+class ResearchAccIn(ResearchStreamIn):
+    # Rows of exactly three axes: an unbounded row was parsed whole before the contract
+    # check refused it (security review S11).
+    samples: list[Annotated[list[Optional[float]], Field(min_length=3, max_length=3)]] = Field(
+        ..., min_length=1, max_length=RESEARCH_MAX_SAMPLES)
+
+
+class ResearchReferenceIn(BaseModel):
+    bpm: list[Optional[float]] = Field(..., max_length=400)
+    kind: str = Field("supplied with the recording", max_length=120)
+
+
+class ResearchRecordingIn(BaseModel):
+    model_config = {"extra": "forbid"}
+    source: str = Field(..., pattern=r"^(simulated|research_recording)$")
+    label: str = Field("", max_length=120)
+    ppg: ResearchPpgIn
+    acc: Optional[ResearchAccIn] = None
+    reference: Optional[ResearchReferenceIn] = None
+
+
+class ResearchHeartRun(BaseModel):
+    """Run the research pipeline on a built-in sample (by name) or on an uploaded recording."""
+    model_config = {"extra": "forbid"}
+    sample: Optional[str] = Field(None, pattern=r"^[a-z0-9_]{1,60}$")
+    recording: Optional[ResearchRecordingIn] = None
+    use_learned: bool = True
+
+    @model_validator(mode="after")
+    def _one_input(self):
+        if (self.sample is None) == (self.recording is None):
+            raise ValueError("give either a sample name or a recording, not both")
+        return self

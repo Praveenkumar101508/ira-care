@@ -26,9 +26,10 @@ there without a row here, or if a row here disagrees with its status there.
 | movement | From the watch's motion sensor; used with check-ins to notice no answer and no movement | `care/monitoring.py::evaluate_missed_checkin`, `test_care_escalation_db.py` | software-tested; sensitivity in real homes **unmeasured** |
 | on_wrist | Reported by the watch | the platform's off-body sensor; off-wrist suppresses fall alerts (`FallDetector.kt`) | software-tested (transport only) |
 | battery | Reported by the watch | stored and shown as sent; low battery raises a notice | software-tested |
-| fall_detection | Asks after a hard impact followed by stillness, and calls for help if there is no answer; it can miss falls and can be wrong | `FallDetectorTest.kt`, `FallCountdownTest.kt`, `test_care_fall_db.py`; research model evaluated on SisFall, debug builds only (D-077) | software-tested; real-world sensitivity and false-alarm rate **unmeasured** |
+| fall_detection | Asks after a hard impact followed by stillness, and calls for help if there is no answer; it can miss falls and can be wrong | `FallDetectorTest.kt`, `FallCountdownTest.kt`, `test_care_fall_db.py`; fall model v3 (BITS-2 and UCI HAR) in every build, `RecoveringFallDetectorTest.kt` (D-080); the research model evaluated on SisFall is in no build (D-077, D-082) | software-tested; real-world sensitivity and false-alarm rate **unmeasured** |
 | location | Sent with a Help request or a suspected fall, when the person has agreed | `care/location.py`, `test_care_location_db.py` | software-tested; fix accuracy indoors **unmeasured** |
 | food_intake | A check-in asks whether the person has eaten and records what they say; not a measurement | `care/checkins.py`, `test_care_checkins_db.py` | software-tested (what is said, not what is eaten) |
+| activity_estimate | Estimated from the watch's motion sensor, not a measurement of health: minutes a day that look active, still or like other arm movement, and the time the watch could not tell or was not worn; shown only when the person has agreed to share it; never raises an alert and never says whether someone ate | `care/activity.py`, `test_care_activity_rules.py`, `test_care_activity_db.py` (consent, contract, trend, retention, erasure), `test_activity_no_alert_path.py`, `ActivitySharingTest.kt`; model evaluated on WISDM only, macro-F1 0.790 (`docs/ai/activity/MODEL_CARD.md`) | software-tested; accuracy on the IRA watch and with older adults **unmeasured** |
 | hearing_access | Voice can be switched off; questions come as text with a vibration, answered by touch | communication profile, `AccessibilityTest.kt` | software-tested; usability with people with hearing loss **unmeasured** |
 | sleep | IRA does not track sleep | — | not claimed |
 | spo2 | No validated sensor; IRA does not estimate it | — | not claimed |
@@ -53,7 +54,22 @@ there without a row here, or if a row here disagrees with its status there.
 
 ## Claims the product must not make
 
+From the activity estimate: that the person ate, drank or had a meal (the model's
+`eating_drinking` class is a hand-to-mouth wrist pattern, it is shown only as "other arm movement",
+and `food_intake` stays what the person says); any statement about health, frailty, mobility
+decline or a fall; any alert or escalation. `test_care_activity_rules.py` and
+`ActivitySharingTest.kt` refuse those words in the activity text, and `test_activity_no_alert_path.py`
+keeps every alert path from reading it.
+
 Diagnosis; treatment; "detects all falls"; "medical-grade"; any clinical accuracy figure not
 measured on the IRA watch with the intended users; approval or clearance by MHRA, the FDA or any
 notified body; validation on elderly speakers. `tests/readiness` already refuses several of
 these words in product text; anything new goes through the owner and a qualified reviewer.
+
+## Research mode (not a product claim)
+
+The heart-rate research page and route (D-086, requirement F3.g) run the estimators on a recorded
+PPG-DaLiA excerpt or a simulated signal for care managers. They make **no claim about any person**:
+every result is headed "Research — not a measurement of this person", is never stored, never
+appears on a person's record and cannot reach an alert rule. Its numbers (on public research data)
+must not be quoted as the accuracy of the `heart_rate` reading above, which comes from the watch.

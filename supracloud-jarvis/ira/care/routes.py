@@ -25,13 +25,13 @@ from fastapi.encoders import jsonable_encoder
 
 from api.middleware.auth import require_auth
 from app.middleware import limiter
-from api.middleware.workspace import require_workspace_principal
+from api.middleware.workspace import require_tenant_principal, require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
 from . import staff as care_staff
 from . import search as care_search
-from . import authz, audit, checkin_cycle, consent, history, onboarding, ops, personal, plans, push, reports, repository as repo, schemas, sos, visits
+from . import activity, authz, audit, checkin_cycle, consent, history, onboarding, ops, personal, plans, push, reports, repository as repo, schemas, sos, visits
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 # The two care routes anyone can call without signing in (the Twilio callback is the third,
@@ -40,6 +40,8 @@ PAIR_LIMIT = "10/minute"
 SIGNUP_LIMIT = "3/minute"
 # Workspace-wide search reads across everyone the caller may see: rationed per address.
 SEARCH_LIMIT = "30/minute"
+# The research pipeline is CPU work (about 10-20 ms a window, up to 297 windows a call).
+RESEARCH_LIMIT = "10/minute"
 
 router = APIRouter(prefix="/care", tags=["care"])
 logger = logging.getLogger("ira.care.routes")
@@ -402,11 +404,13 @@ async def device_me(d: tuple[Principal, dict] = Depends(require_device)):
         settings = await conn.fetchrow("SELECT * FROM care_safety_settings WHERE person_id = $1", device["person_id"])
         state = await sos.current(conn, device["person_id"])
         profile = await personal.get_profile(conn, device["person_id"])
+        activity_sharing = await activity.sharing_for_person(conn, device["person_id"])
     out = dict(device)
     out["fall"] = falls.watch_settings(dict(settings) if settings else {})
     out["readings"] = sos.watch_settings(dict(settings) if settings else {})
     out["sos"] = state
     out["profile"] = personal.watch_profile(profile)
+    out["activity"] = activity.device_settings(activity_sharing)
     return out
 
 
@@ -490,6 +494,20 @@ async def device_report(body: schemas.DeviceReport, d: tuple[Principal, dict] = 
     return await repo.record_report(principal, device, body.model_dump())
 
 
+@router.post("/devices/me/activity")
+async def device_activity(body: schemas.ActivityReport, d: tuple[Principal, dict] = Depends(require_device)):
+    """Hourly IRA Care Activity summaries from the watch (care/activity.py, D-084). Stored only
+    while the person's `activity_sharing` consent is granted; otherwise nothing is stored and the
+    answer says `sharing: false`. A summary that breaks the contract refuses the whole batch (422).
+    Never an alert: no safety rule runs here and none reads what is stored."""
+    principal, device = d
+    async with workspace_connection(principal) as conn:
+        try:
+            return await activity.record_periods(conn, device, [p.model_dump() for p in body.periods])
+        except activity.PeriodRefused as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
+
+
 @router.post("/devices/me/os-update")
 async def device_os_update(body: schemas.OsUpdateRequest, d: tuple[Principal, dict] = Depends(require_device)):
     """IRA CARE OS over-the-air update check (care/ota.py, E4.d). A paired watch only; never an
@@ -505,6 +523,89 @@ async def device_os_update(body: schemas.OsUpdateRequest, d: tuple[Principal, di
         signed = await ota.offer(conn, device_id=str(device["id"]), build_fingerprint=body.build_fingerprint,
                                  rollback_index=body.rollback_index, key=key)
     return {"update": signed}
+
+
+@router.post("/devices/me/admin-instructions")
+async def device_admin_instructions(d: tuple[Principal, dict] = Depends(require_device)):
+    """A paired watch collects the signed deployment-administrator instructions meant for it, and
+    the nonces it must no longer honour (care/deviceadmin.py, E2.o). The watch verifies each one
+    itself (DevicePolicy.kt) before acting; this route only hands over what was signed."""
+    from . import deviceadmin
+    principal, device = d
+    async with workspace_connection(principal) as conn:
+        return await deviceadmin.for_device(conn, device["id"])
+
+
+@router.post("/devices/me/admin-instructions/{instruction_id}/outcome")
+async def device_admin_instruction_outcome(instruction_id: uuid.UUID, body: schemas.DeviceInstructionOutcome,
+                                           d: tuple[Principal, dict] = Depends(require_device)):
+    """The watch reports what it did with one of its own instructions: applied, refused, restored."""
+    from . import deviceadmin
+    principal, device = d
+    try:
+        async with workspace_connection(principal) as conn:
+            return await deviceadmin.record_outcome(conn, device["id"], instruction_id, body.outcome, body.reason)
+    except deviceadmin.NotFound as exc:
+        raise _not_found(str(exc))
+    except deviceadmin.Conflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+
+
+# ── Deployment administrators (D-085): never a care workspace role ──────────────
+
+
+async def _deployment_admin(p: Principal = Depends(require_tenant_principal)) -> uuid.UUID:
+    from . import deviceadmin
+    try:
+        return await deviceadmin.require_deployment_admin(p)
+    except deviceadmin.NotDeploymentAdmin:
+        raise HTTPException(status_code=403, detail=deviceadmin.REFUSED)
+
+
+@router.post("/deployment-admin/device-instructions", status_code=201)
+async def issue_device_instruction(body: schemas.DeviceInstructionCreate,
+                                   admin_id: uuid.UUID = Depends(_deployment_admin)):
+    """Issue one signed instruction from the closed list to one paired watch (E2.o). A deployment
+    administrator only; at most 15 minutes; audited. No device-policy key configured means 503."""
+    from . import deviceadmin, devicepolicy
+    try:
+        key = devicepolicy.load_key()
+    except devicepolicy.KeyNotConfigured:
+        raise HTTPException(status_code=503, detail="Device instructions are not configured on this server.")
+    try:
+        return await deviceadmin.issue(admin_id=admin_id, tenant_id=body.tenant_id, workspace_id=body.workspace_id,
+                                       device_id=body.device_id, action=body.action, minutes=body.minutes,
+                                       reason=body.reason, key=key)
+    except deviceadmin.NotFound as exc:
+        raise _not_found(str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+
+@router.post("/deployment-admin/device-instructions/{instruction_id}/revoke")
+async def revoke_device_instruction(instruction_id: uuid.UUID, body: schemas.DeviceInstructionRevoke,
+                                    admin_id: uuid.UUID = Depends(_deployment_admin)):
+    from . import deviceadmin
+    try:
+        return await deviceadmin.revoke(admin_id=admin_id, tenant_id=body.tenant_id, workspace_id=body.workspace_id,
+                                        instruction_id=instruction_id, reason=body.reason)
+    except deviceadmin.NotFound as exc:
+        raise _not_found(str(exc))
+    except deviceadmin.Conflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+
+
+@router.get("/deployment-admin/device-instructions")
+async def device_instruction_history(tenant_id: uuid.UUID, workspace_id: uuid.UUID, device_id: uuid.UUID,
+                                     admin_id: uuid.UUID = Depends(_deployment_admin)):  # noqa: ARG001
+    """Every instruction for one watch with its audit trail (who issued or revoked it, when it
+    was delivered, what the watch did)."""
+    from . import deviceadmin
+    try:
+        return {"instructions": await deviceadmin.history(tenant_id=tenant_id, workspace_id=workspace_id,
+                                                          device_id=device_id)}
+    except deviceadmin.NotFound as exc:
+        raise _not_found(str(exc))
 
 
 @router.post("/devices/me/unpair")
@@ -729,6 +830,40 @@ async def visit_plan(since: Optional[dt.datetime] = Query(None), until: Optional
         raise HTTPException(status_code=422, detail="The window must be positive and at most 62 days.")
     async with workspace_connection(p) as conn:
         return await care_staff.visit_plan(conn, p, since=since, until=until, limit=limit)
+
+
+# ── Research mode: heart rate from raw PPG, never a person's reading (D-086) ──
+
+@router.get("/research/heart/samples")
+async def research_heart_samples(p: Principal = Depends(require_workspace_principal)):
+    """The built-in research recordings and simulations. Care managers only."""
+    ensure_can_manage(p)
+    from . import heart_research
+    return {"notice": heart_research.NOTICE, "samples": heart_research.list_samples()}
+
+
+@router.post("/research/heart/run")
+@limiter.limit(RESEARCH_LIMIT)
+async def research_heart_run(request: Request, body: schemas.ResearchHeartRun,
+                             p: Principal = Depends(require_workspace_principal)):
+    """Run the research heart-rate pipeline on a built-in sample or an uploaded recording, and
+    return the result. Care managers only. It takes no person, opens no database connection
+    and stores nothing: a research result is never a reading and never reaches an alert rule."""
+    ensure_can_manage(p)
+    from starlette.concurrency import run_in_threadpool
+
+    from . import heart_research
+    try:
+        rec = (heart_research.load_sample(body.sample) if body.sample is not None
+               else heart_research.validate_recording(body.recording.model_dump(exclude_none=True)))
+    except KeyError:
+        raise _not_found("No research sample by that name.") from None
+    except heart_research.ContractError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from None
+    result = await run_in_threadpool(heart_research.run, rec, use_learned=body.use_learned)
+    logger.info("heart research run: workspace=%s source=%s windows=%d", p.workspace_id, result.source,
+                len(result.windows))
+    return result.to_dict()
 
 
 @router.get("/staff")
@@ -1016,6 +1151,23 @@ async def get_vitals(
         await audit.record_access(conn, p, person_id=person_id, resource_kind="vitals",
                                   detail={"kind": kind, "rows": len(rows)})
     return {"vitals": rows, "count": len(rows)}
+
+
+@router.get("/people/{person_id}/activity", dependencies=[Depends(person_guard)])
+async def get_activity(person_id: uuid.UUID, days: int = Query(7, ge=1, le=31), weeks: int = Query(4, ge=1, le=8),
+                       p: Principal = Depends(require_workspace_principal)):
+    """Daily and weekly activity trend, estimated from the watch's motion sensor; not a
+    measurement of health. Minutes active, still, other arm movement, and unknown or unavailable.
+    Only while the person's `activity_sharing` consent is granted; the read is logged."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        person = await conn.fetchrow("SELECT id, timezone FROM care_people WHERE id = $1", person_id)
+        if person is None:
+            raise _not_found("Person not found.")
+        out = await activity.summary_for(conn, dict(person), days=days, weeks=weeks)
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="vitals",
+                                  detail={"activity": True, "days": days, "weeks": weeks, "sharing": out["sharing"]})
+    return out
 
 
 @router.get("/people/{person_id}/checkins", dependencies=[Depends(person_guard)])

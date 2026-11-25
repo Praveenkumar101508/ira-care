@@ -1,7 +1,7 @@
 {
   "phase": "3B batch 0/1",
   "schema_version": 1,
-  "table_count": 157,
+  "table_count": 161,
   "tables": {
     "access_audit_log": {
       "access": {
@@ -1630,6 +1630,81 @@
         "update": "DENIED (no UPDATE policy)"
       }
     },
+    "care_activity_periods": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/retention.py"
+        ],
+        "delete_call_sites": [
+          "supracloud-jarvis/ira/care/retention.py"
+        ],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/activity.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/activity.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_activity_periods:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 15,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 3,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Hourly IRA Care Activity estimates from the watch (121, D-084): seconds per label (the model's classes, unknown, unavailable), seconds per reason, window count, model version and SHA-256, and source (device or simulated). Summaries only, no window or sample. Stored only under the person's activity_sharing consent, checked on arrival. Kept apart from care_vitals so that no safety rule, escalation or alert reads it. Insert-only for the runtime (SELECT, INSERT, DELETE; no UPDATE); removed by retention, with the person and with the tenant. Every read is written to care_access_log. Belongs to the person cared for.",
+      "migration": {
+        "done_by": "121_care_activity.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_activity_periods/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "DENIED (no UPDATE policy)"
+      }
+    },
     "care_alert_attempt_events": {
       "access": {
         "background_worker_call_sites": [
@@ -2295,6 +2370,148 @@
         "application_role_bypassrls": false,
         "background_worker": "sets the same GUCs via core/identity/background.py",
         "delete": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
+      }
+    },
+    "care_device_admin_events": {
+      "access": {
+        "background_worker_call_sites": [],
+        "delete_call_sites": [],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/deviceadmin.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/deviceadmin.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_device_admin_events:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 9,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 2,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": true,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "with its instruction (ON DELETE CASCADE), the watch or the tenant; the runtime holds no UPDATE or DELETE",
+        "legal_hold": "n/a",
+        "membership_removal": "unaffected: rows belong to the watch, not to a member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: actor_id is an account or device id kept without a foreign key; no name or address is stored",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: a signed instruction is not a secret (it is useless to any other watch and after its expiry); no key material, no biometric data"
+      },
+      "justification": "E2.o, D-085. The audit trail of deployment-administrator instructions (122): one row per event (issued, delivered, revoked, applied, refused, restored), the actor (a deployment administrator's account id or the watch's device id), a bounded detail and the time. Insert-only for the runtime.",
+      "migration": {
+        "done_by": "122_device_admin_instructions.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_device_admin_events/",
+      "retention": "with the watch; the audit of who acted is kept as long as the watch is enrolled",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "no DELETE policy and no DELETE grant: refused for the runtime; rows go only by ON DELETE CASCADE",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "no UPDATE policy and no UPDATE grant: insert-only for the runtime"
+      }
+    },
+    "care_device_admin_instructions": {
+      "access": {
+        "background_worker_call_sites": [],
+        "delete_call_sites": [],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/deviceadmin.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/deviceadmin.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_device_admin_instructions:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 19,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 3,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": true,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "with the watch (ON DELETE CASCADE from care_devices, which goes with the person cared for) or the tenant; the runtime holds no DELETE",
+        "legal_hold": "n/a",
+        "membership_removal": "unaffected: rows belong to the watch, not to a member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: issued_by and revoked_by are account ids kept without a foreign key, so the record of who acted outlives the account; no name or address is stored",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: a signed instruction is not a secret (it is useless to any other watch and after its expiry); no key material, no biometric data"
+      },
+      "justification": "E2.o, D-085. One deployment-administrator instruction for one watch (122): an action from a closed list (MAINTENANCE_WINDOW, RESTORE_RESTRICTIONS, FACTORY_RESET), its single-use nonce, issue and expiry at most 15 minutes apart, the signed payload and signature, who issued it and why, and whether it was delivered, revoked, applied, refused or restored. Workspace-scoped so a watch collects only its own workspace's rows; the signed columns cannot be changed (trigger) and a revocation cannot be undone.",
+      "migration": {
+        "done_by": "122_device_admin_instructions.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_device_admin_instructions/",
+      "retention": "with the watch; the audit of who acted is kept as long as the watch is enrolled",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "no DELETE policy and no DELETE grant: refused for the runtime; rows go only by ON DELETE CASCADE",
         "force": true,
         "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
         "required": true,
@@ -5610,6 +5827,67 @@
         ],
         "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
         "update": "tenant_id = current_setting('app.tenant_id', true)::uuid"
+      }
+    },
+    "deployment_administrators": {
+      "access": {
+        "background_worker_call_sites": [],
+        "delete_call_sites": [],
+        "non_test_code_files": 3,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/deviceadmin.py",
+          "supracloud-jarvis/ira/scripts/deployment_admin.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/scripts/deployment_admin.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:platform:deployment_administrators:{key}",
+      "classification": "PLATFORM_GLOBAL",
+      "current": {
+        "column_count": 5,
+        "has_tenant_id": false,
+        "has_user_id": true,
+        "has_workspace_id": false,
+        "policy_count": 2,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": false,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "platform operation only (scripts/deployment_admin.py); a revoked grant is kept as history",
+        "legal_hold": "n/a",
+        "membership_removal": "unaffected: the grant is deployment-wide, not a tenant membership",
+        "tenant_deletion": "unaffected",
+        "user_deletion": "HARD DELETE by ON DELETE CASCADE from users",
+        "workspace_deletion": "unaffected"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: an account id, an operator's label and two times; no secret, biometric or customer material"
+      },
+      "justification": "E2.o, D-085. Who may issue device-policy instructions to watches: an account id with a live grant, an operator's label, when it was granted and revoked (122). Deployment-wide because a deployment administrator looks after the fleet, not one care organisation; no care workspace role, tenant role or the deployment-owner flag implies a row. Granted and revoked only by the operator with the migrator's credentials (scripts/deployment_admin.py).",
+      "migration": {
+        "done_by": "122_device_admin_instructions.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "platform/deployment_administrators/",
+      "retention": "indefinite (platform data); revoked grants kept as history",
+      "rls": {
+        "policy": "SELECT USING (user_id = app.user_id OR revoked_at IS NOT NULL); FOR ALL TO ira_schema_owner (the migrator's SET ROLE) for writes; no write policy for ira_app or ira_worker, so their writes match nothing and are refused",
+        "reason": "A WRITE LOCK and a READ LIMIT, not tenant isolation. The runtime must never write a grant, or any compromised request path could make its caller a deployment administrator; expressed as RLS rather than only a REVOKE because the provisioning step would hand a revoke straight back (R-47), and tests/tenancy/test_device_admin_db.py grants ira_app ALL and shows the write still refused. A live grant is readable only on a connection bound to its own account, so the runtime can ask 'is this caller an administrator' and cannot list who is; revoked grants are readable everywhere so a watch's connection can withdraw what a revoked administrator issued.",
+        "required": true
       }
     },
     "edges": {

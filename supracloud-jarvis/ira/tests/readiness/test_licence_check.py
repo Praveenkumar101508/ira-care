@@ -151,7 +151,10 @@ def _inventory() -> dict:
 
 
 def _exceptions() -> list[dict]:
-    return lc.load_exceptions()
+    """The exceptions for the inventory's own ecosystems. Exceptions for what only the built
+    artefacts contain (image-*, native-libraries, os-linked) are checked against the image
+    snapshots by tests/readiness/test_supply_chain.py."""
+    return [x for x in lc.load_exceptions() if x["ecosystem"] in lc.ECOSYSTEMS]
 
 
 def _fake(eco: str, name: str, declared: str) -> tuple[str, dict]:
@@ -171,6 +174,8 @@ def test_the_inventory_covers_every_ecosystem_it_claims():
     assert any(k.startswith("next@") for k in inv["ecosystems"]["npm-dashboard"]["packages"])
     assert any(k.startswith("react-native@") for k in inv["ecosystems"]["npm-mobile"]["packages"])
     assert any(k.startswith("fastapi@") for k in inv["ecosystems"]["python"]["packages"])
+    assert any(k.startswith("org.tensorflow:tensorflow-lite@")
+               for k in inv["ecosystems"]["gradle-watch"]["packages"])
 
 
 def test_the_inventory_is_written_deterministically():
@@ -332,12 +337,18 @@ def _areas_for(changed: str) -> dict[str, str]:
 
 
 @pytest.mark.parametrize("changed", ["scripts/licence_check.py", "docs/security/LICENCES.json",
-                                     "docs/security/licence_exceptions.json"])
+                                     "docs/security/licence_exceptions.json",
+                                     "scripts/supply_chain.py",
+                                     "docs/security/native_libraries.json",
+                                     "docs/security/sbom/api-image.inventory.json",
+                                     "docs/legal/notices/watch-wearos.txt"])
 def test_a_change_to_the_check_runs_the_jobs_that_run_it(changed):
     areas = _areas_for(changed)
-    assert areas["mobile"] == areas["dashboard"] == areas["backend"] == "true", areas
+    assert areas["mobile"] == areas["dashboard"] == areas["backend"] == areas["watch"] == "true", \
+        areas
 
 
-def test_negative_control_an_unrelated_document_runs_no_app_job():
-    assert _areas_for("docs/security/REVIEW.md") == {
+@pytest.mark.parametrize("doc", ["docs/security/REVIEW.md", "docs/legal/PRIVACY_POLICY.md"])
+def test_negative_control_an_unrelated_document_runs_no_app_job(doc):
+    assert _areas_for(doc) == {
         "backend": "false", "watch": "false", "mobile": "false", "dashboard": "false"}

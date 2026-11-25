@@ -4,10 +4,22 @@
 #
 #   grep -v -- "--extra-index-url" requirements.txt \
 #     | grep -v "^torch==\|^torchaudio==" > /tmp/req-pypi.txt
-#   uv pip compile /tmp/req-pypi.txt --generate-hashes -p 3.12 -o requirements.lock
+#   grep -E "^[A-Za-z]" requirements-nodeps.txt | sed "s/ *\\\\$//" >> /tmp/req-pypi.txt
+#   printf 'av ; sys_platform == "never"\n' > /tmp/no-pyav-override.txt
+#   uv pip compile /tmp/req-pypi.txt --override /tmp/no-pyav-override.txt \
+#     --generate-hashes -p 3.12 -o requirements.lock
 #   python scripts/strip_torch_subtree.py     # FINDING AM — see below
 #   python scripts/reconcile_locks.py         # FINDING AN — see below
 #   python scripts/build_licence_inventory.py # keeps the licence answer current
+#
+# Install it with `--no-deps --require-hashes`: the lock is the whole tree.
+#
+# The override removes PyAV (`av`), which faster-whisper declares as a hard dependency: an
+# override whose marker never matches drops the requirement from the resolution. PyAV's
+# wheels bundle FFmpeg built with the GPL encoders libx264 and libx265, and the owner decided
+# it does not ship (docs/security/LICENCES.md). IRA decodes audio itself and imports
+# faster-whisper without it (voice/audio_decode.py, voice/whisper_engine.py).
+# tests/architecture/test_no_pyav.py fails if `av` comes back into this file.
 #
 # The last three steps are not optional tidying. Skipping any of them fails
 # `scripts/check_dependency_gates.py` or `scripts/check_torch_supply_chain.py`.

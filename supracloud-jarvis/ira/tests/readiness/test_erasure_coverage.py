@@ -158,11 +158,25 @@ EXEMPT: dict[str, str] = {
         "IRA CARE (109): one planned visit by a carer to the PERSON CARED FOR, with what happened. Belongs to "
         "the person, not to an account; a member's or creator's user link is ON DELETE SET NULL. Removed by the "
         "care package's per-person erasure and, when the TENANT is deleted, by ON DELETE CASCADE.",
+    "care_device_admin_instructions":
+        "IRA CARE OS (122): a deployment administrator's signed instruction to one WATCH, with what became of "
+        "it. Belongs to the watch, not to an account: issued_by and revoked_by are account ids kept without a "
+        "foreign key so the record of who acted outlives the account. Removed with the watch (ON DELETE CASCADE "
+        "from care_devices, so by the care package's per-person erasure) and, with the TENANT, by ON DELETE CASCADE.",
+    "care_device_admin_events":
+        "IRA CARE OS (122): the audit trail of a deployment administrator's instructions to one WATCH (issued, "
+        "delivered, revoked, applied, refused, restored). Removed with its instruction, the watch and, with the "
+        "TENANT, by ON DELETE CASCADE.",
     "care_staff_designations":
         "IRA CARE (117): a care manager naming an ACCOUNT coordinator (D-081). Deleted by account erasure "
         "through the care-specific step in erase_postgres (by user_id, inside each workspace pass), by ON "
         "DELETE CASCADE from users, and with the TENANT. Listed here rather than in SUBJECT_TABLES because "
         "the generic tenant-wide DELETE would take every coordinator's designation, not this account's.",
+    "care_activity_periods":
+        "IRA CARE (121): hourly activity estimates from the PERSON CARED FOR's watch, sent under their "
+        "activity_sharing consent (D-084). Belongs to the person, not to an account; the device link is ON DELETE "
+        "SET NULL. Removed with the person by the care package's per-person erasure (ON DELETE CASCADE from "
+        "care_people), by the retention purge, and when the TENANT is deleted, by ON DELETE CASCADE.",
     "care_plans":
         "IRA CARE (116): the versioned care plan of the PERSON CARED FOR, insert-only. Belongs to the person, not to "
         "an account; the author's user link is ON DELETE SET NULL. Removed with the person by the care package's "
@@ -566,7 +580,7 @@ TENANT_LIFECYCLE_EXEMPT: frozenset[str] = frozenset({
     "care_conversation_memory", "care_device_events", "care_push_tokens", "care_push_tickets",
     "care_visits", "care_visit_tasks", "care_communication_profiles", "care_reminders", "care_user_preferences",
     "care_medication_event_corrections", "care_alert_dispatch", "care_alert_attempt_events",
-    "care_staff_designations",
+    "care_staff_designations", "care_activity_periods", "care_device_admin_instructions", "care_device_admin_events",
 })
 
 

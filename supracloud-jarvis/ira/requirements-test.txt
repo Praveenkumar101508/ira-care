@@ -72,13 +72,21 @@ python-docx==1.1.2               # MUST match requirements.txt
 python-pptx==1.0.2               # MUST match requirements.txt
 openpyxl==3.1.5                  # MUST match requirements.txt
 
-# Local speech-to-text. tests/test_native_stt.py decodes real audio through
-# faster_whisper.audio.decode_audio — the call PyAV 19 broke — and checks the
-# Whisper fetch is pinned. Without these installed that suite skips, and a guard
-# that only ever skips in CI is a guard that never ran. No torch: faster-whisper
+# Local speech-to-text. tests/test_native_stt.py and tests/test_audio_decode.py run IRA's
+# own decoder (voice/audio_decode.py) and load faster-whisper through
+# voice/whisper_engine.py, with PyAV absent. faster-whisper itself is NOT here: it declares
+# PyAV (`av`) as a hard dependency, so it is installed afterwards with
+#   pip install --no-deps --require-hashes -r requirements-nodeps.txt
+# (see that file and docs/security/LICENCES.md). These are its other dependencies, with the
+# ranges faster-whisper 1.2.1 itself declares, so this tree resolves as it did when pip
+# pulled them in; the API image adds onnxruntime 1.20.1 and tokenizers 0.21.0 on the same
+# pip command line (deploy/Dockerfile.api), inside these ranges. No torch: faster-whisper
 # runs on CTranslate2. No model is downloaded by the suite.
-faster-whisper==1.2.1            # MUST match requirements.txt
-av==18.1.0                       # MUST match requirements.txt — PyAV 19 removed av.open(metadata_errors=)
+ctranslate2==4.8.3               # MUST match requirements.txt — the Whisper inference engine
+huggingface-hub>=0.21
+tokenizers>=0.13,<1
+onnxruntime>=1.14,<2
+tqdm
 
 # OpenTelemetry (telemetry.py unit tests)
 opentelemetry-api==1.45.2

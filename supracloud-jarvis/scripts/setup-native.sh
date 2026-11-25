@@ -277,6 +277,9 @@ else
     "$VENV/bin/python" -m pip install --quiet --upgrade pip
     "$VENV/bin/python" -m pip install --quiet -r "$ROOT/ira/requirements.txt" \
         || die "pip install failed — see the error above"
+    # faster-whisper without PyAV (GPL encoders inside its FFmpeg); see that file.
+    "$VENV/bin/python" -m pip install --quiet --no-deps --require-hashes -r "$ROOT/ira/requirements-nodeps.txt" \
+        || die "pip install failed — see the error above"
     ok "backend dependencies installed into .venv"
     # The embedder is used on the first chat; caching it now avoids a silent
     # 1.3 GB download at that moment. Fails soft: it downloads on first use.

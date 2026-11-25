@@ -260,6 +260,8 @@ if (-not $SkipDeps) {
         $pip = Join-Path $venv "Scripts\pip.exe"
         & $pip install --upgrade pip
         & $pip install -r (Join-Path $ProjectRoot "ira\requirements.txt")
+        # faster-whisper without PyAV (GPL encoders inside its FFmpeg); see that file.
+        & $pip install --no-deps --require-hashes -r (Join-Path $ProjectRoot "ira\requirements-nodeps.txt")
         Write-Ok "Python deps installed into .venv"
 
         # A7: pre-download the CPU models so the first chat doesn't stall on a
