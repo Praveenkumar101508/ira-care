@@ -25,7 +25,7 @@ from fastapi.encoders import jsonable_encoder
 
 from api.middleware.auth import require_auth
 from app.middleware import limiter
-from api.middleware.workspace import require_workspace_principal
+from api.middleware.workspace import require_tenant_principal, require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
@@ -505,6 +505,89 @@ async def device_os_update(body: schemas.OsUpdateRequest, d: tuple[Principal, di
         signed = await ota.offer(conn, device_id=str(device["id"]), build_fingerprint=body.build_fingerprint,
                                  rollback_index=body.rollback_index, key=key)
     return {"update": signed}
+
+
+@router.post("/devices/me/admin-instructions")
+async def device_admin_instructions(d: tuple[Principal, dict] = Depends(require_device)):
+    """A paired watch collects the signed deployment-administrator instructions meant for it, and
+    the nonces it must no longer honour (care/deviceadmin.py, E2.o). The watch verifies each one
+    itself (DevicePolicy.kt) before acting; this route only hands over what was signed."""
+    from . import deviceadmin
+    principal, device = d
+    async with workspace_connection(principal) as conn:
+        return await deviceadmin.for_device(conn, device["id"])
+
+
+@router.post("/devices/me/admin-instructions/{instruction_id}/outcome")
+async def device_admin_instruction_outcome(instruction_id: uuid.UUID, body: schemas.DeviceInstructionOutcome,
+                                           d: tuple[Principal, dict] = Depends(require_device)):
+    """The watch reports what it did with one of its own instructions: applied, refused, restored."""
+    from . import deviceadmin
+    principal, device = d
+    try:
+        async with workspace_connection(principal) as conn:
+            return await deviceadmin.record_outcome(conn, device["id"], instruction_id, body.outcome, body.reason)
+    except deviceadmin.NotFound as exc:
+        raise _not_found(str(exc))
+    except deviceadmin.Conflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+
+
+# ── Deployment administrators (D-082): never a care workspace role ──────────────
+
+
+async def _deployment_admin(p: Principal = Depends(require_tenant_principal)) -> uuid.UUID:
+    from . import deviceadmin
+    try:
+        return await deviceadmin.require_deployment_admin(p)
+    except deviceadmin.NotDeploymentAdmin:
+        raise HTTPException(status_code=403, detail=deviceadmin.REFUSED)
+
+
+@router.post("/deployment-admin/device-instructions", status_code=201)
+async def issue_device_instruction(body: schemas.DeviceInstructionCreate,
+                                   admin_id: uuid.UUID = Depends(_deployment_admin)):
+    """Issue one signed instruction from the closed list to one paired watch (E2.o). A deployment
+    administrator only; at most 15 minutes; audited. No device-policy key configured means 503."""
+    from . import deviceadmin, devicepolicy
+    try:
+        key = devicepolicy.load_key()
+    except devicepolicy.KeyNotConfigured:
+        raise HTTPException(status_code=503, detail="Device instructions are not configured on this server.")
+    try:
+        return await deviceadmin.issue(admin_id=admin_id, tenant_id=body.tenant_id, workspace_id=body.workspace_id,
+                                       device_id=body.device_id, action=body.action, minutes=body.minutes,
+                                       reason=body.reason, key=key)
+    except deviceadmin.NotFound as exc:
+        raise _not_found(str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+
+@router.post("/deployment-admin/device-instructions/{instruction_id}/revoke")
+async def revoke_device_instruction(instruction_id: uuid.UUID, body: schemas.DeviceInstructionRevoke,
+                                    admin_id: uuid.UUID = Depends(_deployment_admin)):
+    from . import deviceadmin
+    try:
+        return await deviceadmin.revoke(admin_id=admin_id, tenant_id=body.tenant_id, workspace_id=body.workspace_id,
+                                        instruction_id=instruction_id, reason=body.reason)
+    except deviceadmin.NotFound as exc:
+        raise _not_found(str(exc))
+    except deviceadmin.Conflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+
+
+@router.get("/deployment-admin/device-instructions")
+async def device_instruction_history(tenant_id: uuid.UUID, workspace_id: uuid.UUID, device_id: uuid.UUID,
+                                     admin_id: uuid.UUID = Depends(_deployment_admin)):  # noqa: ARG001
+    """Every instruction for one watch with its audit trail (who issued or revoked it, when it
+    was delivered, what the watch did)."""
+    from . import deviceadmin
+    try:
+        return {"instructions": await deviceadmin.history(tenant_id=tenant_id, workspace_id=workspace_id,
+                                                          device_id=device_id)}
+    except deviceadmin.NotFound as exc:
+        raise _not_found(str(exc))
 
 
 @router.post("/devices/me/unpair")

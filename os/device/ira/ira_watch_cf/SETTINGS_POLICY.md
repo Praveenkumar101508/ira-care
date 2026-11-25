@@ -8,8 +8,9 @@
 component registers it: becoming device owner is provisioning (E4.f), which needs an image.
 The server signs administrator instructions with `supracloud-jarvis/ira/care/devicepolicy.py`
 (ECDSA P-256, one device, at most 15 minutes, single-use); a cross-language fixture proves the
-watch accepts exactly what the server signs. Not built: an administrator route that issues
-instructions (it needs a deployment-administrator role a care workspace role must never imply).
+watch accepts exactly what the server signs. A deployment administrator (D-082, never a care
+workspace role) issues, revokes and audits them through `/api/v1/care/deployment-admin/...`
+(`care/deviceadmin.py`, migration 121); the whole workflow is in `docs/os/DEVICE_POLICY.md`.
 
 The person wearing the watch should never land somewhere that can break it: developer
 options, factory reset, safe-mode boot, or a settings page with no way back. A carer or an
@@ -46,13 +47,15 @@ person talks to). The proposal:
    is part of E4 (provisioning; `docs/os/ARCHITECTURE.md`).
 3. It sets `DISALLOW_DEBUGGING_FEATURES`, `DISALLOW_FACTORY_RESET`, `DISALLOW_SAFE_BOOT`,
    keeps the keyguard disabled, and lifts a restriction only on a signed instruction from the
-   IRA server issued by an administrator (the server already authenticates the watch with its
-   device token).
-4. A factory reset by an administrator goes through the same signed instruction
-   (`DevicePolicyManager.wipeData`), and is recorded in the audit log.
+   IRA server issued by a deployment administrator (the server already authenticates the watch
+   with its device token): `MAINTENANCE_WINDOW` (developer options, at most 15 minutes, restored
+   by itself at expiry and at every start), `RESTORE_RESTRICTIONS`, and nothing else.
+4. A factory reset by a deployment administrator goes through the same signed instruction
+   (`FACTORY_RESET`, `DevicePolicyManager.wipeData`), and is recorded in the audit trail
+   (`care_device_admin_events`).
 
-The logic and the wrapper exist (above); the separate device-owner app shell and its provisioning
-do not. Recorded in `docs/progress/COMPLETION_REGISTER.md` (rows E2, E4).
+The logic, the wrapper and the server workflow exist (above); the separate device-owner app shell,
+the timer and boot receiver that call the policy, and its provisioning do not. Recorded in `docs/progress/COMPLETION_REGISTER.md` (rows E2, E4).
 
 ## Keeping emergency features on top
 

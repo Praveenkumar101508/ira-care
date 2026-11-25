@@ -88,6 +88,10 @@ WORKSPACE_SCOPED = (
     "care_plans",
     # 117: SELECT, INSERT and DELETE granted; no UPDATE, which the UPDATE probe accepts.
     "care_staff_designations",
+    # 121: instructions are SELECT, INSERT, UPDATE (no DELETE); the audit trail SELECT and INSERT
+    # only. The UPDATE and DELETE probes accept the refusal.
+    "care_device_admin_instructions",
+    "care_device_admin_events",
 )
 
 
@@ -188,6 +192,12 @@ SPECS: dict[str, Spec] = {
     "care_push_tickets": Spec(parents=(("care_alerts", "alert_id"),)),
     "care_plans": Spec(columns={"version": "int", "reason": "text"}, parents=(("care_people", "person_id"),)),
     "care_staff_designations": Spec(columns={"user_id": "user", "designation": "literal:coordinator"}),
+    "care_device_admin_instructions": Spec(
+        columns={"action": "literal:MAINTENANCE_WINDOW", "nonce": "text", "expires_at": "soon", "issued_by": "uuid",
+                 "reason": "text", "payload": "text", "signature": "text", "key_id": "text"},
+        parents=(("care_devices", "device_id"),)),
+    "care_device_admin_events": Spec(columns={"event": "literal:issued", "actor_kind": "literal:device", "actor_id": "uuid"},
+                                     parents=(("care_device_admin_instructions", "instruction_id"),)),
     "care_visits": Spec(columns={"planned_start": "now", "planned_end": "later"}, parents=(("care_people", "person_id"),)),
     "care_visit_tasks": Spec(columns={"title": "text"}, parents=(("care_visits", "visit_id"),)),
     "care_communication_profiles": Spec(parents=(("care_people", "person_id"),)),
@@ -233,6 +243,8 @@ def _value(kind: str, run: str, handle, actor):
         return "__now__"
     if kind == "later":
         return "__later__"
+    if kind == "soon":
+        return "__soon__"
     if kind == "bool":
         return True
     if kind == "date":
@@ -274,6 +286,9 @@ async def _insert(conn, table: str, run: str, actor, *, handle=None, extra=None)
             continue
         if value == "__later__":
             vals.append("now() + interval '1 hour'")
+            continue
+        if value == "__soon__":  # inside a bounded window (121: at most 15 minutes)
+            vals.append("now() + interval '10 minutes'")
             continue
         params.append(value)
         vals.append(f"${len(params)}"

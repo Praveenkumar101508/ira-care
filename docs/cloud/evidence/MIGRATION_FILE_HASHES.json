@@ -611,6 +611,11 @@
    "sha256": "db7dfff38f670f0216e10a98644a4aa78f76b3e75a87f184837d0a5fbccde148",
    "status": "applied"
   },
+  "121_device_admin_instructions.sql": {
+   "migration_number": 121,
+   "sha256": "ad7d9c96be946fb3861e22049e94e412ad5a8ffcf92b73646389df902e5ce7cf",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",
