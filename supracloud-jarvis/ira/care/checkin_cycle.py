@@ -412,8 +412,12 @@ async def mark_repeated(principal: Principal, device: dict, checkin_id: uuid.UUI
     return _public_checkin(dict(row)) if row else None
 
 
+class ChoiceNotAllowed(ValueError):
+    """A reminder's button was sent for a check-in that does not ask about a reminder."""
+
+
 async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUID, text: str, *,
-                        via: str = "voice", now: Optional[dt.datetime] = None) -> Optional[dict]:
+                        via: str = "voice", now: Optional[dt.datetime] = None, choice: Optional[str] = None) -> Optional[dict]:
     """Store the answer: words, summary, transcript, and a medication event if
     the question was about a dose. Returns the check-in, with what was read
     from the answer, or None if there is no such open check-in."""
@@ -425,6 +429,9 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
             checkin_id, person_id)
         if row is None:
             return None
+        if choice is not None and row["reminder_id"] is None:
+            # "Done" means nothing to "How are you?" or "Are you OK?": only a reminder has buttons.
+            raise ChoiceNotAllowed("a reminder's choice was sent for a check-in that is not a reminder")
         subject = None
         med = None
         others: tuple = ()
@@ -459,7 +466,7 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
         reminder_result = None
         if row["reminder_id"] is not None:
             from . import personal
-            reminder_result = await personal.apply_answer(conn, dict(row), text, now)
+            reminder_result = await personal.apply_answer(conn, dict(row), text, now, choice=choice)
             if reminder_result is not None:
                 said = reminder_result["said"]
                 what = reminder_result["reminder"].get("text") or "the reminder"
@@ -467,6 +474,8 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
                          "skip": f"Said not today to {what}.", "unclear": f"Answer about {what} was unclear."}[said]
                 if reminder_result["next"] == "confirm":
                     words = f"Said yes to {what}; asked once more to be sure."
+                if choice is not None:
+                    words = f"Pressed {dict(done='Done', later='Later', skip='Not today')[choice]} on the watch. {words}"
                 reading = rules.AnswerReading(summary=words, said="yes" if said == "yes" else "no" if said == "skip" else "unclear",
                                               signals=reading.signals, asked_for_help=reading.asked_for_help)
         row = await conn.fetchrow(

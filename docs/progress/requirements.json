@@ -1094,8 +1094,17 @@
    "title": "Watch reminders and routines shown and answered on the wrist",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/checkin/ReminderButtonsTest.kt"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_reminder_buttons_db.py"
+    }
+   ]
   },
   {
    "id": "D1.i",

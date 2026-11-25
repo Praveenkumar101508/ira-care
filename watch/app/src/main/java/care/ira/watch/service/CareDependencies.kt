@@ -63,6 +63,8 @@ data class WatchStatus(
     val fallCountdown: Int? = null,
     /** A "Talk to IRA" exchange is in progress. */
     val talking: Boolean = false,
+    /** The open question is a reminder of this kind: the screen shows its buttons (ReminderButtons). */
+    val reminderKind: String? = null,
 )
 
 /**

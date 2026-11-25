@@ -360,8 +360,13 @@ def read_reminder_answer(text: str, kind: str = "medication", *, subject: Option
     return "unclear"
 
 
-async def apply_answer(conn, checkin: dict, text: str, now: dt.datetime) -> Optional[dict]:
-    """The person answered a reminder's question. Two steps for a dose."""
+#: A reminder's button on the wrist, and what it says. A button is as clear as words get, but a
+#: dose still takes two: "Done" on a medication asks once more before anything is written down.
+CHOICE_SAID = {"done": "yes", "later": "later", "skip": "skip"}
+
+
+async def apply_answer(conn, checkin: dict, text: str, now: dt.datetime, *, choice: Optional[str] = None) -> Optional[dict]:
+    """The person answered a reminder's question, in words or with a button. Two steps for a dose."""
     reminder = await conn.fetchrow("SELECT * FROM care_reminders WHERE id = $1", checkin["reminder_id"])
     if reminder is None:
         return None
@@ -371,7 +376,8 @@ async def apply_answer(conn, checkin: dict, text: str, now: dt.datetime) -> Opti
         meds = await conn.fetch("SELECT id, name FROM care_medications WHERE person_id = $1 AND active", reminder["person_id"])
         subject = next((m["name"] for m in meds if reminder.get("medication_id") and m["id"] == reminder["medication_id"]), None)
         others = tuple(m["name"] for m in meds)
-    said = read_reminder_answer(text, reminder["kind"], subject=subject or reminder.get("text"), other_medications=others)
+    said = CHOICE_SAID[choice] if choice else read_reminder_answer(
+        text, reminder["kind"], subject=subject or reminder.get("text"), other_medications=others)
     if reminder["status"] in ("confirmed", "skipped", "cancelled", "missed"):
         return {"reminder": _public(reminder), "said": said, "next": "nothing"}
     nxt = "nothing"

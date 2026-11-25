@@ -17,7 +17,9 @@ class AccessibilityTest {
     fun `every home screen button has a content description`() {
         val home = source.substringAfter("fun HomeScreen(")
         val buttons = Regex("Button\\(").findAll(home).count()
-        val described = Regex("contentDescription = \"").findAll(home).count()
+        // A literal, or a description carried by the choice itself (ReminderChoice.description,
+        // proved non-empty for every choice in ReminderButtonsTest).
+        val described = Regex("contentDescription = (\"|choice\\.description)").findAll(home).count()
         assertTrue("buttons=$buttons described=$described", buttons >= 3 && described >= buttons)
     }
 

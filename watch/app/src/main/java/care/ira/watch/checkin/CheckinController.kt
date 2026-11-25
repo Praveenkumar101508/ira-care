@@ -26,8 +26,10 @@ class CheckinController(
 ) {
     sealed class State {
         object Idle : State()
-        data class Asking(val checkinId: String, val question: String, val askedAt: Long, val safety: Boolean = false) : State()
-        data class Repeating(val checkinId: String, val question: String, val repeatedAt: Long, val safety: Boolean = false) : State()
+        data class Asking(val checkinId: String, val question: String, val askedAt: Long, val safety: Boolean = false,
+                          val reminderKind: String? = null) : State()
+        data class Repeating(val checkinId: String, val question: String, val repeatedAt: Long, val safety: Boolean = false,
+                             val reminderKind: String? = null) : State()
         data class Answered(val checkinId: String, val text: String, val via: String) : State()
         data class Missed(val checkinId: String) : State()
     }
@@ -37,7 +39,8 @@ class CheckinController(
         object Vibrate : Action()
         object Listen : Action()
         data class ReportRepeated(val checkinId: String) : Action()
-        data class ReportAnswer(val checkinId: String, val text: String, val via: String) : Action()
+        /** `choice` is a reminder's button ("done", "later", "skip"); null for words or "I'm OK". */
+        data class ReportAnswer(val checkinId: String, val text: String, val via: String, val choice: String? = null) : Action()
         data class ReportMissed(val checkinId: String) : Action()
         data class RequestHelp(val via: String) : Action()
         object Nothing : Action()
@@ -59,9 +62,13 @@ class CheckinController(
         missAfterMs = if (this.repeats == 0) repeatAfterMs * 2 else 120_000L
     }
 
-    /** A check-in came due: speak it and listen. A safety question vibrates first and is spoken loud. */
-    fun ask(checkinId: String, question: String, safety: Boolean = false): List<Action> {
-        state = State.Asking(checkinId, question, clock.nowMillis(), safety)
+    /**
+     * A check-in came due: speak it and listen. A safety question vibrates first and is spoken loud.
+     * `reminderKind` is set when the question is a reminder (the server sent its `reminder_id`):
+     * the screen then shows the reminder's buttons (ReminderButtons).
+     */
+    fun ask(checkinId: String, question: String, safety: Boolean = false, reminderKind: String? = null): List<Action> {
+        state = State.Asking(checkinId, question, clock.nowMillis(), safety, if (safety) null else reminderKind)
         return if (safety) listOf(Action.Vibrate, Action.Speak(question, louder = true), Action.Listen)
         else listOf(Action.Speak(question, louder = false), Action.Listen)
     }
@@ -76,7 +83,7 @@ class CheckinController(
                     state = State.Missed(s.checkinId)
                     listOf(Action.ReportMissed(s.checkinId))
                 } else {
-                    state = State.Repeating(s.checkinId, s.question, now, s.safety)
+                    state = State.Repeating(s.checkinId, s.question, now, s.safety, s.reminderKind)
                     listOf(Action.Vibrate, Action.Speak(s.question, louder = true), Action.Listen, Action.ReportRepeated(s.checkinId))
                 }
             } else emptyList()
@@ -98,6 +105,24 @@ class CheckinController(
         }
         state = State.Answered(id, trimmed, via)
         return listOf(Action.ReportAnswer(id, trimmed, via))
+    }
+
+    /**
+     * A reminder's button. Only for an open reminder, and only a button that reminder offers:
+     * "Done" pressed on "How are you?" is not an answer to anything, so nothing is sent.
+     */
+    fun chose(choice: ReminderChoice): List<Action> {
+        val id = openCheckinId() ?: return emptyList()
+        if (choice !in ReminderButtons.choices(openReminderKind())) return emptyList()
+        state = State.Answered(id, "", "button")
+        return listOf(Action.ReportAnswer(id, "", "button", choice.wire))
+    }
+
+    /** The open question's reminder kind, or null when no reminder is being asked. */
+    fun openReminderKind(): String? = when (val s = state) {
+        is State.Asking -> s.reminderKind
+        is State.Repeating -> s.reminderKind
+        else -> null
     }
 
     /** The Help button, at any time, even with no check-in open. */

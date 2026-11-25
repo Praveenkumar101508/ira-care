@@ -42,6 +42,8 @@ import care.ira.watch.R
 import care.ira.watch.api.ApiOutcome
 import care.ira.watch.BuildConfig
 import care.ira.watch.outbox.SosState
+import care.ira.watch.checkin.ReminderButtons
+import care.ira.watch.checkin.ReminderChoice
 import care.ira.watch.outbox.VisitState
 import care.ira.watch.pairing.PairingStore
 import care.ira.watch.pairing.Unpairing
@@ -89,6 +91,9 @@ class MainActivity : ComponentActivity() {
                         onHelp = { CareForegroundService.send(this, CareForegroundService.ACTION_HELP) },
                         onTalk = { CareForegroundService.send(this, CareForegroundService.ACTION_TALK) },
                         talking = status.talking,
+                        reminderChoices = ReminderButtons.visible(status.reminderKind, status.fallCountdown,
+                            status.sos !is SosState.Idle && status.sos !is SosState.Closed),
+                        onChoice = { CareForegroundService.sendChoice(this, it) },
                     )
                 }
             }
@@ -227,6 +232,7 @@ fun HomeScreen(
     onOk: () -> Unit, onHelp: () -> Unit, fallCountdown: Int? = null,
     onTalk: () -> Unit = {}, talking: Boolean = false, visit: VisitState = VisitState.None,
     onUnpair: () -> Unit = {},
+    reminderChoices: List<ReminderChoice> = emptyList(), onChoice: (ReminderChoice) -> Unit = {},
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(10.dp),
@@ -242,11 +248,23 @@ fun HomeScreen(
         if (listening) Text("Listening…", fontSize = 12.sp, color = Color(0xFF9FD3A0))
         if (!online) Text("Offline: saving for later", fontSize = 10.sp, color = Color(0xFFE0C068))
         Spacer(Modifier.height(10.dp))
-        Button(
-            onClick = onOk,
-            modifier = Modifier.fillMaxWidth().height(48.dp).semantics { contentDescription = "I'm OK. Answers the question, or says you are fine after a fall." },
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2E7D32)),
-        ) { Text("I'm OK", fontSize = 18.sp) }
+        if (reminderChoices.isEmpty()) {
+            Button(
+                onClick = onOk,
+                modifier = Modifier.fillMaxWidth().height(48.dp).semantics { contentDescription = "I'm OK. Answers the question, or says you are fine after a fall." },
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2E7D32)),
+            ) { Text("I'm OK", fontSize = 18.sp) }
+        } else {
+            // A reminder: its own buttons in place of "I'm OK" (ReminderButtons). Help stays below.
+            reminderChoices.forEachIndexed { i, choice ->
+                if (i > 0) Spacer(Modifier.height(6.dp))
+                Button(
+                    onClick = { onChoice(choice) },
+                    modifier = Modifier.fillMaxWidth().height(44.dp).semantics { contentDescription = choice.description },
+                    colors = ButtonDefaults.buttonColors(backgroundColor = if (choice == ReminderChoice.DONE) Color(0xFF2E7D32) else Color(0xFF37474F)),
+                ) { Text(choice.label, fontSize = 16.sp) }
+            }
+        }
         Spacer(Modifier.height(8.dp))
         Button(
             onClick = onHelp,
