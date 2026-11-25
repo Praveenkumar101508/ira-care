@@ -1,5 +1,6 @@
 'use client';
 
+import { NotMeasured } from '@/components/NotMeasured';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -25,6 +26,10 @@ function accessWho(label: string): string {
 const TABS = ['overview', 'profile', 'health', 'care', 'timeline', 'alerts', 'ira', 'reports', 'search', 'access'] as const;
 const TAB_WORDS: Record<Tab, string> = { overview: 'Overview', profile: 'Profile', health: 'Health and wellbeing', care: 'Visits and care plan', timeline: 'Timeline', alerts: 'Alerts', ira: 'IRA', reports: 'Reports', search: 'Search', access: 'Access' };
 type Tab = (typeof TABS)[number];
+
+
+/** The readings the watch sends (care/capabilities.py); nothing else gets a reading card. */
+const MEASURED = ['heart_rate', 'steps', 'movement', 'on_wrist', 'battery'];
 
 export default function PersonPage() {
   const { id } = useParams<{ id: string }>();
@@ -264,7 +269,7 @@ export default function PersonPage() {
 
       {tab === 'health' && (
         <div className="grid">
-          {['heart_rate', 'steps', 'movement', 'on_wrist', 'battery', 'skin_temperature'].map((k) => {
+          {MEASURED.map((k) => {
             const latest = status.latest_readings.find((r) => r.kind === k) as (Reading & { received_at?: string | null }) | undefined;
             const f = freshness(latest, Math.max(30, (settings?.reading_upload_interval_s ?? 60) / 60 * 3));
             return (
@@ -276,6 +281,7 @@ export default function PersonPage() {
             );
           })}
           {settings ? <div className="card"><strong>Range set for this person</strong><div className="muted">Heart rate {settings.heart_rate_min ?? 'not set'} to {settings.heart_rate_max ?? 'not set'}. Set by a carer or clinician; there is no built-in range.</div></div> : null}
+          {api ? <NotMeasured api={api} /> : null}
         </div>
       )}
 
