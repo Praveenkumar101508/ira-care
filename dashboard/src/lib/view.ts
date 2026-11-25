@@ -169,19 +169,40 @@ export function freshness(reading: Pick<Reading, 'recorded_at'> & { received_at?
   return { state: 'fresh', words: `Recorded ${timeAgo(reading.recorded_at, now)}${received}${lagWords}` };
 }
 
-/** The headline of a person's record: one line a coordinator reads first. */
+/** Whether the watch is on the wrist, never guessed. Four states, and only one of them is reassuring:
+ *  on       the watch said so, and it synced recently
+ *  off      the watch said it is off
+ *  unknown  the watch has never said (null or missing): NOT "on the wrist"
+ *  stale    it said so, but has not synced for longer than `staleAfterMinutes`: last known only */
+export type WristState = 'on' | 'off' | 'unknown' | 'stale';
+export function wristState(device: { on_wrist?: boolean | null; last_sync_at?: string | null } | undefined, staleAfterMinutes = 60, now = new Date()): { state: WristState; words: string } {
+  if (!device || device.on_wrist === null || device.on_wrist === undefined) return { state: 'unknown', words: 'wrist unknown' };
+  const synced = device.last_sync_at ? new Date(device.last_sync_at).getTime() : NaN;
+  const last = device.on_wrist ? 'on the wrist' : 'off the wrist';
+  if (Number.isNaN(synced) || (now.getTime() - synced) / 60000 > staleAfterMinutes) {
+    return { state: 'stale', words: `last known ${last}, ${timeAgo(device.last_sync_at ?? null, now)}` };
+  }
+  return device.on_wrist ? { state: 'on', words: 'on the wrist' } : { state: 'off', words: 'off the wrist' };
+}
+
+/** The headline of a person's record: one line a coordinator reads first. "All well" only when
+ *  nothing is open, nothing is being asked, and the watch is recently synced and known to be worn. */
 export function headline(status: { open_alerts: { severity: string; status: string }[]; devices: { last_sync_at: string | null; on_wrist: boolean | null }[]; last_checkin: { status: string; scheduled_at: string } | null }, nextVisit?: { carer_name: string; planned_start: string; status: string } | null, now = new Date()): string {
   const open = status.open_alerts.filter((a) => a.status === 'open' || a.status === 'escalating');
   if (open.length) return `${open.length} alert${open.length > 1 ? 's' : ''} waiting for someone`;
+  if (status.open_alerts.some((a) => a.status === 'asking')) return 'IRA is asking whether they are OK: no answer yet';
   const acked = status.open_alerts.filter((a) => a.status === 'acknowledged');
   if (acked.length) return 'Someone is on their way';
+  const concerns: string[] = [];
   const parts: string[] = [];
   const d = status.devices[0];
-  if (!d) parts.push('no watch paired');
-  else if (!d.last_sync_at || (now.getTime() - new Date(d.last_sync_at).getTime()) > 60 * 60000) parts.push(`watch last synced ${timeAgo(d.last_sync_at, now)}`);
-  else if (d.on_wrist === false) parts.push('watch off the wrist');
+  if (!d) concerns.push('no watch paired');
+  else if (!d.last_sync_at || (now.getTime() - new Date(d.last_sync_at).getTime()) > 60 * 60000) concerns.push(`watch last synced ${timeAgo(d.last_sync_at, now)}`);
+  else if (d.on_wrist === false) concerns.push('watch off the wrist');
+  else if (d.on_wrist !== true) concerns.push('not known whether the watch is worn');
   if (status.last_checkin) parts.push(`last check-in ${status.last_checkin.status} ${timeAgo(status.last_checkin.scheduled_at, now)}`);
   if (nextVisit) parts.push(nextVisit.status === 'arrived' ? `${nextVisit.carer_name || 'a carer'} is there now` : `${nextVisit.carer_name || 'a carer'} due at ${nextVisit.planned_start.slice(11, 16)}`);
+  if (concerns.length) return 'Needs a look: ' + [...concerns, ...parts].join(', ');
   return parts.length ? 'All well: ' + parts.join(', ') : 'All well';
 }
 
