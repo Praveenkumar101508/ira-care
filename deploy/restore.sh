@@ -6,6 +6,9 @@
 # decrypts to a temporary file and stops on any failure before touching the
 # database, so a wrong passphrase or a damaged file restores nothing.
 set -eu
+# Refuse at once without openssl: a backup that cannot be encrypted must fail loudly, never write
+# nothing and look like it ran (deploy/Dockerfile.backup installs it at build time).
+command -v openssl >/dev/null 2>&1 || { echo "restore: openssl not found; nothing written" >&2; exit 1; }
 : "${BACKUP_PASSPHRASE:?set BACKUP_PASSPHRASE}"
 file="${1:?backup file}"
 target="${2:?target database or DSN}"

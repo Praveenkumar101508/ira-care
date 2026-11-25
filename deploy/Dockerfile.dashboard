@@ -12,6 +12,10 @@ RUN npm run build
 FROM node:22-alpine
 ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
 RUN apk add --no-cache curl && adduser -D -u 10001 ira
+# The server is `node server.js`; npm, npx and corepack from the base image are never used at
+# run time and carry their own advisories (docs/evidence/staging/CONTAINERS.md), so they go.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+           /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 WORKDIR /app
 COPY --from=build --chown=ira:ira /app/.next/standalone ./
 COPY --from=build --chown=ira:ira /app/.next/static ./.next/static

@@ -23,13 +23,21 @@ volume. They are not the durable path and never were the security boundary.
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger("ira.migrations")
 
-# Resolved at import time; works in Docker (/app/postgres) and local dev.
+# The repository's migration directory (supracloud-jarvis/postgres), for a clone. The deployment
+# image copies the files elsewhere and says where with IRA_MIGRATIONS_DIR (deploy/Dockerfile.api).
 _POSTGRES_DIR: Path = (Path(__file__).resolve().parent.parent.parent / "postgres").resolve()
+
+
+def migrations_dir() -> Path:
+    """Where the migration files are: IRA_MIGRATIONS_DIR if set, else the repository's."""
+    override = (os.getenv("IRA_MIGRATIONS_DIR") or "").strip()
+    return Path(override).resolve() if override else _POSTGRES_DIR
 
 #: One fixed key for the migration advisory lock. Arbitrary, but it must be
 #: stable across processes and releases: two deployments rolling out at once
@@ -51,9 +59,10 @@ def migration_files() -> list[Path]:
     subdirectory, this glob is top-level, and role creation is an operator
     decision rather than a migration.
     """
-    if not _POSTGRES_DIR.is_dir():
+    where = migrations_dir()
+    if not where.is_dir():
         return []
-    files = sorted(_POSTGRES_DIR.glob("*.sql"))
+    files = sorted(where.glob("*.sql"))
     files.sort(key=lambda p: (p.name != "init.sql", p.name))
     return files
 
@@ -86,7 +95,8 @@ async def migration_status(conn: Any) -> dict[str, Any]:
         "total": len(names),
         "applied": len(applied & set(names)),
         "pending": pending,
-        "up_to_date": not pending,
+        # No files at all is a wrong path, not a database with nothing left to do.
+        "up_to_date": bool(names) and not pending,
     }
 
 
@@ -178,6 +188,12 @@ async def apply_migrations(conn: Any, *, authorised_for_production: bool = False
     identity = await assert_may_apply(
         conn, authorised_for_production=authorised_for_production
     )
+    if not migration_files():
+        # Before: "nothing to apply", and a fresh database stayed empty while the server started.
+        raise MigrationRefused(
+            f"no migration files found in {migrations_dir()}. Set IRA_MIGRATIONS_DIR to the "
+            "directory that holds them; refusing rather than reporting an empty database as up to date."
+        )
 
     got_lock = await conn.fetchval("SELECT pg_try_advisory_lock($1)", _LOCK_KEY)
     if not got_lock:

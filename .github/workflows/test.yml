@@ -284,6 +284,32 @@ jobs:
       - run: npm run typecheck
       - run: npm test
 
+  images:
+    name: Container images build
+    needs: detect
+    # The images were never built in CI before, and both deployment images turned out broken
+    # (REMEDIATION G1, G2, G4). Build all three and check what broke: the API runs as a
+    # non-root user and carries its migrations; the backup image has openssl and pg_dump.
+    if: (needs.detect.outputs.backend == 'true' || needs.detect.outputs.dashboard_changed == 'true') && needs.detect.outputs.already_tested != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the API image
+        run: docker build -f deploy/Dockerfile.api -t ira-care/api:ci .
+      - name: Build the dashboard image
+        run: docker build -f deploy/Dockerfile.dashboard -t ira-care/dashboard:ci .
+      - name: Build the backup image
+        run: docker build -f deploy/Dockerfile.backup -t ira-care/backup:ci .
+      - name: The API image runs as a non-root user and carries its migrations
+        run: |
+          uid=$(docker run --rm --entrypoint id ira-care/api:ci -u)
+          echo "API user id: $uid"; test "$uid" != "0"
+          n=$(docker run --rm --entrypoint sh ira-care/api:ci -c 'ls "$IRA_MIGRATIONS_DIR"/*.sql | wc -l')
+          echo "migrations in the image: $n"; test "$n" -gt 100
+      - name: The backup image can encrypt and dump
+        run: docker run --rm --network none --entrypoint sh ira-care/backup:ci -c 'openssl version && pg_dump --version && test -x /usr/local/bin/backup.sh && test -x /usr/local/bin/restore.sh'
+
   dashboard:
     name: Carer dashboard (Next.js)
     needs: detect

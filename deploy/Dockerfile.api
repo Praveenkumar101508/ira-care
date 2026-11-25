@@ -16,6 +16,8 @@ COPY supracloud-jarvis/ira /app
 COPY scripts/training/fetch_encoder.py /tmp/fetch_encoder.py
 RUN python /tmp/fetch_encoder.py --dest /app/care/models/encoder && rm /tmp/fetch_encoder.py
 COPY supracloud-jarvis/postgres /app/postgres-migrations
+# utils/migrations.py looks beside the repository by default; in the image the files are here.
+ENV IRA_MIGRATIONS_DIR=/app/postgres-migrations
 COPY deploy/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh && chown -R ira:ira /app
 USER ira

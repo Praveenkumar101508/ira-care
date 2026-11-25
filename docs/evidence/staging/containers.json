@@ -1,0 +1,428 @@
+{
+ "measured_at": "2026-11-25T09:00Z",
+ "revision": "bf5d8355b506b46d9d1ba9843e65e228c7900ffc (origin/main) plus this branch's fixes",
+ "machine": {
+  "kernel": "6.18.44",
+  "cpus": 4,
+  "memory_gb": 15,
+  "shared_with_other_builds": true,
+  "docker": "29.9.3",
+  "compose": "v5.7.1"
+ },
+ "how_built": "scripts/staging/sandbox_build.sh: the deploy Dockerfiles with the OS package step replaced (deb.debian.org and dl-cdn.alpinelinux.org are refused by this sandbox's network policy) and the proxy CA mounted as a build secret for download steps; every other step unchanged",
+ "images": {
+  "api": {
+   "tag": "ira-care/api:local",
+   "bytes": 1553789962,
+   "user": "ira (uid 10001)",
+   "build_s": 58,
+   "build_note": "pip layer cached from an earlier attempt in the same session; not a cold-build time"
+  },
+  "dashboard": {
+   "tag": "ira-care/dashboard:local",
+   "bytes": 351799726,
+   "user": "ira (uid 10001)",
+   "build_s": 95,
+   "build_note": "npm ci and next build included"
+  }
+ },
+ "base_images_by_digest": {
+  "pgvector/pgvector:pg16": "sha256:484e838076e04939d27d3e176e91c86eea96236126023be8d3059761122e579f",
+  "redis:7-alpine": "sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe",
+  "caddy:2-alpine": "sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0",
+  "postgres:16-alpine": "sha256:f2f98726820d0342055351c6e9d36e705f5bfffb3dd53ff556325114b08afb6d"
+ },
+ "image_scan": {
+  "tool": "trivy 0.58.1, HIGH and CRITICAL, vulnerability scanner only",
+  "api": {
+   "critical": 0,
+   "high": 54,
+   "with_a_fix": 1,
+   "note": "all in Debian 13.8 base packages; the one with a fix (libzstd1) needs a rebuild that reaches the Debian security mirror, refused here"
+  },
+  "dashboard_before": {
+   "critical": 0,
+   "high": 12,
+   "note": "10 in the base image's own npm (never used at run time), 2 in postcss 8.4.31 bundled by Next.js"
+  },
+  "dashboard_after": {
+   "critical": 0,
+   "high": 2,
+   "note": "npm, npx and corepack removed from the runtime stage; postcss is fixed by the override in PR #72"
+  }
+ },
+ "stack": {
+  "files": [
+   "deploy/docker-compose.yml",
+   "deploy/compose.staging.yml",
+   "deploy/compose.nomodel.yml"
+  ],
+  "services": [
+   "postgres",
+   "redis",
+   "api",
+   "worker",
+   "dashboard",
+   "caddy",
+   "backup"
+  ],
+  "left_out": "ollama and ollama-pull (IRA_CARE_MODEL=off; about 10 GB of models)",
+  "up_seconds_from_empty_volumes": 19,
+  "migrations_applied_on_fresh_database": 114,
+  "checks": {
+   "/health": 200,
+   "/health/jobs (after the first pass)": 200,
+   "/login (dashboard)": 200,
+   "/api/v1/care/capabilities without sign-in": 401,
+   "security headers from Caddy": "HSTS, X-Frame-Options DENY"
+  }
+ },
+ "smoke": {
+  "base": "https://localhost",
+  "passed": true,
+  "steps": [
+   {
+    "step": "health",
+    "ok": true,
+    "ms": 15,
+    "detail": {
+     "status": "ok",
+     "service": "ira-care",
+     "database": "ok",
+     "redis": "ok"
+    }
+   },
+   {
+    "step": "sign in (coordinator)",
+    "ok": true,
+    "ms": 325,
+    "detail": "ok"
+   },
+   {
+    "step": "create a fictional person",
+    "ok": true,
+    "ms": 80,
+    "detail": {
+     "id": "36f34afe-1f2e-43b8-97fc-6352acddf5fe",
+     "tenant_id": "79649445-8e2d-4a03-98b0-f6d0e235a16c",
+     "workspace_id": "d583f8fc-dd42-4091-a11e-5a34eceddf77",
+     "display_name": "Staging Test 50fe92 (fictional)",
+     "preferred_name": "Test",
+     "date_of_birth": null,
+     "timezone": "Europe/London",
+     "language": "en",
+     "status": "active",
+     "notes": "",
+     "created_by": "d8a66998-5b25-4a36-8464-371b98149d11",
+     "created_at": "2026-11-25T09:06:24.096880+00:00",
+     "updated_at": "2026-11-25T09:06:24.096880+00:00",
+     "home_address": "",
+     "home_latitude": null,
+     "home_longitude": null,
+     "home_radius_m": 150,
+     "emergency_summary": "",
+     "has_access_notes": false
+    }
+   },
+   {
+    "step": "register a watch",
+    "ok": true,
+    "ms": 16,
+    "detail": {
+     "id": "2d2216ab-152d-43c0-8341-5c87b33bf5bb",
+     "tenant_id": "79649445-8e2d-4a03-98b0-f6d0e235a16c",
+     "workspace_id": "d583f8fc-dd42-4091-a11e-5a34eceddf77",
+     "person_id": "36f34afe-1f2e-43b8-97fc-6352acddf5fe",
+     "platform": "wearos",
+     "model": "staging virtual watch",
+     "status": "pending",
+     "pairing_expires_at": "2026-11-25T09:21:24.120968+00:00",
+     "paired_at": null,
+     "last_seen_at": null,
+     "last_sync_at": null,
+     "battery_percent": null,
+     "on_wrist": null,
+     "background_sensor_permission": null,
+     "expected_report_interval_s": 300,
+     "app_version": "",
+     "created_at": "2026-11-25T09:06:24.119919+00:00"
+    }
+   },
+   {
+    "step": "pair the watch",
+    "ok": true,
+    "ms": 8,
+    "detail": {
+     "id": "2d2216ab-152d-43c0-8341-5c87b33bf5bb",
+     "tenant_id": "79649445-8e2d-4a03-98b0-f6d0e235a16c",
+     "workspace_id": "d583f8fc-dd42-4091-a11e-5a34eceddf77",
+     "person_id": "36f34afe-1f2e-43b8-97fc-6352acddf5fe",
+     "platform": "wearos",
+     "model": "staging virtual watch",
+     "status": "paired",
+     "pairing_expires_at": null,
+     "paired_at": "2026-11-25T09:06:24.128803+00:00",
+     "last_seen_at": "2026-11-25T09:06:24.128803+00:00",
+     "last_sync_at": null,
+     "battery_percent": null,
+     "on_wrist": null,
+     "background_sensor_permission": null,
+     "expected_report_interval_s": 300,
+     "app_version": "staging",
+     "created_at": "2026-11-25T09:06:24.119919+00:00"
+    }
+   },
+   {
+    "step": "send simulated readings",
+    "ok": true,
+    "ms": 19,
+    "detail": "ok"
+   },
+   {
+    "step": "press Help",
+    "ok": true,
+    "ms": 21,
+    "detail": {
+     "id": "186a83e4-1cf2-45bb-a30b-bbb7925efbc8",
+     "tenant_id": "79649445-8e2d-4a03-98b0-f6d0e235a16c",
+     "workspace_id": "d583f8fc-dd42-4091-a11e-5a34eceddf77",
+     "person_id": "36f34afe-1f2e-43b8-97fc-6352acddf5fe",
+     "checkin_id": null,
+     "kind": "help_requested",
+     "severity": "sos",
+     "status": "open",
+     "opened_at": "2026-11-25T09:06:24.159801+00:00",
+     "details": {
+      "via": "button",
+      "note": "",
+      "device_id": "2d2216ab-152d-43c0-8341-5c87b33bf5bb"
+     },
+     "current_tier": 0,
+     "next_action_at": "2026-11-25T09:06:24.159801+00:00",
+     "acknowledged_at": null,
+     "resolved_at": null,
+     "resolution": "",
+     "location_latitude": null,
+     "location_longitude": null,
+     "location_accuracy_m": null,
+     "location_at": null,
+     "at_home": null,
+     "follow_up_due_at": null,
+     "follow_up_asked_at": null,
+     "re_escalations": 0,
+     "outcome": "",
+     "sos": {
+      "alert_id": "186a83e4-1cf2-45bb-a30b-bbb7925efbc8",
+      "kind": "help_requested",
+      "responder_name": null,
+      "updated_at": "2026-11-25T09:06:24.159801+00:00",
+      "state": "received",
+      "visit": {
+       "state": "none",
+       "carer_name": null,
+       "visit_id": null,
+       "planned_start": null,
+       "since": null
+      }
+     }
+    }
+   },
+   {
+    "step": "press Help again with the same key (a retry)",
+    "ok": true,
+    "ms": 9,
+    "detail": {
+     "replayed": true,
+     "same_answer": true
+    }
+   },
+   {
+    "step": "the alert is on the carer's list, once",
+    "ok": true,
+    "ms": 16,
+    "detail": {
+     "open_alerts_for_person": 1,
+     "kind": "help_requested",
+     "severity": "sos",
+     "id": "186a83e4-1cf2-45bb-a30b-bbb7925efbc8"
+    }
+   },
+   {
+    "step": "acknowledge",
+    "ok": true,
+    "ms": 23,
+    "detail": "acknowledged"
+   },
+   {
+    "step": "resolve",
+    "ok": true,
+    "ms": 19,
+    "detail": "resolved"
+   },
+   {
+    "step": "operations status",
+    "ok": true,
+    "ms": 12,
+    "detail": {
+     "monitoring_paused": false
+    }
+   },
+   {
+    "step": "dashboard served",
+    "ok": true,
+    "ms": 9,
+    "detail": 200
+   }
+  ]
+ },
+ "drills": {
+  "database_stopped_20s": {
+   "health_codes_while_down": {
+    "503": 20
+   },
+   "care_api_codes_while_down": {
+    "503": 20
+   },
+   "slowest_answer_while_down_s": 0.02,
+   "care_api_back_after_start_s": 1.1,
+   "passed": true,
+   "seconds": 22
+  },
+  "api_restarted_during_help": {
+   "watches": [
+    {
+     "attempts": 8,
+     "answer": 201,
+     "errors": {
+      "502": 7
+     }
+    },
+    {
+     "attempts": 8,
+     "answer": 201,
+     "errors": {
+      "502": 7
+     }
+    },
+    {
+     "attempts": 8,
+     "answer": 201,
+     "errors": {
+      "502": 7
+     }
+    },
+    {
+     "attempts": 8,
+     "answer": 201,
+     "errors": {
+      "502": 7
+     }
+    },
+    {
+     "attempts": 8,
+     "answer": 201,
+     "errors": {
+      "502": 7
+     }
+    }
+   ],
+   "open_alerts_per_person": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "passed": true,
+   "seconds": 5
+  },
+  "worker_stopped": {
+   "monitoring_paused_before": false,
+   "stale_after_s": 300,
+   "jobs_reported_stale_after_stop_s": 295.9,
+   "carer_ops_status_monitoring_paused": true,
+   "jobs_healthy_after_start_s": 62.4,
+   "passed": true,
+   "seconds": 359
+  }
+ },
+ "backup_restore": {
+  "scripts": [
+   "deploy/backup.sh",
+   "deploy/restore.sh"
+  ],
+  "run_from": "the host (PostgreSQL 16 client, openssl) against the container's database, because the backup container installs openssl at start from a mirror this sandbox refuses",
+  "backup_bytes": 156560,
+  "backup_s": "<1",
+  "restore_s": 4,
+  "tables_compared": 154,
+  "rows": 1685,
+  "row_counts_identical": true,
+  "wrong_passphrase": "refused, exit 3"
+ },
+ "load": {
+  "note": "Every container and the load generator on one shared 4-CPU machine, through Caddy over HTTPS. A regression baseline, not a production capacity figure. The API container ran at 83 to 95 % of one core (one uvicorn process) and the database at about 60 %.",
+  "levels": [
+   {
+    "virtual_watches": 10,
+    "seconds": 30.1,
+    "requests": 3964,
+    "requests_per_s": 131.6,
+    "errors": {},
+    "error_rate": 0.0,
+    "report_ms": {
+     "p50": 67.0,
+     "p95": 142.0,
+     "p99": 183.9,
+     "mean": 75.8
+    },
+    "help_ms": {
+     "n": 10,
+     "p50": 95.8,
+     "p95": 127.9,
+     "max": 127.9
+    }
+   },
+   {
+    "virtual_watches": 25,
+    "seconds": 30.1,
+    "requests": 3736,
+    "requests_per_s": 124.1,
+    "errors": {},
+    "error_rate": 0.0,
+    "report_ms": {
+     "p50": 188.2,
+     "p95": 312.0,
+     "p99": 432.5,
+     "mean": 201.2
+    },
+    "help_ms": {
+     "n": 25,
+     "p50": 210.2,
+     "p95": 259.6,
+     "max": 269.1
+    }
+   },
+   {
+    "virtual_watches": 50,
+    "seconds": 30.4,
+    "requests": 3595,
+    "requests_per_s": 118.3,
+    "errors": {},
+    "error_rate": 0.0,
+    "report_ms": {
+     "p50": 393.4,
+     "p95": 730.2,
+     "p99": 950.1,
+     "mean": 419.4
+    },
+    "help_ms": {
+     "n": 50,
+     "p50": 434.7,
+     "p95": 807.1,
+     "max": 1069.4
+    }
+   }
+  ]
+ }
+}

@@ -1,5 +1,5 @@
 {
- "version": "1.3.0",
+ "version": "1.4.0",
  "methodology": "A fixed, versioned list of atomic requirements for the owner's master directive. Each item is one measurable deliverable with one state. States: not_started; implemented (code or document merged); accepted (functional evidence: unit_test, db_test, build, browser, emulator, model_eval or device; docs_only and config_check never count); verified (integration-level evidence: db_test, browser, emulator, model_eval or device); device_validated (device evidence); blocked_external (cannot progress without something outside the software; blocked_by says what). Every file ref must exist and a PR ref must be #44 or later; acceptance and verification need a qualifying evidence item that names a file, not only a PR. Items are never removed to raise a percentage: blocked and not-started items stay in every denominator. A requirement that changes scope gets a new id and the version is raised. scripts/completion_summary.py enforces these rules and computes the seven measures.",
  "requirements": [
   {
@@ -2187,6 +2187,24 @@
    "blocked_by": "recordings from the IRA watch with an ECG reference"
   },
   {
+   "id": "F3.f",
+   "parent": "F3",
+   "title": "Learned heart-rate selector exported as plain JSON trees with a validated loader and a numpy-only evaluator that matches the trained model (not yet used by any product path)",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/heart/results.json"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_heart_learned.py"
+    }
+   ]
+  },
+  {
    "id": "F4.a",
    "parent": "F4",
    "title": "Rule-based fall detector on the watch",
@@ -2434,8 +2452,13 @@
    "title": "Wrist IMU activity dataset with a licence that allows commercial use selected",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/DATASETS.md"
+    }
+   ]
   },
   {
    "id": "F7.b",
@@ -2443,8 +2466,17 @@
    "title": "Activity model trained with a dated run",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/activity/results.json"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "scripts/training/activity_wisdm.py"
+    }
+   ]
   },
   {
    "id": "F7.c",
@@ -2452,8 +2484,17 @@
    "title": "Activity model evaluated subject-independently",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/activity/results.json"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_activity_estimate.py"
+    }
+   ]
   },
   {
    "id": "F7.d",
@@ -2470,8 +2511,13 @@
    "title": "Activity model card",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/activity/MODEL_CARD.md"
+    }
+   ]
   },
   {
    "id": "F8.a",
@@ -2702,8 +2748,17 @@
    "title": "Outage drills on staging after the remediation",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "scripts/staging/containers_drills.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "docs/evidence/staging/containers.json"
+    }
+   ]
   },
   {
    "id": "G2.h",
@@ -3177,8 +3232,17 @@
    "title": "The directive's 22-step care-journey demo, scripted end to end",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_journey_db.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/demo/CARE_JOURNEY_22.md"
+    }
+   ]
   },
   {
    "id": "J.e",
