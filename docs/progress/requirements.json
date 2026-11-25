@@ -1045,11 +1045,15 @@
    "title": "Watch sends location with an SOS (GPS)",
    "area": "software",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
-     "kind": "config_check",
-     "ref": "watch/app/src/main/java/care/ira/watch/sensors/LocationSource.kt"
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/api/CareApiTest.kt"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_location_db.py::test_help_with_a_location_is_stored_on_the_alert_and_told_to_the_circle"
     }
    ]
   },
@@ -1059,11 +1063,15 @@
    "title": "Watch reports battery and sensor-permission state",
    "area": "software",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
-     "kind": "config_check",
-     "ref": "watch/app/src/main/java/care/ira/watch/service/SyncWorker.kt"
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/api/CareApiTest.kt"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_api_db.py"
     }
    ]
   },
@@ -1082,8 +1090,9 @@
    "title": "Watch app run on a Wear OS emulator through the care journey",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a host with KVM virtualisation for the Android emulator (this build machine has no /dev/kvm)"
   },
   {
    "id": "D1.j",
@@ -1741,13 +1750,14 @@
    "title": "Emergency UI available from the lock screen on the OS",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
+   "state": "blocked_external",
    "evidence": [
     {
      "kind": "docs_only",
      "ref": "os/device/ira/ira_watch_cf/EMERGENCY_UI.md"
     }
-   ]
+   ],
+   "blocked_by": "an AOSP build host (about 400 GB disk, 64 GB RAM) to build and boot Cuttlefish"
   },
   {
    "id": "E3.a",
@@ -1824,8 +1834,9 @@
    "title": "Verified boot (AVB 2.0) configured and exercised on Cuttlefish with test keys",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "an AOSP build host (about 400 GB disk, 64 GB RAM) to build and boot Cuttlefish"
   },
   {
    "id": "E4.b",
@@ -1833,8 +1844,9 @@
    "title": "Keystore / KeyMint (software) used by the app on Cuttlefish",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "an AOSP build host (about 400 GB disk, 64 GB RAM) to build and boot Cuttlefish"
   },
   {
    "id": "E4.c",
@@ -1842,8 +1854,9 @@
    "title": "Signed A/B OTA package built and applied on Cuttlefish",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "an AOSP build host (about 400 GB disk, 64 GB RAM) to build and boot Cuttlefish"
   },
   {
    "id": "E4.d",
@@ -1860,8 +1873,9 @@
    "title": "Rollback protection indexes configured and an older image refused on Cuttlefish",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "an AOSP build host (about 400 GB disk, 64 GB RAM) to build and boot Cuttlefish"
   },
   {
    "id": "E4.f",
@@ -1869,8 +1883,9 @@
    "title": "Provisioning flow on Cuttlefish: device-owner policy and pairing at first boot",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "an AOSP build host (about 400 GB disk, 64 GB RAM) to build and boot Cuttlefish"
   },
   {
    "id": "E4.g",
@@ -2149,8 +2164,9 @@
    "title": "Fine-tune evaluated on held-out prompts and the product evaluation",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "the fine-tune run itself (F2.e: a Kaggle GPU session on the owner's account)"
   },
   {
    "id": "F2.g",
@@ -2158,8 +2174,9 @@
    "title": "Fine-tune promotion gate: promoted only if it beats the base on safety and product measures",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "the fine-tune run itself (F2.e: a Kaggle GPU session on the owner's account)"
   },
   {
    "id": "F3.a",
@@ -2679,8 +2696,12 @@
    "title": "HTTPS reverse proxy configuration",
    "area": "software",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
+    {
+     "kind": "build",
+     "ref": "docs/evidence/staging/containers.json"
+    },
     {
      "kind": "config_check",
      "ref": "deploy/Caddyfile"
@@ -3417,8 +3438,12 @@
    "title": "Secret scan in CI",
    "area": "software",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml::secrets"
+    },
     {
      "kind": "config_check",
      "ref": "scripts/ci/gitleaks.sh"
@@ -3449,8 +3474,9 @@
    "title": "Emulator runs of the watch and phone apps on integrated main",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a host with KVM virtualisation for the Android emulator (this build machine has no /dev/kvm)"
   },
   {
    "id": "K.h",

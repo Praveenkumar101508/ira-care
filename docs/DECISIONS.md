@@ -1301,6 +1301,18 @@ checks every request.
 
 Not decided here: a rota, a caseload view per carer, or roles finer than these three.
 
+## D-079 The care-journey demonstration is the 22-step list (owner decision, 25 November 2026)
+
+The register named "the 32 steps" for the live demonstration, and the master directive asked for a
+22-step care journey "plus the previous 32-step master demonstration". No list of 32 steps was ever
+in the repository. The owner decided: **the 22-step list is the one to use.**
+
+The 22 steps are the directive's section 16 list. Each one runs, in order, against the real care
+API and PostgreSQL in `supracloud-jarvis/ira/tests/tenancy/test_care_journey_db.py` (#79), and
+`docs/demo/CARE_JOURNEY_22.md` says what each step shows and which assertion proves it. The earlier
+scripted scenarios and the twelve-step browser demo (`docs/demo/RERUN.md`) remain as they are.
+Requirement J.d records the journey; nothing is counted for a 32-step list.
+
 ## D-080 The care coordinator is a carer named by the care manager; search covers names and records, never words (requirements D3.g, D3.i, 25 November 2026)
 
 D-078 named the three workspace roles and left "roles finer than these three" undecided. A care
