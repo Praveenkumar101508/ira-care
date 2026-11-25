@@ -3174,8 +3174,17 @@
    "title": "The directive's 22-step care-journey demo, scripted end to end",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_journey_db.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/demo/CARE_JOURNEY_22.md"
+    }
+   ]
   },
   {
    "id": "J.e",
