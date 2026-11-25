@@ -2569,8 +2569,21 @@
    "title": "Speech-recognition accuracy harness (word error rate on a held-out set)",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/speech/results.json"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "scripts/eval/speech_wer.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/test_speech_wer.py"
+    }
+   ]
   },
   {
    "id": "F8.c",
@@ -2578,8 +2591,9 @@
    "title": "Recognition accuracy measured on a public older-adult speech set with a usable licence",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "access to Mozilla Common Voice through the Mozilla Data Collective: an account whose terms the owner accepts (the only public older-speaker set with a usable licence that was found)"
   },
   {
    "id": "F8.d",
@@ -3477,8 +3491,21 @@
    "title": "Final evidence pack index generated from requirements.json",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_evidence_index.py"
+    },
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml::evidence-index"
+    },
+    {
+     "kind": "config_check",
+     "ref": "scripts/evidence_index.py"
+    }
+   ]
   }
  ]
 }
