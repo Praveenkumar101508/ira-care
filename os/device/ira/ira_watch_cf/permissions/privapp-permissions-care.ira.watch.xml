@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Privileged-permission allowlist for the IRA CARE watch app (package care.ira.watch).
+  Installed to /product/etc/permissions/ by Android.bp (prebuilt_etc).
+
+  UNBUILT: not yet read by any running system (docs/os/BUILD.md).
+
+  This list is deliberately EMPTY, because the app's manifest
+  (watch/app/src/main/AndroidManifest.xml; the aosp flavour adds no manifest of its own)
+  requests no permission whose protection level includes "privileged". What it requests:
+
+    normal:      INTERNET, FOREGROUND_SERVICE, FOREGROUND_SERVICE_HEALTH, VIBRATE,
+                 WAKE_LOCK, RECEIVE_BOOT_COMPLETED
+    dangerous:   POST_NOTIFICATIONS, RECORD_AUDIO, BODY_SENSORS, BODY_SENSORS_BACKGROUND,
+                 ACTIVITY_RECOGNITION, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION
+
+  Dangerous (runtime) permissions are not granted by this file; the first-boot grants are
+  proposed in default-permissions-care.ira.watch.xml. If the app ever requests a
+  signature|privileged permission (for example REBOOT or WRITE_SECURE_SETTINGS), it must
+  be added here in the same change, or the device refuses to boot with
+  ro.control_privapp_permissions=enforce. The readiness test
+  supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py fails until both agree.
+
+  The list is derived from the source manifest. Libraries can add permissions when Gradle
+  merges manifests (WorkManager, for example, adds normal ones such as
+  ACCESS_NETWORK_STATE); the build host checks the built APK with
+  `aapt2 dump permissions` before it is imported (os/scripts/build_cuttlefish.sh).
+
+  Copyright 2026 IRA CARE. Licensed under the Apache License, Version 2.0.
+-->
+<permissions>
+    <privapp-permissions package="care.ira.watch">
+    </privapp-permissions>
+</permissions>

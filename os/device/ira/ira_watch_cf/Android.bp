@@ -1,0 +1,77 @@
+//
+// IRA CARE OS modules for the Cuttlefish product (ira_watch_cf.mk).
+//
+// UNBUILT. Soong has never read this file: no AOSP build host exists for this repository
+// yet (docs/os/BUILD.md). Module types and properties are the ones AOSP documents for
+// Soong; where a property is not certain to exist in the checked-out release it says so.
+//
+// Copyright 2026 IRA CARE. Licensed under the Apache License, Version 2.0 (the licence of
+// the Android Open Source Project).
+//
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// The IRA CARE watch app, aosp flavour, release build, signed with IRA's own key.
+//
+// The APK is NOT in the repository (no binaries are committed). os/scripts/build_cuttlefish.sh
+// builds it from watch/ (`./gradlew :app:assembleAospRelease`) or takes IRA_OS_WATCH_APK,
+// checks that it is signed and that its package is care.ira.watch, and copies it to the
+// path below before the AOSP build starts. The debug build cannot be used: its package is
+// care.ira.watch.debug, which the permission files below do not name.
+android_app_import {
+    name: "IraCareWatch",
+    apk: "prebuilt/IraCareWatch.apk",
+    // Keep IRA's own signature; the platform must not re-sign it.
+    presigned: true,
+    // Installed under /product/priv-app. Its allowlist is the prebuilt_etc below.
+    privileged: true,
+    product_specific: true,
+    // The app ships TensorFlow Lite and is shrunk by R8; pre-optimising a prebuilt is a
+    // later optimisation, not needed for a first boot.
+    dex_preopt: {
+        enabled: false,
+    },
+    required: [
+        "privapp_allowlist_care.ira.watch",
+        "default_permissions_care.ira.watch",
+    ],
+    // FOLLOW-UP, deliberately off: once the app has a HOME intent filter
+    // (HOME_LAUNCHER.md), replace the stock launcher so IRA is the only home:
+    //   overrides: ["Launcher3QuickStep"],
+    // UNCERTAIN: the stock launcher module name in the inherited Cuttlefish phone product
+    // (Launcher3QuickStep in recent AOSP) must be checked on the build host.
+}
+
+// The privileged-permission allowlist. It must name exactly the privileged permissions the
+// app's manifest requests; supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py
+// checks that against watch/app/src/main/AndroidManifest.xml.
+prebuilt_etc {
+    name: "privapp_allowlist_care.ira.watch",
+    src: "permissions/privapp-permissions-care.ira.watch.xml",
+    sub_dir: "permissions",
+    filename_from_src: true,
+    product_specific: true,
+}
+
+// Runtime permissions granted to the preinstalled app at first boot, so an older person is
+// not met with permission prompts. A PROPOSAL: it needs the owner's and the DPIA's sign-off
+// (docs/compliance/) before it goes into any image a person wears.
+prebuilt_etc {
+    name: "default_permissions_care.ira.watch",
+    src: "permissions/default-permissions-care.ira.watch.xml",
+    sub_dir: "default-permissions",
+    filename_from_src: true,
+    product_specific: true,
+}
+
+// Framework settings for a single-purpose care watch: round screen, lock screen, emergency
+// gesture. See overlays/IraFrameworkOverlay/res/values/config.xml for each value and which
+// ones are uncertain in the target release.
+runtime_resource_overlay {
+    name: "IraFrameworkOverlay",
+    manifest: "overlays/IraFrameworkOverlay/AndroidManifest.xml",
+    resource_dirs: ["overlays/IraFrameworkOverlay/res"],
+    product_specific: true,
+}
