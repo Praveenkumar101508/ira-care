@@ -49,12 +49,30 @@ class AesGcmSealer(private val key: () -> SecretKey) : Sealer {
 /**
  * One stored line. `s1:` and base64 for a sealed line. A line that starts with `{` is a
  * plain-text line from before sealing: still read, and sealed the next time the file is
- * rewritten. When the key cannot be used at all (the Keystore is broken), an urgent event is
- * still written, as `p1:` plain text, rather than lost: being able to ask for help comes first.
+ * rewritten. `p1:` is plain text written when the key could not be used.
+ *
+ * When the key cannot be used at all (the Keystore is broken), each store decides what it may
+ * still write, through [sealOrNull]: the outbox writes an urgent event MINIMISED (no location, no
+ * words), so Help still goes out; the readings queue keeps readings in memory only. [encode]
+ * (plain text on failure) is left for the pairing token, without which no Help can be sent.
  */
 object LineCodec {
     private const val SEALED = "s1:"
-    private const val PLAIN = "p1:"
+    const val PLAIN = "p1:"
+
+    /**
+     * The stored line, or null when the key could not be used (the Keystore failed). With no sealer
+     * at all, storage is unencrypted by configuration (the pure-Kotlin tests and tools): the line
+     * is plain text, as before. The app always has one (`CareDependencies`, checked by a test).
+     */
+    fun sealOrNull(sealer: Sealer?, text: String): String? {
+        if (sealer == null) return PLAIN + text
+        return try {
+            SEALED + Base64.getEncoder().encodeToString(sealer.seal(text.toByteArray(Charsets.UTF_8)))
+        } catch (e: Exception) {
+            null
+        }
+    }
 
     fun encode(sealer: Sealer?, text: String): String {
         if (sealer == null) return PLAIN + text

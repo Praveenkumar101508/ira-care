@@ -33,12 +33,12 @@ Nothing is marked done because code or a document exists.
 <!-- completion-summary:begin -->
 | Measure | Value |
 |---|---|
-| Overall, weighted | 67.2 % |
+| Overall, weighted | 67.9 % |
 | Implemented (built, here or before) | 91.2 % |
-| Tested (unit, integration, evaluated or better) | 62.7 % |
+| Tested (unit, integration, evaluated or better) | 65.2 % |
 | Merged and evidenced in this programme | 51.0 % |
 | Safety remediation (section C) | 84.2 % |
-| AI components (section F) | 65.6 % |
+| AI components (section F) | 69.4 % |
 | IRA CARE OS (section E) | 58.0 % |
 | Rows blocked in part by an external dependency | 21 of 51 |
 
@@ -91,7 +91,7 @@ weights stated in that script. No device has been used, so no row is device test
 | C-16 | Secure automatic session renewal | unit tested | #47 · C4 (phone); #52 · C4b (dashboard) |
 | C-17 | Watch speech-recognition threads and lifecycle | unit tested | #48 · D1 (JVM tests; CI Wear OS and AOSP builds) |
 | C-18 | Watch text-to-speech lifecycle and time limits | unit tested | #48 · D2 |
-| C-19 | Encrypted watch storage | unit tested | #48 · D5 (Keystore hardware backing: **needs external**, device) |
+| C-19 | Encrypted watch storage | unit tested | #48 · D5 (Keystore hardware backing: **needs external**, device); `fix/watch-degraded-storage` · D9 (no plain-text fallback for sensitive data; Help still queued, minimised) |
 | C-20 | Atomic offline-queue and outbox writes | unit tested | #48 · D5 |
 | C-21 | Secure unpairing and re-pairing | integration tested | #48 · D5 (kept per wearer); #53 · D7 (explicit unpair with warning, migration 114). On-device UI check: **needs external**, a watch |
 | C-22 | Backend and person-level authorisation review | integration tested | #51 · REMEDIATION E1 (D-076) |
