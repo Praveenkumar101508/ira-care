@@ -26,7 +26,9 @@ line. Initial ratings below are the build's estimate and are marked as such.
 ## 4. Hazard log
 
 Each row: the hazard, its cause, the harm, the controls in the product, where the control
-lives, the test that proves it, and the residual risk as estimated by the build.
+lives, the test that proves it, and the residual risk as estimated by the build. Every file and
+test named in the Code and Tests columns is checked to exist by
+`supracloud-jarvis/ira/tests/readiness/test_hazard_log_traceability.py`.
 
 | # | Hazard | Cause | Harm | Controls in the product | Code | Tests proving the control | Residual (estimate) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -43,6 +45,13 @@ lives, the test that proves it, and the residual risk as estimated by the build.
 | H11 | An alert is acknowledged by nobody and forgotten | Tier 3 reached; no monitoring centre | Delayed help | Tier 3 repeats tiers 1 and 2 and shows "call 999 now"; the alert stays open on every screen until resolved | `care/escalation.py` | `test_care_escalation_db.py` | Possible/considerable: depends on the circle |
 | H12 | Summaries or reports contain the person's words or a judgement | A model summary that quotes or diagnoses | Distress; wrong action | Summaries never quote (a quote check drops the model's summary); no diagnosis words anywhere; reports describe against the carer's range | `care/conversation.py::_quotes_the_person`, `care/reports.py` | `test_care_conversation_rules.py`, `test_care_reports_rules.py` | Unlikely/minor |
 | H13 | A restored backup is wrong or empty | A bad passphrase; a damaged file | Loss of history | The restore refuses before touching the database; CI restores every pull request and compares counts | `deploy/restore.sh` | CI step "Backup and restore round trip" | Rare/significant |
+| H14 | A medication dose is recorded as taken when it was not, or the wrong dose is recorded | A negated or unclear answer; a model that says "taken" to everything; two medicines with similar names | Missed or doubled medication | A conservative reader decides; the model can add doubt, never a "taken"; a dose is written only for the exact dose the question was bound to, with who and when | `care/checkins.py`, `care/conversation.py::merge`, `care/checkin_cycle.py` | `tests/care/test_care_safety_answers.py`, `test_care_safety_answers_db.py::test_no_dose_is_written_from_an_unclear_or_negative_answer_even_when_the_model_says_yes`, `test_care_safety_answers_db.py::test_a_bound_question_writes_exactly_its_own_dose_even_among_similar_names` | Unlikely/considerable (REMEDIATION A1 to A3) |
+| H15 | A doubtful or negative answer ends a help check as "OK" | "Not really", "I don't know", empty speech treated as the OK button | Delayed help | Only a clear OK resolves; anything else keeps the deadline; on the watch, a negative, a doubt or trouble never ends the fall countdown | `care/askfirst.py`, `care/checkin_cycle.py`, `watch/.../FallCountdown.kt` | `test_care_safety_answers_db.py::test_a_negative_or_unclear_answer_never_resolves_the_safety_check`, `test_care_safety_answers_db.py::test_empty_speech_recognition_is_not_the_ok_button`, `FallCountdownTest.kt` | Unlikely/major (REMEDIATION A4) |
+| H16 | An alert message is lost, sent twice, or shown as delivered when it was not | A worker crash between deciding and sending; two workers; an unsigned or early provider callback | Delayed help; false reassurance | A durable outbox; one send per message across workers; states only move forward and say "accepted" until the provider reports delivery; callbacks refused unless signed | `care/escalation.py`, `care/delivery.py` | `test_care_delivery_db.py::test_two_workers_at_once_send_each_message_exactly_once`, `test_care_delivery_db.py::test_a_queued_message_survives_a_crash_before_it_is_sent`, `test_care_delivery_db.py::test_a_callback_that_is_not_ours_or_not_signed_changes_nothing` | Unlikely/significant: live delivery through a real provider untested (REMEDIATION A2) |
+| H17 | A person's words or health details leak into logs or the assistant's general memory | Message bodies logged; check-in answers written as memory notes | Loss of privacy | The log-only provider never logs a message; check-in answers are kept only in the check-in record; migration 115 purged earlier notes | `care/providers.py`, `care/checkin_cycle.py` | `test_care_safety_answers.py::test_the_log_only_provider_never_logs_the_message`, `test_care_memory_db.py::test_an_answered_check_in_writes_nothing_to_the_general_memory_store` | Unlikely/significant (REMEDIATION A5, F2) |
+| H18 | The watch stores sensitive data unencrypted, or loses a Help request, when its key fails | A Keystore failure on the device | Loss of privacy; delayed help | No plain-text fallback for sensitive data; a Help event is still queued, stripped of location and words; readings held in memory | `watch/.../SecureFiles.kt`, `watch/.../Outbox.kt`, `watch/.../OfflineQueue.kt` | `DegradedStorageTest.kt` | Unlikely/significant: a genuinely broken Keystore untested on a device (REMEDIATION D9) |
+| H19 | Demonstration pages, or a demonstration model, reach people in production | Demo routes in a production build; a model trained on data whose rights are unconfirmed in a release build | Confusion with real alerts; unlicensed use | Demo, presenter and simulator pages answer 404 unless the build opts in; the SisFall-trained fall model is only in debug builds (D-077) | `dashboard/src/middleware.ts`, `dashboard/src/lib/demoPages.ts` | `demo_pages.test.ts`, `FallModelReleaseTest.kt`, `test_dataset_register.py` | Rare/significant (REMEDIATION B6, F3) |
+| H20 | A screen says "All well" when the system cannot vouch for it | Monitoring paused, messages failing, a stale page, or a watch offline | False reassurance; delayed help | Under review in an open change (REMEDIATION F4): the headline and both watch faces say what is wrong instead | — | — (not yet on main) | Possible/considerable until that change merges |
 
 ## 5. Test evidence
 
@@ -52,7 +61,7 @@ devices, real people, real networks. Those are listed as needing the owner.
 
 ## 6. Residual hazards summary
 
-The hazards that depend on the physical world (H1, H4, H8, H11) remain possible and are
+The hazards that depend on the physical world (H1, H4, H8, H11) remain possible, as does H20 until its change merges, and are
 disclosed in the product's own words. The reviewer decides whether the disclosure is
 sufficient and what evidence a pilot must gather before anyone relies on the service.
 
