@@ -28,7 +28,14 @@ pg_dump --no-owner --no-privileges --format=plain "$src" \
   | gzip -9 \
   | openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -pass env:BACKUP_PASSPHRASE -out "$tmp"
 mv "$tmp" "$out"
-sha256sum "$out" > "$out.sha256"
+# The checksum names the file relative to its own folder, so it still verifies wherever the
+# pair is copied to (an off-site copy, another machine), not only at this path.
+(cd "$BACKUP_DIR" && sha256sum "$(basename "$out")" > "$(basename "$out").sha256")
 find "$BACKUP_DIR" -name 'ira-care-*.sql.gz.enc' -mtime "+$KEEP" -delete
 find "$BACKUP_DIR" -name 'ira-care-*.sql.gz.enc.sha256' -mtime "+$KEEP" -delete
 echo "backup written: $out ($(du -k "$out" | cut -f1) KB)"
+# Off-site: when a bucket is configured, the encrypted file and its checksum are copied there
+# (deploy/offsite.sh). A copy that fails fails the backup, so the container's restart shows it.
+if [ -n "${OFFSITE_S3_BUCKET:-}" ]; then
+  sh "$(dirname "$0")/offsite.sh" push "$out"
+fi

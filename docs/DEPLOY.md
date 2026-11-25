@@ -87,6 +87,10 @@ cp .env.example .env
 | `BACKUP_PASSPHRASE` | Encrypts the nightly backups. **Keep a copy somewhere other than this machine**; without it a backup cannot be restored. | as above |
 | `BACKUP_KEEP_DAYS` | How many nightly backups to keep on the machine. | `14` |
 | `BACKUP_HOUR_UTC` | The hour the backup runs. | `02` |
+| `IRA_CARE_SMTP_HOST`, `IRA_CARE_SMTP_PORT`, `IRA_CARE_SMTP_FROM`, `IRA_CARE_SMTP_USERNAME`, `IRA_CARE_SMTP_PASSWORD`, `IRA_CARE_SMTP_STARTTLS` | Alert emails to circle members who have an email address, as part of their tier. Separate from `IRA_MAIL_TRANSPORT` on purpose: setting up sign-up mail never starts alert emails by itself. Off (nothing queued) unless host and sender are set. Recorded as "accepted" by the mail server, never "delivered". | empty until you choose to email alerts |
+| `IRA_CARE_ARC_URL`, `IRA_CARE_ARC_SECRET` | An alarm-receiving (monitoring) centre for tier 3: a signed HTTPS request per alert, and signed acknowledgements back to `/api/v1/care/providers/arc/status/...`. Off unless both are set and the address is `https://`. No centre is contracted yet; without one, tier 3 tells the family to call 999. | empty |
+| `IRA_CARE_PUBLIC_BASE_URL`, `IRA_CARE_CALLBACK_SECRET` | The public `https://` address and a random secret for provider callbacks (Twilio, the monitoring centre). Without them, states stay "accepted". | `https://<domain>`; a random value |
+| `OFFSITE_S3_ENDPOINT`, `OFFSITE_S3_BUCKET`, `OFFSITE_S3_REGION`, `OFFSITE_S3_ACCESS_KEY`, `OFFSITE_S3_SECRET_KEY` | Off-site copies of the nightly backup in an S3-compatible bucket (`deploy/offsite.sh`). Only the already-encrypted file leaves the machine. Give the key write access, not delete, and set the bucket's own lifecycle rule for how long copies are kept. | empty until you have a bucket |
 
 The compose file also fixes `IRA_EDITION=cloud`, the four care jobs for the worker and the
 database host names; those are not meant to be changed.
@@ -169,6 +173,10 @@ Migrations apply on start. Never run two API containers of different versions ag
 same database at once.
 
 ## 8. Operations notes
+
+The runbooks for incidents, the worker or database stopping, restores and key rotation are
+in `docs/ops/RUNBOOKS.md`.
+
 
 - Logs: `docker compose logs -f api worker`. Secrets are redacted by the logging layer.
 - The soak test (`scripts/soak_24h.py`) simulates a day for 200 people against a test
