@@ -149,6 +149,10 @@ export function useBrowserWatch(role: 'watch' | 'presenter' = 'watch') {
 
   const help = async (via: 'button' | 'voice' | 'fall') => {
     if (!client) return;
+    // Help during a fall countdown ends the countdown, as on the watch (FallCountdown.helpPressed):
+    // otherwise the face keeps counting and, at zero, sends a second SOS.
+    if (fallTimer.current) { clearInterval(fallTimer.current); fallTimer.current = null; }
+    setFallCountdown(null);
     // Like the watch: the request is saved first (with its key), the person is told it is being sent,
     // and "received" or "[Name] is on the way" come only from the server.
     const key = (typeof crypto !== 'undefined' && 'randomUUID' in crypto) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
