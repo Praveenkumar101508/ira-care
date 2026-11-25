@@ -42,6 +42,15 @@ export async function loadAppearance(): Promise<Record<string, unknown> | null> 
   }
 }
 
+/** Forget this account's look on this phone: the next person to sign in starts plain. */
+export async function clearAppearance(): Promise<void> {
+  try {
+    await SecureStore.deleteItemAsync(APPEARANCE_KEY);
+  } catch {
+    // Not fatal.
+  }
+}
+
 export async function saveAppearance(a: object): Promise<void> {
   try {
     const copy: Record<string, unknown> = { ...(a as Record<string, unknown>) };
