@@ -39,9 +39,44 @@ JOBS = {
     # The code goes up first as a private dataset (upload_code); the reports come back in parts.
     "gpu_eval": {"code": "kaggle_gpu_eval.py", "slug": "ira-care-gpu-eval", "title": "ira-care-gpu-eval",
                  "artefact": ("EVAL_PART", "gpu_eval_reports.json"), "datasets": ["ira-care-code"], "upload_code": True},
+    # F2.e-g: QLoRA on the versioned care-conversation dataset, judged against the base model (FINETUNE_CARD.md).
+    # Its own code dataset and its own evidence file, so neither the GPU evaluation nor F2.c's record is touched.
+    "conversation_finetune": {"code": "kaggle_conversation_finetune.py", "slug": "ira-care-conversation-finetune",
+                              "title": "ira-care-conversation-finetune", "datasets": ["ira-care-finetune-code"],
+                              "upload_code": "finetune", "evidence": "conversation_finetune_2026-11-25.json",
+                              "artefact": ("EVAL_PART", "conversation_finetune_2026-11-25_results.json")},
 }
 
 CODE_DATASET = "ira-care-code"
+
+
+def upload_finetune_code(workdir: Path) -> None:
+    """The fine-tune's inputs, laid out as in the repository: the product's conversation code and its
+    evaluation set, the dataset builder and the versioned dataset. A private dataset of its own."""
+    import subprocess
+    import tarfile
+    user = os.environ["KAGGLE_USERNAME"]
+    ira = ROOT / "supracloud-jarvis" / "ira"
+    workdir.mkdir(parents=True, exist_ok=True)
+    keep = lambda info: None if "__pycache__" in info.name or info.name.endswith(".pyc") else info
+    with tarfile.open(workdir / "ira-finetune.tar.gz", "w:gz") as tar:
+        for child in sorted(ira.iterdir()):
+            if child.name not in ("tests", ".venv", "node_modules"):
+                tar.add(child, arcname=f"supracloud-jarvis/ira/{child.name}", filter=keep)
+        for rel in ("tests/__init__.py", "tests/care/__init__.py", "tests/care/eval"):
+            tar.add(ira / rel, arcname=f"supracloud-jarvis/ira/{rel}", filter=keep)
+        tar.add(HERE / "conversation_dataset.py", arcname="scripts/training/conversation_dataset.py")
+        tar.add(ROOT / "docs" / "ai" / "conversation" / "dataset", arcname="docs/ai/conversation/dataset", filter=keep)
+    name = "ira-care-finetune-code"
+    meta = {"title": name, "id": f"{user}/{name}", "licenses": [{"name": "other"}], "isPrivate": True}
+    (workdir / "dataset-metadata.json").write_text(json.dumps(meta, indent=2))
+    out = subprocess.run(["kaggle", "datasets", "version", "-p", str(workdir), "-m", "fine-tune inputs"], capture_output=True, text=True, check=False)
+    if out.returncode != 0 or "not found" in (out.stdout + out.stderr).lower():
+        out = subprocess.run(["kaggle", "datasets", "create", "-p", str(workdir)], capture_output=True, text=True, check=False)
+    print((out.stdout or out.stderr).strip())
+    if out.returncode != 0:
+        raise SystemExit(out.returncode)
+    time.sleep(90)
 
 
 def upload_code(workdir: Path) -> None:
@@ -130,7 +165,9 @@ def main() -> int:
     api = kaggle_api()
     started = dt.datetime.now(dt.UTC)
     if not args.fetch:
-        if job.get("upload_code"):
+        if job.get("upload_code") == "finetune":
+            upload_finetune_code(ROOT / ".kaggle-runs" / "finetune-code")
+        elif job.get("upload_code"):
             upload_code(ROOT / ".kaggle-runs" / "code")
         push(job, ROOT / ".kaggle-runs" / args.job)
         time.sleep(20)
@@ -166,7 +203,7 @@ def main() -> int:
            "pushed_at": started.isoformat(timespec="seconds"), "fetched_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
            "output_files": files, "gpu_seconds_reported_by_script": (metrics or {}).get("seconds"), "metrics": metrics,
            "log_tail": [ln for ln in lines if not ln.startswith(("TFLITE_B64", "HEADS", "EVAL_PART"))][-40:]}
-    (EVIDENCE / f"{args.job}.json").write_text(json.dumps(run, indent=2) + "\n")
+    (EVIDENCE / job.get("evidence", f"{args.job}.json")).write_text(json.dumps(run, indent=2) + "\n")
     print(json.dumps({k: v for k, v in run.items() if k not in ("metrics", "log_tail")}, indent=2))
     if metrics:
         print(json.dumps(metrics, indent=2)[:3000])
