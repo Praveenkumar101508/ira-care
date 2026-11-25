@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -62,6 +63,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val deps = CareDependencies.get(this)
+        if (HomePolicy.backDoesNothing(BuildConfig.PLATFORM)) {
+            onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() { /* the home screen: nowhere to go back to */ }
+            })
+        }
         if (deps.pairing.isPaired) {
             CareForegroundService.start(this)
             SyncWorker.schedule(this)
@@ -177,10 +183,26 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** Permissions granted in Settings (or at first boot) take effect as soon as the person is
+     *  back here, rather than leaving them on the permission screen until a restart. */
+    override fun onResume() {
+        super.onResume()
+        val deps = CareDependencies.get(this)
+        val granted = deps.sensors.backgroundPermissionGranted()
+        if (deps.status.value.permissionGranted != granted) deps.status.value = deps.status.value.copy(permissionGranted = granted)
+    }
+
     @Composable
     private fun PermissionScreen(deps: CareDependencies) {
         val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-            deps.status.value = deps.status.value.copy(permissionGranted = deps.sensors.backgroundPermissionGranted())
+            val granted = deps.sensors.backgroundPermissionGranted()
+            deps.status.value = deps.status.value.copy(permissionGranted = granted)
+            // Background body sensors can only be allowed from system settings: go there only if
+            // it is still missing after the dialog.
+            if (HomePolicy.needsSettings(granted)) {
+                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    android.net.Uri.fromParts("package", packageName, null)))
+            }
         }
         Column(
             modifier = Modifier.fillMaxSize().padding(12.dp),
@@ -194,9 +216,6 @@ class MainActivity : ComponentActivity() {
                 launcher.launch(arrayOf(Manifest.permission.BODY_SENSORS, Manifest.permission.ACTIVITY_RECOGNITION,
                     Manifest.permission.RECORD_AUDIO, Manifest.permission.POST_NOTIFICATIONS,
                     Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
-                // Background body sensors can only be granted from system settings.
-                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    android.net.Uri.fromParts("package", packageName, null)))
             }) { Text(getString(R.string.permission_button)) }
         }
     }

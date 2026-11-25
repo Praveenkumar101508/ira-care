@@ -19,8 +19,8 @@ reachable:
   API for device owners.
 - **If a lock is set anyway** (a carer chooses one, or a later policy requires it), the app's
   home activity must declare `android:showWhenLocked="true"` and `android:turnScreenOn="true"`
-  so the Help screen is drawn over the keyguard without unlocking. The app does not declare
-  these today: this is follow-up item 4 in `HOME_LAUNCHER.md`. The Help flow then only reads
+  so the Help screen is drawn over the keyguard without unlocking. The app now declares both,
+  in the aosp flavour only (`watch/app/src/aosp/AndroidManifest.xml`); not yet seen on a device. The Help flow then only reads
   what it needs (it sends the SOS through the server); nothing private is shown while locked.
 
 ## 2. Platform emergency routes kept on
