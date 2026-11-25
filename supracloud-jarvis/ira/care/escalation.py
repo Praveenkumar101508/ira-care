@@ -356,8 +356,15 @@ async def run_once(now: Optional[dt.datetime] = None) -> EscalationOutcome:
 
     now = now or _now()
     total = EscalationOutcome()
-    async with get_pool().acquire() as conn:
-        tenant_ids = [r["id"] for r in await conn.fetch("SELECT id FROM tenants WHERE status = 'active' ORDER BY id")]
+    try:
+        async with get_pool().acquire() as conn:
+            tenant_ids = [r["id"] for r in await conn.fetch("SELECT id FROM tenants WHERE status = 'active' ORDER BY id")]
+    except Exception as exc:  # noqa: BLE001 - the database is unreachable: nothing to do this pass
+        # No heartbeat is written, so /health/jobs and the dashboard say monitoring is
+        # paused until a pass succeeds. Every due alert is still due next pass.
+        logger.error("care monitoring: database unreachable (%s); pass skipped", type(exc).__name__)
+        total.errors += 1
+        return total
     for tenant_id in tenant_ids:
         try:
             async with scheduler_connection(tenant_id) as conn:

@@ -78,9 +78,14 @@ async def run_cycle_once(now: Optional[dt.datetime] = None, *, rng: Optional[ran
     now = now or _now()
     rng = rng or random.Random()
     outcome = CycleOutcome()
-    async with get_pool().acquire() as conn:
-        tenant_ids = [r["id"] for r in await conn.fetch(
-            "SELECT id FROM tenants WHERE status = 'active' ORDER BY id")]
+    try:
+        async with get_pool().acquire() as conn:
+            tenant_ids = [r["id"] for r in await conn.fetch(
+                "SELECT id FROM tenants WHERE status = 'active' ORDER BY id")]
+    except Exception as exc:  # noqa: BLE001 - unreachable database: skip this pass, no heartbeat
+        logger.error("care check-ins: database unreachable (%s); pass skipped", type(exc).__name__)
+        outcome.errors += 1
+        return outcome
     for tenant_id in tenant_ids:
         outcome.tenants += 1
         try:

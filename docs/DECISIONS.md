@@ -1220,3 +1220,32 @@ Two new settings turn the callbacks on, alongside the three in D-016:
 `IRA_CARE_PUBLIC_BASE_URL` (the deployment's public `https://` address) and
 `IRA_CARE_CALLBACK_SECRET` (a random secret for the URL token). Without either, no callback URL
 is given to Twilio and a message stays `accepted`, shown as "delivery not confirmed".
+
+## D-076 A caller sees only the people whose circle they belong to (remediation C-22, 25 November 2026)
+
+D-010 decides what a caller may do from their workspace role. It said nothing about which
+people they may do it for, and one care organisation's workspace holds many people
+(`PRODUCT_SPEC.md`), while inviting a family member or carer into one person's circle makes
+them a workspace `member` (`care/onboarding.py`). So a daughter invited for her mother could,
+through the API, see and act on everyone else the organisation cares for. Measured on the code
+before this change: of 62 routes that name another person or one of their things, none
+answered "not found", and 29 succeeded. Among them: raising an SOS in the other person's name,
+acknowledging their alert, cancelling their visit, changing what IRA remembers about them, and
+reading their readings and medication.
+
+The rule now:
+- A workspace administrator (the care manager) and the deployment owner see every person in
+  the workspace.
+- Everyone else sees only the people whose circle they are an active member of.
+
+It is enforced as route dependencies (`person_guard`, and `resource_guard` for a route named by
+an alert, visit, reminder, routine, medication, consent, report, device or circle member). A
+person outside the caller's circles is refused as "not found", so their existence is not
+revealed. `/people`, `/alerts` and `/overview` are filtered the same way. Leaving a circle
+ends access at once.
+
+A static test fails if any route naming a person or one of their things lacks the guard. A
+database test calls every such route for a person outside the caller's circle and expects 404.
+
+Consequence: a care-organisation staff member who is not a workspace administrator must be
+added to a person's circle to see them. The circle is the assignment.

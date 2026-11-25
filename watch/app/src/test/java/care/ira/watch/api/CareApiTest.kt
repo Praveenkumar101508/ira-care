@@ -137,6 +137,24 @@ class CareApiSosTest {
     }
 
     @Test
+    fun `a server that cannot answer now is not a refusal, so an urgent event is kept and retried`() {
+        // (408 is retried by OkHttp itself before we see it; the rule is checked directly below.)
+        for (code in listOf(500, 502, 503, 504, 425, 429)) {
+            server.enqueue(MockResponse().setResponseCode(code).setBody("""{"error_code":"dependency_unavailable"}"""))
+            val out = api.sendUrgent(CareApi.PATH_HELP, """{"via":"button"}""", "key-$code")
+            assertTrue("$code must be retried, not dropped", out is ApiOutcome.Offline)
+        }
+        // A real refusal is still a definite answer.
+        for (code in listOf(400, 403, 404, 409, 422)) {
+            server.enqueue(MockResponse().setResponseCode(code))
+            val got = api.sendUrgent(CareApi.PATH_HELP, "{}", "r-$code")
+            assertTrue("$code is a definite refusal, got $got", got is ApiOutcome.Failed)
+        }
+        assertTrue(CareApi.isRetryable(408))
+        assertTrue(!CareApi.isRetryable(404) && !CareApi.isRetryable(409))
+    }
+
+    @Test
     fun `the device record carries the range the upload interval and the sos state`() {
         server.enqueue(MockResponse().setBody("""{"id":"d","status":"paired","fall":{"fall_countdown_s":45},"readings":{"heart_rate_min":45,"heart_rate_max":130,"reading_upload_interval_s":30},"sos":{"state":"on_the_way","responder_name":"Sravani","alert_id":"a1"}}"""))
         val me = (api.me() as ApiOutcome.Ok).value

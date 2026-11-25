@@ -211,6 +211,10 @@ async def test_the_watch_side_over_the_real_routes(client, families, pool):
     r = await client.get(f"{C}/devices/me/checkins/due", headers=h)
     assert r.status_code == 200 and r.json()["checkin"] is None
     # A viewer cannot ask for a check-in now; a member can.
+    # Since D-076 a viewer sees a person only from inside their circle: a family viewer.
+    client.act_as(fam, "admin", "workspace_admin")
+    assert (await client.post(f"{C}/people/{person['id']}/circle", json={"display_name": "Family Viewer", "role": "family",
+                                                              "user_id": str(fam["viewer"])})).status_code == 201
     client.act_as(fam, "viewer", "viewer")
     assert (await client.post(f"{C}/people/{person['id']}/checkins/ask-now", json={})).status_code == 403
     client.act_as(fam, "member", "member")
