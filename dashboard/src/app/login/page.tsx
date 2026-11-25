@@ -10,10 +10,10 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [choices, setChoices] = useState<{ token: string; workspaces: Workspace[] } | null>(null);
+  const [choices, setChoices] = useState<{ token: string; refresh: string; workspaces: Workspace[] } | null>(null);
 
-  const pick = (token: string, w: Workspace) => {
-    saveSession({ baseUrl: baseUrl.replace(/\/$/, ''), accessToken: token, workspaceId: w.id, role: w.role, workspaceName: w.name, username });
+  const pick = (token: string, refresh: string, w: Workspace) => {
+    saveSession({ baseUrl: baseUrl.replace(/\/$/, ''), accessToken: token, refreshToken: refresh, workspaceId: w.id, role: w.role, workspaceName: w.name, username });
     window.location.href = '/';
   };
 
@@ -23,8 +23,8 @@ export default function LoginPage() {
       const url = baseUrl.replace(/\/$/, '');
       const tokens = await Api.login(url, username, password);
       const list = await new Api({ baseUrl: url, accessToken: tokens.access_token, workspaceId: null, role: '' }).workspaces();
-      if (list.workspaces.length === 1) pick(tokens.access_token, list.workspaces[0]);
-      else setChoices({ token: tokens.access_token, workspaces: list.workspaces });
+      if (list.workspaces.length === 1) pick(tokens.access_token, tokens.refresh_token, list.workspaces[0]);
+      else setChoices({ token: tokens.access_token, refresh: tokens.refresh_token, workspaces: list.workspaces });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong.');
     }
@@ -37,7 +37,7 @@ export default function LoginPage() {
         {choices.workspaces.map((w) => (
           <div key={w.id} className="card">
             <strong>{w.name}</strong> <span className="muted">{w.role.replace('_', ' ')}</span>
-            <div><button onClick={() => pick(choices.token, w)}>Open</button></div>
+            <div><button onClick={() => pick(choices.token, choices.refresh, w)}>Open</button></div>
           </div>
         ))}
       </div>

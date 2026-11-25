@@ -7,14 +7,61 @@ export class ApiError extends Error {
   constructor(public readonly status: number, message: string) { super(message); }
 }
 
-export interface Session { baseUrl: string; accessToken: string; workspaceId: string | null; role: string }
+/** `refreshToken`, when present, lets an expired access token be renewed (POST /auth/refresh)
+ *  without sending the carer back to the sign-in page in the middle of a shift. */
+export interface Session { baseUrl: string; accessToken: string; refreshToken?: string; workspaceId: string | null; role: string }
+
+/** What renewing the sign-in came to. 'offline': the server could not be reached or could not
+ *  answer, so nothing is signed out for that. 'expired': the server refused the refresh token. */
+export type RenewOutcome = 'renewed' | 'expired' | 'offline';
 
 type Fetch = typeof fetch;
 
+/** One renewal per refresh token at a time, shared by every Api object on the page: the people
+ *  list, the alerts and the live view all meeting an expired token at once renew it once. */
+const renewals = new Map<string, Promise<{ outcome: RenewOutcome; accessToken?: string }>>();
+
 /** The dashboard's view of the backend. Browser-side; the token stays in session storage. */
 export class Api {
+  private readonly s: Session;
+  /** Told the new access token after a renewal, so the stored session can keep it. */
+  onRenewed?: (accessToken: string) => void;
+
   // `fetch` is wrapped rather than passed bare: calling the browser's fetch with another `this` throws.
-  constructor(private readonly s: Session, private readonly f: Fetch = (input, init) => fetch(input, init)) {}
+  constructor(session: Session, private readonly f: Fetch = (input, init) => fetch(input, init)) {
+    this.s = { ...session };
+  }
+
+  /** Renew the access token with the refresh token. Never loops; shared by concurrent callers. */
+  async renew(): Promise<RenewOutcome> {
+    const refresh = this.s.refreshToken;
+    if (!refresh) return 'expired';
+    let pending = renewals.get(refresh);
+    if (!pending) {
+      pending = (async () => {
+        let r: Response;
+        try {
+          r = await this.f(`${this.s.baseUrl}/auth/refresh`, { method: 'POST', headers: { Authorization: `Bearer ${refresh}`, Accept: 'application/json' } });
+        } catch {
+          return { outcome: 'offline' as const };
+        }
+        if (!r.ok) return { outcome: r.status >= 500 || r.status === 429 ? 'offline' as const : 'expired' as const };
+        try {
+          const data = (await r.json()) as { access_token?: string };
+          return data.access_token ? { outcome: 'renewed' as const, accessToken: data.access_token } : { outcome: 'expired' as const };
+        } catch {
+          return { outcome: 'offline' as const };
+        }
+      })().finally(() => { renewals.delete(refresh); });
+      renewals.set(refresh, pending);
+    }
+    const out = await pending;
+    if (out.outcome === 'renewed' && out.accessToken) {
+      this.s.accessToken = out.accessToken;
+      this.onRenewed?.(out.accessToken);
+    }
+    return out.outcome;
+  }
 
   /** Sign in. A cloud deployment signs in by email (/auth/cloud/login); a private
    *  one has no such route (404) and uses the owner account at /auth/token. */
@@ -91,11 +138,21 @@ export class Api {
       headers['X-Workspace-ID'] = this.s.workspaceId;
     }
     if (body !== undefined) headers['Content-Type'] = 'application/json';
-    let r: Response;
-    try {
-      r = await this.f(this.s.baseUrl + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
-    } catch {
-      throw new ApiError(0, 'No connection to the server.');
+    const once = async () => {
+      headers.Authorization = `Bearer ${this.s.accessToken}`;
+      try {
+        return await this.f(this.s.baseUrl + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+      } catch {
+        throw new ApiError(0, 'No connection to the server.');
+      }
+    };
+    let r = await once();
+    // A request refused with 401 was refused before anything happened, so sending it again
+    // after renewing cannot do anything twice. A second 401 is final.
+    if (r.status === 401 && this.s.refreshToken) {
+      const renewed = await this.renew();
+      if (renewed === 'offline') throw new ApiError(0, 'No connection to the server. Your sign-in will be renewed when it is back.');
+      if (renewed === 'renewed') r = await once();
     }
     if (r.status === 401) throw new ApiError(401, 'Please sign in again.');
     if (!r.ok) throw new ApiError(r.status, await detail(r));
