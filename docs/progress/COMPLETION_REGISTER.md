@@ -4,8 +4,8 @@ The single place that says, for every requirement in the owner's master directiv
 2026), what exists, what proves it, and what is still missing. The detailed safety findings and
 their negative controls are in `REMEDIATION.md`; this register points to them.
 
-Started 25 November 2026. **Keep it current:** a change to a row's status needs its evidence in
-the same pull request.
+Started 25 November 2026. **Keep it current:** a change to a row's status needs its evidence, and the
+matching atomic requirements in `requirements.json`, in the same pull request.
 
 ## Status words
 
@@ -28,23 +28,38 @@ These are the only words used, and each means exactly this:
 
 Nothing is marked done because code or a document exists.
 
-## Weighted completion
+## Completion
 
-<!-- completion-summary:begin -->
-| Measure | Value |
-|---|---|
-| Overall, weighted | 67.2 % |
-| Implemented (built, here or before) | 91.2 % |
-| Tested (unit, integration, evaluated or better) | 62.7 % |
-| Merged and evidenced in this programme | 51.0 % |
-| Safety remediation (section C) | 84.2 % |
-| AI components (section F) | 65.6 % |
-| IRA CARE OS (section E) | 58.0 % |
-| Rows blocked in part by an external dependency | 21 of 51 |
+Completion is no longer scored from this register's rows. It is measured from
+`docs/progress/requirements.json`: a fixed, versioned list of atomic requirements, each with
+one register row as its parent, one state and the evidence for it. `scripts/completion_summary.py`
+checks the rules (documents and configuration checks never count as acceptance; verification needs
+database, browser, emulator, model-evaluation or device evidence; every file it names exists; blocked
+items stay in every denominator) and reports seven separate measures. `--snapshot <label>` appends a
+dated record to `docs/progress/completion_history.json`, which is append-only.
 
-Computed by `scripts/completion_summary.py` from the status column, with the fixed scores and
-weights stated in that script. No device has been used, so no row is device tested.
-<!-- completion-summary:end -->
+The numbers below are quoted from one dated snapshot, so they stay true when later pull requests
+change the requirements; run the script for the current figures.
+
+At snapshot **main after #66**, `08766d2` (recorded 2026-11-25):
+
+| Measure | Done / total | % |
+|---|---|---|
+| Hardware-independent software implementation | 121 / 177 | 68.4 % |
+| Hardware-independent software acceptance | 104 / 177 | 58.8 % |
+| Software verification | 45 / 191 | 23.6 % |
+| AI development (accepted, area ai) | 17 / 37 | 45.9 % |
+| OS development (accepted, area os, hardware-independent) | 2 / 27 | 7.4 % |
+| Hardware integration (accepted, area hardware) | 0 / 14 | 0.0 % |
+| External and commercial readiness (accepted, area external) | 0 / 34 | 0.0 % |
+
+104 of 239 requirements are accepted or better; 135 remain, 47 of them blocked by something
+outside the software. None is device validated: no physical device has been used.
+
+The history's first entry recomputes the audit baseline (`1f41c5d`, before #44) as a lower bound,
+crediting only evidence present there verbatim (for example, software acceptance 32 / 177).
+It is not a progress figure: states were never recorded at that commit, and evidence files
+edited since are not credited.
 
 ## Pull requests in this programme
 
