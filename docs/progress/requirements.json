@@ -3684,11 +3684,19 @@
    "title": "Licence check of shipped dependencies",
    "area": "external",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "docs_only",
      "ref": "docs/progress/VERIFICATION.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_licence_check.py"
+    },
+    {
+     "kind": "config_check",
+     "ref": "scripts/licence_check.py"
     }
    ]
   },
