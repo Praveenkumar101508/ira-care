@@ -73,14 +73,14 @@ class LogOnlyProvider:
     def __init__(self) -> None:
         self.log: list[tuple[str, str, str]] = []
 
-    async def send_sms(self, to: str, text: str) -> Delivery:
+    async def send_sms(self, to: str, text: str, *, status_callback: Optional[str] = None) -> Delivery:
         assert_not_emergency_number(to)
         self.log.append(("sms", to, text))
         # Never the message: it names the person and says what happened to them.
         logger.info("care sms (log only) to %s: %d characters, not sent", _mask(to), len(text or ""))
         return Delivery("logged", "log-only provider: no message was sent")
 
-    async def call(self, to: str, text: str) -> Delivery:
+    async def call(self, to: str, text: str, *, status_callback: Optional[str] = None) -> Delivery:
         assert_not_emergency_number(to)
         self.log.append(("call", to, text))
         logger.info("care call (log only) to %s: %d characters, not placed", _mask(to), len(text or ""))
@@ -101,14 +101,21 @@ class TwilioProvider:
     def __init__(self, account_sid: str, auth_token: str, from_number: str) -> None:
         self._sid, self._token, self._from = account_sid, auth_token, from_number
 
-    async def send_sms(self, to: str, text: str) -> Delivery:
+    async def send_sms(self, to: str, text: str, *, status_callback: Optional[str] = None) -> Delivery:
         assert_not_emergency_number(to)
-        return await self._post("Messages.json", {"To": to, "From": self._from, "Body": text[:1500]})
+        form = {"To": to, "From": self._from, "Body": text[:1500]}
+        if status_callback:
+            form["StatusCallback"] = status_callback
+        return await self._post("Messages.json", form)
 
-    async def call(self, to: str, text: str) -> Delivery:
+    async def call(self, to: str, text: str, *, status_callback: Optional[str] = None) -> Delivery:
         assert_not_emergency_number(to)
         twiml = f"<Response><Say voice=\"alice\">{_xml(text[:600])}</Say></Response>"
-        return await self._post("Calls.json", {"To": to, "From": self._from, "Twiml": twiml})
+        form = {"To": to, "From": self._from, "Twiml": twiml}
+        if status_callback:
+            form["StatusCallback"] = status_callback
+            form["StatusCallbackEvent"] = "initiated ringing answered completed"
+        return await self._post("Calls.json", form)
 
     async def _post(self, resource: str, form: dict) -> Delivery:
         import httpx
@@ -117,7 +124,10 @@ class TwilioProvider:
             async with httpx.AsyncClient(timeout=15) as client:
                 r = await client.post(url, data=form, auth=(self._sid, self._token))
             if r.status_code // 100 == 2:
-                return Delivery("sent", "", str(r.json().get("sid", ""))[:200])
+                # Taken by Twilio, which is not the same as delivered: the
+                # status callback (care/delivery.py) says how far it got.
+                return Delivery("accepted", "accepted by the provider; delivery not yet confirmed",
+                                str(r.json().get("sid", ""))[:200])
             return Delivery("failed", f"provider answered {r.status_code}")
         except Exception as exc:  # noqa: BLE001 - a provider failure is recorded, never raised
             return Delivery("failed", f"provider error: {type(exc).__name__}")

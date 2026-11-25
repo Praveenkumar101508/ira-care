@@ -581,6 +581,11 @@
    "sha256": "b1422c9f8a8907494fdb153ff3893f53ab4f7b210a29cd5a80f75ba6bf1bb6db",
    "status": "applied"
   },
+  "113_care_delivery_states.sql": {
+   "migration_number": 113,
+   "sha256": "5cd8e7e0860a934dd9a699242a269370ec4aa0b3520c3283cbfa126c379a7002",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",

@@ -103,7 +103,8 @@ async def test_a_second_family_never_receives_the_first_familys_alert(client, fa
     client.act_as(a, "member", "member")
     alert = (await client.get(f"{C}/alerts/{alert_id}")).json()
     pushes = [x for x in alert["attempts"] if x["channel"] == "push"]
-    assert len(pushes) == 1 and pushes[0]["outcome"] == "sent"
+    # Taken by the push service, which is not the same as delivered (remediation A2).
+    assert len(pushes) == 1 and pushes[0]["outcome"] == "accepted"
     assert pushes[0]["delivery"] == "sent, delivery not yet confirmed"
     # Family B cannot even see the alert, let alone its delivery.
     client.act_as(b, "admin", "workspace_admin")

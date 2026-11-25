@@ -1,7 +1,7 @@
 {
   "phase": "3B batch 0/1",
   "schema_version": 1,
-  "table_count": 152,
+  "table_count": 154,
   "tables": {
     "access_audit_log": {
       "access": {
@@ -1630,6 +1630,81 @@
         "update": "DENIED (no UPDATE policy)"
       }
     },
+    "care_alert_attempt_events": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/delivery.py"
+        ],
+        "delete_call_sites": [],
+        "non_test_code_files": 3,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/delivery.py",
+          "supracloud-jarvis/ira/care/repository.py",
+          "supracloud-jarvis/ira/care/routes.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/delivery.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_alert_attempt_events:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 11,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 2,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "with its alert attempt (ON DELETE CASCADE from care_alert_attempts), on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "Every state a provider reported for an alert message (113): accepted, delivered, failed, no answer. Insert-only, like the attempts; a message's state is its furthest event. Removed with its attempt, with the person and with the tenant.",
+      "migration": {
+        "done_by": "113_care_delivery_states.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_alert_attempt_events/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "none: no DELETE policy and no DELETE grant; rows leave only by ON DELETE CASCADE",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "none: no UPDATE policy and no UPDATE grant (append-only)"
+      }
+    },
     "care_alert_attempts": {
       "access": {
         "background_worker_call_sites": [
@@ -1649,7 +1724,7 @@
       "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_alert_attempts:{key}",
       "classification": "WORKSPACE_SCOPED",
       "current": {
-        "column_count": 11,
+        "column_count": 12,
         "has_tenant_id": true,
         "has_user_id": false,
         "has_workspace_id": true,
@@ -1702,6 +1777,80 @@
         ],
         "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
         "update": "DENIED (no UPDATE policy)"
+      }
+    },
+    "care_alert_dispatch": {
+      "access": {
+        "background_worker_call_sites": [
+          "supracloud-jarvis/ira/care/delivery.py"
+        ],
+        "delete_call_sites": [],
+        "non_test_code_files": 2,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/delivery.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/escalation.py",
+          "supracloud-jarvis/ira/care/delivery.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_alert_dispatch:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 8,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 3,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "with its alert attempt (ON DELETE CASCADE from care_alert_attempts), on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "The outbox for alert messages (113): one row per queued message with its tries and lease, so a message is sent after the transaction that decided it, exactly once per claim, and retried. No content: who and what come from the attempt and the alert. Removed with its attempt, with the person and with the tenant.",
+      "migration": {
+        "done_by": "113_care_delivery_states.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_alert_dispatch/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "none: no DELETE policy and no DELETE grant; rows leave only by ON DELETE CASCADE",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid (UPDATE granted on tries, next_try_at, finished_at only)"
       }
     },
     "care_alerts": {

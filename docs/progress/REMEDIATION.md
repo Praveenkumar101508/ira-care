@@ -24,6 +24,19 @@ true.
 | A5 | High | `care/providers.py`, care exception logs | The log-only provider logged the first 80 characters of every SMS, call script and monitoring-centre summary (person's name, what happened). Sixteen care log lines printed raw exception messages, which can carry model output or field values. | Provider logs: channel, masked number, length, reference only. Exception logs: the exception type only. | unit: a message with a name, address and heart rate leaves none of it in the log | fixed |
 | A6 | High | `care/routes.py` `POST /people/{id}/talk` | Any member with the act permission (a daughter, a carer, a workspace admin, another wearer) could talk as the person: transcripts, memory, reminders and alerts in the person's name. | Only an active member of THIS person's circle with relationship `self`; checked before the stream starts, so a refusal writes nothing. The watch's device route is unchanged. The phone app offers Talk only to that account. | DB: wearer 200; daughter, carer, admin outside the circle, another wearer 403; other tenant 404; revoked membership 403; nothing written on refusal. Jest: `isWearerOf`. | fixed |
 
+## Group A2: emergency message delivery
+
+| ID | Severity | Where | Finding | Fix | Tests | Status |
+|----|----------|-------|---------|-----|-------|--------|
+| A2-1 | Critical | `care/escalation.py` `run_due_escalations` | Due alerts were selected with no lock. Two monitoring workers at once told the same tier twice. Measured: three workers sent 8 texts and calls to 4 recipients. | Alerts are claimed with `FOR UPDATE SKIP LOCKED` inside the transaction that moves them on. Messages are queued in that transaction, and outbox rows are claimed with a lease. | DB: three workers at once send exactly 4 for 4 | fixed |
+| A2-2 | High | `care/escalation.py` `run_workspace` | The whole workspace pass was one transaction, with the SMS, calls and push sent inside it. A failure later in the pass rolled back the record of messages already sent, and a slow provider (15 s timeout) held up every other person's alert. | Messages are queued, the transaction commits, then `care/delivery.py` sends them. Each send has a 20 s limit, at most 8 run at once, and failures are retried 3 times with a growing wait. A queued message survives a crash and is sent on the next pass. | DB: survives a crash between deciding and sending; a slow send does not hold up the others; failure is retried then recorded as failed; a provider that recovers sends on the retry | fixed |
+| A2-3 | High | `care/providers.py` | A Twilio 2xx was recorded as `sent`, and nothing ever confirmed delivery. | A 2xx is now `accepted`. Twilio's status callback (`/care/providers/twilio/status/…`) moves the message to delivered, undelivered, failed, no answer or busy. It is verified twice: our HMAC token in the URL, and Twilio's signature over the URL and form (checked against Twilio's own validator). It is replay-safe, and order does not matter. | Unit: Twilio reference signature; anything altered or missing is refused. DB: a signed callback moves the state forward only; an unsigned, forged-token or other-message callback changes nothing; a callback that arrives before the send was recorded is kept | fixed |
+| A2-4 | High | push receipts | Push receipts updated the push tickets but never the alert message's state. | `settle_push_attempts`: a delivered ticket makes the push message delivered; all tickets failing makes it failed. | (covered with A2-3) | fixed |
+| A2-5 | Medium | `care/escalation.py` | A tier with nobody in it, or with nobody reachable, was passed over without a record. | An explicit `skipped` attempt says so ("nobody is set up in tier N…"). | — | fixed |
+| A2-6 | Medium | outbox | A message queued for an alert that was resolved before it was sent would still go out. | It is recorded as skipped ("resolved before this was sent") and not sent. | DB | fixed |
+| A2-7 | — | migration 113 | — | Additive. `care_alert_attempts` stays insert-only (an existing test pins this), and states are new rows in the insert-only `care_alert_attempt_events`. The outbox `care_alert_dispatch` can update only tries, lease and finished time. Forward, rollback and re-apply were run on a scratch database. Classified in the tenancy manifest, the isolation matrix and the erasure registry. | registry suites | fixed |
+| A2-8 | — | responder follow-up | The brief asked that an acknowledgement start the follow-up deadline, that non-arrival restart the escalation, and that only a recorded outcome resolve the alert. | Already in place before this work: `care/followup.py`, round 3. Not changed here. | existing `test_care_follow_up_db` | already in place |
+
 ## Group C: phone app session and privacy
 
 | ID | Severity | Where | Finding | Fix | Tests | Status |
@@ -60,6 +73,11 @@ true.
 Migration 112: of the 5 new database tests, run against the code from before 112 on the migrated
 database, 4 fail (binding, scheduler binding, provenance, correction). The fifth passes because
 the old code also wrote nothing for a late answer or a stopped medicine.
+
+Group A2: the 21 new tests were run against the code from before A2 (the old `escalation.py`
+and `providers.py`): 12 fail and 9 pass. The 9 that pass are the pure signature, token and
+rank rules, which do not depend on the old sending code. The two-worker test failed on real
+duplicates: 8 messages for 4 recipients.
 
 Group C: the 9 new tests were run against the original `App.tsx`, `push.ts`, `storage.ts`,
 `client.ts` and `LoginScreen.tsx`: 8 fail and 1 passes. The one that passes is "a 401 with no

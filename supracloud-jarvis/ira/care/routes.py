@@ -16,10 +16,11 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import logging
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from fastapi.encoders import jsonable_encoder
 
 from api.middleware.auth import require_auth
@@ -31,6 +32,7 @@ from . import authz, audit, checkin_cycle, consent, history, onboarding, ops, pe
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 router = APIRouter(prefix="/care", tags=["care"])
+logger = logging.getLogger("ira.care.routes")
 
 DEVICE_TOKEN_HEADER = "X-Device-Token"
 
@@ -1022,6 +1024,53 @@ async def list_medication_corrections(person_id: uuid.UUID, p: Principal = Depen
         await audit.record_access(conn, p, person_id=person_id, resource_kind="medication",
                                   detail={"view": "corrections", "rows": len(rows)})
     return {"corrections": rows, "count": len(rows)}
+
+
+# ── Provider status callbacks ────────────────────────────────────────────────
+
+#: Fields Twilio sends on a status callback; anything else is dropped before
+#: the signature is checked against what was actually received.
+_TWILIO_FIELD_LIMIT = 64
+
+
+@router.post("/providers/twilio/status/{tenant_id}/{workspace_id}/{attempt_id}", status_code=204)
+async def twilio_status(tenant_id: uuid.UUID, workspace_id: uuid.UUID, attempt_id: uuid.UUID, request: Request,
+                        t: str = Query("", max_length=80),
+                        x_twilio_signature: Optional[str] = Header(default=None, alias="X-Twilio-Signature")):
+    """How far an SMS or a call got, from Twilio. Refused with nothing written
+    unless BOTH our token in the URL and Twilio's signature over the full URL
+    and the form verify. States only move forward, so a repeat or a late
+    callback changes nothing. The message's words are never logged."""
+    import os
+
+    from fastapi import Response
+
+    from . import delivery
+    from .checkin_cycle import job_principal
+    form = await request.form()
+    if len(form) > _TWILIO_FIELD_LIMIT:
+        raise HTTPException(status_code=400, detail="Too many fields.")
+    params = {k: str(v)[:500] for k, v in form.items()}
+    url = delivery.status_callback_url(tenant_id, workspace_id, attempt_id)
+    if url is None or not delivery.verify_token(tenant_id, workspace_id, attempt_id, t) or not delivery.verify_twilio(
+            url, params, x_twilio_signature or "", (os.getenv("IRA_CARE_TWILIO_AUTH_TOKEN") or "").strip()):
+        raise HTTPException(status_code=403, detail="Signature not valid.")
+    status = (params.get("MessageStatus") or params.get("CallStatus") or "").strip().lower()
+    sid = (params.get("MessageSid") or params.get("CallSid") or "").strip()[:200]
+    outcome = delivery.TWILIO_STATUS.get(status)
+    if outcome is None:
+        logger.info("care twilio callback: status %r not used (attempt %s)", status[:20], attempt_id)
+        return Response(status_code=204)
+    principal = job_principal(tenant_id, workspace_id)
+    async with workspace_connection(principal) as conn:
+        row = await conn.fetchrow("SELECT id, channel FROM care_alert_attempts WHERE id = $1", attempt_id)
+        known = (await delivery.current_states(conn, [attempt_id])).get(attempt_id) if row else None
+        if row is None or row["channel"] not in ("sms", "call") or (known["provider_ref"] and sid and known["provider_ref"] != sid):
+            logger.warning("care twilio callback: no matching attempt %s", attempt_id)
+            return Response(status_code=204)
+        await delivery.record_state(conn, attempt_id, outcome, source="callback", provider_status=status,
+                                    provider_ref=sid)
+    return Response(status_code=204)
 
 
 # ── Transcripts and consents ─────────────────────────────────────────────────
