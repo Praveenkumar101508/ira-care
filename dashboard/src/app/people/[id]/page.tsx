@@ -87,7 +87,8 @@ export default function PersonPage() {
       if (!gate.current.current(ticket)) return;
       setStatus(s); setAlerts(a); setError('');
       // Whether the system can vouch for "all well" (care jobs alive, messages getting out). Unknown counts as not.
-      api.opsStatus().then((o) => { if (gate.current.current(ticket)) setOps(o); }).catch(() => { if (gate.current.current(ticket)) setOps(null); });
+      // Never part of the record's own load: a health check that fails in any way only withholds "All well".
+      Promise.resolve().then(() => api.opsStatus()).then((o) => { if (gate.current.current(ticket)) setOps(o); }).catch(() => { if (gate.current.current(ticket)) setOps(null); });
       // The rest side by side: one section failing is named, never blanks the record.
       const { values: v, failed } = await settleAll({
         checkins: () => api.checkins(id), vitals: () => api.vitals(id), routines: () => api.routines(id),
