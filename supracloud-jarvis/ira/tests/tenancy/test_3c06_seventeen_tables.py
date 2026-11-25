@@ -83,6 +83,9 @@ WORKSPACE_SCOPED = (
     "care_reports", "care_conversation_memory", "care_device_events", "care_push_tokens", "care_push_tickets",
     "care_visits", "care_visit_tasks", "care_communication_profiles", "care_reminders", "care_user_preferences",
     "care_medication_event_corrections", "care_alert_dispatch", "care_alert_attempt_events",
+    # 116: insert-only (SELECT and INSERT granted, no UPDATE or DELETE). The UPDATE and DELETE
+    # probes below accept the refusal; the read and insert probes apply as to every other table.
+    "care_plans",
 )
 
 
@@ -181,6 +184,7 @@ SPECS: dict[str, Spec] = {
     "care_push_tokens": Spec(columns={"user_id": "user", "token": "text"},
                              parents=(("care_people", "person_id"), ("care_circle_members", "member_id"))),
     "care_push_tickets": Spec(parents=(("care_alerts", "alert_id"),)),
+    "care_plans": Spec(columns={"version": "int", "reason": "text"}, parents=(("care_people", "person_id"),)),
     "care_visits": Spec(columns={"planned_start": "now", "planned_end": "later"}, parents=(("care_people", "person_id"),)),
     "care_visit_tasks": Spec(columns={"title": "text"}, parents=(("care_visits", "visit_id"),)),
     "care_communication_profiles": Spec(parents=(("care_people", "person_id"),)),

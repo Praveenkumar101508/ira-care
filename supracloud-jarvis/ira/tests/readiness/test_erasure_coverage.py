@@ -158,6 +158,10 @@ EXEMPT: dict[str, str] = {
         "IRA CARE (109): one planned visit by a carer to the PERSON CARED FOR, with what happened. Belongs to "
         "the person, not to an account; a member's or creator's user link is ON DELETE SET NULL. Removed by the "
         "care package's per-person erasure and, when the TENANT is deleted, by ON DELETE CASCADE.",
+    "care_plans":
+        "IRA CARE (116): the versioned care plan of the PERSON CARED FOR, insert-only. Belongs to the person, not to "
+        "an account; the author's user link is ON DELETE SET NULL. Removed with the person by the care package's "
+        "per-person erasure (ON DELETE CASCADE from care_people) and, when the TENANT is deleted, by ON DELETE CASCADE.",
     "care_visit_tasks":
         "IRA CARE (109): the tasks of one visit. Belong to the visit, so to the PERSON CARED FOR; removed with "
         "the visit, by the per-person erasure and, when the TENANT is deleted, by ON DELETE CASCADE.",

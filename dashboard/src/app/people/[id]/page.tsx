@@ -7,10 +7,12 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCard } from '@/components/AlertCard';
 import { Sparkline } from '@/components/Sparkline';
-import { canManage, useApi } from '@/components/useApi';
+import { useApi } from '@/components/useApi';
+import { CarePlanSection } from '@/components/CarePlan';
+import { may } from '@/lib/carePlan';
 import { ApiError, type Reading } from '@/lib/api';
 import type {
-  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, InvitationOut, Medication, Memory, MedicationEvent, Person, PersonStatus, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitOutcome, CommunicationProfile,
+  AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, HomeUpdate, InvitationOut, Medication, Memory, MedicationEvent, Person, PersonStatus, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitOutcome, CommunicationProfile, Permissions, CarePlan,
 } from '@/lib/types';
 import { VISIT_OUTCOME_WORDS } from '@/lib/types';
 import { VISIT_WORDS, byDay, checkinCounts, circleWords, freshness, headline, series, sortAlerts, timeAgo, timeline, visitLine, wristState } from '@/lib/view';
@@ -24,8 +26,8 @@ function accessWho(label: string): string {
   return label.replace(/_/g, ' ');
 }
 
-const TABS = ['overview', 'profile', 'health', 'care', 'timeline', 'alerts', 'ira', 'reports', 'search', 'access'] as const;
-const TAB_WORDS: Record<Tab, string> = { overview: 'Overview', profile: 'Profile', health: 'Health and wellbeing', care: 'Visits and care plan', timeline: 'Timeline', alerts: 'Alerts', ira: 'IRA', reports: 'Reports', search: 'Search', access: 'Access' };
+const TABS = ['overview', 'profile', 'plan', 'health', 'care', 'timeline', 'alerts', 'ira', 'reports', 'search', 'access'] as const;
+const TAB_WORDS: Record<Tab, string> = { overview: 'Overview', profile: 'Profile', plan: 'Care plan', health: 'Health and wellbeing', care: 'Visits and medication', timeline: 'Timeline', alerts: 'Alerts', ira: 'IRA', reports: 'Reports', search: 'Search', access: 'Access' };
 type Tab = (typeof TABS)[number];
 
 
@@ -37,8 +39,12 @@ export default function PersonPage() {
   const search = useSearchParams();
   // An unknown or old tab name (a bookmark, an old link) shows the overview, never a blank page.
   const tab: Tab = (TABS as readonly string[]).includes(search.get('tab') ?? '') ? (search.get('tab') as Tab) : 'overview';
-  const { api, session, ready } = useApi();
-  const manage = canManage(session);
+  const { api, ready } = useApi();
+  // What this account may do, from the server (GET /care/me/permissions). Until it answers, or if
+  // it cannot, nothing that changes the record is shown; the server checks every request anyway.
+  const [perms, setPerms] = useState<Permissions | null>(null);
+  const manage = !!perms?.can_manage;
+  const recordVisits = may(perms, 'record_visits');
 
   const [status, setStatus] = useState<PersonStatus | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -55,6 +61,8 @@ export default function PersonPage() {
   const [access, setAccess] = useState<AccessEntry[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
+  const [carePlan, setCarePlan] = useState<CarePlan | null>(null);
+  const [planHistory, setPlanHistory] = useState<CarePlan[]>([]);
   const [profile, setProfile] = useState<CommunicationProfile | null>(null);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [entry, setEntry] = useState<{ access_notes: string } | 'refused' | null>(null);
@@ -74,7 +82,7 @@ export default function PersonPage() {
     gate.current.next();
     setStatus(null); setAlerts([]); setCheckins({ checkins: [], answers_included: false }); setVitals([]); setRoutines([]);
     setMeds([]); setMedEvents([]); setCircle([]); setSettings(null); setConsents(null); setMemory([]); setTranscripts(null);
-    setAccess([]); setReports([]); setVisits([]); setProfile(null); setReminders([]); setEntry(null); setFound(null);
+    setAccess([]); setReports([]); setVisits([]); setCarePlan(null); setPlanHistory([]); setProfile(null); setReminders([]); setEntry(null); setFound(null);
     setPairing(null); setError(''); setPartial([]); setLive({ lastOk: null, failures: 0 });
   }, [id]);
 
@@ -98,6 +106,7 @@ export default function PersonPage() {
         ...(tab === 'ira' || tab === 'overview' ? { memory: () => api.memory(id), profile: () => api.profile(id), reminders: () => api.reminders(id) } : {}),
         ...(tab === 'access' && manage ? { access: () => api.accessLog(id) } : {}),
         ...(tab === 'reports' ? { reports: () => api.reports(id) } : {}),
+        ...(tab === 'plan' ? { plan: () => api.carePlan(id), planHistory: () => api.carePlanHistory(id) } : {}),
       });
       if (!gate.current.current(ticket)) return;
       if (v.checkins) setCheckins(v.checkins); if (v.vitals) setVitals(v.vitals); if (v.routines) setRoutines(v.routines);
@@ -105,6 +114,7 @@ export default function PersonPage() {
       if (v.settings) setSettings(v.settings); if (v.consents) setConsents(v.consents); if (v.visits) setVisits(v.visits);
       if (v.memory) setMemory(v.memory); if (v.profile) setProfile(v.profile); if (v.reminders) setReminders(v.reminders);
       if (v.access) setAccess(v.access); if (v.reports) setReports(v.reports);
+      if (tab === 'plan' && 'plan' in v) setCarePlan(v.plan ?? null); if (v.planHistory) setPlanHistory(v.planHistory);
       if (tab === 'ira' || tab === 'overview') {
         try {
           const t = await api.transcripts(id);
@@ -124,6 +134,13 @@ export default function PersonPage() {
       gate.current.end(ticket);
     }
   }, [api, id, tab, manage]);
+  // Permissions belong to the account, not the person: asked once per sign-in.
+  useEffect(() => {
+    if (!api) return;
+    let gone = false;
+    (async () => { try { const p = await api.permissions(); if (!gone) setPerms(p); } catch { if (!gone) setPerms(null); } })();
+    return () => { gone = true; };
+  }, [api]);
   // Live: every REFRESH_MS, and at once when the page comes back into view. Editing a form never
   // pauses it: each form keeps its own draft, so a refresh cannot overwrite what is being typed.
   useEffect(() => {
@@ -253,14 +270,14 @@ export default function PersonPage() {
               <strong>{VISIT_WORDS[v.status]}</strong> <span className="muted">{v.planned_start.slice(0, 10)}</span>
               <div>{visitLine(v)}</div>
               {v.tasks.length ? <ul>{v.tasks.map((t) => <li key={t.id}>{t.done ? '☑' : '☐'} {t.title}</li>)}</ul> : null}
-              <div className="row">
+              {recordVisits ? <div className="row">
                 {v.status !== 'arrived' ? <button disabled={busy} onClick={() => act(() => api!.arrive(v.id))}>Carer has arrived</button> : null}
                 {v.status === 'arrived' ? <DepartForm busy={busy} tasks={v.tasks.map((t) => t.id)} onDepart={(b) => act(() => api!.depart(v.id, b))} /> : null}
                 {v.status !== 'arrived' ? <button disabled={busy} onClick={() => act(() => api!.cancelVisit(v.id, 'Cancelled from the dashboard'))}>Cancel</button> : null}
-              </div>
+              </div> : null}
             </div>
           ))}
-          <PlanVisit circle={circle} onPlan={(b) => act(() => api!.planVisit(id, b))} busy={busy} />
+          {recordVisits ? <PlanVisit circle={circle} onPlan={(b) => act(() => api!.planVisit(id, b))} busy={busy} /> : null}
           <div className="card">
             <strong>Past visits</strong>
             <table><thead><tr><th>When</th><th>Carer</th><th>Outcome</th><th>Tasks</th><th>Handover</th></tr></thead><tbody>
@@ -271,6 +288,21 @@ export default function PersonPage() {
               ))}
             </tbody></table>
           </div>
+        </>
+      )}
+
+      {tab === 'plan' && (
+        <>
+          <p className="muted" data-testid="staff-role">{perms ? `You are signed in as ${perms.label}. ${perms.who}` : 'Checking what this account may do…'}</p>
+          <CarePlanSection plan={carePlan} history={planHistory} canEdit={may(perms, 'edit_care_plan')} busy={busy}
+            onSave={async (d) => {
+              // Unlike act(), a failure is passed back, so the form keeps what was typed (a 409 when
+              // someone else saved first: reload, and the draft is still there to re-apply).
+              setBusy(true);
+              try { await api!.saveCarePlan(id, d); setError(''); await load(); }
+              catch (e) { setError(e instanceof ApiError ? e.message : 'Failed.'); throw e; }
+              finally { setBusy(false); }
+            }} />
         </>
       )}
 
