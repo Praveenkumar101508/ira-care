@@ -125,7 +125,8 @@ curl -fsS "http://127.0.0.1:$API_PORT/health/jobs" >/dev/null && step worker-up 
 
 # 6. The dashboard as its image serves it: npm ci, next build, the standalone server.
 timed dashboard-install bash -c "cd dashboard && npm ci --no-audit --no-fund"
-timed dashboard-build bash -c "cd dashboard && NEXT_PUBLIC_CARE_API_BASE_URL=http://127.0.0.1:$API_PORT npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public 2>/dev/null || true"
+# The staging stack also records the film, which drives the browser watch: a demonstration build.
+timed dashboard-build bash -c "cd dashboard && NEXT_PUBLIC_IRA_DEMO_PAGES=1 NEXT_PUBLIC_CARE_API_BASE_URL=http://127.0.0.1:$API_PORT npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public 2>/dev/null || true"
 (cd dashboard/.next/standalone && PORT="$DASH_PORT" HOSTNAME=127.0.0.1 exec node server.js > "$WORK/logs/dashboard.log" 2>&1) & PIDS+=($!)
 s=$(date +%s); for i in $(seq 1 60); do curl -fsS "http://127.0.0.1:$DASH_PORT/login" >/dev/null 2>&1 && break; sleep 1; done
 curl -fsS "http://127.0.0.1:$DASH_PORT/login" >/dev/null && step dashboard-up ok $(( $(date +%s) - s )) || { step dashboard-up failed $(( $(date +%s) - s )); exit 1; }

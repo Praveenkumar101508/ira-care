@@ -1,6 +1,7 @@
 'use client';
 
 import { NotMeasured } from '@/components/NotMeasured';
+import { demoPagesEnabled } from '@/lib/demoPages';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -339,7 +340,7 @@ export default function PersonPage() {
             <li>Keep the app&apos;s ongoing notification: it is what collects readings and asks the questions.</li>
             <li>Within a few minutes the Readings tab shows the first readings and the watch line above says &quot;synced just now&quot;. Then ask IRA to check in now and answer on the watch.</li>
           </ol>
-          <p className="muted">No watch to hand? The <a href="/watch">browser watch</a> pairs with the same code.</p>
+          {demoPagesEnabled() ? <p className="muted">No watch to hand? The <a href="/watch">browser watch</a> pairs with the same code.</p> : null}
         </div>
       ) : null}
 
