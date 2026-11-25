@@ -2403,8 +2403,13 @@
    "title": "Wrist IMU activity dataset with a licence that allows commercial use selected",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/DATASETS.md"
+    }
+   ]
   },
   {
    "id": "F7.b",
@@ -2412,8 +2417,17 @@
    "title": "Activity model trained with a dated run",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/activity/results.json"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "scripts/training/activity_wisdm.py"
+    }
+   ]
   },
   {
    "id": "F7.c",
@@ -2421,8 +2435,17 @@
    "title": "Activity model evaluated subject-independently",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/activity/results.json"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_activity_estimate.py"
+    }
+   ]
   },
   {
    "id": "F7.d",
@@ -2439,8 +2462,13 @@
    "title": "Activity model card",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/activity/MODEL_CARD.md"
+    }
+   ]
   },
   {
    "id": "F8.a",
