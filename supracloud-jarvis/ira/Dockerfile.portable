@@ -29,7 +29,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt ./
+COPY requirements.txt requirements-nodeps.txt ./
 
 # P16-R5. The base image's pip toolchain carries two HIGH advisories that DO
 # have fixes, found by the first trivy scan of this image:
@@ -46,6 +46,10 @@ COPY requirements.txt ./
 # setuptools and then have to walk it back.
 RUN pip install --upgrade "wheel>=0.46.2" "setuptools>=80,<82"
 RUN pip install -r requirements.txt
+# faster-whisper without PyAV, whose wheels bundle FFmpeg built with GPL encoders
+# (docs/security/LICENCES.md). The build fails if anything brought `av` in anyway.
+RUN pip install --no-deps --require-hashes -r requirements-nodeps.txt \
+    && python -c "import importlib.util as u, sys; sys.exit('av is installed' if u.find_spec('av') else 0)"
 
 # P16-R5, FINDING AP. This image ran as ROOT. Every other Dockerfile in this
 # repository creates an unprivileged user and switches to it —

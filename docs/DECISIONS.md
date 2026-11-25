@@ -1368,3 +1368,32 @@ text: those stay behind the per-person history search, where consent applies. Wh
 literally (LIKE wildcards escaped, passed as a parameter), searches are rationed to 30 a minute per
 address, and each search is written to the access log once per person it returned, with the kinds of
 record found and never the words typed.
+
+## D-083 PyAV does not ship; the server transcribes WAV only (owner decision, 25 November 2026)
+
+faster-whisper, the server's speech recogniser, declares PyAV (`av`) as a hard dependency, and
+PyAV's wheels bundle FFmpeg built with the GPL-2.0-or-later encoders `libx264` and `libx265`
+(the open finding in `docs/security/LICENCES.md`). The owner decided to remove that risk.
+
+Decision: PyAV is not installed anywhere IRA ships. faster-whisper is installed with
+`--no-deps` (`requirements-nodeps.txt`), the lock drops `av` through a resolver override, and
+`voice/whisper_engine.py` puts IRA's own decoder (`voice/audio_decode.py`, standard library and
+numpy) where faster-whisper expects PyAV's, so `import av` is never attempted.
+
+- **What the server decodes:** WAV only (PCM or float, any rate and channel count), converted
+  to 16 kHz mono with a filtered polyphase resampler. That covers every source in this
+  repository: the watch and the phone recognise speech on the device and send text, the
+  dashboard does not record, the wake-word listener and the lip-sync pass use WAV, and the
+  LiveKit plugin passes raw PCM.
+- **What it gives up:** uploaded MP3, M4A/AAC, Ogg, Opus, WebM, FLAC and video are refused with
+  a message naming the format and asking for WAV (`/voice/transcribe` answers 415). They are
+  not sent to an outside service instead, even when external providers are allowed: they used
+  to be transcribed on the machine, and sending them out would widen what leaves it without
+  anyone deciding to.
+- **Why not another decoder:** every option that reads compressed formats either is FFmpeg or
+  bundles LGPL native code (`soundfile` with `libsndfile`, which also carries `mpg123` and
+  LAME). None is needed by a client that exists. If one is needed later, recording WAV on the
+  client is the first choice; a reviewed LGPL exception for `libsndfile` is the second.
+- **Accuracy:** the LibriSpeech test-clean re-run on the new path is not yet recorded; until it is, the 4.24 % in `docs/ai/speech/RESULTS.md` is the PyAV-path figure.
+
+What would change it: a client that has to send compressed audio and cannot record WAV.

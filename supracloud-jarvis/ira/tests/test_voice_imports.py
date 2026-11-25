@@ -42,7 +42,8 @@ def test_voice_plugins_satisfy_livekit_api():
     import types
     if "faster_whisper" not in sys.modules:
         try:
-            import faster_whisper  # noqa: F401
+            from voice.whisper_engine import load_faster_whisper
+            load_faster_whisper()      # the product's own import: no PyAV
         except Exception:
             _m = types.ModuleType("faster_whisper")
             _m.WhisperModel = object

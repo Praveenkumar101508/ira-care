@@ -102,7 +102,7 @@ timed compose-up "${COMPOSE[@]}" up -d --wait postgres redis
 if command -v uv >/dev/null; then uv venv -q --python 3.12 .venv; PY=.venv/bin/python
 elif command -v python3.12 >/dev/null; then python3.12 -m venv .venv; PY=.venv/bin/python
 else python3 -m venv .venv; PY=.venv/bin/python; fi
-timed pip-install bash -c "if [ -x .venv/bin/pip ]; then .venv/bin/pip install -q -r supracloud-jarvis/ira/requirements-test.txt psutil==6.1.0; else uv pip install -q --python $PY -r supracloud-jarvis/ira/requirements-test.txt psutil==6.1.0; fi"
+timed pip-install bash -c "if [ -x .venv/bin/pip ]; then .venv/bin/pip install -q -r supracloud-jarvis/ira/requirements-test.txt psutil==6.1.0 && .venv/bin/pip install -q --no-deps --require-hashes -r supracloud-jarvis/ira/requirements-nodeps.txt; else uv pip install -q --python $PY -r supracloud-jarvis/ira/requirements-test.txt psutil==6.1.0 && uv pip install -q --python $PY --no-deps --require-hashes -r supracloud-jarvis/ira/requirements-nodeps.txt; fi"
 
 # 4. Migrations as ira_migrator, by the image's own entry point (deploy/entrypoint.sh "migrate").
 export IRA_MIGRATOR_DSN="postgresql://ira_migrator:${IRA_MIGRATOR_PASSWORD}@127.0.0.1:${IRA_STAGING_PG_PORT}/${POSTGRES_DB}"
