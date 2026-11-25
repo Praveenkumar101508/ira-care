@@ -234,14 +234,7 @@ fun HomeScreen(
     ) {
         Text(
             // The SOS line is the server's word, never the watch's guess (SosState.text).
-            text = when {
-                fallCountdown != null -> "Did you fall? Are you OK?\nHelp in $fallCountdown s"
-                sos.text() != null -> sos.text()!!
-                question != null -> question
-                lastAnswer != null -> "Thank you."
-                visit.text() != null -> visit.text()!!
-                else -> "All well"
-            },
+            text = FaceText.main(fallCountdown, sos.text(), question, lastAnswer, visit.text(), online),
             fontSize = 16.sp, textAlign = TextAlign.Center,
             // Read aloud by a screen reader as it changes: the question, the countdown, "help is on its way".
             modifier = Modifier.semantics { heading(); liveRegion = LiveRegionMode.Assertive },

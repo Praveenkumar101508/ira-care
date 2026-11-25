@@ -63,10 +63,40 @@ async def status(conn, now: Optional[dt.datetime] = None, *, provider: Optional[
                  alert: bool = True) -> dict:
     now = now or dt.datetime.now(dt.timezone.utc)
     report = assess(await last_runs(conn), now)
+    report["delivery"] = await delivery_health(conn, now)
     if report["monitoring_paused"] and alert:
         report["ops_alert"] = await maybe_alert(report, now, provider=provider)
     report["model"] = model_name()
     return report
+
+
+DELIVERY_OVERDUE_S = 300
+DELIVERY_FAILED_WINDOW_S = 3600
+
+
+async def delivery_health(conn, now: dt.datetime) -> dict:
+    """Are alert messages getting out, in the caller's workspace (RLS scopes both counts)?
+
+    `queued_overdue`: messages still waiting to be sent more than five minutes after they were
+    queued. `failed_recent`: messages whose furthest reported state, among those with news in the last
+    hour, is failed or undelivered.
+    Either one means nobody can say "all well" with confidence: a family may not have been told.
+    """
+    overdue = await conn.fetchval(
+        "SELECT count(*) FROM care_alert_dispatch WHERE finished_at IS NULL AND created_at < $1",
+        now - dt.timedelta(seconds=DELIVERY_OVERDUE_S))
+    # A message's state is its furthest event (113): a failure later followed by "delivered" is not one.
+    failed = await conn.fetchval(
+        """
+        SELECT count(*) FROM (
+            SELECT DISTINCT ON (attempt_id) attempt_id, outcome
+              FROM care_alert_attempt_events
+             WHERE attempt_id IN (SELECT attempt_id FROM care_alert_attempt_events WHERE recorded_at > $1)
+             ORDER BY attempt_id, status_rank DESC, recorded_at DESC
+        ) latest WHERE outcome IN ('failed', 'undelivered')
+        """, now - dt.timedelta(seconds=DELIVERY_FAILED_WINDOW_S))
+    return {"queued_overdue": int(overdue or 0), "failed_recent": int(failed or 0),
+            "delivery_problem": bool(overdue) or bool(failed)}
 
 
 def model_name() -> str:
