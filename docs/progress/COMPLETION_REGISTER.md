@@ -33,12 +33,12 @@ Nothing is marked done because code or a document exists.
 <!-- completion-summary:begin -->
 | Measure | Value |
 |---|---|
-| Overall, weighted | 64.8 % |
+| Overall, weighted | 65.8 % |
 | Implemented (built, here or before) | 91.2 % |
-| Tested (unit, integration, evaluated or better) | 56.8 % |
+| Tested (unit, integration, evaluated or better) | 59.3 % |
 | Merged and evidenced in this programme | 51.0 % |
 | Safety remediation (section C) | 84.2 % |
-| AI components (section F) | 60.6 % |
+| AI components (section F) | 65.6 % |
 | IRA CARE OS (section E) | 58.0 % |
 | Rows blocked in part by an external dependency | 20 of 51 |
 
@@ -127,7 +127,7 @@ weights stated in that script. No device has been used, so no row is device test
 | F3 | IRA Care Heart (PPG-DaLiA, subject-independent) | evaluated | #58 · `docs/ai/heart/MODEL_CARD.md`, `docs/ai/heart/results.json`, `scripts/training/heart_ppg_dalia.py`. Leave-one-subject-out on all 15 PPG-DaLiA subjects (CC BY 4.0): classical spectral estimator with accelerometer suppression and tracking 13.28 ± 5.01 bpm MAE (shipped, numpy only: `supracloud-jarvis/ira/care/heart_estimate.py`, tests `supracloud-jarvis/ira/tests/care/test_heart_estimate.py`); learned candidate selection 7.75 ± 3.23 bpm (training script only); Deep PPG 7.65 bpm as reported, not reproduced. Adults 30.6 ± 9.6 years on an Empatica E4: accuracy on the IRA watch and on older adults: **needs external** (recordings with an ECG reference) |
 | F4 | IRA Care Fall (wrist-specific, cross-dataset) | pre-existing model + deterministic fallback | Improvement run: **not started** |
 | F5 | IRA Care Safety (deterministic rules, model only more cautious) | integration tested | #44 (A1, A2, A4) |
-| F6 | IRA Care Memory (consent, correction, deletion) | pre-existing | Correction and deletion routes exist; re-verification: **not started** |
+| F6 | IRA Care Memory (consent, correction, deletion) | integration tested | `fix/care-memory-promises` · REMEDIATION F2: correction kept and read back, forgotten day gone from context, erasure removes memory; check-in notes no longer copied into the general memory store (migration 115 purges old ones). Topic lists need the `topics` consent (110) |
 | F7 | IRA Care Activity (IMU) | not started | needs a dataset whose licence allows commercial use |
 | F8 | IRA Care Speech (recognition and synthesis; elderly speech evaluation) | watch speech lifecycle unit tested (#48) | Accuracy evaluation on elderly speech: **needs external** (consented recordings) |
 
