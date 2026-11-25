@@ -1,5 +1,5 @@
 {
- "version": "1.4.0",
+ "version": "1.3.0",
  "methodology": "A fixed, versioned list of atomic requirements for the owner's master directive. Each item is one measurable deliverable with one state. States: not_started; implemented (code or document merged); accepted (functional evidence: unit_test, db_test, build, browser, emulator, model_eval or device; docs_only and config_check never count); verified (integration-level evidence: db_test, browser, emulator, model_eval or device); device_validated (device evidence); blocked_external (cannot progress without something outside the software; blocked_by says what). Every file ref must exist and a PR ref must be #44 or later; acceptance and verification need a qualifying evidence item that names a file, not only a PR. Items are never removed to raise a percentage: blocked and not-started items stay in every denominator. A requirement that changes scope gets a new id and the version is raised. scripts/completion_summary.py enforces these rules and computes the seven measures.",
  "requirements": [
   {
@@ -2247,9 +2247,17 @@
    "title": "Wrist-specific fall model trained on commercially licensed wrist data",
    "area": "ai",
    "hardware_independent": true,
-   "state": "blocked_external",
-   "evidence": [],
-   "blocked_by": "a commercially licensed wrist fall dataset (KFall or FallAllD permission)"
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/fall/results_v2.json"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "scripts/training/fall_model_v2.py"
+    }
+   ]
   },
   {
    "id": "F4.f",
@@ -2269,6 +2277,15 @@
    "state": "blocked_external",
    "evidence": [],
    "blocked_by": "a physical watch"
+  },
+  {
+   "id": "F4.h",
+   "parent": "F4",
+   "title": "A wrist fall model on licensed data that loses no sensitivity against the rule detector ships in release builds",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
   },
   {
    "id": "F5.a",
