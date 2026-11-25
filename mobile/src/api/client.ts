@@ -22,6 +22,8 @@ export interface Session {
 /** What renewing the sign-in came to. */
 export type RenewOutcome = 'renewed' | 'expired' | 'offline';
 
+import { forEachLine } from './stream';
+
 type Fetch = typeof fetch;
 
 /**
@@ -38,7 +40,10 @@ export class CareClient {
   onRenewed?: (accessToken: string) => void;
 
   // `fetch` is wrapped rather than passed bare: on the web, calling it with another `this` throws.
-  constructor(session: Session, private readonly fetchImpl: Fetch = (input, init) => fetch(input, init)) {
+  /** `streamImpl`: a fetch whose response body can be read as it arrives (`expo/fetch`), used for
+   *  Talk so IRA's sentences show as they come. Without one, Talk reads the whole reply first. */
+  constructor(session: Session, private readonly fetchImpl: Fetch = (input, init) => fetch(input, init),
+              private readonly streamImpl: Fetch | null = null) {
     this.session = { ...session };
   }
 
@@ -74,10 +79,11 @@ export class CareClient {
 
   /** Send once; on 401 renew once and send again; a second 401 is final. A request refused with
    *  401 was refused before anything happened, so sending it again cannot do anything twice. */
-  private async send(method: string, path: string, headersFor: () => Record<string, string>, body?: unknown): Promise<Response> {
+  private async send(method: string, path: string, headersFor: () => Record<string, string>, body?: unknown,
+                     via: Fetch = this.fetchImpl): Promise<Response> {
     const once = async () => {
       try {
-        return await this.fetchImpl(this.session.baseUrl + path, { method, headers: headersFor(), body: body === undefined ? undefined : JSON.stringify(body) });
+        return await via(this.session.baseUrl + path, { method, headers: headersFor(), body: body === undefined ? undefined : JSON.stringify(body) });
       } catch {
         throw new ApiError(0, 'No connection. Check the network and try again.');
       }
@@ -248,10 +254,27 @@ export class CareClient {
     await this.request('POST', `/api/v1/care/consents/${consentId}/revoke`);
   }
 
-  /** Talk to IRA from the person's own phone. The server streams one JSON object per line. */
-  async talk(personId: string, text: string): Promise<TalkReply> {
-    const raw = await this.requestText('POST', `/api/v1/care/people/${personId}/talk`, { text });
-    return parseTalk(raw);
+  /** Talk to IRA from the person's own phone. The server streams one JSON object per line; each
+   *  sentence goes to `onSentence` as soon as it arrives (all at once where streaming is not
+   *  available). A connection lost part-way keeps what arrived and then fails. */
+  async talk(personId: string, text: string, onSentence: (sentence: string) => void = () => {}): Promise<TalkReply> {
+    if (!this.session.workspaceId) throw new ApiError(0, 'No care circle selected.');
+    const response = await this.send('POST', `/api/v1/care/people/${personId}/talk`, () => ({
+      Authorization: `Bearer ${this.session.accessToken}`, Accept: 'application/x-ndjson',
+      'X-Workspace-ID': this.session.workspaceId!, 'Content-Type': 'application/json',
+    }), { text }, this.streamImpl ?? this.fetchImpl);
+    if (!response.ok) throw new ApiError(response.status, await readDetail(response));
+    const out: TalkReply = { sentences: [], action: null, needsHelp: false };
+    try {
+      await forEachLine(response, (line) => {
+        const before = out.sentences.length;
+        addTalkLine(out, line);
+        for (const s of out.sentences.slice(before)) onSentence(s);
+      });
+    } catch {
+      throw new ApiError(0, 'The connection was lost before IRA finished answering.');
+    }
+    return out;
   }
 
   async askNow(personId: string): Promise<void> {
@@ -275,18 +298,6 @@ export class CareClient {
 
   async unregisterPush(token: string): Promise<void> {
     await this.request('DELETE', '/api/v1/care/push/register', { token });
-  }
-
-  private async requestText(method: string, path: string, body?: unknown): Promise<string> {
-    if (!this.session.workspaceId) throw new ApiError(0, 'No care circle selected.');
-    const response = await this.send(method, path, () => {
-      const headers: Record<string, string> = { Authorization: `Bearer ${this.session.accessToken}`, Accept: 'application/x-ndjson' };
-      headers['X-Workspace-ID'] = this.session.workspaceId!;
-      if (body !== undefined) headers['Content-Type'] = 'application/json';
-      return headers;
-    }, body);
-    if (!response.ok) throw new ApiError(response.status, await readDetail(response));
-    return response.text();
   }
 
   private async request<T>(method: string, path: string, body?: unknown, workspace = true): Promise<T> {
@@ -316,12 +327,14 @@ async function readDetail(response: Response): Promise<string> {
 /** The streamed reply, line by line: sentences first, then the closing object. */
 export function parseTalk(raw: string): TalkReply {
   const out: TalkReply = { sentences: [], action: null, needsHelp: false };
-  for (const line of raw.split('\n')) {
-    if (!line.trim()) continue;
-    let obj: TalkLine;
-    try { obj = JSON.parse(line) as TalkLine; } catch { continue; }
-    if (typeof obj.sentence === 'string') out.sentences.push(obj.sentence);
-    if (obj.done) { out.action = obj.action ?? null; out.needsHelp = obj.needs_help === true; }
-  }
+  for (const line of raw.split('\n')) addTalkLine(out, line);
   return out;
+}
+
+function addTalkLine(out: TalkReply, line: string): void {
+  if (!line.trim()) return;
+  let obj: TalkLine;
+  try { obj = JSON.parse(line) as TalkLine; } catch { return; }
+  if (typeof obj.sentence === 'string') out.sentences.push(obj.sentence);
+  if (obj.done) { out.action = obj.action ?? null; out.needsHelp = obj.needs_help === true; }
 }
