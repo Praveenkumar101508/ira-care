@@ -810,8 +810,21 @@
    "title": "System-wide security review of the integrated stack (threat model, secrets, dependencies, transport)",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/security/REVIEW.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_public_rate_limits.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/security_headers.test.ts"
+    }
+   ]
   },
   {
    "id": "C-22.d",
@@ -2550,15 +2563,19 @@
    "title": "API and dashboard Docker images rebuilt and checked in CI",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
+   "state": "accepted",
    "evidence": [
     {
-     "kind": "config_check",
-     "ref": "deploy/Dockerfile.api"
+     "kind": "build",
+     "ref": ".github/workflows/test.yml::images"
     },
     {
-     "kind": "config_check",
-     "ref": "deploy/Dockerfile.dashboard"
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_backup_image.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#78"
     }
    ]
   },
@@ -2999,8 +3016,17 @@
    "title": "Claims register (every claim in product, store and marketing text, with evidence)",
    "area": "external",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/compliance/CLAIMS_REGISTER.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_claims_register.py"
+    }
+   ]
   },
   {
    "id": "I.c",
@@ -3013,6 +3039,10 @@
     {
      "kind": "docs_only",
      "ref": "docs/compliance/CLINICAL_SAFETY_CASE.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_hazard_log_traceability.py"
     }
    ]
   },
