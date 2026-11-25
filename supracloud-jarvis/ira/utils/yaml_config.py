@@ -28,7 +28,7 @@ def load_routing_config() -> dict:
         logger.warning(f"routing.yaml not found at {config_path} — using hardcoded defaults")
         return {}
     except Exception as e:
-        logger.error(f"Failed to load routing.yaml: {e} — using hardcoded defaults")
+        logger.error(f"Failed to load routing.yaml: {type(e).__name__} — using hardcoded defaults")
         return {}
 
 

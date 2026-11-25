@@ -35,7 +35,7 @@ import sys
 from datetime import datetime, timezone
 from typing import Any
 
-from core.runtime.redaction import RedactionFilter, redact, redact_mapping
+from core.runtime.redaction import RedactionFilter, exception_text_allowed, redact, redact_mapping
 from core.runtime.request_context import get_correlation_id, get_request_id
 
 #: Attributes present on every LogRecord. Anything else a caller attached via
@@ -101,19 +101,14 @@ class JsonFormatter(logging.Formatter):
             payload["source"] = f"{record.module}:{record.lineno}"
 
         if record.exc_info:
-            # The exception type and message, never the traceback. A traceback
-            # in a shipped log line is where a DSN, a token or a prompt fragment
-            # ends up — `exc_type` plus `exc_message` is what an alert needs,
-            # and the full traceback stays in the local handler.
+            # The exception type, never the traceback, and not the message either: a
+            # message is where a driver quotes the value it refused (a person's words, a
+            # medication, an address) and where a DSN or token ends up. The type is what an
+            # alert needs. A developer can ask for the text locally (IRA_LOG_EXCEPTION_TEXT).
             exc_type, exc_value, _ = record.exc_info
             payload["exc_type"] = getattr(exc_type, "__name__", str(exc_type))
-            # Redacted explicitly. The RedactionFilter runs over `record.msg`
-            # and `record.args` before the formatter is reached — it never sees
-            # this field, because the formatter derives it from `exc_info`
-            # afterwards. Without this call, a DSN or token inside an exception
-            # message reaches the log un-redacted, which is one of the most
-            # common ways a credential actually escapes.
-            payload["exc_message"] = redact(str(exc_value))[:512]
+            if exception_text_allowed():
+                payload["exc_message"] = redact(str(exc_value))[:512]
 
         # `default=str` keeps a non-serialisable extra from raising inside the
         # formatter, which would lose the record entirely.
@@ -125,6 +120,27 @@ class TextFormatter(logging.Formatter):
 
     def __init__(self) -> None:
         super().__init__(fmt="%(asctime)s %(levelname)s %(name)s — %(message)s")
+
+    def formatException(self, ei) -> str:  # noqa: N802 - logging's name
+        """The traceback's frames, with each exception reduced to its type.
+
+        The frames (file, line, code) are what a developer needs to find the fault; the
+        message is where the rejected value is quoted. Chained causes are kept, the same way.
+        """
+        if exception_text_allowed():
+            return redact(super().formatException(ei))
+        import traceback
+        chain: list[BaseException] = []
+        value = ei[1]
+        while value is not None and value not in chain:
+            chain.append(value)
+            value = value.__cause__ or (None if value.__suppress_context__ else value.__context__)
+        parts = []
+        for i, exc in enumerate(reversed(chain)):
+            tb = exc.__traceback__ if exc.__traceback__ is not None else (ei[2] if exc is ei[1] else None)
+            frames = "".join(traceback.format_list(traceback.extract_tb(tb))) if tb is not None else ""
+            parts.append(f"Traceback (most recent call last):\n{frames}{type(exc).__name__} (message withheld)")
+        return "\n\nDuring handling of the above, another exception occurred:\n\n".join(parts)
 
     def format(self, record: logging.LogRecord) -> str:
         base = super().format(record)

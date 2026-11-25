@@ -119,7 +119,7 @@ def _load_kokoro(voice: str):
             _kokoro_model = Kokoro("kokoro-v0_19.onnx", "voices.bin")
             logger.info("Kokoro TTS ready.")
         except Exception as e:
-            logger.error(f"Kokoro load failed: {e}. TTS will produce silence.")
+            logger.error(f"Kokoro load failed: {type(e).__name__}. TTS will produce silence.")
             _kokoro_model = None
         finally:
             _kokoro_loaded = True
@@ -172,7 +172,7 @@ def _synthesise_sync(
         samples, _ = model.create(text, voice=voice, speed=speed, lang=lang)
         return samples.astype(np.float32)
     except Exception as e:
-        logger.error(f"Kokoro synthesis error: {e}")
+        logger.error(f"Kokoro synthesis error: {type(e).__name__}")
         return None
 
 

@@ -126,7 +126,7 @@ async def save_message(
     )
     _background_tasks.add(_t)
     _t.add_done_callback(_background_tasks.discard)
-    _t.add_done_callback(lambda t: t.exception() and logger.warning(f"Embedding task failed: {t.exception()}"))
+    _t.add_done_callback(lambda t: t.exception() and logger.warning(f"Embedding task failed: {type(t.exception()).__name__}"))
     return msg_id
 
 
@@ -179,7 +179,7 @@ async def _store_embedding(
     except Exception as e:
         if strict:
             raise
-        logger.debug(f"Embedding store failed (non-fatal): {e}")
+        logger.debug(f"Embedding store failed (non-fatal): {type(e).__name__}")
 
 
 # ── Memory retrieval (RAG) ────────────────────────────────────────────────────
@@ -530,7 +530,7 @@ async def purge_old_memories(principal, retention_days: int = 90) -> int:
         logger.info(f"Memory retention: purged {count} embeddings older than {retention_days} days")
         return count
     except Exception as e:
-        logger.error(f"Memory retention purge failed: {e}")
+        logger.error(f"Memory retention purge failed: {type(e).__name__}")
         return 0
 
 
@@ -561,7 +561,7 @@ async def purge_old_memories_for_every_tenant(retention_days: int = 90) -> int:
         async with acquire() as conn:
             tenants = await conn.fetch("SELECT id FROM tenants")
     except Exception as e:
-        logger.error(f"Memory retention: could not list tenants: {e}")
+        logger.error(f"Memory retention: could not list tenants: {type(e).__name__}")
         return 0
 
     for row in tenants:

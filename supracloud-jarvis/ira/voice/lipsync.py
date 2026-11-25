@@ -184,7 +184,7 @@ def _whisper_word_frames(wav_bytes: bytes) -> list[dict] | None:
                     frames.extend(_frames_for_window(text, float(w.start), float(w.end)))
         return frames if frames else None
     except Exception as e:  # noqa: BLE001 — any missing dep / model failure
-        logger.warning(f"Whisper alignment unavailable ({e}); using estimated timings.")
+        logger.warning(f"Whisper alignment unavailable ({type(e).__name__}); using estimated timings.")
         return None
 
 

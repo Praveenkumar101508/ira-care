@@ -253,7 +253,7 @@ async def _run_agent(
         result = await chat_complete(msgs, use_deep=True, max_tokens=max_tokens, temperature=0.65)
         return result or f"[{name} returned empty]"
     except Exception as e:
-        logger.error(f"Architect {name} failed: {e}")
+        logger.error(f"Architect {name} failed: {type(e).__name__}")
         return f"[{name} error: {e}]"
 
 
@@ -395,7 +395,7 @@ async def stream_architect_proposal(
         await redis.setex("architect:latest_proposal", 86400 * 3, payload)  # 3-day TTL
         logger.info("Architect proposal saved to Redis")
     except Exception as e:
-        logger.warning(f"Could not save architect proposal to Redis: {e}")
+        logger.warning(f"Could not save architect proposal to Redis: {type(e).__name__}")
 
     yield {
         "architect_done": True,
@@ -458,12 +458,12 @@ async def run_background_architect_cycle() -> None:
             )
             logger.info("Architect proposal notification sent")
         except Exception as e:
-            logger.warning(f"Architect notification failed (non-critical): {e}")
+            logger.warning(f"Architect notification failed (non-critical): {type(e).__name__}")
 
         logger.info("Architect background cycle completed successfully")
 
     except Exception as e:
-        logger.error(f"Architect background cycle failed: {e}", exc_info=True)
+        logger.error(f"Architect background cycle failed: {type(e).__name__}", exc_info=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

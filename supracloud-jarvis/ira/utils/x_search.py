@@ -189,7 +189,7 @@ async def _official_search(
         logger.info(f"Official X API: {len(results)} results, query='{x_query[:60]}'")
         return results
     except Exception as e:
-        logger.warning(f"Official X API failed: {e}")
+        logger.warning(f"Official X API failed: {type(e).__name__}")
         return []
 
 
@@ -243,7 +243,7 @@ async def _fallback_search(
         logger.info(f"Fallback X API ({fallback_url}): {len(results)} results")
         return results
     except Exception as e:
-        logger.warning(f"Fallback X API failed: {e}")
+        logger.warning(f"Fallback X API failed: {type(e).__name__}")
         return []
 
 
@@ -267,7 +267,7 @@ async def _ddg_x_search(query: str, max_results: int) -> list[XResult]:
             for r in ddg_results
         ]
     except Exception as e:
-        logger.warning(f"DDG X fallback failed: {e}")
+        logger.warning(f"DDG X fallback failed: {type(e).__name__}")
         return []
 
 

@@ -88,7 +88,7 @@ async def run_database_backup() -> Path | None:
         logger.error("pg_dump not found — install postgresql-client in Dockerfile.worker")
         return None
     except Exception as e:
-        logger.error(f"Backup failed: {e}")
+        logger.error(f"Backup failed: {type(e).__name__}")
         return None
 
 

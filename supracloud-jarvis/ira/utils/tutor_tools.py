@@ -65,5 +65,5 @@ async def evaluate_student_submission(submission_text: str, topic: str) -> dict:
             "one_liner": "Let's keep working through this together.",
         }
     except Exception as e:
-        logger.error(f"evaluate_student_submission failed: {e}")
+        logger.error(f"evaluate_student_submission failed: {type(e).__name__}")
         return {"error": str(e)}

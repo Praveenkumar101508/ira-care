@@ -279,7 +279,7 @@ async def design_generate(
                 )
             })}
         except Exception as e:
-            logger.error(f"Design generation error: {e}", exc_info=True)
+            logger.error(f"Design generation error: {type(e).__name__}", exc_info=True)
             yield {"data": _json.dumps({"token": f"\n❌ Design generation error: {str(e)[:200]}"})}
 
         yield {"data": _json.dumps({

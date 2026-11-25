@@ -100,14 +100,14 @@ async def _save_turn(
     try:
         await save_message(principal, conv_id, "user", user_text, user_id=user_id)
     except Exception as exc:
-        logger.warning(f"save_message failed: {exc}")
+        logger.warning(f"save_message failed: {type(exc).__name__}")
     try:
         await save_message(
             principal, conv_id, "assistant", assistant_text,
             model_used=model_used, latency_ms=latency_ms, user_id=user_id,
         )
     except Exception as exc:
-        logger.warning(f"save_message failed: {exc}")
+        logger.warning(f"save_message failed: {type(exc).__name__}")
 
 
 def _save_turn_in_background(
@@ -1927,7 +1927,7 @@ async def _listen_then_answer(raw: bytes, name: str, is_video: bool, message: st
     try:
         text, lang, seconds = await _transcribe_in_turn(raw)
     except STTUnavailable as exc:
-        log.warning(f"upload transcription unavailable: {exc}")
+        log.warning(f"upload transcription unavailable: {type(exc).__name__}")
         refusal = ("I can't: speech-to-text is not available on this install. "
                    "I haven't guessed at what it contains.")
     except AudioTooLong as exc:
@@ -1937,7 +1937,7 @@ async def _listen_then_answer(raw: bytes, name: str, is_video: bool, message: st
             refusal = f"It runs past {cap}, the longest recording I transcribe here. "
         refusal += "Trim it, or split it and upload the parts."
     except Exception as exc:   # anything else is about the file: PyAV could not read sound from it
-        log.info(f"upload transcription failed on {name!r}: {exc}")
+        log.info(f"upload transcription failed on {name!r}: {type(exc).__name__}")
         refusal = "I couldn't read any sound from it. I haven't guessed at what it contains."
     else:
         if not text:
@@ -1954,7 +1954,7 @@ async def _listen_then_answer(raw: bytes, name: str, is_video: bool, message: st
             await save_message(_p, conv_id, "user", saved_user, user_id=_user)
             await save_message(_p, conv_id, "assistant", said + reply, user_id=_user)
         except Exception as exc:  # the reply was already sent; record why history is short
-            log.warning(f"save_message failed: {exc}")
+            log.warning(f"save_message failed: {type(exc).__name__}")
         return
 
     heard = (f" done: {_duration(seconds)}, transcribed here. The recording was not sent anywhere."

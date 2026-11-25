@@ -172,7 +172,7 @@ async def deep_research(
             })}
 
         except Exception as e:
-            logger.error(f"Deep research error: {e}", exc_info=True)
+            logger.error(f"Deep research error: {type(e).__name__}", exc_info=True)
             if not task.done():
                 task.cancel()
             yield {"data": _json.dumps({"token": f"\n❌ Research error: {str(e)[:300]}"})}
@@ -230,7 +230,7 @@ async def generate_article(
                 "latency_ms": latency,
             })}
         except Exception as e:
-            logger.error(f"Article generation error: {e}", exc_info=True)
+            logger.error(f"Article generation error: {type(e).__name__}", exc_info=True)
             yield {"data": _json.dumps({"token": f"\n❌ Article error: {str(e)[:200]}"})}
 
         yield {"data": _json.dumps({

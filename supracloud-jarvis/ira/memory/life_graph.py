@@ -80,7 +80,7 @@ async def upsert_entity(
         try:
             vector_str = _vector_literal(await embed_one(description))
         except Exception as e:  # embedding is best-effort; entity still upserts
-            logger.debug(f"life_graph: description embed failed (non-fatal): {e}")
+            logger.debug(f"life_graph: description embed failed (non-fatal): {e.__class__.__name__}")
 
     try:
         from core.identity.db_context import workspace_connection
@@ -117,7 +117,7 @@ async def upsert_entity(
             )
         return str(row["id"]) if row else None
     except Exception as e:
-        logger.warning(f"life_graph.upsert_entity failed (fail-closed): {e}")
+        logger.warning(f"life_graph.upsert_entity failed (fail-closed): {e.__class__.__name__}")
         return None
 
 
@@ -162,7 +162,7 @@ async def add_edge(
             )
         return str(row["id"]) if row else None
     except Exception as e:
-        logger.warning(f"life_graph.add_edge failed (fail-closed): {e}")
+        logger.warning(f"life_graph.add_edge failed (fail-closed): {type(e).__name__}")
         return None
 
 
@@ -183,7 +183,7 @@ async def get_entity(principal, entity_id: str) -> Optional[dict]:
             )
         return _entity_row(row) if row else None
     except Exception as e:
-        logger.warning(f"life_graph.get_entity failed (fail-closed): {e}")
+        logger.warning(f"life_graph.get_entity failed (fail-closed): {type(e).__name__}")
         return None
 
 
@@ -244,7 +244,7 @@ async def neighbors(principal, entity_id: str, depth: int = 1) -> list[dict]:
                 out.append({**ent, "distance": dist})
         return out
     except Exception as e:
-        logger.warning(f"life_graph.neighbors failed (fail-closed): {e}")
+        logger.warning(f"life_graph.neighbors failed (fail-closed): {type(e).__name__}")
         return []
 
 
@@ -275,7 +275,7 @@ async def hybrid_lookup(principal, query: str, *, top_k: int = 5) -> list[dict]:
                 vector_str, top_k,
             )
     except Exception as e:
-        logger.warning(f"life_graph.hybrid_lookup match failed (fail-closed): {e}")
+        logger.warning(f"life_graph.hybrid_lookup match failed (fail-closed): {type(e).__name__}")
         return []
 
     results: list[dict] = []
