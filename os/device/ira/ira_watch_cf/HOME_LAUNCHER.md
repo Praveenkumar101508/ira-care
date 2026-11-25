@@ -1,6 +1,13 @@
 # IRA as the home screen (launcher)
 
-**State: not possible yet without an app change. The app has not been changed.**
+**State: the app change is made (`fix/watch-home-screen`); the image still keeps the stock
+launcher until the launcher module name is checked on a build host. Nothing has been booted.**
+
+Done in the app: `watch/app/src/aosp/AndroidManifest.xml` adds the HOME filter and
+`showWhenLocked` / `turnScreenOn` to `MainActivity` in the aosp flavour only; back does nothing
+on the OS home screen (`ui/HomePolicy.kt`); the permission screen re-checks on resume and opens
+Settings only when background sensor access is still missing. Checked by
+`watch/app/src/test/java/care/ira/watch/ui/HomeScreenTest.kt` on the JVM.
 
 On IRA CARE OS the watch app should be the home screen: the first thing shown after boot,
 what the home or back gesture returns to, and the only app the person ever sees. Android

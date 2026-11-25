@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  IRA CARE OS only (the aosp flavour). Merged over src/main/AndroidManifest.xml by Gradle.
+
+  On our own watch the app IS the home screen (os/device/ira/ira_watch_cf/HOME_LAUNCHER.md):
+  the HOME filter makes Android start it after boot and return to it on the home gesture.
+  It stays out of the wearos flavour on purpose: on a Wear OS watch from a shop the app must
+  never offer itself as the system home.
+
+  showWhenLocked and turnScreenOn: Help is reachable over the lock screen, and the screen wakes
+  for a question or a fall check (EMERGENCY_UI.md).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application>
+        <activity
+            android:name=".ui.MainActivity"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            tools:node="merge">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
