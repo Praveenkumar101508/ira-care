@@ -3523,8 +3523,21 @@
    "title": "Narrated film re-recorded on the remediated stack",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "browser",
+     "ref": "scripts/film/record_scenes.mjs"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/film/RECORDING.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/film/NARRATION.md"
+    }
+   ]
   },
   {
    "id": "J.h",
