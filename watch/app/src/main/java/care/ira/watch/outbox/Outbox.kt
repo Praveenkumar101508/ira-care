@@ -8,6 +8,8 @@ import care.ira.watch.storage.quarantine
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import java.io.File
 import java.util.UUID
 
@@ -55,8 +57,24 @@ class Outbox(
     @Synchronized
     fun enqueue(kind: String, path: String, body: String, idempotencyKey: String = UUID.randomUUID().toString()): UrgentEvent {
         val event = UrgentEvent(idempotencyKey, kind, path, body, createdAt = clock.nowMillis())
-        AtomicFiles.appendLine(fileFor(), LineCodec.encode(sealer, json.encodeToString(event)))
+        AtomicFiles.appendLine(fileFor(), line(event))
         return event
+    }
+
+    /** Urgent events written minimised because the storage key could not be used, since this outbox was opened. */
+    var degradedWrites: Int = 0
+        private set
+
+    /**
+     * Sealed when the key works. When it cannot be used, the event is still written, so a Help
+     * request is never lost, but minimised: what the server needs to raise the alert stays, and
+     * where the person is and what they said do not. The server still opens the SOS; it says the
+     * location is unavailable, which the escalation already handles.
+     */
+    private fun line(event: UrgentEvent): String {
+        LineCodec.sealOrNull(sealer, json.encodeToString(event))?.let { return it }
+        degradedWrites++
+        return LineCodec.PLAIN + json.encodeToString(minimised(event))
     }
 
     /** The events whose next attempt is due now, oldest first. */
@@ -104,10 +122,19 @@ class Outbox(
     }
 
     private fun writeAll(events: List<UrgentEvent>) {
-        AtomicFiles.write(fileFor(), events.joinToString("") { LineCodec.encode(sealer, json.encodeToString(it)) + "\n" })
+        AtomicFiles.write(fileFor(), events.joinToString("") { line(it) + "\n" })
     }
 
     companion object {
+        /** Fields that say where the person is or what they said: never written unsealed. */
+        val SENSITIVE_FIELDS = setOf("location", "note", "text")
+
+        fun minimised(event: UrgentEvent): UrgentEvent {
+            val body = runCatching { Json.parseToJsonElement(event.body).jsonObject }.getOrNull()
+                ?: return event.copy(body = "{}", degraded = true)
+            return event.copy(body = JsonObject(body.filterKeys { it !in SENSITIVE_FIELDS }).toString(), degraded = true)
+        }
+
         const val KIND_HELP = "help"
         const val KIND_FALL_STARTED = "fall_started"
         const val KIND_FALL_OK = "fall_ok"
@@ -123,6 +150,8 @@ data class UrgentEvent(
     val kind: String,
     val path: String,
     val body: String,
+    /** Written unsealed and minimised (the storage key could not be used): location and words left out. */
+    val degraded: Boolean = false,
     val createdAt: Long,
     val attempts: Int = 0,
     val nextAttemptAt: Long = 0L,

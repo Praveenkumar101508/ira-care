@@ -30,27 +30,41 @@ class OfflineQueue(private val fileFor: () -> File, private val maxEntries: Int 
     var dropped: Long = 0
         private set
 
+    /**
+     * Readings that could not be sealed (the storage key could not be used): health data is never
+     * written to disk unencrypted, so these are held in memory until sent. A restart loses them;
+     * [heldInMemory] says how many are at risk; how many a restart lost cannot be known afterwards, so the number at risk is reported while they are held.
+     */
+    private val unsealed = ArrayDeque<Reading>()
+    val heldInMemory: Int get() = unsealed.size
+
     @Synchronized
     fun append(readings: List<Reading>) {
         if (readings.isEmpty()) return
         val file = fileFor()
-        readings.forEach { AtomicFiles.appendLine(file, LineCodec.encode(sealer, json.encodeToString(it))) }
+        readings.forEach { r ->
+            val line = LineCodec.sealOrNull(sealer, json.encodeToString(r))
+            if (line != null) AtomicFiles.appendLine(file, line) else unsealed.addLast(r)
+        }
+        while (unsealed.size > maxEntries) { unsealed.removeFirst(); dropped++ }
         trim(file)
     }
 
     @Synchronized
-    fun size(): Int = lines(fileFor()).size
+    fun size(): Int = lines(fileFor()).size + unsealed.size
 
-    /** The next batch to send, oldest first, without removing it. */
+    /** The next batch to send, oldest first, without removing it: what is on disk, then what is held in memory. */
     @Synchronized
-    fun peek(limit: Int = 500): List<Reading> = readable(fileFor()).take(limit)
+    fun peek(limit: Int = 500): List<Reading> = (readable(fileFor()) + unsealed).take(limit)
 
     /** Remove the first `count` entries once the backend has acknowledged them. */
     @Synchronized
     fun drop(count: Int) {
+        if (count <= 0) return
         val file = fileFor()
-        if (!file.exists() || count <= 0) return
-        rewrite(file, lines(file).drop(count))
+        val onDisk = lines(file)
+        if (onDisk.isNotEmpty()) rewrite(file, onDisk.drop(count))
+        repeat((count - onDisk.size).coerceAtMost(unsealed.size)) { unsealed.removeFirst() }
     }
 
     private fun lines(file: File): List<String> = if (file.exists()) file.readLines().filter { it.isNotBlank() } else emptyList()
