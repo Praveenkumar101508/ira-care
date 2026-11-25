@@ -9,10 +9,11 @@
 #   2. QLoRA (4-bit base, LoRA rank 16) for one pass over the kept examples.
 #   3. Score a held-out slice before and after (the same rule filter as a proxy; the real
 #      judgement is the repository's 150-turn set, run on the serving machine).
-#   4. Merge, convert to GGUF, quantise (Q4_K_M) with llama.cpp, and upload the adapter
-#      and the GGUF as a private Kaggle model (the notebook's own identity) so the
-#      repository can download them and place them in the owner's private Hugging Face
-#      repository from a machine that holds HF_TOKEN. Nothing secret is in this file.
+#   4. Merge, convert to GGUF, quantise (Q4_K_M) with llama.cpp, and leave the adapter
+#      and the GGUF in the private kernel's own output (`upload/`), which only the owner's
+#      account can download (`kaggle kernels output`). A training script never publishes
+#      model weights (D-082): no Kaggle model or dataset is created from here. Nothing
+#      secret is in this file.
 #
 # BASE is the model docs/MODEL_CHOICE.md chose. SAMPLES and EPOCHS keep the run inside
 # the free weekly GPU quota; the log records the minutes used.
@@ -211,21 +212,18 @@ try:
 except Exception as exc:  # noqa: BLE001
     log(f"MERGE_SKIPPED {type(exc).__name__}: {str(exc)[:300]}")
 
-# ── 4. Keep the artefacts as a private Kaggle model ───────────────────────────
+# ── 4. Keep the artefacts in the private kernel's own output (never published) ──
 uploads = {}
 try:
     import shutil
 
-    import kagglehub
     os.makedirs("upload/adapter", exist_ok=True)
     for f in os.listdir("adapter"): shutil.copy(os.path.join("adapter", f), "upload/adapter/")
     if merged_ok: shutil.copy("ira-care-q4_k_m.gguf", "upload/")
-    handle = f"{OWNER}/ira-care-conversation/transformers/qlora-v1"
-    kagglehub.model_upload(handle, "upload", license_name="Apache 2.0", version_notes=f"QLoRA on {BASE}, {len(train)} synthetic care turns")
-    uploads["kaggle_model"] = handle
-    log(f"KAGGLE_MODEL {handle}")
+    uploads["private_kernel_output"] = "upload/"
+    log("ARTEFACTS_IN_PRIVATE_KERNEL_OUTPUT upload/")
 except Exception as exc:  # noqa: BLE001
-    log(f"KAGGLE_MODEL_UPLOAD_SKIPPED {type(exc).__name__}: {str(exc)[:300]}")
+    log(f"ARTEFACTS_NOT_KEPT {type(exc).__name__}: {str(exc)[:300]}")
 
 metrics = {"base": BASE, "prompts": len(prompts), "kept": len(kept), "dropped_by_rules": dropped, "train_examples": len(train),
            "held_out": len(hold), "rule_pass_rate_before": before, "rule_pass_rate_after": after, "steps": steps,

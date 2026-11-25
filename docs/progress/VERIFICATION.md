@@ -46,4 +46,4 @@ Datasets added in rounds 5 and 6, each verified at its source on 25 November 202
 `docs/DATASETS.md` (checked by `test_dataset_register.py`): BITS-2 (Zenodo 10013090, CC BY 4.0),
 WISDM (UCI 507, CC BY 4.0), LibriSpeech test-clean (CC BY 4.0, evaluation only). The care
 conversation dataset is synthetic and written in this repository. SisFall stays excluded from
-release builds (D-077); the shipped fall model v3 is trained only on licensed data (D-080).
+every build, debug included (D-077, D-082); the shipped fall model v3 is trained only on licensed data (D-080).

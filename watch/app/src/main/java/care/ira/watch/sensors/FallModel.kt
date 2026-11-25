@@ -5,13 +5,14 @@ import kotlinx.serialization.json.Json
 import java.io.InputStream
 
 /**
- * The trained fall model (round 3, phase 5): a small convolutional network over a
- * 4 s window of accelerometer samples at 50 Hz (x, y, z and the magnitude, in g),
- * trained on Kaggle from SisFall and UCI HAR (docs/MODEL_CHOICE.md) and exported to
- * TensorFlow Lite. It sits BEHIND the fall detector interface: `ModelFallDetector`
- * uses the rule detector's impact gate, then asks the model whether the window
- * around the impact looks like a fall. Whenever the model cannot be loaded or
- * fails, the rule-based `FallDetector` alone is what runs.
+ * The trained fall model: a small convolutional network over a 4 s window of
+ * accelerometer samples at 50 Hz (x, y, z and the magnitude, in g), exported to
+ * TensorFlow Lite. Every build, debug and release alike, carries the same model: v3,
+ * trained only on BITS-2 and UCI HAR (both CC BY 4.0; docs/ai/fall/MODEL_CARD_V3.md),
+ * run in "recover" mode by `RecoveringFallDetector` (D-080, D-082). The SisFall-trained
+ * v1 is in no build (D-082) and [FallModelSpec.mayRun] refuses it if it ever reappears.
+ * `ModelFallDetector` (the "veto" mode) is kept as generic logic. Whenever the model
+ * cannot be loaded, is refused or fails, the rule-based `FallDetector` alone is what runs.
  *
  * Pure Kotlin here; the TensorFlow Lite call is behind [Inference] so the JVM
  * tests can drive the logic with a fake and the real interpreter lives in
@@ -35,9 +36,22 @@ data class FallModelSpec(
     val mode: String = MODE_VETO,
     /** The impact that opens a model candidate in "recover" mode, in g. */
     val candidateG: Float = 2.0f,
-    /** Where the model came from. A release build may carry only [PROVENANCE_LICENSED_V3]. */
+    /** Where the model came from. A build of any kind may run only [PROVENANCE_LICENSED_V3]. */
     val provenance: String = "",
+    /** The SHA-256 of the `.tflite` file this spec belongs to. */
+    val tfliteSha256: String = "",
 ) {
+    /**
+     * Whether the watch may run this model at all (D-082): only the reviewed v3, named by its
+     * licensed provenance, with the file whose SHA-256 is [tfliteSha256OnDisk] being the exact
+     * reviewed file. Anything else (v1, an unlabelled model, a retrained file nobody has reviewed)
+     * is refused and the rules alone run.
+     */
+    fun mayRun(tfliteSha256OnDisk: String): Boolean =
+        provenance == PROVENANCE_LICENSED_V3 &&
+            tfliteSha256.equals(tfliteSha256OnDisk, ignoreCase = true) &&
+            tfliteSha256OnDisk.lowercase() in REVIEWED_TFLITE_SHA256
+
     fun normalise(window: Array<FloatArray>): Array<FloatArray> =
         Array(window.size) { i -> FloatArray(4) { c -> (window[i][c] - mean[c]) / std[c] } }
 
@@ -46,6 +60,8 @@ data class FallModelSpec(
         const val MODE_RECOVER = "recover"
         /** The fall model trained only on commercially licensed data (BITS-2, UCI HAR; MODEL_CARD_V3). */
         const val PROVENANCE_LICENSED_V3 = "ira-fall-v3-licensed"
+        /** The fall model files reviewed for shipping: v3 only (scripts/training/fall_model_v3.py, MODEL_CARD_V3.md). */
+        val REVIEWED_TFLITE_SHA256 = setOf("2cab7c9bcbf60de51d7c42f5690ad549bcbf4f13eb6266c35bf5d0a59b063278")
         private val json = Json { ignoreUnknownKeys = true }
         fun parse(text: String): FallModelSpec = json.decodeFromString(serializer(), text)
         fun parse(stream: InputStream): FallModelSpec = parse(stream.bufferedReader().readText())

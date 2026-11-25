@@ -18,7 +18,7 @@ on 25 November 2026). Before sending one:
 | --- | --- | --- |
 | [`KFALL.md`](KFALL.md) | KFall | Restricted: access by request and approval; commercial use needs the authors' permission |
 | [`FALLALLD.md`](FALLALLD.md) | FallAllD | No licence for the dataset could be read; commercial use unclear |
-| [`SISFALL.md`](SISFALL.md) | SisFall | The shipped watch fall model was trained on a re-upload whose licence comes from an unnamed uploader; the authors' terms need confirming |
+| [`SISFALL.md`](SISFALL.md) | SisFall | The first watch fall model (v1) was trained on a re-upload whose licence comes from an unnamed uploader; it is in no build (D-077, D-082), and the authors' terms decide any future use |
 | [`UMAFALL.md`](UMAFALL.md) | UMAFall | The owner reports CC BY 4.0 for version 8; another record suggests a non-commercial licence; a short confirmation |
 
 MobiFall is not here: its laboratory gives it for non-commercial research and education only,
