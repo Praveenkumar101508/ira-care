@@ -3,3 +3,12 @@ Copyright 2026 Praveen Kamineti
 
 This product includes foundation code originating from IRA by SupraCloud,
 Copyright 2026 Praveen Kamineti, licensed under the Apache License, Version 2.0.
+
+This product includes a short excerpt of the PPG-DaLiA dataset
+(supracloud-jarvis/ira/care/research_samples/ppg_dalia_s1_excerpt.json: subject S1,
+wrist PPG and accelerometer, 300 s from 1800 s, with the window labels; accelerometer
+written as raw 1/64 g counts), used for research mode only. PPG-DaLiA by A. Reiss,
+I. Indlekofer and P. Schmidt, UCI Machine Learning Repository, doi:10.24432/C53890,
+licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Citation:
+A. Reiss, I. Indlekofer, P. Schmidt, K. Van Laerhoven, "Deep PPG: Large-Scale Heart Rate
+Estimation with Convolutional Neural Networks", Sensors 2019, 19(14), 3079.

@@ -40,6 +40,8 @@ PAIR_LIMIT = "10/minute"
 SIGNUP_LIMIT = "3/minute"
 # Workspace-wide search reads across everyone the caller may see: rationed per address.
 SEARCH_LIMIT = "30/minute"
+# The research pipeline is CPU work (about 10-20 ms a window, up to 297 windows a call).
+RESEARCH_LIMIT = "10/minute"
 
 router = APIRouter(prefix="/care", tags=["care"])
 logger = logging.getLogger("ira.care.routes")
@@ -828,6 +830,40 @@ async def visit_plan(since: Optional[dt.datetime] = Query(None), until: Optional
         raise HTTPException(status_code=422, detail="The window must be positive and at most 62 days.")
     async with workspace_connection(p) as conn:
         return await care_staff.visit_plan(conn, p, since=since, until=until, limit=limit)
+
+
+# ── Research mode: heart rate from raw PPG, never a person's reading (D-086) ──
+
+@router.get("/research/heart/samples")
+async def research_heart_samples(p: Principal = Depends(require_workspace_principal)):
+    """The built-in research recordings and simulations. Care managers only."""
+    ensure_can_manage(p)
+    from . import heart_research
+    return {"notice": heart_research.NOTICE, "samples": heart_research.list_samples()}
+
+
+@router.post("/research/heart/run")
+@limiter.limit(RESEARCH_LIMIT)
+async def research_heart_run(request: Request, body: schemas.ResearchHeartRun,
+                             p: Principal = Depends(require_workspace_principal)):
+    """Run the research heart-rate pipeline on a built-in sample or an uploaded recording, and
+    return the result. Care managers only. It takes no person, opens no database connection
+    and stores nothing: a research result is never a reading and never reaches an alert rule."""
+    ensure_can_manage(p)
+    from starlette.concurrency import run_in_threadpool
+
+    from . import heart_research
+    try:
+        rec = (heart_research.load_sample(body.sample) if body.sample is not None
+               else heart_research.validate_recording(body.recording.model_dump(exclude_none=True)))
+    except KeyError:
+        raise _not_found("No research sample by that name.") from None
+    except heart_research.ContractError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from None
+    result = await run_in_threadpool(heart_research.run, rec, use_learned=body.use_learned)
+    logger.info("heart research run: workspace=%s source=%s windows=%d", p.workspace_id, result.source,
+                len(result.windows))
+    return result.to_dict()
 
 
 @router.get("/staff")

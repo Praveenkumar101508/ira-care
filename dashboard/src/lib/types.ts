@@ -134,7 +134,7 @@ export interface Capability {
 export type StaffAction = 'view_care_plan' | 'edit_care_plan' | 'acknowledge_alerts' | 'record_visits' | 'record_medication'
   | 'set_reminders' | 'manage_people' | 'manage_circle' | 'manage_watches' | 'manage_safety_settings'
   | 'manage_medication_list' | 'manage_consents' | 'search' | 'view_caseload' | 'view_visit_plan'
-  | 'designate_coordinators';
+  | 'designate_coordinators' | 'run_heart_research';
 export interface Permissions {
   role: string | null; coordinator?: boolean; label: string; who: string; sees_everyone: boolean;
   can_read: boolean; can_act: boolean; can_manage: boolean; actions: Partial<Record<StaffAction, boolean>>;

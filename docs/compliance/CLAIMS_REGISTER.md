@@ -65,3 +65,11 @@ Diagnosis; treatment; "detects all falls"; "medical-grade"; any clinical accurac
 measured on the IRA watch with the intended users; approval or clearance by MHRA, the FDA or any
 notified body; validation on elderly speakers. `tests/readiness` already refuses several of
 these words in product text; anything new goes through the owner and a qualified reviewer.
+
+## Research mode (not a product claim)
+
+The heart-rate research page and route (D-086, requirement F3.g) run the estimators on a recorded
+PPG-DaLiA excerpt or a simulated signal for care managers. They make **no claim about any person**:
+every result is headed "Research — not a measurement of this person", is never stored, never
+appears on a person's record and cannot reach an alert rule. Its numbers (on public research data)
+must not be quoted as the accuracy of the `heart_rate` reading above, which comes from the watch.

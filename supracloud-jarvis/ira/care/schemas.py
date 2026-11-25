@@ -701,3 +701,54 @@ class CarePlanVersion(BaseModel):
 class CoordinatorDesignation(BaseModel):
     """Name a member of the care team coordinator, or stop (D-081)."""
     coordinator: bool
+
+
+# ── Research mode: heart rate from a recorded or simulated raw signal (D-086) ──
+# Never a person's reading: there is no person field, the source can only be simulated or a
+# research recording, and nothing from these bodies is stored (care/heart_research.py).
+
+RESEARCH_MAX_SAMPLES = 80_000
+
+
+class ResearchStreamIn(BaseModel):
+    fs_hz: float = Field(..., gt=0, le=1024)
+    unit: str = Field("", max_length=24)
+    t0_s: float = Field(0.0, ge=-1e9, le=1e9)
+    timestamps_s: Optional[list[float]] = Field(None, max_length=RESEARCH_MAX_SAMPLES)
+
+
+class ResearchPpgIn(ResearchStreamIn):
+    # null marks a missing sample
+    samples: list[Optional[float]] = Field(..., min_length=1, max_length=RESEARCH_MAX_SAMPLES)
+
+
+class ResearchAccIn(ResearchStreamIn):
+    samples: list[list[Optional[float]]] = Field(..., min_length=1, max_length=RESEARCH_MAX_SAMPLES)
+
+
+class ResearchReferenceIn(BaseModel):
+    bpm: list[Optional[float]] = Field(..., max_length=400)
+    kind: str = Field("supplied with the recording", max_length=120)
+
+
+class ResearchRecordingIn(BaseModel):
+    model_config = {"extra": "forbid"}
+    source: str = Field(..., pattern=r"^(simulated|research_recording)$")
+    label: str = Field("", max_length=120)
+    ppg: ResearchPpgIn
+    acc: Optional[ResearchAccIn] = None
+    reference: Optional[ResearchReferenceIn] = None
+
+
+class ResearchHeartRun(BaseModel):
+    """Run the research pipeline on a built-in sample (by name) or on an uploaded recording."""
+    model_config = {"extra": "forbid"}
+    sample: Optional[str] = Field(None, pattern=r"^[a-z0-9_]{1,60}$")
+    recording: Optional[ResearchRecordingIn] = None
+    use_learned: bool = True
+
+    @model_validator(mode="after")
+    def _one_input(self):
+        if (self.sample is None) == (self.recording is None):
+            raise ValueError("give either a sample name or a recording, not both")
+        return self
