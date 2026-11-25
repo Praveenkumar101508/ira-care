@@ -55,7 +55,7 @@ Nothing is marked done because code or a document exists.
 | C-10 | Live patient-record refresh | unit tested | #45 · B1 (component tests; not browser tested) |
 | C-11 | Unknown and stale wrist status | unit tested | #45 · B2 |
 | C-12 | Mobile conversation streaming | unit tested | #56 · C1 (`expo/fetch`, incremental NDJSON). On-device check: **needs external**, a device build |
-| C-13 | Native mobile voice | not started | needs native speech modules; **needs external**: device testing |
+| C-13 | Native mobile voice | unit tested | `fix/mobile-voice` · C2 (speech out and in; one utterance; no recording kept). Device check and elderly-speech accuracy: **needs external** (device build, consented recordings); DPIA to cover platform recognisers |
 | C-14 | Complete logout isolation | unit tested | #47 · C3 |
 | C-15 | Push-token unregister on sign-out | unit tested | #47 · C3 |
 | C-16 | Secure automatic session renewal | unit tested | #47 · C4 (phone); #52 · C4b (dashboard) |
