@@ -131,3 +131,4 @@ mobile/.web-demo/
 
 # The film's raw scene recordings: remade by scripts/film/record_scenes.mjs, never committed (the film itself is).
 docs/film/raw/
+docs/evidence/INDEX.md

@@ -114,6 +114,13 @@ hand-written evaluation turns' categories as prompts. The whole generation is a 
 this repository (`scripts/training/`), so it can be repeated and audited. The base model's own
 terms (Gemma 4, Apache 2.0) are recorded in [`docs/ai/MODEL_WEIGHTS.md`](ai/MODEL_WEIGHTS.md).
 
+## Speech recognition (evaluation)
+
+| Dataset | Where (original source) | Contents | Licence | Commercial use | Used for | Verified (2026-11-25) | Citation and conditions |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| LibriSpeech test-clean | Original: OpenSLR SLR12, <https://www.openslr.org/12> (not reachable from the build machine). Copy used: Hugging Face `openslr/librispeech_asr`, `all/test.clean/0000.parquet` | 2,620 utterances of read English audiobook speech, 40 speakers; ages not recorded | CC BY 4.0 (stated on the Hugging Face card; OpenSLR states CC BY 4.0) | yes | evaluation only: the speech-recognition accuracy harness (F8.b), `scripts/eval/speech_wer.py`; never trained on. Downloaded outside the repository, never committed | Hugging Face API read for `openslr/librispeech_asr`: `license: cc-by-4.0`, not gated. Original page **not verified: source unreachable from the build environment**; check <https://www.openslr.org/12> | Cite: V. Panayotov, G. Chen, D. Povey, S. Khudanpur, "Librispeech: an ASR corpus based on public domain audio books", ICASSP 2015 |
+| Mozilla Common Voice | Mozilla Data Collective, <https://datacollective.mozillafoundation.org> (since October 2025 the only source; the Hugging Face repositories now hold a notice, not data) | crowd-sourced read speech with self-reported age bands, including sixties, seventies and eighties | CC0 1.0 (Mozilla's published terms) | yes | not used: downloading needs an account that accepts the Data Collective's terms, which is the owner's to accept; the site was also unreachable from the build machine. Wanted for F8.c, recognition accuracy on older speakers | Hugging Face API read for `mozilla-foundation/common_voice_17_0`: two files, a README pointing to the Data Collective. Data Collective **not verified: source unreachable from the build environment** | Cite per the Data Collective's terms when used |
+
 ## Blocked here, for the owner
 
 - From the build environment on 25 November 2026 these hosts could not be reached (the
