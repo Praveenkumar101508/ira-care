@@ -37,11 +37,11 @@ android_app_import {
         "privapp_allowlist_care.ira.watch",
         "default_permissions_care.ira.watch",
     ],
-    // FOLLOW-UP, deliberately off: the app now has its HOME intent filter (aosp flavour,
-    // HOME_LAUNCHER.md). Replacing the stock launcher waits only for its module name:
-    //   overrides: ["Launcher3QuickStep"],
+    // IRA is the only home app (HOME_LAUNCHER.md): the app's aosp flavour has the HOME intent
+    // filter, so the stock launcher is overridden and not installed.
     // UNCERTAIN: the stock launcher module name in the inherited Cuttlefish phone product
     // (Launcher3QuickStep in recent AOSP) must be checked on the build host.
+    overrides: ["Launcher3QuickStep"],
 }
 
 // The privileged-permission allowlist. It must name exactly the privileged permissions the

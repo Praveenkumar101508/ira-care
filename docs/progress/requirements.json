@@ -1668,8 +1668,17 @@
    "title": "Boot animation frames produced and shown at boot",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_the_boot_animation_zip_follows_the_platform_format"
+    },
+    {
+     "kind": "config_check",
+     "ref": "os/scripts/make_bootanimation.py"
+    }
+   ]
   },
   {
    "id": "E2.g",
@@ -1738,8 +1747,12 @@
    "title": "Launcher: stock AOSP launcher removed from the image (overrides)",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
+   "state": "implemented",
    "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_the_stock_launcher_is_overridden_and_the_app_is_a_home_app"
+    },
     {
      "kind": "docs_only",
      "ref": "os/device/ira/ira_watch_cf/HOME_LAUNCHER.md"
@@ -1762,8 +1775,16 @@
    "title": "Device-owner policy app: developer options and factory reset behind an administrator",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
+   "state": "accepted",
    "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/devicepolicy/DevicePolicyTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_devicepolicy.py"
+    },
     {
      "kind": "docs_only",
      "ref": "os/device/ira/ira_watch_cf/SETTINGS_POLICY.md"
@@ -1823,8 +1844,17 @@
    "title": "Simulated sensors HAL driver: heart rate",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_sensor_sim.py"
+    },
+    {
+     "kind": "config_check",
+     "ref": "os/device/ira/sensors_sim/SimSensorsHal.cpp"
+    }
+   ]
   },
   {
    "id": "E3.d",
@@ -1832,8 +1862,17 @@
    "title": "Simulated sensors HAL driver: accelerometer and gyroscope",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_sensor_sim.py"
+    },
+    {
+     "kind": "config_check",
+     "ref": "os/device/ira/sensors_sim/SimSensorsHal.cpp"
+    }
+   ]
   },
   {
    "id": "E3.e",
@@ -1841,8 +1880,17 @@
    "title": "Simulated sensors HAL driver: off-body detection",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_sensor_sim.py"
+    },
+    {
+     "kind": "config_check",
+     "ref": "os/device/ira/sensors_sim/SimSensorsHal.cpp"
+    }
+   ]
   },
   {
    "id": "E3.f",
@@ -1890,8 +1938,17 @@
    "title": "OTA update server side (serving and authorising images)",
    "area": "os",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_os_update_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_ota.py"
+    }
+   ]
   },
   {
    "id": "E4.e",

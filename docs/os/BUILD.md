@@ -66,7 +66,9 @@ The machine this repository is developed on has 4 cores, 15 GB RAM and about 55 
    -b android-latest-release` (AOSP's recommended branch since 27 March 2025; override with
    `IRA_OS_AOSP_BRANCH`), `repo sync`, copies `os/device/ira` to `device/ira` in the checkout,
    checks and places the APK (`aapt2` package name, `apksigner verify`, permissions compared
-   with the source manifest), checks that the inherited Cuttlefish makefile exists, and runs
+   with the source manifest), renders `device/ira/ira_watch_cf/bootanimation/bootanimation.zip`
+   with `os/scripts/make_bootanimation.py` (needs Pillow), checks that the inherited Cuttlefish
+   makefile exists, and runs
    `source build/envsetup.sh && lunch ira_watch_cf-trunk_staging-userdebug && m`.
    *(not run in this repository's CI)*
 
@@ -110,7 +112,7 @@ The machine this repository is developed on has 4 cores, 15 GB RAM and about 55 
    | first-boot grants | `adb shell dumpsys package care.ira.watch` | the runtime permissions in `default-permissions-care.ira.watch.xml` shown `granted=true` (BODY_SENSORS_BACKGROUND is uncertain) |
    | overlay | `adb shell cmd overlay dump care.ira.os.overlay.framework` | enabled, and each resource in its `config.xml` mapped (a name the release does not define is reported unmapped) |
    | watch feature | `adb shell pm list features` | includes `android.hardware.type.watch` |
-   | lock screen | turn the screen off and on | no lock screen; the stock launcher until the app has its HOME filter |
+   | lock screen | turn the screen off and on | no lock screen; IRA is the home screen (the stock launcher is overridden) |
 
 10. **Record the run**: the AOSP revision (`repo manifest -r`), the host, the times, the
     output of step 9, and screenshots, in a dated file under `docs/evidence/`; then update
@@ -125,7 +127,7 @@ Collected from the comments in `os/`, so the first build host knows where to loo
 - The release config `trunk_staging` in `COMMON_LUNCH_CHOICES` and the lunch target.
 - `TARGET_BOARD_INFO_FILE` with `config=phone`, and whether a `wear` host configuration exists.
 - Declaring `android.hardware.type.watch` on top of a phone product's handheld features.
-- The stock launcher module name (`Launcher3QuickStep`) for the future `overrides`.
+- The stock launcher module name (`Launcher3QuickStep`) in the `overrides` of `Android.bp`.
 - Framework overlay names: `config_mainBuiltInDisplayIsRound` (medium),
   `config_disableLockscreenByDefault` (low), the numeric meaning of
   `config_longPressOnPowerBehavior` in the target release.

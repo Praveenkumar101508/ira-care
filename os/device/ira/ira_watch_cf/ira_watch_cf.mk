@@ -103,14 +103,17 @@ PRODUCT_PRODUCT_PROPERTIES += \
     ro.control_privapp_permissions=enforce
 
 # ---------------------------------------------------------------------------
-# 6. Boot animation. Specified in bootanimation/ as text (desc.txt and README.md); no frames
-# exist yet. Once bootanimation.zip has been produced as that README says, add:
-#   PRODUCT_COPY_FILES += device/ira/ira_watch_cf/bootanimation/bootanimation.zip:$(TARGET_COPY_OUT_PRODUCT)/media/bootanimation.zip
-# Until then the image shows the stock AOSP "android" text animation.
+# 6. Boot animation. desc.txt and README.md in bootanimation/ are the specification;
+# os/scripts/make_bootanimation.py renders the frames and bootanimation.zip from them, and
+# os/scripts/build_cuttlefish.sh runs it into the AOSP checkout before the build (the zip is
+# never committed). NOT YET SHOWN: no image has booted, so the animation has not been seen at boot.
 # ---------------------------------------------------------------------------
+PRODUCT_COPY_FILES += \
+    device/ira/ira_watch_cf/bootanimation/bootanimation.zip:$(TARGET_COPY_OUT_PRODUCT)/media/bootanimation.zip
 
 # ---------------------------------------------------------------------------
-# 7. Home screen. IRA is meant to be the only home app. It cannot be yet: the watch app's
-# manifest has no HOME intent filter (see HOME_LAUNCHER.md). The stock launcher therefore
-# stays in the image; removing it now would leave the device with no home at all.
+# 7. Home screen. IRA is the only home app: the watch app's aosp flavour declares the HOME
+# filter (HOME_LAUNCHER.md, #60), and Android.bp's IraCareWatch module overrides the stock
+# launcher so it is not installed. UNCERTAIN: the launcher's module name (Launcher3QuickStep in
+# recent AOSP) must be checked on the build host; Soong reports an unknown override as an error.
 # ---------------------------------------------------------------------------

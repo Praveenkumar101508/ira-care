@@ -1,7 +1,9 @@
 # IRA as the home screen (launcher)
 
-**State: the app change is made (`fix/watch-home-screen`); the image still keeps the stock
-launcher until the launcher module name is checked on a build host. Nothing has been booted.**
+**State: the app change is made (#60) and the image change is written: `Android.bp` overrides
+the stock launcher (`Launcher3QuickStep`), checked statically by
+`supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py`. Unbuilt: the module name must be
+confirmed on a build host, and nothing has been booted.**
 
 Done in the app: `watch/app/src/aosp/AndroidManifest.xml` adds the HOME filter and
 `showWhenLocked` / `turnScreenOn` to `MainActivity` in the aosp flavour only; back does nothing
@@ -49,7 +51,7 @@ removing it without a replacement would leave the device with no home activity.
 
 ## The image change that follows (in this folder)
 
-When the app has the filter, uncomment `overrides: ["Launcher3QuickStep"]` in `Android.bp`
+The app has the filter, so `overrides: ["Launcher3QuickStep"]` is set in `Android.bp`
 so the stock launcher is removed from the image and IRA is the only home app; Android then
 uses it without asking. The launcher module name must be checked in the checked-out AOSP
 release (`m IraCareWatch` reports an unknown override as an error).

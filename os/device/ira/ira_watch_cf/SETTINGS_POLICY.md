@@ -1,6 +1,15 @@
 # Settings and restrictions for a single-purpose care watch
 
-**State: policy and mechanism described; the mechanism is not built.** Nothing here has run.
+**State: the policy logic is built and tested; nothing has run on a device.** The decisions
+(which restrictions, the lock screen, administrator instructions) are pure Kotlin in
+`watch/app/src/main/java/care/ira/watch/devicepolicy/DevicePolicy.kt`, proved on the JVM by
+`DevicePolicyTest` (CI runs it in both flavours). The DevicePolicyManager wrapper
+(`watch/app/src/aosp/.../DevicePolicyManagerTarget.kt`) is compiled by CI's aosp build but no
+component registers it: becoming device owner is provisioning (E4.f), which needs an image.
+The server signs administrator instructions with `supracloud-jarvis/ira/care/devicepolicy.py`
+(ECDSA P-256, one device, at most 15 minutes, single-use); a cross-language fixture proves the
+watch accepts exactly what the server signs. Not built: an administrator route that issues
+instructions (it needs a deployment-administrator role a care workspace role must never imply).
 
 The person wearing the watch should never land somewhere that can break it: developer
 options, factory reset, safe-mode boot, or a settings page with no way back. A carer or an
@@ -42,8 +51,8 @@ person talks to). The proposal:
 4. A factory reset by an administrator goes through the same signed instruction
    (`DevicePolicyManager.wipeData`), and is recorded in the audit log.
 
-None of this app exists. It is recorded as follow-up in `docs/progress/COMPLETION_REGISTER.md`
-(row E2) and `docs/os/ARCHITECTURE.md`.
+The logic and the wrapper exist (above); the separate device-owner app shell and its provisioning
+do not. Recorded in `docs/progress/COMPLETION_REGISTER.md` (rows E2, E4).
 
 ## Keeping emergency features on top
 

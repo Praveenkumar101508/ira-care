@@ -1,0 +1,23 @@
+{
+ "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEa/hdX+hFmLEMphmewJzNfTXc1xlf3R3Hc3oMZwBu8lG5UvJe7B3u0fyhkYOJkEZjV9MUrft+l2C42a/I85qVrQ==",
+ "cases": [
+  {
+   "device_id": "device-fixture-1",
+   "action": "LIFT_DEBUGGING",
+   "issued_at_ms": 1764072000000,
+   "expires_at_ms": 1764072600000,
+   "nonce": "fixturenoncelift_debugging00",
+   "payload": "ira-device-policy-v1|device-fixture-1|LIFT_DEBUGGING|1764072000000|1764072600000|fixturenoncelift_debugging00",
+   "signature": "MEUCIQD+QdjAACvbistFzcgR/RTqDkOEfq6UHCkVyuVHEhYIjQIgAyPPxSujFQJ4TLuUqi31Ww7KDyLMgw7LuiUXUWIR180="
+  },
+  {
+   "device_id": "device-fixture-1",
+   "action": "FACTORY_RESET",
+   "issued_at_ms": 1764072000000,
+   "expires_at_ms": 1764072600000,
+   "nonce": "fixturenoncefactory_reset00",
+   "payload": "ira-device-policy-v1|device-fixture-1|FACTORY_RESET|1764072000000|1764072600000|fixturenoncefactory_reset00",
+   "signature": "MEQCIGVBWarCTIk+KKKmX4SMvZFyXxc6l4/Y8Qgkv/l7rszlAiAxvi7Q990UfBHioRG2dspzm0X1sVgQHF1WWQqJvNZZWA=="
+  }
+ ]
+}

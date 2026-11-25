@@ -191,6 +191,12 @@ class PairRequest(BaseModel):
     app_version: str = Field("", max_length=40)
 
 
+class OsUpdateRequest(BaseModel):
+    """What a watch running IRA CARE OS says when it asks for an update (care/ota.py)."""
+    build_fingerprint: str = Field(..., min_length=8, max_length=256)
+    rollback_index: int = Field(..., ge=0, le=2_147_483_647)
+
+
 class Reading(BaseModel):
     kind: str
     value: float

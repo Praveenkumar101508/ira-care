@@ -490,6 +490,23 @@ async def device_report(body: schemas.DeviceReport, d: tuple[Principal, dict] = 
     return await repo.record_report(principal, device, body.model_dump())
 
 
+@router.post("/devices/me/os-update")
+async def device_os_update(body: schemas.OsUpdateRequest, d: tuple[Principal, dict] = Depends(require_device)):
+    """IRA CARE OS over-the-air update check (care/ota.py, E4.d). A paired watch only; never an
+    image with a lower rollback index than the watch's own; staged rollout fixed per device;
+    the answer is a signed manifest, and with no signing key configured there is no answer."""
+    from . import ota
+    principal, device = d
+    try:
+        key = ota.load_signing_key()
+    except ota.SigningNotConfigured:
+        raise HTTPException(status_code=503, detail="Updates are not configured on this server.")
+    async with workspace_connection(principal) as conn:
+        signed = await ota.offer(conn, device_id=str(device["id"]), build_fingerprint=body.build_fingerprint,
+                                 rollback_index=body.rollback_index, key=key)
+    return {"update": signed}
+
+
 @router.post("/devices/me/unpair")
 async def device_unpair(d: tuple[Principal, dict] = Depends(require_device)):
     """The wearer unpaired this watch from the wrist, after its warning. The token stops

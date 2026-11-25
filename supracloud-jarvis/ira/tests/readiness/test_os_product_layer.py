@@ -41,7 +41,7 @@ ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
 
 # Files a makefile or Android.bp names that are produced on the build host, never committed.
 # Each must be written by the build script and ignored by git.
-BUILD_TIME_INPUTS = {PRODUCT / "prebuilt" / "IraCareWatch.apk"}
+BUILD_TIME_INPUTS = {PRODUCT / "prebuilt" / "IraCareWatch.apk", PRODUCT / "bootanimation" / "bootanimation.zip"}
 
 # Protection levels from frameworks/base/core/res/AndroidManifest.xml (AOSP, Apache 2.0).
 # Every permission the app requests must be classified here; an unclassified one fails the
@@ -417,3 +417,68 @@ def test_no_assistant_branding_in_the_os_layer():
         for f in base.rglob("*"):
             if f.is_file():
                 assert not pattern.search(f.read_text(encoding="utf-8", errors="ignore")), f
+
+
+# --------------------------------------------------------------------------- launcher (E2.k)
+
+def _launcher_overrides(bp_text: str) -> set[str]:
+    """The `overrides` of the IraCareWatch module, comments stripped."""
+    bp = _strip_bp_comments(bp_text)
+    block = re.search(r'android_app_import\s*\{[^{}]*name:\s*"IraCareWatch"(.*?)\n\}', bp, flags=re.S)
+    assert block, "IraCareWatch module not found"
+    m = re.search(r"overrides\s*:\s*\[([^\]]*)\]", block.group(1))
+    return set(re.findall(r'"([^"]+)"', m.group(1))) if m else set()
+
+
+def test_the_stock_launcher_is_overridden_and_the_app_is_a_home_app():
+    assert "Launcher3QuickStep" in _launcher_overrides((PRODUCT / "Android.bp").read_text(encoding="utf-8"))
+    aosp_manifest = (ROOT / "watch/app/src/aosp/AndroidManifest.xml").read_text(encoding="utf-8")
+    # Removing the stock launcher is only safe while the app itself declares HOME.
+    assert "android.intent.category.HOME" in aosp_manifest and "android.intent.category.DEFAULT" in aosp_manifest
+
+
+def test_negative_control_a_commented_out_override_is_not_counted():
+    bp = (PRODUCT / "Android.bp").read_text(encoding="utf-8")
+    disabled = bp.replace('    overrides: ["Launcher3QuickStep"],', '    // overrides: ["Launcher3QuickStep"],')
+    assert disabled != bp
+    assert _launcher_overrides(disabled) == set()
+
+
+# --------------------------------------------------------------------------- boot animation (E2.f)
+
+def _render(tmp_path: Path, name: str = "ba.zip") -> Path:
+    pytest.importorskip("PIL")
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("make_bootanimation", OS_DIR / "scripts" / "make_bootanimation.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.build(tmp_path / name)
+
+
+def test_the_boot_animation_zip_follows_the_platform_format(tmp_path):
+    import zipfile
+    from io import BytesIO
+    from PIL import Image
+    out = _render(tmp_path)
+    desc = (PRODUCT / "bootanimation" / "desc.txt").read_text(encoding="utf-8")
+    width, height, fps = (int(v) for v in desc.splitlines()[0].split())
+    parts = [ln.split()[3] for ln in desc.splitlines()[1:] if ln.strip()]
+    with zipfile.ZipFile(out) as z:
+        infos = z.infolist()
+        assert infos[0].filename == "desc.txt" and z.read("desc.txt").decode() == desc
+        assert all(i.compress_type == zipfile.ZIP_STORED for i in infos), "every entry stored, never deflated"
+        for part in parts:
+            frames = sorted(i.filename for i in infos if i.filename.startswith(part + "/"))
+            assert frames and frames == [f"{part}/{n:05d}.png" for n in range(len(frames))]
+            img = Image.open(BytesIO(z.read(frames[-1])))
+            assert img.size == (width, height) and img.mode == "RGB"
+        counts = {p: sum(i.filename.startswith(p + "/") for i in infos) for p in parts}
+        assert counts == {"part0": fps, "part1": 2 * fps}
+        # The round panel's edge stays black: the corner pixel of every last frame.
+        assert Image.open(BytesIO(z.read("part1/" + f"{2 * fps - 1:05d}.png"))).getpixel((0, 0)) == (0, 0, 0)
+
+
+def test_the_boot_animation_is_deterministic(tmp_path):
+    import hashlib
+    a, b = _render(tmp_path, "a.zip"), _render(tmp_path, "b.zip")
+    assert hashlib.sha256(a.read_bytes()).hexdigest() == hashlib.sha256(b.read_bytes()).hexdigest()

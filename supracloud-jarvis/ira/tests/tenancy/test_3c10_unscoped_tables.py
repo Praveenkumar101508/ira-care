@@ -395,6 +395,19 @@ RLS_DISABLED_BY_DESIGN = {
     "billing_plans": "the deployment's plan catalogue (P11-01)",
     "billing_plan_prices": "owner-set prices, append-only (P11-01)",
     "plan_entitlements": "what each plan entitles you to (P11-01)",
+    # ── IRA CARE OS releases (120) ───────────────────────────────────────────
+    #
+    # The catalogue of OS images the update server may offer (E4.d): one per
+    # build fingerprint, with its rollback index, payload hash and size, and the
+    # rollout percentage. Deployment-wide for the same reason as the plan
+    # catalogue above: every paired watch must get the same answer about what a
+    # release is, and a per-tenant copy would let two tenants disagree about the
+    # firmware itself. No customer content can reach it (every column is a
+    # bounded identifier, hash or number). `ira_app` holds SELECT and nothing
+    # else (120 revokes the rest); releases are published by the operator script
+    # scripts/os_release.py as the migrator. WHICH device asked, and what it was
+    # told, is answered under the device's own tenant scope, not here.
+    "os_releases": "the deployment's OS image catalogue for over-the-air updates (E4.d)",
     # ── Phase 11's payment intake (080) ─────────────────────────────────────
     #
     # `payment_events` is unscoped BY NECESSITY, and this is the one entry in
