@@ -94,6 +94,10 @@ async def test_answers_are_read_into_a_structure_and_the_stricter_reading_wins(c
     conv.use_model(conv.FakeModel(json_reply={"wellbeing": "good", "summary": f"Said: {words}"}))
     out = await cycle.record_answer(p["jp"], p["device"], due2["id"], words, now=now + dt.timedelta(minutes=51))
     assert words not in out["answer_summary"] and "neighbour" not in out["answer_summary"]
+    # Since D-076 a viewer sees a person only from inside their circle: a family viewer.
+    client.act_as(fam, "admin", "workspace_admin")
+    assert (await client.post(f"{C}/people/{p['id']}/circle", json={"display_name": "Family Viewer", "role": "family",
+                                                              "user_id": str(fam["viewer"])})).status_code == 201
     client.act_as(fam, "viewer", "viewer")
     listed = (await client.get(f"{C}/people/{p['id']}/checkins")).json()["checkins"]
     assert all("neighbour" not in (c["answer_summary"] or "") for c in listed)
@@ -164,9 +168,10 @@ async def test_talk_from_the_phone_shows_a_contact_to_call_and_a_concerning_phra
     assert done["needs_help"] is True and done["action"]["kind"] == "safety_check" and done["action"]["alert_id"]
     alerts = (await client.get(f"{C}/alerts", params={"open_only": "false"})).json()["alerts"]
     assert alerts[0]["kind"] == "concerning_phrase" and alerts[0]["status"] == "asking"
-    # A viewer may not talk as the person; another family's person is not found.
+    # A viewer outside the circle may not talk as the person, and since D-076 does not even
+    # learn the person exists (not found); another family's person is not found either.
     client.act_as(fam, "viewer", "viewer")
-    assert (await client.post(f"{C}/people/{p['id']}/talk", json={"text": "hello"})).status_code == 403
+    assert (await client.post(f"{C}/people/{p['id']}/talk", json={"text": "hello"})).status_code == 404
     client.act_as(families["b"], "member", "member")
     assert (await client.post(f"{C}/people/{p['id']}/talk", json={"text": "hello"})).status_code == 404
 

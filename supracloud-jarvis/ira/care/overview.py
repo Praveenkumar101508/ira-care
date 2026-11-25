@@ -24,12 +24,15 @@ def _iso(v):
     return v.isoformat() if isinstance(v, dt.datetime) else v
 
 
-async def build(conn, now: Optional[dt.datetime] = None) -> dict:
+async def build(conn, now: Optional[dt.datetime] = None, *, visible: Optional[set] = None) -> dict:
+    """`visible`: the people the caller may see (care/authz.visible_people); None for a manager."""
     now = now or dt.datetime.now(dt.timezone.utc)
     people = [dict(r) for r in await conn.fetch(
         "SELECT p.id, p.display_name, p.preferred_name, p.timezone, s.sync_alert_minutes, s.battery_alert_percent, "
         "s.usual_wake_time, s.wake_grace_minutes FROM care_people p LEFT JOIN care_safety_settings s ON s.person_id = p.id "
         "WHERE p.status = 'active' ORDER BY p.display_name")]
+    if visible is not None:
+        people = [p for p in people if p["id"] in visible]
     by_id = {p["id"]: p for p in people}
     name = lambda pid: (by_id[pid].get("preferred_name") or by_id[pid]["display_name"]) if pid in by_id else "someone"  # noqa: E731
 
@@ -111,6 +114,11 @@ async def build(conn, now: Optional[dt.datetime] = None) -> dict:
         if reasons:
             attention.append({"person_id": str(p["id"]), "person_name": name(p["id"]), "reasons": reasons})
 
+    if visible is not None:
+        mine = {str(pid) for pid in visible}
+        visits = [v for v in visits if str(v["person_id"]) in mine]
+        alerts = [a for a in alerts if str(a["person_id"]) in mine]
+        stale = [d for d in stale if str(d["person_id"]) in mine]
     return {"now": now.isoformat(), "people": len(people), "attention": attention,
             "visits": visits, "alerts": alerts, "stale_watches": stale}
 

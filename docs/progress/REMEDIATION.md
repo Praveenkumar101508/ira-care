@@ -70,6 +70,16 @@ true.
 | D7 | High | `watch/.../pairing/Unpairing.kt`, `ui/MainActivity.kt`, `POST /devices/me/unpair`, migration 114 | Unpairing could only happen by clearing the app's data, which gave no warning. The carers were not told that monitoring had stopped, and the server token stayed live. | An explicit flow, "Unpair watch…", offered on the home screen only when nothing is happening. Unpairing is refused while anything urgent is unfinished: an unsent Help or fall event, a running fall countdown, or a Help request still open. Otherwise the screen shows a plain warning ("IRA will stop watching over you, and your family and carers will be told") with "Keep paired" first. The server is asked first. In one transaction it ends the token and opens a `notice` alert of the new kind `watch_unpaired`, which tells the circle once. Only after the server answers is the pairing cleared on the watch. With no connection, or on a server error, nothing changes and the watch stays paired. A 401 means the token is already dead, so the watch clears its pairing. Readings not yet sent stay per wearer (D5). | `UnpairingTest` (4 JVM tests; a naive version that clears first and never refuses fails 3); `test_care_watch_unpair_db.py` (token dead at once for every route; one notice alert; other watches untouched; re-pairing works; fails on `main` with 404). Migration 114 rollback tested down and up. The screen itself has no device test here (CI Wear OS build only). | fixed |
 | D4, D6 | Medium | foreground service, permissions, platform behaviour | Not reviewed here: reboot and Doze behaviour, permission revocation, Bluetooth and LTE changes, emulator and physical-device tests. | — | — | open (needs emulator or device) |
 
+## Group E: person-level authorisation and outage recovery
+
+| ID | Severity | Where | Finding | Fix | Tests | Status |
+|----|----------|-------|---------|-----|-------|--------|
+| E1 | Critical | `care/routes.py`, `care/authz.py` | Access was checked by workspace role only. One care organisation's workspace holds many people, and every invited family member or carer is a workspace member, so anyone invited for one person could see and act on everyone else in the workspace. On the code before this change, 0 of 62 routes naming another person (or one of their things) answered "not found", and 29 succeeded, including: raising an SOS in their name, acknowledging their alert, cancelling their visit, editing what IRA remembers about them, and reading their readings and medication. | D-076: a manager sees everyone; anyone else sees only the people whose circle they are an active member of. Enforced as a route dependency on all 41 person routes and 21 resource routes; outsiders get "not found". `/people`, `/alerts` and `/overview` are filtered the same way. | `test_care_person_guard.py` (static: every such route is guarded); `test_care_person_access_db.py` (all 62 routes answer 404 for another person; lists show own people only; leaving the circle ends access) | fixed |
+| E2 | Critical | `watch/.../api/CareApi.kt` | When draining the urgent outbox, the watch treated any answer other than success or 401 as a definite refusal and deleted the event. A Help request sent while the server was down, restarting, behind a proxy returning 502, or rate-limited (429) was thrown away and never retried. | 5xx, 408, 425 and 429 now mean "not now": the event is kept and retried with backoff. Only a real refusal (another 4xx) ends it. | `CareApiTest`: 500, 502, 503, 504, 425 and 429 are kept; 400, 403, 404, 409 and 422 are refused | fixed |
+| E3 | High | `core/runtime/errors.py` | With the database unreachable, the API answered a generic 500 `internal_error`, so a client could not tell "try again" from "broken". | Database-unreachable errors (connection refused or reset, pool exhausted, Postgres refusing connections) return 503 `dependency_unavailable` with `retryable: true` and `Retry-After: 5`. No error text reaches the client. Genuine bugs stay 500. A real watch's Help gets 503, never a 401, which would make the watch unpair itself. | `test_care_outages_db.py` | fixed |
+| E4 | High | `care/escalation.run_once`, `care/checkin_cycle.run_cycle_once` | Both jobs opened the database outside any error handling, so an outage made each pass raise out of the job. | An unreachable database skips the pass: it is counted as an error and no heartbeat is written, so "monitoring paused" stays on until a pass really succeeds. When the database is back, the alert that waited is escalated once. | `test_care_outages_db.py`: jobs survive; nothing sent while down; the alert still waits; escalated once afterwards; no heartbeat for a failed pass | fixed |
+| E5 | — | other outages | Model unavailable; notification provider down; Redis down. | Model: the template and the rules answer (`test_care_conversation_db`). Provider: retried, then recorded failed (`test_care_delivery_db`, #46). Redis: rate limiting and IP blocking fail open (logged), so care routes keep working. That is a deliberate availability choice and is recorded here as a trade-off. | existing tests | noted |
+
 ## Negative control
 
 Migration 112: of the 5 new database tests, run against the code from before 112 on the migrated
@@ -103,6 +113,21 @@ was planted back into the new code and the tests were run:
 The tests were compiled outside Gradle with kotlinc 2.0.21 (coroutines 1.9.0, serialization 1.7.3,
 OkHttp 4.12.0). 53 JVM tests pass. The Android adapters (`AndroidListener`, `AndroidSpeaker`,
 `KeystoreKey`, `PairingStore`, the manifest) are compiled only by CI's Wear OS and AOSP builds.
+
+Group E1: the new database test, run against the code before D-076, fails at its first check
+(the daughter's `/people` shows the other person). A sweep-only copy of it recorded 62 of 62
+routes answering something other than "not found", and 29 of them succeeding.
+
+Groups E2–E4: on the code before the fix, the new watch test fails at "500 must be retried, not
+dropped", and all 3 database outage tests fail (the connection error escapes as a 500; both jobs
+raise).
+
+Eight existing tests changed:
+- Four moved from 403 to 404. Their caller was already outside the circle, and "not found"
+  is the stronger refusal.
+- Four added the viewer to the person's circle as family. These tests are about what a
+  viewer may do with a person they look after: still allowed to read (200), still refused
+  to change (403).
 
 Skipped tests: `main` gives 193 skipped. This branch gives 194 without `psycopg2` installed
 (one new database module) and 544 with it, because four database modules that

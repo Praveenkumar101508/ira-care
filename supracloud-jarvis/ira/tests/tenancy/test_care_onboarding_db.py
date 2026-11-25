@@ -153,8 +153,9 @@ async def test_role_and_tenant_checks_on_every_new_route(client, families, conso
     p = await _person(client, fam)
     for who, role in (("viewer", "viewer"), ("member", "member")):
         client.act_as(fam, who, role)
-        assert (await client.post(f"{C}/people/{p['id']}/invitations", json={"email": "x@example.invalid"})).status_code == 403
-        assert (await client.get(f"{C}/people/{p['id']}/invitations")).status_code == 403
+        # Not in this person's circle: since D-076 the person is not found (a stronger refusal than 403).
+        assert (await client.post(f"{C}/people/{p['id']}/invitations", json={"email": "x@example.invalid"})).status_code == 404
+        assert (await client.get(f"{C}/people/{p['id']}/invitations")).status_code == 404
         assert (await client.get(f"{C}/plan")).status_code == 403
     client.act_as(other, "admin", "workspace_admin")
     assert (await client.post(f"{C}/people/{p['id']}/invitations", json={"email": "x@example.invalid"})).status_code == 404

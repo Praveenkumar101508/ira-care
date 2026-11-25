@@ -60,6 +60,10 @@ async def test_an_administrator_creates_a_person_with_default_settings(client, f
 async def test_a_viewer_can_look_but_not_change(client, families):
     fam = families["a"]
     person = await _setup_person(client, fam)
+    # Since D-076 a viewer sees a person only from inside their circle: a family viewer.
+    client.act_as(fam, "admin", "workspace_admin")
+    assert (await client.post(f"{C}/people/{person['id']}/circle", json={"display_name": "Family Viewer", "role": "family",
+                                                              "user_id": str(fam["viewer"])})).status_code == 201
     client.act_as(fam, "viewer", "viewer")
     assert (await client.get(f"{C}/people")).status_code == 200
     assert (await client.get(f"{C}/people/{person['id']}/status")).status_code == 200
@@ -193,6 +197,10 @@ async def test_the_help_button_opens_an_sos_that_a_member_can_acknowledge(client
     assert r.status_code == 201
     alert = r.json()
     assert alert["kind"] == "help_requested" and alert["severity"] == "sos" and alert["status"] == "open"
+    # Since D-076 a viewer sees a person only from inside their circle: a family viewer.
+    client.act_as(fam, "admin", "workspace_admin")
+    assert (await client.post(f"{C}/people/{person['id']}/circle", json={"display_name": "Family Viewer", "role": "family",
+                                                              "user_id": str(fam["viewer"])})).status_code == 201
     client.act_as(fam, "viewer", "viewer")
     r = await client.get(f"{C}/alerts")
     assert r.status_code == 200 and [x["id"] for x in r.json()["alerts"]] == [alert["id"]]

@@ -36,6 +36,43 @@ logger = logging.getLogger("ira.care.routes")
 
 DEVICE_TOKEN_HEADER = "X-Device-Token"
 
+# ── Which people a caller may see (D-076) ────────────────────────────────────
+
+async def person_guard(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)) -> None:
+    """Every /people/{person_id}/... route: a manager sees everyone in the workspace; anyone
+    else only the people whose circle they belong to. Others are "not found"."""
+    async with workspace_connection(p) as conn:
+        if not await authz.may_see_person(conn, p, person_id):
+            raise _not_found("Person not found.")
+
+
+def resource_guard(table: str, param: str, label: str):
+    """The same rule for a route named by one of a person's things (an alert, a visit...):
+    whose it is is looked up first. A thing that does not exist is left to the route."""
+    async def guard(request: Request, p: Principal = Depends(require_workspace_principal)) -> None:
+        try:
+            rid = uuid.UUID(str(request.path_params[param]))
+        except (KeyError, ValueError):
+            return
+        async with workspace_connection(p) as conn:
+            person_id = await conn.fetchval(f"SELECT person_id FROM {table} WHERE id = $1", rid)  # noqa: S608 - fixed names
+            if person_id is not None and not await authz.may_see_person(conn, p, person_id):
+                raise _not_found(f"{label} not found.")
+    return guard
+
+
+_RESOURCE_GUARDS = {
+    "member_id": resource_guard("care_circle_members", "member_id", "Circle member"),
+    "device_id": resource_guard("care_devices", "device_id", "Device"),
+    "reminder_id": resource_guard("care_reminders", "reminder_id", "Reminder"),
+    "visit_id": resource_guard("care_visits", "visit_id", "Visit"),
+    "alert_id": resource_guard("care_alerts", "alert_id", "Alert"),
+    "routine_id": resource_guard("care_routines", "routine_id", "Routine"),
+    "medication_id": resource_guard("care_medications", "medication_id", "Medication"),
+    "consent_id": resource_guard("care_consents", "consent_id", "Consent"),
+    "report_id": resource_guard("care_reports", "report_id", "Report"),
+}
+
 
 def _not_found(what: str = "Not found") -> HTTPException:
     return HTTPException(status_code=404, detail=what)
@@ -91,7 +128,7 @@ async def care_create_organisation(body: schemas.OrganisationCreate, subject: st
     return made
 
 
-@router.post("/people/{person_id}/invitations", status_code=201)
+@router.post("/people/{person_id}/invitations", status_code=201, dependencies=[Depends(person_guard)])
 async def invite_to_circle(person_id: uuid.UUID, body: schemas.InvitationCreate,
                            p: Principal = Depends(require_workspace_principal)):
     """Invite family or a carer by link, recording the consents given for their
@@ -110,7 +147,7 @@ async def invite_to_circle(person_id: uuid.UUID, body: schemas.InvitationCreate,
     return out
 
 
-@router.get("/people/{person_id}/invitations")
+@router.get("/people/{person_id}/invitations", dependencies=[Depends(person_guard)])
 async def list_circle_invitations(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
     rows = await onboarding.list_invitations(p, person_id)
@@ -164,10 +201,14 @@ def _notes_need_a_key(access_notes) -> None:
 async def list_people(include_archived: bool = False, p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
     people = await repo.list_people(p, include_archived=include_archived)
+    async with workspace_connection(p) as conn:
+        visible = await authz.visible_people(conn, p)
+    if visible is not None:  # only the people whose circle the caller belongs to (D-076)
+        people = [x for x in people if uuid.UUID(str(x["id"])) in visible]
     return {"people": people, "count": len(people)}
 
 
-@router.get("/people/{person_id}")
+@router.get("/people/{person_id}", dependencies=[Depends(person_guard)])
 async def get_person(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
     person = await repo.get_person(p, person_id)
@@ -176,7 +217,7 @@ async def get_person(person_id: uuid.UUID, p: Principal = Depends(require_worksp
     return person
 
 
-@router.patch("/people/{person_id}")
+@router.patch("/people/{person_id}", dependencies=[Depends(person_guard)])
 async def update_person(person_id: uuid.UUID, body: schemas.PersonUpdate,
                         p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
@@ -187,7 +228,7 @@ async def update_person(person_id: uuid.UUID, body: schemas.PersonUpdate,
     return person
 
 
-@router.delete("/people/{person_id}", status_code=204)
+@router.delete("/people/{person_id}", status_code=204, dependencies=[Depends(person_guard)])
 async def erase_person(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     """Delete the person and everything recorded about them (the access log stays)."""
     ensure_can_manage(p)
@@ -200,7 +241,7 @@ async def erase_person(person_id: uuid.UUID, p: Principal = Depends(require_work
     return None
 
 
-@router.get("/people/{person_id}/status")
+@router.get("/people/{person_id}/status", dependencies=[Depends(person_guard)])
 async def person_status(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     """Live status for the family app: device state, latest readings, open alerts."""
     ensure_can_read(p)
@@ -215,14 +256,14 @@ async def person_status(person_id: uuid.UUID, p: Principal = Depends(require_wor
 
 # ── Care circle ──────────────────────────────────────────────────────────────
 
-@router.get("/people/{person_id}/circle")
+@router.get("/people/{person_id}/circle", dependencies=[Depends(person_guard)])
 async def list_members(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
     members = await repo.list_members(p, person_id)
     return {"members": members, "count": len(members)}
 
 
-@router.post("/people/{person_id}/circle", status_code=201)
+@router.post("/people/{person_id}/circle", status_code=201, dependencies=[Depends(person_guard)])
 async def add_member(person_id: uuid.UUID, body: schemas.CircleMemberCreate,
                      p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
@@ -232,7 +273,7 @@ async def add_member(person_id: uuid.UUID, body: schemas.CircleMemberCreate,
     return member
 
 
-@router.patch("/circle/{member_id}")
+@router.patch("/circle/{member_id}", dependencies=[Depends(_RESOURCE_GUARDS["member_id"])])
 async def update_member(member_id: uuid.UUID, body: schemas.CircleMemberUpdate,
                         p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
@@ -242,7 +283,7 @@ async def update_member(member_id: uuid.UUID, body: schemas.CircleMemberUpdate,
     return member
 
 
-@router.delete("/circle/{member_id}", status_code=204)
+@router.delete("/circle/{member_id}", status_code=204, dependencies=[Depends(_RESOURCE_GUARDS["member_id"])])
 async def remove_member(member_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
     if not await repo.remove_member(p, member_id):
@@ -252,7 +293,7 @@ async def remove_member(member_id: uuid.UUID, p: Principal = Depends(require_wor
 
 # ── Safety settings ──────────────────────────────────────────────────────────
 
-@router.get("/people/{person_id}/settings")
+@router.get("/people/{person_id}/settings", dependencies=[Depends(person_guard)])
 async def get_settings(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
     settings = await repo.get_settings(p, person_id)
@@ -261,7 +302,7 @@ async def get_settings(person_id: uuid.UUID, p: Principal = Depends(require_work
     return settings
 
 
-@router.put("/people/{person_id}/settings")
+@router.put("/people/{person_id}/settings", dependencies=[Depends(person_guard)])
 async def put_settings(person_id: uuid.UUID, body: schemas.SafetySettings,
                        p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
@@ -273,7 +314,7 @@ async def put_settings(person_id: uuid.UUID, body: schemas.SafetySettings,
 
 # ── Devices (family side) ────────────────────────────────────────────────────
 
-@router.post("/people/{person_id}/devices", status_code=201)
+@router.post("/people/{person_id}/devices", status_code=201, dependencies=[Depends(person_guard)])
 async def create_device(person_id: uuid.UUID, body: schemas.DeviceCreate,
                         p: Principal = Depends(require_workspace_principal)):
     """Register a watch and get its one-time pairing code (shown once; valid 15 minutes)."""
@@ -284,14 +325,14 @@ async def create_device(person_id: uuid.UUID, body: schemas.DeviceCreate,
     return device
 
 
-@router.get("/people/{person_id}/devices")
+@router.get("/people/{person_id}/devices", dependencies=[Depends(person_guard)])
 async def list_devices(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
     devices = await repo.list_devices(p, person_id)
     return {"devices": devices, "count": len(devices)}
 
 
-@router.post("/devices/{device_id}/revoke")
+@router.post("/devices/{device_id}/revoke", dependencies=[Depends(_RESOURCE_GUARDS["device_id"])])
 async def revoke_device(device_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
     device = await repo.revoke_device(p, device_id)
@@ -534,7 +575,7 @@ async def device_checkin_missed(checkin_id: uuid.UUID, d: tuple[Principal, dict]
     return await _idempotent(principal, device, key, "checkin_missed", 200, work)
 
 
-@router.post("/people/{person_id}/checkins/ask-now", status_code=201)
+@router.post("/people/{person_id}/checkins/ask-now", status_code=201, dependencies=[Depends(person_guard)])
 async def ask_now(person_id: uuid.UUID, body: schemas.AskNow, p: Principal = Depends(require_workspace_principal)):
     """A family member or carer asks IRA to check in straight away."""
     ensure_can_act(p)
@@ -603,7 +644,7 @@ async def put_my_preferences(body: schemas.Preferences, p: Principal = Depends(r
     return {"appearance": appearance, "updated_at": row["updated_at"]}
 
 
-@router.post("/people/{person_id}/help", status_code=201)
+@router.post("/people/{person_id}/help", status_code=201, dependencies=[Depends(person_guard)])
 async def help_from_phone(person_id: uuid.UUID, body: schemas.PhoneHelp, p: Principal = Depends(require_workspace_principal)):
     """Help from the phone: the person themselves (the wearer experience) or a family
     member who is with them. Opens the same SOS the watch would, marked 'phone'."""
@@ -629,7 +670,7 @@ async def _editor_role(conn, p: Principal, person_id: uuid.UUID) -> str:
     return personal.role_for(p, members)
 
 
-@router.get("/people/{person_id}/profile")
+@router.get("/people/{person_id}/profile", dependencies=[Depends(person_guard)])
 async def get_profile(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     """How IRA speaks to this person, and the topic lists (with consent)."""
     ensure_can_read(p)
@@ -639,7 +680,7 @@ async def get_profile(person_id: uuid.UUID, p: Principal = Depends(require_works
         return await personal.get_profile(conn, person_id)
 
 
-@router.put("/people/{person_id}/profile")
+@router.put("/people/{person_id}/profile", dependencies=[Depends(person_guard)])
 async def put_profile(person_id: uuid.UUID, body: schemas.CommunicationProfile, p: Principal = Depends(require_workspace_principal)):
     """The person or their representative changes how IRA speaks to them."""
     ensure_can_act(p)
@@ -651,7 +692,7 @@ async def put_profile(person_id: uuid.UUID, body: schemas.CommunicationProfile, 
     return row
 
 
-@router.get("/people/{person_id}/reminders")
+@router.get("/people/{person_id}/reminders", dependencies=[Depends(person_guard)])
 async def list_reminders(person_id: uuid.UUID, open_only: bool = False, limit: int = Query(100, ge=1, le=1000),
                          p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
@@ -662,7 +703,7 @@ async def list_reminders(person_id: uuid.UUID, open_only: bool = False, limit: i
     return {"reminders": rows, "count": len(rows)}
 
 
-@router.post("/people/{person_id}/reminders", status_code=201)
+@router.post("/people/{person_id}/reminders", status_code=201, dependencies=[Depends(person_guard)])
 async def create_reminder(person_id: uuid.UUID, body: schemas.ReminderCreate, p: Principal = Depends(require_workspace_principal)):
     """A carer or family member sets a reminder the watch will ask about at its time."""
     ensure_can_act(p)
@@ -674,7 +715,7 @@ async def create_reminder(person_id: uuid.UUID, body: schemas.ReminderCreate, p:
     return row
 
 
-@router.post("/reminders/{reminder_id}/act")
+@router.post("/reminders/{reminder_id}/act", dependencies=[Depends(_RESOURCE_GUARDS["reminder_id"])])
 async def act_on_reminder(reminder_id: uuid.UUID, body: schemas.ReminderAction, p: Principal = Depends(require_workspace_principal)):
     """Confirm, snooze, skip or cancel a reminder from the phone or the dashboard."""
     ensure_can_act(p)
@@ -684,7 +725,7 @@ async def act_on_reminder(reminder_id: uuid.UUID, body: schemas.ReminderAction, 
     return row
 
 
-@router.put("/people/{person_id}/memory/{day}")
+@router.put("/people/{person_id}/memory/{day}", dependencies=[Depends(person_guard)])
 async def edit_memory(person_id: uuid.UUID, day: dt.date, body: schemas.MemoryEdit, p: Principal = Depends(require_workspace_principal)):
     """The person or their representative changes what IRA remembers about a day."""
     ensure_can_act(p)
@@ -698,7 +739,7 @@ async def edit_memory(person_id: uuid.UUID, day: dt.date, body: schemas.MemoryEd
     return row
 
 
-@router.delete("/people/{person_id}/memory/{day}", status_code=204)
+@router.delete("/people/{person_id}/memory/{day}", status_code=204, dependencies=[Depends(person_guard)])
 async def forget_memory(person_id: uuid.UUID, day: dt.date, p: Principal = Depends(require_workspace_principal)):
     ensure_can_act(p)
     async with workspace_connection(p) as conn:
@@ -711,7 +752,7 @@ async def forget_memory(person_id: uuid.UUID, day: dt.date, p: Principal = Depen
 
 # ── Scheduled visits (109) ───────────────────────────────────────────────────
 
-@router.post("/people/{person_id}/visits", status_code=201)
+@router.post("/people/{person_id}/visits", status_code=201, dependencies=[Depends(person_guard)])
 async def create_visit(person_id: uuid.UUID, body: schemas.VisitCreate, p: Principal = Depends(require_workspace_principal)):
     """Plan a visit: who, when, what for, which tasks."""
     ensure_can_act(p)
@@ -721,7 +762,7 @@ async def create_visit(person_id: uuid.UUID, body: schemas.VisitCreate, p: Princ
     return row
 
 
-@router.get("/people/{person_id}/visits")
+@router.get("/people/{person_id}/visits", dependencies=[Depends(person_guard)])
 async def list_visits(person_id: uuid.UUID, since: Optional[dt.datetime] = Query(None),
                       until: Optional[dt.datetime] = Query(None), limit: int = Query(100, ge=1, le=1000),
                       p: Principal = Depends(require_workspace_principal)):
@@ -733,7 +774,7 @@ async def list_visits(person_id: uuid.UUID, since: Optional[dt.datetime] = Query
     return {"visits": rows, "count": len(rows)}
 
 
-@router.get("/visits/{visit_id}")
+@router.get("/visits/{visit_id}", dependencies=[Depends(_RESOURCE_GUARDS["visit_id"])])
 async def get_visit(visit_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
     row = await visits.get(p, visit_id)
@@ -742,7 +783,7 @@ async def get_visit(visit_id: uuid.UUID, p: Principal = Depends(require_workspac
     return row
 
 
-@router.patch("/visits/{visit_id}")
+@router.patch("/visits/{visit_id}", dependencies=[Depends(_RESOURCE_GUARDS["visit_id"])])
 async def update_visit(visit_id: uuid.UUID, body: schemas.VisitUpdate, p: Principal = Depends(require_workspace_principal)):
     """Move or re-describe a planned visit. A visit that has started does not move."""
     ensure_can_act(p)
@@ -755,7 +796,7 @@ async def update_visit(visit_id: uuid.UUID, body: schemas.VisitUpdate, p: Princi
     return row
 
 
-@router.post("/visits/{visit_id}/arrive")
+@router.post("/visits/{visit_id}/arrive", dependencies=[Depends(_RESOURCE_GUARDS["visit_id"])])
 async def arrive_visit(visit_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     """The carer is with the person: the watch says so, check-ins pause, any
     late or missed alert for this visit closes."""
@@ -766,7 +807,7 @@ async def arrive_visit(visit_id: uuid.UUID, p: Principal = Depends(require_works
     return row
 
 
-@router.post("/visits/{visit_id}/depart")
+@router.post("/visits/{visit_id}/depart", dependencies=[Depends(_RESOURCE_GUARDS["visit_id"])])
 async def depart_visit(visit_id: uuid.UUID, body: schemas.VisitDepart, p: Principal = Depends(require_workspace_principal)):
     """The carer leaves: outcome, notes, handover and the tasks done."""
     ensure_can_act(p)
@@ -778,7 +819,7 @@ async def depart_visit(visit_id: uuid.UUID, body: schemas.VisitDepart, p: Princi
     return row
 
 
-@router.post("/visits/{visit_id}/cancel")
+@router.post("/visits/{visit_id}/cancel", dependencies=[Depends(_RESOURCE_GUARDS["visit_id"])])
 async def cancel_visit(visit_id: uuid.UUID, body: schemas.VisitCancel, p: Principal = Depends(require_workspace_principal)):
     ensure_can_act(p)
     row = await visits.cancel(p, visit_id, body.note)
@@ -787,7 +828,7 @@ async def cancel_visit(visit_id: uuid.UUID, body: schemas.VisitCancel, p: Princi
     return row
 
 
-@router.post("/visits/{visit_id}/tasks", status_code=201)
+@router.post("/visits/{visit_id}/tasks", status_code=201, dependencies=[Depends(_RESOURCE_GUARDS["visit_id"])])
 async def add_visit_task(visit_id: uuid.UUID, body: schemas.VisitTaskCreate, p: Principal = Depends(require_workspace_principal)):
     ensure_can_act(p)
     row = await visits.add_task(p, visit_id, body.title)
@@ -796,7 +837,7 @@ async def add_visit_task(visit_id: uuid.UUID, body: schemas.VisitTaskCreate, p: 
     return row
 
 
-@router.patch("/visits/{visit_id}/tasks/{task_id}")
+@router.patch("/visits/{visit_id}/tasks/{task_id}", dependencies=[Depends(_RESOURCE_GUARDS["visit_id"])])
 async def set_visit_task(visit_id: uuid.UUID, task_id: uuid.UUID, body: schemas.VisitTaskUpdate,
                          p: Principal = Depends(require_workspace_principal)):
     ensure_can_act(p)
@@ -808,7 +849,7 @@ async def set_visit_task(visit_id: uuid.UUID, task_id: uuid.UUID, body: schemas.
 
 # ── Vitals and check-ins ─────────────────────────────────────────────────────
 
-@router.get("/people/{person_id}/vitals")
+@router.get("/people/{person_id}/vitals", dependencies=[Depends(person_guard)])
 async def get_vitals(
     person_id: uuid.UUID,
     kind: Optional[str] = Query(None),
@@ -829,7 +870,7 @@ async def get_vitals(
     return {"vitals": rows, "count": len(rows)}
 
 
-@router.get("/people/{person_id}/checkins")
+@router.get("/people/{person_id}/checkins", dependencies=[Depends(person_guard)])
 async def get_checkins(person_id: uuid.UUID, limit: int = Query(50, ge=1, le=1000),
                        p: Principal = Depends(require_workspace_principal)):
     """Check-in history. Summaries always; the person's own words only under consent."""
@@ -855,11 +896,16 @@ async def list_alerts(person_id: Optional[uuid.UUID] = None, open_only: bool = T
                       limit: int = Query(100, ge=1, le=1000),
                       p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
-    alerts = await repo.list_alerts(p, person_id=person_id, open_only=open_only, limit=limit)
+    async with workspace_connection(p) as conn:
+        visible = await authz.visible_people(conn, p)
+    if visible is not None and person_id is not None and person_id not in visible:
+        return {"alerts": [], "count": 0}
+    alerts = await repo.list_alerts(p, person_id=person_id, open_only=open_only, limit=limit,
+                                    only_people=visible)
     return {"alerts": alerts, "count": len(alerts)}
 
 
-@router.get("/alerts/{alert_id}")
+@router.get("/alerts/{alert_id}", dependencies=[Depends(_RESOURCE_GUARDS["alert_id"])])
 async def get_alert(alert_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
     alert = await repo.get_alert(p, alert_id)
@@ -868,7 +914,7 @@ async def get_alert(alert_id: uuid.UUID, p: Principal = Depends(require_workspac
     return alert
 
 
-@router.get("/people/{person_id}/access-notes")
+@router.get("/people/{person_id}/access-notes", dependencies=[Depends(person_guard)])
 async def person_access_notes(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     """The profile's entry instructions, for a manager only, every reading logged."""
     ensure_can_read(p)
@@ -880,7 +926,7 @@ async def person_access_notes(person_id: uuid.UUID, p: Principal = Depends(requi
     return out
 
 
-@router.get("/alerts/{alert_id}/access-notes")
+@router.get("/alerts/{alert_id}/access-notes", dependencies=[Depends(_RESOURCE_GUARDS["alert_id"])])
 async def alert_access_notes(alert_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     """Key safe, door, pets: for tier 1 and 2 recipients while the alert is open.
     Every opening is written to the access log."""
@@ -894,7 +940,7 @@ async def alert_access_notes(alert_id: uuid.UUID, p: Principal = Depends(require
     return out
 
 
-@router.post("/alerts/{alert_id}/acknowledge")
+@router.post("/alerts/{alert_id}/acknowledge", dependencies=[Depends(_RESOURCE_GUARDS["alert_id"])])
 async def acknowledge_alert(alert_id: uuid.UUID, body: schemas.Acknowledge,
                             p: Principal = Depends(require_workspace_principal)):
     """"I'm on my way": stops the escalation and tells everyone who is going."""
@@ -905,7 +951,7 @@ async def acknowledge_alert(alert_id: uuid.UUID, body: schemas.Acknowledge,
     return alert
 
 
-@router.post("/alerts/{alert_id}/resolve")
+@router.post("/alerts/{alert_id}/resolve", dependencies=[Depends(_RESOURCE_GUARDS["alert_id"])])
 async def resolve_alert(alert_id: uuid.UUID, body: schemas.Resolve,
                         p: Principal = Depends(require_workspace_principal)):
     ensure_can_act(p)
@@ -917,14 +963,14 @@ async def resolve_alert(alert_id: uuid.UUID, body: schemas.Resolve,
 
 # ── Routines ─────────────────────────────────────────────────────────────────
 
-@router.get("/people/{person_id}/routines")
+@router.get("/people/{person_id}/routines", dependencies=[Depends(person_guard)])
 async def list_routines(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
     routines = await repo.list_routines(p, person_id)
     return {"routines": routines, "count": len(routines)}
 
 
-@router.post("/people/{person_id}/routines", status_code=201)
+@router.post("/people/{person_id}/routines", status_code=201, dependencies=[Depends(person_guard)])
 async def add_routine(person_id: uuid.UUID, body: schemas.RoutineCreate,
                       p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
@@ -934,7 +980,7 @@ async def add_routine(person_id: uuid.UUID, body: schemas.RoutineCreate,
     return routine
 
 
-@router.patch("/routines/{routine_id}")
+@router.patch("/routines/{routine_id}", dependencies=[Depends(_RESOURCE_GUARDS["routine_id"])])
 async def update_routine(routine_id: uuid.UUID, body: schemas.RoutineUpdate,
                          p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
@@ -944,7 +990,7 @@ async def update_routine(routine_id: uuid.UUID, body: schemas.RoutineUpdate,
     return routine
 
 
-@router.delete("/routines/{routine_id}", status_code=204)
+@router.delete("/routines/{routine_id}", status_code=204, dependencies=[Depends(_RESOURCE_GUARDS["routine_id"])])
 async def delete_routine(routine_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
     if not await repo.delete_routine(p, routine_id):
@@ -954,7 +1000,7 @@ async def delete_routine(routine_id: uuid.UUID, p: Principal = Depends(require_w
 
 # ── Medication ───────────────────────────────────────────────────────────────
 
-@router.get("/people/{person_id}/medications")
+@router.get("/people/{person_id}/medications", dependencies=[Depends(person_guard)])
 async def list_medications(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
     async with workspace_connection(p) as conn:
@@ -966,7 +1012,7 @@ async def list_medications(person_id: uuid.UUID, p: Principal = Depends(require_
     return {"medications": meds, "count": len(meds)}
 
 
-@router.post("/people/{person_id}/medications", status_code=201)
+@router.post("/people/{person_id}/medications", status_code=201, dependencies=[Depends(person_guard)])
 async def add_medication(person_id: uuid.UUID, body: schemas.MedicationCreate,
                          p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
@@ -976,7 +1022,7 @@ async def add_medication(person_id: uuid.UUID, body: schemas.MedicationCreate,
     return med
 
 
-@router.patch("/medications/{medication_id}")
+@router.patch("/medications/{medication_id}", dependencies=[Depends(_RESOURCE_GUARDS["medication_id"])])
 async def update_medication(medication_id: uuid.UUID, body: schemas.MedicationUpdate,
                             p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
@@ -986,7 +1032,7 @@ async def update_medication(medication_id: uuid.UUID, body: schemas.MedicationUp
     return med
 
 
-@router.delete("/medications/{medication_id}", status_code=204)
+@router.delete("/medications/{medication_id}", status_code=204, dependencies=[Depends(_RESOURCE_GUARDS["medication_id"])])
 async def delete_medication(medication_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
     if not await repo.delete_medication(p, medication_id):
@@ -994,7 +1040,7 @@ async def delete_medication(medication_id: uuid.UUID, p: Principal = Depends(req
     return None
 
 
-@router.get("/people/{person_id}/medication-events")
+@router.get("/people/{person_id}/medication-events", dependencies=[Depends(person_guard)])
 async def list_medication_events(person_id: uuid.UUID, limit: int = Query(100, ge=1, le=1000),
                                  p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
@@ -1007,7 +1053,7 @@ async def list_medication_events(person_id: uuid.UUID, limit: int = Query(100, g
     return {"events": events, "count": len(events)}
 
 
-@router.post("/people/{person_id}/medication-events", status_code=201)
+@router.post("/people/{person_id}/medication-events", status_code=201, dependencies=[Depends(person_guard)])
 async def record_medication_event(person_id: uuid.UUID, body: schemas.MedicationEventRecord,
                                   p: Principal = Depends(require_workspace_principal)):
     """A family member or carer confirming a dose was taken (or missed). Who
@@ -1025,7 +1071,7 @@ async def record_medication_event(person_id: uuid.UUID, body: schemas.Medication
     return event
 
 
-@router.get("/people/{person_id}/medication-corrections")
+@router.get("/people/{person_id}/medication-corrections", dependencies=[Depends(person_guard)])
 async def list_medication_corrections(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     """Every change made to a dose already recorded: what it was, what it became, who changed it and why."""
     ensure_can_read(p)
@@ -1087,7 +1133,7 @@ async def twilio_status(tenant_id: uuid.UUID, workspace_id: uuid.UUID, attempt_i
 
 # ── Transcripts and consents ─────────────────────────────────────────────────
 
-@router.post("/people/{person_id}/talk")
+@router.post("/people/{person_id}/talk", dependencies=[Depends(person_guard)])
 async def person_talk(person_id: uuid.UUID, body: schemas.Talk, p: Principal = Depends(require_workspace_principal)):
     """Talk to IRA from the person's own phone (the family app, signed in as a
     member). The same stream as the watch; a call action shows the contact and
@@ -1110,7 +1156,7 @@ async def person_talk(person_id: uuid.UUID, body: schemas.Talk, p: Principal = D
                              media_type="application/x-ndjson")
 
 
-@router.get("/people/{person_id}/memory")
+@router.get("/people/{person_id}/memory", dependencies=[Depends(person_guard)])
 async def person_memory(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     """What IRA remembers: the rolling summaries of the last week. Summaries,
     never the person's words; still health-adjacent, so the read is logged."""
@@ -1123,7 +1169,7 @@ async def person_memory(person_id: uuid.UUID, p: Principal = Depends(require_wor
     return {"memory": await talk.memory_for(p, person_id)}
 
 
-@router.get("/people/{person_id}/transcripts")
+@router.get("/people/{person_id}/transcripts", dependencies=[Depends(person_guard)])
 async def get_transcripts(person_id: uuid.UUID, limit: int = Query(100, ge=1, le=1000),
                           p: Principal = Depends(require_workspace_principal)):
     """What the person said. Only with a recorded consent that covers the caller's
@@ -1147,7 +1193,7 @@ async def get_transcripts(person_id: uuid.UUID, limit: int = Query(100, ge=1, le
     return {"transcripts": rows, "count": len(rows)}
 
 
-@router.get("/people/{person_id}/consents")
+@router.get("/people/{person_id}/consents", dependencies=[Depends(person_guard)])
 async def list_consents(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
     async with workspace_connection(p) as conn:
@@ -1162,7 +1208,7 @@ async def list_consents(person_id: uuid.UUID, p: Principal = Depends(require_wor
     }
 
 
-@router.post("/people/{person_id}/consents", status_code=201)
+@router.post("/people/{person_id}/consents", status_code=201, dependencies=[Depends(person_guard)])
 async def record_consent(person_id: uuid.UUID, body: schemas.ConsentRecord,
                          p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
@@ -1172,7 +1218,7 @@ async def record_consent(person_id: uuid.UUID, body: schemas.ConsentRecord,
     return row
 
 
-@router.post("/consents/{consent_id}/revoke")
+@router.post("/consents/{consent_id}/revoke", dependencies=[Depends(_RESOURCE_GUARDS["consent_id"])])
 async def revoke_consent(consent_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
     row = await repo.revoke_consent(p, consent_id)
@@ -1183,7 +1229,7 @@ async def revoke_consent(consent_id: uuid.UUID, p: Principal = Depends(require_w
 
 # ── Access log ───────────────────────────────────────────────────────────────
 
-@router.get("/people/{person_id}/access-log")
+@router.get("/people/{person_id}/access-log", dependencies=[Depends(person_guard)])
 async def get_access_log(person_id: uuid.UUID, limit: int = Query(200, ge=1, le=5000),
                          p: Principal = Depends(require_workspace_principal)):
     ensure_can_manage(p)
@@ -1195,7 +1241,7 @@ async def get_access_log(person_id: uuid.UUID, limit: int = Query(200, ge=1, le=
 
 # ── Reports and history ──────────────────────────────────────────────────────
 
-@router.get("/people/{person_id}/reports")
+@router.get("/people/{person_id}/reports", dependencies=[Depends(person_guard)])
 async def list_reports(person_id: uuid.UUID, kind: Optional[str] = Query(None), limit: int = Query(30, ge=1, le=200),
                        p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
@@ -1209,7 +1255,7 @@ async def list_reports(person_id: uuid.UUID, kind: Optional[str] = Query(None), 
     return {"reports": rows, "count": len(rows)}
 
 
-@router.post("/people/{person_id}/reports/generate", status_code=201)
+@router.post("/people/{person_id}/reports/generate", status_code=201, dependencies=[Depends(person_guard)])
 async def generate_report(person_id: uuid.UUID, body: schemas.GenerateReport, p: Principal = Depends(require_workspace_principal)):
     """Generate (or fetch, if it exists) the report for a day or the week containing it."""
     ensure_can_act(p)
@@ -1228,7 +1274,7 @@ async def generate_report(person_id: uuid.UUID, body: schemas.GenerateReport, p:
     return row
 
 
-@router.get("/reports/{report_id}")
+@router.get("/reports/{report_id}", dependencies=[Depends(_RESOURCE_GUARDS["report_id"])])
 async def get_report(report_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
     async with workspace_connection(p) as conn:
@@ -1239,7 +1285,7 @@ async def get_report(report_id: uuid.UUID, p: Principal = Depends(require_worksp
     return row
 
 
-@router.get("/people/{person_id}/history/search")
+@router.get("/people/{person_id}/history/search", dependencies=[Depends(person_guard)])
 async def search_history(person_id: uuid.UUID, q: str = Query(..., min_length=1, max_length=200),
                          since: Optional[dt.datetime] = Query(None), until: Optional[dt.datetime] = Query(None),
                          limit: int = Query(50, ge=1, le=500), p: Principal = Depends(require_workspace_principal)):
@@ -1260,7 +1306,7 @@ async def overview(p: Principal = Depends(require_workspace_principal)):
     ensure_can_read(p)
     from . import overview as ov
     async with workspace_connection(p) as conn:
-        return await ov.build(conn)
+        return await ov.build(conn, visible=await authz.visible_people(conn, p))
 
 
 @router.get("/ops/status")

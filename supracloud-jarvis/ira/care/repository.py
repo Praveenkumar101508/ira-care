@@ -593,15 +593,17 @@ async def attach_location(conn, alert_id: uuid.UUID, loc) -> Optional[dict]:
 
 
 async def list_alerts(principal: Principal, *, person_id: Optional[uuid.UUID], open_only: bool,
-                      limit: int) -> list[dict]:
+                      limit: int, only_people: Optional[set] = None) -> list[dict]:
+    """`only_people`: limit to these people (care/authz.visible_people); None for everyone."""
     async with workspace_connection(principal) as conn:
         return [_alert(r) for r in await conn.fetch(
             """
             SELECT * FROM care_alerts
              WHERE ($1::uuid IS NULL OR person_id = $1)
                AND (NOT $2 OR status IN ('open', 'escalating'))
+               AND ($4::uuid[] IS NULL OR person_id = ANY($4::uuid[]))
              ORDER BY opened_at DESC LIMIT $3
-            """, person_id, open_only, limit)]
+            """, person_id, open_only, limit, list(only_people) if only_people is not None else None)]
 
 
 async def get_alert(principal: Principal, alert_id: uuid.UUID) -> Optional[dict]:
