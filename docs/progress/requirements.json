@@ -1101,6 +1101,10 @@
     {
      "kind": "build",
      "ref": "scripts/ci/check_watch_aosp_deps.sh"
+    },
+    {
+     "kind": "build",
+     "ref": "docs/evidence/builds/android.json"
     }
    ]
   },
@@ -2282,6 +2286,10 @@
     {
      "kind": "unit_test",
      "ref": "#66"
+    },
+    {
+     "kind": "build",
+     "ref": "docs/evidence/builds/android.json"
     }
    ]
   },
