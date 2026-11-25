@@ -164,7 +164,8 @@ services:
       retries: 3
 
   backup:
-    image: postgres:16-alpine
+    build: { context: .., dockerfile: deploy/Dockerfile.backup }
+    image: ira-care/backup:local
     restart: unless-stopped
     environment:
       PGHOST: postgres
@@ -176,11 +177,6 @@ services:
       BACKUP_HOUR_UTC: ${BACKUP_HOUR_UTC:-02}
     volumes:
       - backups:/backups
-      - ./backup.sh:/usr/local/bin/backup.sh:ro
-      - ./restore.sh:/usr/local/bin/restore.sh:ro
-    entrypoint: ["/bin/sh", "-c"]
-    # Nightly at BACKUP_HOUR_UTC. No cron daemon: a loop that sleeps to the hour.
-    command: ["apk add --no-cache openssl >/dev/null; while true; do if [ \"$$(date -u +%H)\" = \"$$BACKUP_HOUR_UTC\" ]; then sh /usr/local/bin/backup.sh && sleep 3600; fi; sleep 300; done"]
     depends_on:
       postgres: { condition: service_healthy }
 

@@ -19,11 +19,17 @@ REPO = "sentence-transformers/all-MiniLM-L6-v2"
 FILES = {"onnx/model.onnx": "model.onnx", "tokenizer.json": "tokenizer.json", "config.json": "config.json"}
 
 
+def default_dest() -> Path:
+    return Path(__file__).resolve().parents[2] / "supracloud-jarvis" / "ira" / "care" / "models" / "encoder"
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--dest", default=str(Path(__file__).resolve().parents[2] / "supracloud-jarvis" / "ira" / "care" / "models" / "encoder"))
+    ap.add_argument("--dest", default=None, help="default: the repository's care/models/encoder")
     args = ap.parse_args()
-    dest = Path(args.dest)
+    # The default is worked out only when no --dest is given: the deployment image runs this
+    # file from /tmp, where there is no repository around it (deploy/Dockerfile.api).
+    dest = Path(args.dest) if args.dest else default_dest()
     dest.mkdir(parents=True, exist_ok=True)
     for remote, local in FILES.items():
         target = dest / local

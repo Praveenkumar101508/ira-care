@@ -2699,8 +2699,17 @@
    "title": "Outage drills on staging after the remediation",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "scripts/staging/containers_drills.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "docs/evidence/staging/containers.json"
+    }
+   ]
   },
   {
    "id": "G2.h",

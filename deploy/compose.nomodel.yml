@@ -1,0 +1,19 @@
+# The stack without the conversation model: no Ollama, IRA_CARE_MODEL=off, so check-ins use
+# their set questions and the rules alone read the answers (docs/MODEL_CHOICE.md). For staging
+# and load tests on a machine without the ~10 GB the models need. Safety does not depend on
+# the model: help words, ask-first and escalation are rules.
+#   docker compose -f deploy/docker-compose.yml -f deploy/compose.staging.yml -f deploy/compose.nomodel.yml up -d
+x-nomodel-env: &nomodel-env
+  IRA_CARE_MODEL: "off"
+services:
+  api:
+    environment: *nomodel-env
+    depends_on: !override
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+  worker:
+    environment: *nomodel-env
+  ollama:
+    profiles: ["model"]
+  ollama-pull:
+    profiles: ["model"]
