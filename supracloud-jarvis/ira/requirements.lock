@@ -4,10 +4,22 @@
 #
 #   grep -v -- "--extra-index-url" requirements.txt \
 #     | grep -v "^torch==\|^torchaudio==" > /tmp/req-pypi.txt
-#   uv pip compile /tmp/req-pypi.txt --generate-hashes -p 3.12 -o requirements.lock
+#   grep -E "^[A-Za-z]" requirements-nodeps.txt | sed "s/ *\\\\$//" >> /tmp/req-pypi.txt
+#   printf 'av ; sys_platform == "never"\n' > /tmp/no-pyav-override.txt
+#   uv pip compile /tmp/req-pypi.txt --override /tmp/no-pyav-override.txt \
+#     --generate-hashes -p 3.12 -o requirements.lock
 #   python scripts/strip_torch_subtree.py     # FINDING AM — see below
 #   python scripts/reconcile_locks.py         # FINDING AN — see below
 #   python scripts/build_licence_inventory.py # keeps the licence answer current
+#
+# Install it with `--no-deps --require-hashes`: the lock is the whole tree.
+#
+# The override removes PyAV (`av`), which faster-whisper declares as a hard dependency: an
+# override whose marker never matches drops the requirement from the resolution. PyAV's
+# wheels bundle FFmpeg built with the GPL encoders libx264 and libx265, and the owner decided
+# it does not ship (docs/security/LICENCES.md). IRA decodes audio itself and imports
+# faster-whisper without it (voice/audio_decode.py, voice/whisper_engine.py).
+# tests/architecture/test_no_pyav.py fails if `av` comes back into this file.
 #
 # The last three steps are not optional tidying. Skipping any of them fails
 # `scripts/check_dependency_gates.py` or `scripts/check_torch_supply_chain.py`.
@@ -324,29 +336,6 @@ attrs==26.1.0 \
     --hash=sha256:c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309 \
     --hash=sha256:d03ceb89cb322a8fd706d4fb91940737b6642aa36998fe130a9bc96c985eff32
     # via aiohttp
-av==18.1.0 \
-    --hash=sha256:025f84494cb23278498f03b0d8117d3e47a1cbc9c44b97eb31875cf02251e46b \
-    --hash=sha256:08a9ae288299cfcbf739dba4ad0c53b9b71f45184303dd45947920d022fed695 \
-    --hash=sha256:191224788d87af06c31784a395bb73f14b72f33d7f4871ace0157de2abdc6276 \
-    --hash=sha256:3c8b1f8b46f99d52e2d8b0ed5d0cdadf172d24794d46e2077b16e44ed08e26ff \
-    --hash=sha256:47bfc286e1bc9de7ab4681fc2b575cd2460a66919d31ffe1bd5aa54fae531a28 \
-    --hash=sha256:5509ec12aaa19fd6601de13cfa6f4cdad450da07982118510592875d970454d6 \
-    --hash=sha256:5548b79e2bf1f59b3e9aedc918a72d9dc45b9adaac10ff9470d5dbdda0002e47 \
-    --hash=sha256:5cd9085028902c9880622bd37a12fd4b33060f06a52311f6f4867ca9f29a2c3b \
-    --hash=sha256:6fc837cc51adf80331ac850779cd53b5d4c4460b0ebe9057a02a921c6736f19d \
-    --hash=sha256:8a032e8d8ebc73dec079364b9b4a6837638a2d106e8472314e685ffbf163e700 \
-    --hash=sha256:ab5ac081bc9eaf54109120d4e56284674fecfbe520d9aa1707c7fa911ec5f4d2 \
-    --hash=sha256:ae75d8bb6467895ed1f8572ededf7ffa49eac07f6e483222f5d7d62a41d12f04 \
-    --hash=sha256:b30a4e8d934558e19602b68998a4d9ac9f250fa0dacef216f7e8e40153b13316 \
-    --hash=sha256:b36b0bae9e4c62f9487c99481ec15e4e3870fcc868522cd6d18fc2d6bfa04f01 \
-    --hash=sha256:cf8a17466bef07765dbdecc9e66ed9b25d20b4e14f654fbf35345a58ac45fa0c \
-    --hash=sha256:d49a5c542dfdc00f43c6cdb6cc41dac1781ee206fe180b56aa7433dfa816dfae \
-    --hash=sha256:e4d48b9f12cad009cc72fe4f4099107de5e819c95f82767f4fd01a01481c0661 \
-    --hash=sha256:e7ea063f6690193ea335a1d592d6e0274350d45e2ed6af83ee107cb90cbfd84f \
-    --hash=sha256:ea1480b7a8d5405cb5f382b344731bf125fd2c1c6fae3964f6c48595628387ff
-    # via
-    #   -r /tmp/req-pypi.txt
-    #   faster-whisper
 bcrypt==4.0.1 \
     --hash=sha256:089098effa1bc35dc055366740a067a2fc76987e8ec75349eb9484061c54f535 \
     --hash=sha256:08d2947c490093a11416df18043c27abe3921558d2c03e2076ccb28a116cb6d0 \
@@ -805,7 +794,9 @@ ctranslate2==4.8.3 \
     --hash=sha256:c3c5d19b83df19f9f708ed16145fbc20b06827462f1a68c5286efc0ad41aa0c1 \
     --hash=sha256:cf4b55455cbd70177dec3a35a40bc864078c591e5bd8334ffaa58df7f5a9858c \
     --hash=sha256:d3eb9dad7a3781edd0ea921473288d085a21284f0c6d00a3b01c479b36e30ae7
-    # via faster-whisper
+    # via
+    #   -r /tmp/req-pypi.txt
+    #   faster-whisper
 deprecated==1.3.1 \
     --hash=sha256:597bfef186b6f60181535a29fbe44865ce137a5079f295b479886c82729d5f3f \
     --hash=sha256:b1b50e0ff0c1fddaa5708a2c6b0a6588bb09b892825ab2b214ac9ea9d92a5223
@@ -1154,6 +1145,7 @@ huggingface-hub==1.27.0 \
     --hash=sha256:7df6827c2f956c60fbaa64646e979e566db76f619dd0a9729dfb8c5a3eb4f68d \
     --hash=sha256:c1fed40ea82a6b41b477f5243546549b792ae0a93abcea608cff66089bf8f8df
     # via
+    #   -r /tmp/req-pypi.txt
     #   faster-whisper
     #   sentence-transformers
     #   speechbrain
@@ -1758,7 +1750,9 @@ onnxruntime==1.31.0 \
     --hash=sha256:e51d10d2e2e1e5bbf9b126a0cd9853d3e6c4e21424518dd50160b91471be33dc \
     --hash=sha256:e85c1632c0a8cf488bd8f1039f5320877b864c8f9ebd4122fb8bb909f83b7096 \
     --hash=sha256:e93d7c5fad20afa697ac16f376fd0306ed180f9a376e86106cc0b7d84f53ef87
-    # via faster-whisper
+    # via
+    #   -r /tmp/req-pypi.txt
+    #   faster-whisper
 openai==1.58.1 \
     --hash=sha256:e2910b1170a6b7f88ef491ac3a42c387f08bd3db533411f7ee391d166571d63c \
     --hash=sha256:f5a035fd01e141fc743f4b0e02c41ca49be8fab0866d3b67f5f29b4f4d3c0973
@@ -3134,6 +3128,7 @@ tokenizers==0.22.2 \
     --hash=sha256:e10bf9113d209be7cd046d40fbabbaf3278ff6d18eb4da4c500443185dc1896c \
     --hash=sha256:f01a9c019878532f98927d2bacb79bbb404b43d3437455522a00a30718cdedb5
     # via
+    #   -r /tmp/req-pypi.txt
     #   faster-whisper
     #   sentence-transformers
     #   transformers
@@ -3141,6 +3136,7 @@ tqdm==4.70.0 \
     --hash=sha256:55b0b0dbd97462d06ebee91e4dac24ed4d4702be82b24f07e6c1d27e08cea220 \
     --hash=sha256:7f585706bfddbdebf89daac705b2dfcc16890130727d3197ca62c732b4310953
     # via
+    #   -r /tmp/req-pypi.txt
     #   faster-whisper
     #   huggingface-hub
     #   openai

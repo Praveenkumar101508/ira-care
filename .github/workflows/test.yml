@@ -97,7 +97,9 @@ jobs:
           cache: pip
           cache-dependency-path: supracloud-jarvis/ira/requirements-test.txt
       - name: Install test dependencies
-        run: pip install -r requirements-test.txt
+        run: |
+          pip install -r requirements-test.txt
+          pip install --no-deps --require-hashes -r requirements-nodeps.txt
       - name: Run the suite (database tests skip here; they run in backend-database)
         run: python -m pytest -q -p no:cacheprovider tests
 
@@ -142,7 +144,9 @@ jobs:
           cache: pip
           cache-dependency-path: supracloud-jarvis/ira/requirements-test.txt
       - name: Install test dependencies
-        run: pip install -r requirements-test.txt psycopg2-binary
+        run: |
+          pip install -r requirements-test.txt psycopg2-binary
+          pip install --no-deps --require-hashes -r requirements-nodeps.txt
       - name: Provision database roles
         run: |
           psql -h localhost -U postgres -d iratest -v ON_ERROR_STOP=1 \

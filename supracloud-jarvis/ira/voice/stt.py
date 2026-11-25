@@ -29,7 +29,6 @@ pin is refused (``STTUnavailable``), not fetched at whatever the Hub serves.
 from __future__ import annotations
 
 import asyncio
-import io
 import logging
 import os
 import sys
@@ -52,8 +51,13 @@ switch_off_vendor_telemetry()
 # the voice host. The sovereign HTTP path (transcribe_audio_bytes → POST
 # /api/v1/voice/transcribe) and CI must import this module without them, so import
 # both softly; the heavy work fails gracefully if a dep is genuinely missing.
+#
+# faster-whisper is loaded through voice/whisper_engine.py, which puts IRA's own decoder
+# (voice/audio_decode.py) where faster-whisper expects PyAV's. PyAV is not installed: its
+# wheels bundle FFmpeg built with GPL encoders (docs/security/LICENCES.md).
 try:
-    from faster_whisper import WhisperModel
+    from voice.whisper_engine import load_faster_whisper
+    WhisperModel = load_faster_whisper().WhisperModel
 except Exception:  # pragma: no cover - only where faster-whisper isn't installed
     WhisperModel = None
 
@@ -69,6 +73,7 @@ except Exception:  # pragma: no cover - only on hosts without livekit-agents
     _STTBase = object
     _LIVEKIT_AVAILABLE = False
 
+from voice.audio_decode import AudioTooLong, UnsupportedAudio, decode_to_16k_mono
 from voice.language import normalise_lang
 
 logger = logging.getLogger("ira.stt")
@@ -96,18 +101,10 @@ class STTUnavailable(RuntimeError):
     """
 
 
-class AudioTooLong(ValueError):
-    """The recording is longer than the caller will transcribe.
-
-    ``seconds`` is its length when the file states it, else None: decoding
-    stops as soon as the limit is passed, so the full length is not known.
-    """
-
-    def __init__(self, seconds: float | None, limit: float):
-        super().__init__(f"audio longer than {limit:.0f} s"
-                         + (f" ({seconds:.0f} s)" if seconds is not None else ""))
-        self.seconds = seconds
-        self.limit = limit
+#: ``AudioTooLong`` (the recording is over the caller's limit) and ``UnsupportedAudio``
+#: (not WAV this server decodes) come from voice/audio_decode.py and are re-exported here,
+#: where the routes have always imported them from.
+__all__ = ["AudioTooLong", "STTUnavailable", "UnsupportedAudio", "transcribe_audio_bytes"]
 
 
 #: Every checkpoint ``WHISPER_MODEL`` may name, mapped to its pin in
@@ -294,9 +291,11 @@ def _transcribe_sync(
     return transcript, detected_lang, confidence
 
 
-# ── Sovereign HTTP transcription (browser-native voice; no LiveKit) ────────────
-# Browser MediaRecorder posts webm/opus; the acceptance path posts WAV. Both decode
-# here. The checkpoint is resolved once, at import, by resolve_whisper_model():
+# ── Sovereign HTTP transcription (no LiveKit) ───────────────────────────────────
+# Uploads are WAV: the wake-word listener and the acceptance path post WAV, and no client
+# in this repository posts anything else (the watch and the phone send recognised text).
+# Other formats are refused with UnsupportedAudio; voice/audio_decode.py says why.
+# The checkpoint is resolved once, at import, by resolve_whisper_model():
 # WHISPER_MODEL wins; otherwise `small` on CPU, `base` on weak machines. It used
 # to default to distil-large-v3, which measured ~17–20 s per short utterance on a
 # 4-vCPU box and is English-only. For spoken Tamil/Hindi on a fast machine set
@@ -305,62 +304,12 @@ DEFAULT_HTTP_WHISPER_MODEL = resolve_whisper_model()
 
 
 def _decode_to_16k_mono(blob: bytes, max_seconds: float | None = None) -> np.ndarray:
-    """Decode an uploaded audio blob (wav / webm-opus / ogg / mp3 …) to 16 kHz mono
-    float32 via faster-whisper's PyAV-backed decoder — handles the browser's
-    MediaRecorder output and plain WAV alike, resampling to 16 kHz.
+    """Decode an uploaded WAV to 16 kHz mono float32 (voice/audio_decode.py).
 
-    With ``max_seconds``, raises ``AudioTooLong`` instead of decoding past it.
-    The whole file is otherwise held in memory: 50 MB of low-bitrate MP3 is
-    hours of audio, gigabytes once decoded.
+    Raises ``UnsupportedAudio`` for any other format. With ``max_seconds``, raises
+    ``AudioTooLong`` from the header's length, before any sample is converted.
     """
-    if max_seconds is None:
-        from faster_whisper.audio import decode_audio
-        return decode_audio(io.BytesIO(blob), sampling_rate=WHISPER_SAMPLE_RATE)
-    return _decode_bounded(blob, max_seconds)
-
-
-def _decode_bounded(blob: bytes, max_seconds: float) -> np.ndarray:
-    """``decode_audio`` with a length limit: the stated length is checked
-    first, then the decoded samples are counted as they arrive."""
-    import gc
-
-    import av
-
-    limit = int(max_seconds * WHISPER_SAMPLE_RATE)
-    resampler = av.audio.resampler.AudioResampler(format="s16", layout="mono", rate=WHISPER_SAMPLE_RATE)
-    chunks: list[np.ndarray] = []
-    count = 0
-
-    def keep(frames) -> None:
-        nonlocal count
-        for out in frames:
-            samples = out.to_ndarray().reshape(-1)
-            count += samples.size
-            if count > limit:
-                raise AudioTooLong(None, max_seconds)
-            chunks.append(samples)
-
-    try:
-        with av.open(io.BytesIO(blob), mode="r", metadata_errors="ignore") as container:
-            stated = container.duration / av.time_base if container.duration else None
-            if stated is not None and stated > max_seconds:
-                raise AudioTooLong(stated, max_seconds)
-            frames = iter(container.decode(audio=0))
-            while True:
-                try:
-                    frame = next(frames)
-                except StopIteration:
-                    break
-                except av.error.InvalidDataError:   # as decode_audio: skip a bad frame
-                    continue
-                keep(resampler.resample(frame))
-            keep(resampler.resample(None))          # flush
-    finally:
-        del resampler
-        gc.collect()   # decode_audio does the same: PyAV's resampler is not freed otherwise
-    if not chunks:
-        return np.zeros(0, dtype=np.float32)
-    return np.concatenate(chunks).astype(np.float32) / 32768.0
+    return decode_to_16k_mono(blob, max_seconds)
 
 
 def transcribe_audio_bytes(
@@ -377,7 +326,8 @@ def transcribe_audio_bytes(
     mono PCM the biometric owner-gate consumes — so the blob is decoded exactly once
     and the same audio drives both transcription and the owner check.
 
-    Raises ``STTUnavailable`` when the engine cannot run here (→ 503); any other
+    Raises ``STTUnavailable`` when the engine cannot run here (→ 503) and
+    ``UnsupportedAudio`` for a format this server does not decode (→ 415); any other
     exception is about the audio itself (→ 422). With ``max_seconds``, a longer
     recording raises ``AudioTooLong`` before the model runs.
     """
@@ -487,13 +437,8 @@ if __name__ == "__main__":  # pragma: no cover
     if len(sys.argv) < 2:
         print("usage: python -m voice.stt <audio.wav>")
         raise SystemExit(2)
-    import soundfile as sf  # type: ignore
-    wav, sr = sf.read(sys.argv[1], dtype="float32")
-    if wav.ndim > 1:
-        wav = wav.mean(axis=1)
-    if sr != WHISPER_SAMPLE_RATE:
-        from scipy.signal import resample_poly
-        wav = resample_poly(wav, WHISPER_SAMPLE_RATE, sr).astype(np.float32)
+    with open(sys.argv[1], "rb") as _f:
+        wav = _decode_to_16k_mono(_f.read())
     _model = _load_model("small", "cpu", "int8")
     text, lang, conf = _transcribe_sync(wav.astype(np.float32), _model, None)
     print(f"[{lang} conf={conf:.2f}] {text}")
