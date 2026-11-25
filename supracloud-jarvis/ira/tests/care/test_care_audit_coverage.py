@@ -13,7 +13,7 @@ import pathlib
 ROUTES = pathlib.Path(__file__).resolve().parents[2] / "care" / "routes.py"
 
 #: Path fragments whose GET handlers read health data or the person's words.
-AUDITED_FRAGMENTS = ("/vitals", "/checkins", "/transcripts", "/medications", "/medication-events",
+AUDITED_FRAGMENTS = ("/vitals", "/activity", "/checkins", "/transcripts", "/medications", "/medication-events",
                      "/reports", "/status", "/history/search", "/people/{person_id}/plan")
 
 #: Handlers whose audit row is written by the module they call.

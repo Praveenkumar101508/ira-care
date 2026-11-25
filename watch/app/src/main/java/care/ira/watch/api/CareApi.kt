@@ -128,7 +128,20 @@ data class DeviceMe(
     val readings: ReadingSettingsDto = ReadingSettingsDto(),
     val sos: SosStateDto = SosStateDto(),
     val profile: ProfileDto = ProfileDto(),
+    val activity: ActivitySettingsDto = ActivitySettingsDto(),
 )
+
+/** Whether the person's `activity_sharing` consent is granted. Missing means no: nothing is sent. */
+@Serializable
+data class ActivitySettingsDto(val sharing: Boolean = false)
+
+/** Hourly activity summaries, as `/care/devices/me/activity` takes them. */
+@Serializable
+data class ActivityReport(val periods: List<care.ira.watch.activity.ActivityPeriod>)
+
+/** `sharing` false: the consent is not granted, nothing was stored, and the watch stops sending. */
+@Serializable
+data class ActivityAck(val accepted: Int = 0, val stored: Int = 0, val sharing: Boolean = false)
 
 /** How IRA speaks to this person (110): set by the person or their representative, applied here. */
 @Serializable
@@ -188,6 +201,11 @@ class CareApi(
     fun report(report: DeviceReport): ApiOutcome<ReportAck> =
         post("/api/v1/care/devices/me/report", json.encodeToString(report))
             .map { json.decodeFromString<ReportAck>(it) }
+
+    /** Closed hours of activity estimate; only ever called by `ActivitySharing`, under consent. */
+    fun activity(periods: List<care.ira.watch.activity.ActivityPeriod>): ApiOutcome<ActivityAck> =
+        post(PATH_ACTIVITY, json.encodeToString(ActivityReport(periods)))
+            .map { json.decodeFromString<ActivityAck>(it) }
 
     /** The watch's own record and the carer's fall settings; asked after each sync. */
     fun me(): ApiOutcome<DeviceMe> =
@@ -343,6 +361,7 @@ class CareApi(
         const val PATH_HELP = "/api/v1/care/devices/me/help"
         const val PATH_FALL = "/api/v1/care/devices/me/fall"
         const val PATH_FALL_OK = "/api/v1/care/devices/me/fall/ok"
+        const val PATH_ACTIVITY = "/api/v1/care/devices/me/activity"
         fun pathAnswer(checkinId: String) = "/api/v1/care/devices/me/checkins/$checkinId/answer"
         fun pathMissed(checkinId: String) = "/api/v1/care/devices/me/checkins/$checkinId/missed"
     }

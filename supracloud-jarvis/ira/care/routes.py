@@ -31,7 +31,7 @@ from core.identity.principal import Principal
 
 from . import staff as care_staff
 from . import search as care_search
-from . import authz, audit, checkin_cycle, consent, history, onboarding, ops, personal, plans, push, reports, repository as repo, schemas, sos, visits
+from . import activity, authz, audit, checkin_cycle, consent, history, onboarding, ops, personal, plans, push, reports, repository as repo, schemas, sos, visits
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 # The two care routes anyone can call without signing in (the Twilio callback is the third,
@@ -402,11 +402,13 @@ async def device_me(d: tuple[Principal, dict] = Depends(require_device)):
         settings = await conn.fetchrow("SELECT * FROM care_safety_settings WHERE person_id = $1", device["person_id"])
         state = await sos.current(conn, device["person_id"])
         profile = await personal.get_profile(conn, device["person_id"])
+        activity_sharing = await activity.sharing_for_person(conn, device["person_id"])
     out = dict(device)
     out["fall"] = falls.watch_settings(dict(settings) if settings else {})
     out["readings"] = sos.watch_settings(dict(settings) if settings else {})
     out["sos"] = state
     out["profile"] = personal.watch_profile(profile)
+    out["activity"] = activity.device_settings(activity_sharing)
     return out
 
 
@@ -488,6 +490,20 @@ async def device_fall_ok(d: tuple[Principal, dict] = Depends(require_device),
 async def device_report(body: schemas.DeviceReport, d: tuple[Principal, dict] = Depends(require_device)):
     principal, device = d
     return await repo.record_report(principal, device, body.model_dump())
+
+
+@router.post("/devices/me/activity")
+async def device_activity(body: schemas.ActivityReport, d: tuple[Principal, dict] = Depends(require_device)):
+    """Hourly IRA Care Activity summaries from the watch (care/activity.py, D-084). Stored only
+    while the person's `activity_sharing` consent is granted; otherwise nothing is stored and the
+    answer says `sharing: false`. A summary that breaks the contract refuses the whole batch (422).
+    Never an alert: no safety rule runs here and none reads what is stored."""
+    principal, device = d
+    async with workspace_connection(principal) as conn:
+        try:
+            return await activity.record_periods(conn, device, [p.model_dump() for p in body.periods])
+        except activity.PeriodRefused as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
 
 
 @router.post("/devices/me/os-update")
@@ -1099,6 +1115,23 @@ async def get_vitals(
         await audit.record_access(conn, p, person_id=person_id, resource_kind="vitals",
                                   detail={"kind": kind, "rows": len(rows)})
     return {"vitals": rows, "count": len(rows)}
+
+
+@router.get("/people/{person_id}/activity", dependencies=[Depends(person_guard)])
+async def get_activity(person_id: uuid.UUID, days: int = Query(7, ge=1, le=31), weeks: int = Query(4, ge=1, le=8),
+                       p: Principal = Depends(require_workspace_principal)):
+    """Daily and weekly activity trend, estimated from the watch's motion sensor; not a
+    measurement of health. Minutes active, still, other arm movement, and unknown or unavailable.
+    Only while the person's `activity_sharing` consent is granted; the read is logged."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        person = await conn.fetchrow("SELECT id, timezone FROM care_people WHERE id = $1", person_id)
+        if person is None:
+            raise _not_found("Person not found.")
+        out = await activity.summary_for(conn, dict(person), days=days, weeks=weeks)
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="vitals",
+                                  detail={"activity": True, "days": days, "weeks": weeks, "sharing": out["sharing"]})
+    return out
 
 
 @router.get("/people/{person_id}/checkins", dependencies=[Depends(person_guard)])

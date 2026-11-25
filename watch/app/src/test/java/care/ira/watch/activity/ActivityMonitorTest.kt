@@ -76,11 +76,11 @@ class ActivityMonitorTest {
         assertNull(m.latest)
     }
 
-    @Test fun theEstimateStaysOnTheWatch() {
-        // No reading kind for it (the backend accepts none), and nothing outside the activity
-        // package and the service's wiring reads the monitor.
-        val kinds = File("src/main/java/care/ira/watch/sensors/SensorSource.kt").readText()
-        assertFalse(kinds.contains("\"activity\""))
+    @Test fun theMonitorItselfSendsNothing() {
+        // The monitor only hands windows to its callback; what may leave the watch, and when, is
+        // decided in one place (ActivitySharing, under consent; see ActivitySharingTest).
+        val src = File("src/main/java/care/ira/watch/activity/ActivityMonitor.kt").readText()
+        for (word in listOf("CareApi", "Outbox", "OfflineQueue", "Reading(")) assertFalse(word, src.contains(word))
         val readers = File("src/main/java").walkTopDown().filter { it.isFile && it.extension == "kt" }
             .filter { "ActivityMonitor" in it.readText() || ".activity?.latest" in it.readText() }
             .map { it.path.substringAfter("src/main/java/") }.toSortedSet()

@@ -25,6 +25,10 @@ These are **not** signed store builds, and **nothing ran on a device or an emula
 - **The research fall model is in no release build (D-077).** `unzip -l` finds no `fall_model`
   entry in either release APK; both debug APKs carry `assets/fall_model.tflite` (17,864 bytes)
   and `fall_model.json`, as intended.
+  *Superseded 25 November 2026 (D-082): the v1 files were removed from `src/debug/assets`. In a
+  local run of the same command both debug APKs carry only the v3 `assets/fall_model.tflite`
+  (18,216 bytes, SHA-256 `2cab7c9b...b063278`), and `FallModelReleaseTest` fails if a
+  SisFall-derived file appears in any variant's assets.*
 - The release APKs are unsigned: the build signs only when IRA's release key is supplied, and no
   such key exists here. A signed release needs the owner's key-custody decision (D1b.c).
 - Versions: OpenJDK 21.0.13 (Java 17 bytecode), Gradle 8.14.3, Android Gradle Plugin 8.7.3,

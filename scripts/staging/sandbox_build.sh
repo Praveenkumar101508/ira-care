@@ -38,6 +38,9 @@ api = api.replace(fetch, "RUN --mount=type=secret,id=ca,target=/run/ca.crt SSL_C
 pip = "RUN pip install -r requirements.txt"
 assert pip in api
 api = api.replace(pip, "RUN --mount=type=secret,id=ca,target=/run/ca.crt PIP_CERT=/run/ca.crt pip install -r requirements.txt")
+nodeps = "RUN pip install --no-deps"
+assert nodeps in api
+api = api.replace(nodeps, "RUN --mount=type=secret,id=ca,target=/run/ca.crt PIP_CERT=/run/ca.crt pip install --no-deps")
 (out / "Dockerfile.api").write_text(api)
 dash = pathlib.Path("deploy/Dockerfile.dashboard").read_text()
 apk = "RUN apk add --no-cache curl && adduser -D -u 10001 ira"

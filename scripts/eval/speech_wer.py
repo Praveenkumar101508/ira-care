@@ -8,7 +8,12 @@
 MANIFEST is JSON lines: {"id", "reference", "group", "audio"?, "hypothesis"?, "speaker"?}.
 `transcribe` runs `voice/stt.py`'s own path: the pinned faster-whisper checkpoint
 (`core/models/artefacts.py`), the same decoder, beam size, voice-activity filter and automatic
-language detection the product uses. `score` runs nothing: it only needs the hypotheses, so
+language detection the product uses.
+
+The product decodes WAV only (voice/audio_decode.py; PyAV does not ship). LibriSpeech is FLAC,
+so this harness, and only this harness, converts any non-WAV file to 16-bit PCM WAV with
+`soundfile` (libsndfile) first, then hands the WAV to the product decoder. LibriSpeech is
+16-bit, so the conversion is lossless. `soundfile` is not on the product's decode path. `score` runs nothing: it only needs the hypotheses, so
 device runs (which cannot happen on this machine) are scored the same way later.
 
 Scoring is `voice/wer.py`: pooled corpus WER per group, with its normalisation stated there.
@@ -34,14 +39,39 @@ def _rows(manifest: str) -> list[dict]:
         return [json.loads(line) for line in f if line.strip()]
 
 
+def _as_wav(blob: bytes) -> tuple[bytes, str]:
+    """The file as WAV, and how it became WAV. Evaluation-only: see the module docstring."""
+    if blob[:4] in (b"RIFF", b"RF64") and blob[8:12] == b"WAVE":
+        return blob, "none (already WAV)"
+    import io
+
+    import soundfile as sf
+    samples, rate = sf.read(io.BytesIO(blob), dtype="int16", always_2d=True)
+    out = io.BytesIO()
+    sf.write(out, samples, rate, format="WAV", subtype="PCM_16")
+    return out.getvalue(), f"soundfile {sf.__version__} (libsndfile {sf.__libsndfile_version__}) to 16-bit PCM WAV"
+
+
+def _peak_rss_mib() -> float | None:
+    try:
+        import resource
+    except ImportError:          # not on Windows
+        return None
+    return round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024, 1)
+
+
 def transcribe(rows: list[dict], model_name: str) -> dict:
     from voice import stt
 
     repository, revision = stt._whisper_source(model_name)
     model = stt._load_model(model_name, "cpu", "int8")
-    seconds = []
+    seconds, decode_seconds, converted = [], [], set()
     for r in rows:
-        audio = stt._decode_to_16k_mono(Path(r["audio"]).read_bytes())
+        wav, how = _as_wav(Path(r["audio"]).read_bytes())
+        converted.add(how)
+        t0 = time.perf_counter()
+        audio = stt._decode_to_16k_mono(wav)
+        decode_seconds.append(time.perf_counter() - t0)
         t0 = time.perf_counter()
         text, lang, _ = stt._transcribe_sync(audio, model, None)
         seconds.append(time.perf_counter() - t0)
@@ -50,7 +80,11 @@ def transcribe(rows: list[dict], model_name: str) -> dict:
     return {"recogniser": "faster-whisper (voice/stt.py, product settings)", "model": model_name,
             "repository": repository, "revision": revision,
             "compute": "cpu int8", "median_seconds_per_utterance": sorted(seconds)[len(seconds) // 2] if seconds else None,
-            "total_audio_seconds": round(sum(r["audio_seconds"] for r in rows), 1)}
+            "total_audio_seconds": round(sum(r["audio_seconds"] for r in rows), 1),
+            "decoder": "voice/audio_decode.py (WAV; no PyAV)",
+            "evaluation_conversion": sorted(converted),
+            "median_decode_seconds": sorted(decode_seconds)[len(decode_seconds) // 2] if decode_seconds else None,
+            "peak_rss_mib": _peak_rss_mib()}
 
 
 def results(rows: list[dict], about: dict) -> dict:

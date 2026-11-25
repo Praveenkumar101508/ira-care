@@ -1275,6 +1275,22 @@ model trained on commercially licensed wrist data is being prepared (register F4
 The copy of the model previously published on Kaggle under Apache 2.0 by
 `scripts/training/run_kaggle.py` is an owner action: only the account holder can withdraw it.
 
+**Correction (25 November 2026, D-082).** The paragraph above is wrong: no copy of the model was
+ever published on Kaggle. It is kept as written; what was verified, and how:
+- The original training run's own log (`docs/evidence/training/fall.json`, written by
+  `scripts/training/kaggle_fall_model.py`, which `run_kaggle.py` only pushes) ends with the upload
+  being refused: `KAGGLE_MODEL_UPLOAD_SKIPPED BackendError: Permission 'models.create' was denied`.
+- Listing the account's models with the Kaggle API (account `Praveen0116`, 25 November 2026)
+  returned "No models found".
+- The training notebook `praveen0116/ira-care-fall-model-training` is private (kernel metadata
+  `is_private: true`), and so are the datasets `praveen0116/ira-care-code` and
+  `praveen0116/ira-care-training-data` (API `is_private: True`).
+
+So no public Kaggle copy of the SisFall-trained model exists and there is nothing to withdraw.
+Copies taken by third parties cannot be ruled out in general, but no public upload ever succeeded.
+The upload call has been removed from the script, and a readiness test now fails if any training
+script publishes model weights or makes a dataset public (D-082).
+
 
 ## D-078 A care plan is a versioned record written by care managers; staff roles are the three workspace roles, named (remediation F5, 25 November 2026)
 
@@ -1330,7 +1346,8 @@ Decision: v3 goes into `watch/app/src/main/assets`, so every release build and t
 image carry it; `RecoveringFallDetector` runs it. The rules keep raising every fall they raise
 today. A suspected fall from either path starts the same 30-second countdown that asks first.
 Debug builds keep the v1 research model for the comparison. `FallModelReleaseTest` pins the one
-file that may ship, by provenance, mode and SHA-256.
+file that may ship, by provenance, mode and SHA-256. (Superseded for debug builds by D-082: no
+build of any kind now carries v1; debug builds carry v3 as release builds do.)
 
 What this does not decide: real use. The measurement is on young volunteers simulating falls with
 a research band. Before anyone relies on it, the owner and a clinical reviewer must approve it,
@@ -1368,6 +1385,104 @@ text: those stay behind the per-person history search, where consent applies. Wh
 literally (LIKE wildcards escaped, passed as a parameter), searches are rationed to 30 a minute per
 address, and each search is written to the access log once per person it returned, with the kinds of
 record found and never the words typed.
+
+## D-082 No build of any kind carries the SisFall-trained model; debug builds use v3 (owner decision, 25 November 2026)
+
+D-077 took the SisFall-trained fall model v1 out of release builds and kept it in debug builds for
+engineering demonstrations. The owner reviewed whether uncertain SisFall-derived artefacts should
+also stay out of debug and demonstration builds, which are shown to people and can be passed on.
+
+Decision: yes. v1 is removed from every build variant, debug included, so no build of any kind can
+carry it until SisFall's original rights are established. Debug builds carry fall model v3 (D-080)
+exactly as release builds do, with the rule detector as the fallback.
+
+How:
+- `watch/app/src/debug/assets/fall_model.tflite` and `fall_model.json` are deleted. Every variant
+  (`wearosDebug`, `aospDebug`, `wearosRelease`, `aospRelease`) now takes v3 from `src/main/assets`.
+- `FallModelSpec.mayRun` and `TfLiteInference.load`: the watch runs a model only if its spec names
+  the licensed v3 provenance and the file's SHA-256 is the reviewed v3 file. Anything else (v1, an
+  unlabelled or unreviewed model) is refused and the rules run alone.
+- `FallModelReleaseTest` fails if any source set other than `main` carries a fall model, or if any
+  file in any source set's assets is SisFall-derived (the v1 files by SHA-256, or anything naming
+  SisFall). With the v1 spec put back in `src/debug/assets` it fails.
+- `scripts/training/kaggle_fall_model.py` no longer tries to upload the model to Kaggle (the
+  original attempt was refused; see the correction under D-077), and the conversation training
+  script keeps its adapter in the private kernel's output instead of uploading it. A readiness test
+  (`tests/readiness/test_training_scripts_publish_nothing.py`) fails if any training script calls a
+  model-publishing function or pushes a dataset or kernel with public visibility.
+
+Kept: v1's evaluation evidence (`docs/evidence/training/fall.json`, `docs/MODEL_CHOICE.md`) as a
+historical research record. The v1 weights file itself (`ira_fall_model.tflite`, SHA-256
+`8182ea37154ab52e1d9383b3de42add2a2bb902cafb38daa6056f767d84ae6cb`) is removed from the tree, so no
+copy of weights with unconfirmed rights sits beside the product; git history keeps it, and
+`FallModelReleaseTest` refuses that hash in any build.
+
+Cost: none in the field; debug builds now behave as release builds do. The side-by-side comparison
+of v1 and v3 on a device is no longer possible from a debug build.
+
+## D-083 PyAV does not ship; the server transcribes WAV only (owner decision, 25 November 2026)
+
+faster-whisper, the server's speech recogniser, declares PyAV (`av`) as a hard dependency, and
+PyAV's wheels bundle FFmpeg built with the GPL-2.0-or-later encoders `libx264` and `libx265`
+(the open finding in `docs/security/LICENCES.md`). The owner decided to remove that risk.
+
+Decision: PyAV is not installed anywhere IRA ships. faster-whisper is installed with
+`--no-deps` (`requirements-nodeps.txt`), the lock drops `av` through a resolver override, and
+`voice/whisper_engine.py` puts IRA's own decoder (`voice/audio_decode.py`, standard library and
+numpy) where faster-whisper expects PyAV's, so `import av` is never attempted.
+
+- **What the server decodes:** WAV only (PCM or float, any rate and channel count), converted
+  to 16 kHz mono with a filtered polyphase resampler. That covers every source in this
+  repository: the watch and the phone recognise speech on the device and send text, the
+  dashboard does not record, the wake-word listener and the lip-sync pass use WAV, and the
+  LiveKit plugin passes raw PCM.
+- **What it gives up:** uploaded MP3, M4A/AAC, Ogg, Opus, WebM, FLAC and video are refused with
+  a message naming the format and asking for WAV (`/voice/transcribe` answers 415). They are
+  not sent to an outside service instead, even when external providers are allowed: they used
+  to be transcribed on the machine, and sending them out would widen what leaves it without
+  anyone deciding to.
+- **Why not another decoder:** every option that reads compressed formats either is FFmpeg or
+  bundles LGPL native code (`soundfile` with `libsndfile`, which also carries `mpg123` and
+  LAME). None is needed by a client that exists. If one is needed later, recording WAV on the
+  client is the first choice; a reviewed LGPL exception for `libsndfile` is the second.
+- **Accuracy:** unchanged. On LibriSpeech test-clean, run before and after in sequence on the same machine, the WER was 4.16 % on both paths with identical errors (132 / 19 / 8); `docs/ai/speech/RESULTS.md`. The 4.24 % recorded earlier came from another package set and stays as the historical benchmark.
+
+What would change it: a client that has to send compressed audio and cannot record WAV.
+
+## D-084 IRA Care Activity leaves the watch only as hourly summaries, under its own consent, and never alerts (requirements F7.f to F7.k, 25 November 2026)
+
+IRA Care Activity (WISDM-trained; `docs/ai/activity/MODEL_CARD.md`)
+has run on the watch since F7.d, but nothing used its answer. The owner asked for an end-to-end
+integration that never presents the estimate as confirmed behaviour or a medical state and never
+raises an alert from it.
+
+Decision:
+
+- **Summaries, not windows.** The watch keeps every 10 s window to itself and sends only hourly
+  seconds per label (the model's six classes, `unknown`, `unavailable`) and per reason
+  (`low_confidence`; `off_wrist`, `sensor_gap`, `too_short`, `sensor_fault`), with the model's
+  version and SHA-256 and the source (`device` or `simulated`). Nothing is filled in: time the
+  watch did not record stays "not recorded". Contract: `docs/ai/activity/DATA_CONTRACT.md`.
+- **Its own consent kind, `activity_sharing`** (migration 121), following the existing pattern
+  (`topics` was added the same way in 110). `health_data_family` was not reused: it is about family
+  seeing readings, not about a new kind of inference leaving the watch, and reusing it would have
+  started sending for people who never agreed to this. The watch queues only while the server says
+  the consent is granted; the server checks again on arrival and on every carer read.
+- **Its own table, `care_activity_periods`**, not `care_vitals`. Every safety rule reads
+  `care_vitals`; a separate table is what makes "no alert path reads it" checkable
+  (`tests/care/test_activity_no_alert_path.py`). Same tenancy, row-level security, retention and
+  erasure as the readings.
+- **Carers see four groups, not classes:** active (walking, stairs), still (sitting, standing),
+  other arm movement (eating_drinking, other), and could not tell, not worn or not recorded. The
+  class `eating_drinking` is never shown by name: the model confuses sitting and eating
+  (`MODEL_CARD.md`), and "food_intake" stays what the person says at a check-in. Every view
+  carries "Estimated from the watch's motion sensor; not a measurement of health."
+- **The wearer** sees one small line ("On the move today: about N min (the watch's estimate)")
+  when nothing else is on the screen.
+
+What this does not decide: accuracy on the IRA watch or with older adults, and the battery cost of
+the 20 Hz gyroscope. Both need a physical watch (F7.k and the model card's physical validation
+list). The software cost per window was measured on the JVM and is in the model card.
 
 ## D-085 Deployment administrators are a grant the operator writes, never a care role; they send a watch one signed instruction from a closed list (requirements E2.m, E2.o, 25 November 2026)
 

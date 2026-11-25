@@ -9,7 +9,12 @@ WORKDIR /app
 # The care server needs the backend's runtime libraries, not the full server's
 # model stack (torch, the embedding model): requirements-test.txt is that set.
 COPY supracloud-jarvis/ira/requirements-test.txt ./requirements.txt
+COPY supracloud-jarvis/ira/requirements-nodeps.txt ./requirements-nodeps.txt
 RUN pip install -r requirements.txt psutil==6.1.0 onnxruntime==1.20.1 tokenizers==0.21.0
+# faster-whisper without PyAV, whose wheels bundle FFmpeg built with GPL encoders
+# (docs/security/LICENCES.md). The build fails if anything brought `av` in anyway.
+RUN pip install --no-deps --require-hashes -r requirements-nodeps.txt \
+    && python -c "import importlib.util as u, sys; sys.exit('av is installed' if u.find_spec('av') else 0)"
 COPY supracloud-jarvis/ira /app
 # The small red-flag classifier's public text encoder (Apache-2.0), fetched at build time so
 # the running server needs no network for it (docs/MODEL_CHOICE.md).

@@ -1,0 +1,18 @@
+# Packages installed WITHOUT their declared dependencies, after requirements.txt
+# (or requirements-test.txt):
+#
+#   pip install --no-deps --require-hashes -r requirements-nodeps.txt
+#
+# faster-whisper declares PyAV (`av`) as a hard dependency. PyAV's wheels bundle FFmpeg
+# built with the GPL encoders libx264 and libx265, and the owner decided it does not ship
+# (docs/security/LICENCES.md). faster-whisper needs PyAV only to decode files; IRA decodes
+# audio itself (voice/audio_decode.py) and imports faster-whisper through
+# voice/whisper_engine.py, so `import av` is never attempted. faster-whisper's other
+# dependencies are pinned in requirements.txt and requirements-test.txt.
+#
+# `pip check` reports "faster-whisper 1.2.1 requires av, which is not installed". That is
+# this decision, not a broken install.
+#
+# The hash is the one in requirements.lock (scripts/check_dependency_gates.py compares them).
+faster-whisper==1.2.1 \
+    --hash=sha256:79a66ad50688c0b794dd501dc340a736992a6342f7f95e5811be60b5224a26a7

@@ -1,0 +1,1152 @@
+{
+ "about": {
+  "recogniser": "faster-whisper (voice/stt.py, product settings)",
+  "model": "small",
+  "repository": "Systran/faster-whisper-small",
+  "revision": "536b0662742c02347bc0e980a01041f333bce120",
+  "compute": "cpu int8",
+  "median_seconds_per_utterance": 6.04816367799981,
+  "total_audio_seconds": 1477.9
+ },
+ "machine": "x86_64, Linux 6.18.44-fc-v880",
+ "utterances": 160,
+ "speakers": 40,
+ "overall": {
+  "words": 3820,
+  "substitutions": 132,
+  "deletions": 19,
+  "insertions": 8,
+  "wer": 0.0416
+ },
+ "groups": {
+  "librispeech-test-clean": {
+   "words": 3820,
+   "substitutions": 132,
+   "deletions": 19,
+   "insertions": 8,
+   "wer": 0.0416
+  }
+ },
+ "per_utterance": [
+  {
+   "id": "61-70968-0000",
+   "group": "librispeech-test-clean",
+   "reference": "HE BEGAN A CONFUSED COMPLAINT AGAINST THE WIZARD WHO HAD VANISHED BEHIND THE CURTAIN ON THE LEFT",
+   "hypothesis": "He began a confused complaint against the wizard, who had vanished behind the curtain on the left.",
+   "errors": 0
+  },
+  {
+   "id": "61-70968-0001",
+   "group": "librispeech-test-clean",
+   "reference": "GIVE NOT SO EARNEST A MIND TO THESE MUMMERIES CHILD",
+   "hypothesis": "Give not so earnest a mind to these mummeries child",
+   "errors": 0
+  },
+  {
+   "id": "61-70968-0002",
+   "group": "librispeech-test-clean",
+   "reference": "A GOLDEN FORTUNE AND A HAPPY LIFE",
+   "hypothesis": "a golden fortune and a happy life?",
+   "errors": 0
+  },
+  {
+   "id": "61-70968-0003",
+   "group": "librispeech-test-clean",
+   "reference": "HE WAS LIKE UNTO MY FATHER IN A WAY AND YET WAS NOT MY FATHER",
+   "hypothesis": "He was likened to my father in a way, and yet was not my father.",
+   "errors": 2
+  },
+  {
+   "id": "121-121726-0000",
+   "group": "librispeech-test-clean",
+   "reference": "ALSO A POPULAR CONTRIVANCE WHEREBY LOVE MAKING MAY BE SUSPENDED BUT NOT STOPPED DURING THE PICNIC SEASON",
+   "hypothesis": "Also, a popular condrivens, whereby lovemaking may be suspended, but not stopped during the picnic season.",
+   "errors": 3
+  },
+  {
+   "id": "121-121726-0001",
+   "group": "librispeech-test-clean",
+   "reference": "HARANGUE THE TIRESOME PRODUCT OF A TIRELESS TONGUE",
+   "hypothesis": "Hurang! The tiresome product of a tireless tongue.",
+   "errors": 1
+  },
+  {
+   "id": "121-121726-0002",
+   "group": "librispeech-test-clean",
+   "reference": "ANGOR PAIN PAINFUL TO HEAR",
+   "hypothesis": "Angor, Hain, Painful to hear.",
+   "errors": 1
+  },
+  {
+   "id": "121-121726-0003",
+   "group": "librispeech-test-clean",
+   "reference": "HAY FEVER A HEART TROUBLE CAUSED BY FALLING IN LOVE WITH A GRASS WIDOW",
+   "hypothesis": "Hey fever a heart trouble caused by falling in love with a grass widow",
+   "errors": 1
+  },
+  {
+   "id": "237-126133-0000",
+   "group": "librispeech-test-clean",
+   "reference": "HERE SHE WOULD STAY COMFORTED AND SOOTHED AMONG THE LOVELY PLANTS AND RICH EXOTICS REJOICING THE HEART OF OLD TURNER THE GARDENER WHO SINCE POLLY'S FIRST RAPTUROUS ENTRANCE HAD TAKEN HER INTO HIS GOOD GRACES FOR ALL TIME",
+   "hypothesis": "Here she would stay, comforted and soothed among the lovely plants and rich exotics, rejoicing the heart of old Turner the gardener, who since Polly's first rapturous entrance had taken her into his good graces for all time.",
+   "errors": 0
+  },
+  {
+   "id": "237-126133-0001",
+   "group": "librispeech-test-clean",
+   "reference": "EVERY CHANCE SHE COULD STEAL AFTER PRACTICE HOURS WERE OVER AND AFTER THE CLAMOROUS DEMANDS OF THE BOYS UPON HER TIME WERE FULLY SATISFIED WAS SEIZED TO FLY ON THE WINGS OF THE WIND TO THE FLOWERS",
+   "hypothesis": "Every chance she could steal after practice hours were over, and after the clamorous demands of the boys upon her time were fully satisfied, was seized to fly on the wings of the wind to the flowers.",
+   "errors": 0
+  },
+  {
+   "id": "237-126133-0002",
+   "group": "librispeech-test-clean",
+   "reference": "THEN DEAR SAID MISSUS WHITNEY YOU MUST BE KINDER TO HER THAN EVER THINK WHAT IT WOULD BE FOR ONE OF YOU TO BE AWAY FROM HOME EVEN AMONG FRIENDS",
+   "hypothesis": "Then, dear, said Mrs. Whitney, you must be kinder to her than ever. Think what it would be for one of you to be away from home, even among friends.\"",
+   "errors": 1
+  },
+  {
+   "id": "237-126133-0003",
+   "group": "librispeech-test-clean",
+   "reference": "SOMEHOW OF ALL THE DAYS WHEN THE HOME FEELING WAS THE STRONGEST THIS DAY IT SEEMED AS IF SHE COULD BEAR IT NO LONGER",
+   "hypothesis": "Somehow, of all the days when the home feeling was the strongest, this day it seemed as if she could bear it no longer.",
+   "errors": 0
+  },
+  {
+   "id": "260-123286-0000",
+   "group": "librispeech-test-clean",
+   "reference": "SATURDAY AUGUST FIFTEENTH THE SEA UNBROKEN ALL ROUND NO LAND IN SIGHT",
+   "hypothesis": "Saturday, August 15th. The sea unbroken all round. No land in sight.",
+   "errors": 1
+  },
+  {
+   "id": "260-123286-0001",
+   "group": "librispeech-test-clean",
+   "reference": "THE HORIZON SEEMS EXTREMELY DISTANT",
+   "hypothesis": "The horizon seems extremely distant.",
+   "errors": 0
+  },
+  {
+   "id": "260-123286-0002",
+   "group": "librispeech-test-clean",
+   "reference": "ALL MY DANGER AND SUFFERINGS WERE NEEDED TO STRIKE A SPARK OF HUMAN FEELING OUT OF HIM BUT NOW THAT I AM WELL HIS NATURE HAS RESUMED ITS SWAY",
+   "hypothesis": "All my danger and sufferings were needed to strike a spark of human feeling out of him. But now that I am well, his nature has resumed its sway.",
+   "errors": 0
+  },
+  {
+   "id": "260-123286-0003",
+   "group": "librispeech-test-clean",
+   "reference": "YOU SEEM ANXIOUS MY UNCLE I SAID SEEING HIM CONTINUALLY WITH HIS GLASS TO HIS EYE ANXIOUS",
+   "hypothesis": "You seem anxious, my uncle, I said, seeing him continually with his glass to his eye. Anxious.",
+   "errors": 0
+  },
+  {
+   "id": "672-122797-0000",
+   "group": "librispeech-test-clean",
+   "reference": "OUT IN THE WOODS STOOD A NICE LITTLE FIR TREE",
+   "hypothesis": "Out in the woods stood a nice little fir tree.",
+   "errors": 0
+  },
+  {
+   "id": "672-122797-0001",
+   "group": "librispeech-test-clean",
+   "reference": "THE PLACE HE HAD WAS A VERY GOOD ONE THE SUN SHONE ON HIM AS TO FRESH AIR THERE WAS ENOUGH OF THAT AND ROUND HIM GREW MANY LARGE SIZED COMRADES PINES AS WELL AS FIRS",
+   "hypothesis": "The place he had was a very good one. The sun shone on him. As to fresh air, there was enough of that. And round him grew many large-sized comrades, pines as well as furs.",
+   "errors": 1
+  },
+  {
+   "id": "672-122797-0002",
+   "group": "librispeech-test-clean",
+   "reference": "HE DID NOT THINK OF THE WARM SUN AND OF THE FRESH AIR HE DID NOT CARE FOR THE LITTLE COTTAGE CHILDREN THAT RAN ABOUT AND PRATTLED WHEN THEY WERE IN THE WOODS LOOKING FOR WILD STRAWBERRIES",
+   "hypothesis": "He did not think of the warm sun and of the fresh air. He did not care for the little cottage children that ran about and prattled when they were in the woods looking for wild strawberries.",
+   "errors": 0
+  },
+  {
+   "id": "672-122797-0003",
+   "group": "librispeech-test-clean",
+   "reference": "BUT THIS WAS WHAT THE TREE COULD NOT BEAR TO HEAR",
+   "hypothesis": "But this was what the tree could not bear to hear.",
+   "errors": 0
+  },
+  {
+   "id": "908-157963-0000",
+   "group": "librispeech-test-clean",
+   "reference": "TO FADE AWAY LIKE MORNING BEAUTY FROM HER MORTAL DAY DOWN BY THE RIVER OF ADONA HER SOFT VOICE IS HEARD AND THUS HER GENTLE LAMENTATION FALLS LIKE MORNING DEW",
+   "hypothesis": "to fade away like morning beauty from her mortal day. Down by the river of Adana, her soft voice is heard, and thus her gentle lamentation falls like morning dew.",
+   "errors": 1
+  },
+  {
+   "id": "908-157963-0001",
+   "group": "librispeech-test-clean",
+   "reference": "O LIFE OF THIS OUR SPRING",
+   "hypothesis": "Oh, life of this our spring.",
+   "errors": 1
+  },
+  {
+   "id": "908-157963-0002",
+   "group": "librispeech-test-clean",
+   "reference": "WHY FADES THE LOTUS OF THE WATER",
+   "hypothesis": "Why fades the lotus of the water?",
+   "errors": 0
+  },
+  {
+   "id": "908-157963-0003",
+   "group": "librispeech-test-clean",
+   "reference": "WHY FADE THESE CHILDREN OF THE SPRING",
+   "hypothesis": "Why fade these children of the spring?",
+   "errors": 0
+  },
+  {
+   "id": "1089-134686-0000",
+   "group": "librispeech-test-clean",
+   "reference": "HE HOPED THERE WOULD BE STEW FOR DINNER TURNIPS AND CARROTS AND BRUISED POTATOES AND FAT MUTTON PIECES TO BE LADLED OUT IN THICK PEPPERED FLOUR FATTENED SAUCE",
+   "hypothesis": "He hoped there would be stew for dinner, turnips and carrots and bruised potatoes and fat mutton pieces to be ladled out in thick, peppered, flour-fattened sauce.",
+   "errors": 0
+  },
+  {
+   "id": "1089-134686-0001",
+   "group": "librispeech-test-clean",
+   "reference": "STUFF IT INTO YOU HIS BELLY COUNSELLED HIM",
+   "hypothesis": "Stuff it into you, his belly counseled him.",
+   "errors": 1
+  },
+  {
+   "id": "1089-134686-0002",
+   "group": "librispeech-test-clean",
+   "reference": "AFTER EARLY NIGHTFALL THE YELLOW LAMPS WOULD LIGHT UP HERE AND THERE THE SQUALID QUARTER OF THE BROTHELS",
+   "hypothesis": "After early nightfall the yellow lamps would light up here and there the squalid quarter of the brothels.",
+   "errors": 0
+  },
+  {
+   "id": "1089-134686-0003",
+   "group": "librispeech-test-clean",
+   "reference": "HELLO BERTIE ANY GOOD IN YOUR MIND",
+   "hypothesis": "Hello Bertie, any good in your mind?",
+   "errors": 0
+  },
+  {
+   "id": "1188-133604-0000",
+   "group": "librispeech-test-clean",
+   "reference": "YOU WILL FIND ME CONTINUALLY SPEAKING OF FOUR MEN TITIAN HOLBEIN TURNER AND TINTORET IN ALMOST THE SAME TERMS",
+   "hypothesis": "You will find me continually speaking of four men, Titian, Holbein, Turner, and Tintoret, in almost the same terms.",
+   "errors": 0
+  },
+  {
+   "id": "1188-133604-0001",
+   "group": "librispeech-test-clean",
+   "reference": "THEY UNITE EVERY QUALITY AND SOMETIMES YOU WILL FIND ME REFERRING TO THEM AS COLORISTS SOMETIMES AS CHIAROSCURISTS",
+   "hypothesis": "They unite every quality, and sometimes you will find me referring to them as colorists, sometimes as chiaroscurists.",
+   "errors": 0
+  },
+  {
+   "id": "1188-133604-0002",
+   "group": "librispeech-test-clean",
+   "reference": "BY BEING STUDIOUS OF COLOR THEY ARE STUDIOUS OF DIVISION AND WHILE THE CHIAROSCURIST DEVOTES HIMSELF TO THE REPRESENTATION OF DEGREES OF FORCE IN ONE THING UNSEPARATED LIGHT THE COLORISTS HAVE FOR THEIR FUNCTION THE ATTAINMENT OF BEAUTY BY ARRANGEMENT OF THE DIVISIONS OF LIGHT",
+   "hypothesis": "By being studious of color, they are studious of division, and while the Kuros Kurus devotes himself to the representation of degrees of force in one thing, unseparated light, the colorists have for their function the attainment of beauty by arrangement of the divisions of light.",
+   "errors": 2
+  },
+  {
+   "id": "1188-133604-0003",
+   "group": "librispeech-test-clean",
+   "reference": "MY FIRST AND PRINCIPAL REASON WAS THAT THEY ENFORCED BEYOND ALL RESISTANCE ON ANY STUDENT WHO MIGHT ATTEMPT TO COPY THEM THIS METHOD OF LAYING PORTIONS OF DISTINCT HUE SIDE BY SIDE",
+   "hypothesis": "My first and principal reason was that they enforced, beyond all resistance, on any student who might attempt to copy them, this method of laying portions of distinct hue side by side.",
+   "errors": 0
+  },
+  {
+   "id": "1221-135766-0000",
+   "group": "librispeech-test-clean",
+   "reference": "HOW STRANGE IT SEEMED TO THE SAD WOMAN AS SHE WATCHED THE GROWTH AND THE BEAUTY THAT BECAME EVERY DAY MORE BRILLIANT AND THE INTELLIGENCE THAT THREW ITS QUIVERING SUNSHINE OVER THE TINY FEATURES OF THIS CHILD",
+   "hypothesis": "How strange it seemed to the sad woman as she watched the growth and the beauty that became every day more brilliant and the intelligence that threw its quivering sunshine over the tiny features of this child.",
+   "errors": 0
+  },
+  {
+   "id": "1221-135766-0001",
+   "group": "librispeech-test-clean",
+   "reference": "GOD AS A DIRECT CONSEQUENCE OF THE SIN WHICH MAN THUS PUNISHED HAD GIVEN HER A LOVELY CHILD WHOSE PLACE WAS ON THAT SAME DISHONOURED BOSOM TO CONNECT HER PARENT FOR EVER WITH THE RACE AND DESCENT OF MORTALS AND TO BE FINALLY A BLESSED SOUL IN HEAVEN",
+   "hypothesis": "God, as a direct consequence of the sin which man thus punished, had given her a lovely child, whose place was on that same dishonored bosom to connect her parent forever with the race and descent of mortals, and to be finally a blessed soul in heaven.",
+   "errors": 3
+  },
+  {
+   "id": "1221-135766-0002",
+   "group": "librispeech-test-clean",
+   "reference": "YET THESE THOUGHTS AFFECTED HESTER PRYNNE LESS WITH HOPE THAN APPREHENSION",
+   "hypothesis": "Yet these thoughts affected Hester Prynne less with hope than apprehension.",
+   "errors": 0
+  },
+  {
+   "id": "1221-135766-0003",
+   "group": "librispeech-test-clean",
+   "reference": "THE CHILD HAD A NATIVE GRACE WHICH DOES NOT INVARIABLY CO EXIST WITH FAULTLESS BEAUTY ITS ATTIRE HOWEVER SIMPLE ALWAYS IMPRESSED THE BEHOLDER AS IF IT WERE THE VERY GARB THAT PRECISELY BECAME IT BEST",
+   "hypothesis": "The child had a native grace which does not invariably co-exist with faultless beauty. Its attire, however simple, always impressed the beholder as if it were the very garb that precisely became it best.",
+   "errors": 0
+  },
+  {
+   "id": "1284-1180-0000",
+   "group": "librispeech-test-clean",
+   "reference": "HE WORE BLUE SILK STOCKINGS BLUE KNEE PANTS WITH GOLD BUCKLES A BLUE RUFFLED WAIST AND A JACKET OF BRIGHT BLUE BRAIDED WITH GOLD",
+   "hypothesis": "He wore blue silk stockings, blue knee pants with gold buckles, a blue ruffled waist, and a jacket of bright blue braided with gold.",
+   "errors": 0
+  },
+  {
+   "id": "1284-1180-0001",
+   "group": "librispeech-test-clean",
+   "reference": "HIS HAT HAD A PEAKED CROWN AND A FLAT BRIM AND AROUND THE BRIM WAS A ROW OF TINY GOLDEN BELLS THAT TINKLED WHEN HE MOVED",
+   "hypothesis": "His hat had a peaked crown and a flat brim, and around the brim was a row of tiny golden bells that tinkled when he moved.",
+   "errors": 0
+  },
+  {
+   "id": "1284-1180-0002",
+   "group": "librispeech-test-clean",
+   "reference": "INSTEAD OF SHOES THE OLD MAN WORE BOOTS WITH TURNOVER TOPS AND HIS BLUE COAT HAD WIDE CUFFS OF GOLD BRAID",
+   "hypothesis": "Instead of shoes, the old man wore boots with turnover tops, and his blue coat had wide cuffs of gold braid.",
+   "errors": 0
+  },
+  {
+   "id": "1284-1180-0003",
+   "group": "librispeech-test-clean",
+   "reference": "FOR A LONG TIME HE HAD WISHED TO EXPLORE THE BEAUTIFUL LAND OF OZ IN WHICH THEY LIVED",
+   "hypothesis": "For a long time he had wished to explore the beautiful land of ours in which they lived.",
+   "errors": 1
+  },
+  {
+   "id": "1320-122612-0000",
+   "group": "librispeech-test-clean",
+   "reference": "SINCE THE PERIOD OF OUR TALE THE ACTIVE SPIRIT OF THE COUNTRY HAS SURROUNDED IT WITH A BELT OF RICH AND THRIVING SETTLEMENTS THOUGH NONE BUT THE HUNTER OR THE SAVAGE IS EVER KNOWN EVEN NOW TO PENETRATE ITS WILD RECESSES",
+   "hypothesis": "Since the period of our tale, the active spirit of the country has surrounded it with a belt of rich and thriving settlements, though none but the hunter or the savage is ever known even now to penetrate its wild recesses.",
+   "errors": 0
+  },
+  {
+   "id": "1320-122612-0001",
+   "group": "librispeech-test-clean",
+   "reference": "THE DEWS WERE SUFFERED TO EXHALE AND THE SUN HAD DISPERSED THE MISTS AND WAS SHEDDING A STRONG AND CLEAR LIGHT IN THE FOREST WHEN THE TRAVELERS RESUMED THEIR JOURNEY",
+   "hypothesis": "The dews were suffered to exhale, and the sun had dispersed the mists, and was shedding a strong and clear light in the forest when the travelers resumed their journey.",
+   "errors": 0
+  },
+  {
+   "id": "1320-122612-0002",
+   "group": "librispeech-test-clean",
+   "reference": "AFTER PROCEEDING A FEW MILES THE PROGRESS OF HAWKEYE WHO LED THE ADVANCE BECAME MORE DELIBERATE AND WATCHFUL",
+   "hypothesis": "After proceeding a few miles, the progress of Hakai, who led the advance, became more deliberate and watchful.",
+   "errors": 1
+  },
+  {
+   "id": "1320-122612-0003",
+   "group": "librispeech-test-clean",
+   "reference": "HE OFTEN STOPPED TO EXAMINE THE TREES NOR DID HE CROSS A RIVULET WITHOUT ATTENTIVELY CONSIDERING THE QUANTITY THE VELOCITY AND THE COLOR OF ITS WATERS",
+   "hypothesis": "He often stopped to examine the trees, nor did he cross a rivulet without attentively considering the quantity, the velocity, and the color of its waters.",
+   "errors": 0
+  },
+  {
+   "id": "1580-141083-0000",
+   "group": "librispeech-test-clean",
+   "reference": "I WILL ENDEAVOUR IN MY STATEMENT TO AVOID SUCH TERMS AS WOULD SERVE TO LIMIT THE EVENTS TO ANY PARTICULAR PLACE OR GIVE A CLUE AS TO THE PEOPLE CONCERNED",
+   "hypothesis": "I will endeavor in my statement to avoid such terms as would serve to limit the events to any particular place or give a clue as to the people concerned.",
+   "errors": 1
+  },
+  {
+   "id": "1580-141083-0001",
+   "group": "librispeech-test-clean",
+   "reference": "I HAD ALWAYS KNOWN HIM TO BE RESTLESS IN HIS MANNER BUT ON THIS PARTICULAR OCCASION HE WAS IN SUCH A STATE OF UNCONTROLLABLE AGITATION THAT IT WAS CLEAR SOMETHING VERY UNUSUAL HAD OCCURRED",
+   "hypothesis": "I had always known him to be restless in his manner, but on this particular occasion he was in such a state of uncontrollable agitation that it was clear something very unusual had occurred.",
+   "errors": 0
+  },
+  {
+   "id": "1580-141083-0002",
+   "group": "librispeech-test-clean",
+   "reference": "MY FRIEND'S TEMPER HAD NOT IMPROVED SINCE HE HAD BEEN DEPRIVED OF THE CONGENIAL SURROUNDINGS OF BAKER STREET",
+   "hypothesis": "My friend's temper had not improved since he had been deprived of the congenial surroundings of Baker Street.",
+   "errors": 0
+  },
+  {
+   "id": "1580-141083-0003",
+   "group": "librispeech-test-clean",
+   "reference": "WITHOUT HIS SCRAPBOOKS HIS CHEMICALS AND HIS HOMELY UNTIDINESS HE WAS AN UNCOMFORTABLE MAN",
+   "hypothesis": "Without his scrapbooks, his chemicals, and his homely untidiness, he was an uncomfortable man.",
+   "errors": 0
+  },
+  {
+   "id": "1995-1826-0000",
+   "group": "librispeech-test-clean",
+   "reference": "IN THE DEBATE BETWEEN THE SENIOR SOCIETIES HER DEFENCE OF THE FIFTEENTH AMENDMENT HAD BEEN NOT ONLY A NOTABLE BIT OF REASONING BUT DELIVERED WITH REAL ENTHUSIASM",
+   "hypothesis": "In the debate between the senior societies, her defense of the 15th Amendment had been not only a notable bit of reasoning, but delivered with real enthusiasm.",
+   "errors": 2
+  },
+  {
+   "id": "1995-1826-0001",
+   "group": "librispeech-test-clean",
+   "reference": "THE SOUTH SHE HAD NOT THOUGHT OF SERIOUSLY AND YET KNOWING OF ITS DELIGHTFUL HOSPITALITY AND MILD CLIMATE SHE WAS NOT AVERSE TO CHARLESTON OR NEW ORLEANS",
+   "hypothesis": "The South she had not thought of seriously and yet, knowing of its delightful hospitality and mild climate, she was not averse to Charleston or New Orleans.",
+   "errors": 0
+  },
+  {
+   "id": "1995-1826-0002",
+   "group": "librispeech-test-clean",
+   "reference": "JOHN TAYLOR WHO HAD SUPPORTED HER THROUGH COLLEGE WAS INTERESTED IN COTTON",
+   "hypothesis": "John Taylor, who had supported her through college, was interested in cotton.",
+   "errors": 0
+  },
+  {
+   "id": "1995-1826-0003",
+   "group": "librispeech-test-clean",
+   "reference": "BETTER GO HE HAD COUNSELLED SENTENTIOUSLY",
+   "hypothesis": "Better go, he had counsels, intentionally.",
+   "errors": 2
+  },
+  {
+   "id": "2094-142345-0000",
+   "group": "librispeech-test-clean",
+   "reference": "IT IS A VERY FINE OLD PLACE OF RED BRICK SOFTENED BY A PALE POWDERY LICHEN WHICH HAS DISPERSED ITSELF WITH HAPPY IRREGULARITY SO AS TO BRING THE RED BRICK INTO TERMS OF FRIENDLY COMPANIONSHIP WITH THE LIMESTONE ORNAMENTS SURROUNDING THE THREE GABLES THE WINDOWS AND THE DOOR PLACE",
+   "hypothesis": "It is a very fine old place of red brick, softened by a pale, powdery lichen, which has dispersed itself with happy irregularity, so as to bring the red brick into terms of friendly companionship with the limestone ornaments surrounding the three gables, the windows, and the door place.",
+   "errors": 0
+  },
+  {
+   "id": "2094-142345-0001",
+   "group": "librispeech-test-clean",
+   "reference": "BUT THE WINDOWS ARE PATCHED WITH WOODEN PANES AND THE DOOR I THINK IS LIKE THE GATE IT IS NEVER OPENED",
+   "hypothesis": "But the windows are patched with wooden panes, and the door, I think, is like the gate. It is never opened.",
+   "errors": 0
+  },
+  {
+   "id": "2094-142345-0002",
+   "group": "librispeech-test-clean",
+   "reference": "FOR IT IS A SOLID HEAVY HANDSOME DOOR AND MUST ONCE HAVE BEEN IN THE HABIT OF SHUTTING WITH A SONOROUS BANG BEHIND A LIVERIED LACKEY WHO HAD JUST SEEN HIS MASTER AND MISTRESS OFF THE GROUNDS IN A CARRIAGE AND PAIR",
+   "hypothesis": "For it is a solid, heavy, handsome door, and must once have been in the habit of shutting with a sonorous bang behind the liveried lackey, who had just seen his master and mistress off the grounds in a carriage and pair.",
+   "errors": 1
+  },
+  {
+   "id": "2094-142345-0003",
+   "group": "librispeech-test-clean",
+   "reference": "A LARGE OPEN FIREPLACE WITH RUSTY DOGS IN IT AND A BARE BOARDED FLOOR AT THE FAR END FLEECES OF WOOL STACKED UP IN THE MIDDLE OF THE FLOOR SOME EMPTY CORN BAGS",
+   "hypothesis": "A large, open fireplace with rusty dogs in it, and a bare-boarded floor. At the far end, fleeces of wolves stacked up. In the middle of the floor, some empty corn bags.",
+   "errors": 1
+  },
+  {
+   "id": "2300-131720-0000",
+   "group": "librispeech-test-clean",
+   "reference": "THE PARIS PLANT LIKE THAT AT THE CRYSTAL PALACE WAS A TEMPORARY EXHIBIT",
+   "hypothesis": "The Paris plant, like that at the Crystal Palace, was a temporary exhibit.",
+   "errors": 0
+  },
+  {
+   "id": "2300-131720-0001",
+   "group": "librispeech-test-clean",
+   "reference": "THE LONDON PLANT WAS LESS TEMPORARY BUT NOT PERMANENT SUPPLYING BEFORE IT WAS TORN OUT NO FEWER THAN THREE THOUSAND LAMPS IN HOTELS CHURCHES STORES AND DWELLINGS IN THE VICINITY OF HOLBORN VIADUCT",
+   "hypothesis": "The London plant was less temporary, but not permanent, supplying, before it was torn out, no fewer than 3,000 lamps in hotels, churches, stores, and dwellings in the vicinity of Holborn Viaduct.",
+   "errors": 2
+  },
+  {
+   "id": "2300-131720-0002",
+   "group": "librispeech-test-clean",
+   "reference": "THERE MESSRS JOHNSON AND HAMMER PUT INTO PRACTICE MANY OF THE IDEAS NOW STANDARD IN THE ART AND SECURED MUCH USEFUL DATA FOR THE WORK IN NEW YORK OF WHICH THE STORY HAS JUST BEEN TOLD",
+   "hypothesis": "There, Messiers Johnson and Hammer put into practice many of the ideas now standard in the art, and secured much useful data for the work in New York, of which the story has just been told.",
+   "errors": 1
+  },
+  {
+   "id": "2300-131720-0003",
+   "group": "librispeech-test-clean",
+   "reference": "THE DYNAMO ELECTRIC MACHINE THOUGH SMALL WAS ROBUST FOR UNDER ALL THE VARYING SPEEDS OF WATER POWER AND THE VICISSITUDES OF THE PLANT TO WHICH IT BELONGED IT CONTINUED IN ACTIVE USE UNTIL EIGHTEEN NINETY NINE SEVENTEEN YEARS",
+   "hypothesis": "The dynamo-electric machine, though small, was robust. For under all the varying speeds of water power and the vicissitudes of the plant to which it belonged, it continued in active use until 1899, 17 years.",
+   "errors": 4
+  },
+  {
+   "id": "2830-3979-0000",
+   "group": "librispeech-test-clean",
+   "reference": "WE WANT YOU TO HELP US PUBLISH SOME LEADING WORK OF LUTHER'S FOR THE GENERAL AMERICAN MARKET WILL YOU DO IT",
+   "hypothesis": "We want you to help us publish some leading work of Luther's for the general American market. Will you do it?",
+   "errors": 0
+  },
+  {
+   "id": "2830-3979-0001",
+   "group": "librispeech-test-clean",
+   "reference": "THE CONDITION IS THAT I WILL BE PERMITTED TO MAKE LUTHER TALK AMERICAN STREAMLINE HIM SO TO SPEAK BECAUSE YOU WILL NEVER GET PEOPLE WHETHER IN OR OUTSIDE THE LUTHERAN CHURCH ACTUALLY TO READ LUTHER UNLESS WE MAKE HIM TALK AS HE WOULD TALK TODAY TO AMERICANS",
+   "hypothesis": "The condition is that I will be permitted to make Luther talk American. Streamline him, so to speak, because you will never get people whether in or outside the Lutheran Church actually to read Luther unless we make him talk as he would talk today to Americans.",
+   "errors": 0
+  },
+  {
+   "id": "2830-3979-0002",
+   "group": "librispeech-test-clean",
+   "reference": "LET US BEGIN WITH THAT HIS COMMENTARY ON GALATIANS",
+   "hypothesis": "Let us begin with that his commentary on Galatians",
+   "errors": 0
+  },
+  {
+   "id": "2830-3979-0003",
+   "group": "librispeech-test-clean",
+   "reference": "THE UNDERTAKING WHICH SEEMED SO ATTRACTIVE WHEN VIEWED AS A LITERARY TASK PROVED A MOST DIFFICULT ONE AND AT TIMES BECAME OPPRESSIVE",
+   "hypothesis": "The undertaking, which seems so attractive when viewed as a literary task, proved the most difficult one, and at times became oppressive.",
+   "errors": 2
+  },
+  {
+   "id": "2961-960-0000",
+   "group": "librispeech-test-clean",
+   "reference": "HE PASSES ABRUPTLY FROM PERSONS TO IDEAS AND NUMBERS AND FROM IDEAS AND NUMBERS TO PERSONS FROM THE HEAVENS TO MAN FROM ASTRONOMY TO PHYSIOLOGY HE CONFUSES OR RATHER DOES NOT DISTINGUISH SUBJECT AND OBJECT FIRST AND FINAL CAUSES AND IS DREAMING OF GEOMETRICAL FIGURES LOST IN A FLUX OF SENSE",
+   "hypothesis": "He passes abruptly from persons to ideas and numbers, and from ideas and numbers to persons, from the heavens to man, from astronomy to physiology. He confuses, or rather does not distinguish subject and object, first and final causes, and is dreaming of geometrical figures lost in a flux of sense.",
+   "errors": 0
+  },
+  {
+   "id": "2961-960-0001",
+   "group": "librispeech-test-clean",
+   "reference": "THE INFLUENCE WITH THE TIMAEUS HAS EXERCISED UPON POSTERITY IS DUE PARTLY TO A MISUNDERSTANDING",
+   "hypothesis": "The influence which the Timaeus has exercised upon posterity is due partly to a misunderstanding.",
+   "errors": 1
+  },
+  {
+   "id": "2961-960-0002",
+   "group": "librispeech-test-clean",
+   "reference": "IN THE SUPPOSED DEPTHS OF THIS DIALOGUE THE NEO PLATONISTS FOUND HIDDEN MEANINGS AND CONNECTIONS WITH THE JEWISH AND CHRISTIAN SCRIPTURES AND OUT OF THEM THEY ELICITED DOCTRINES QUITE AT VARIANCE WITH THE SPIRIT OF PLATO",
+   "hypothesis": "In the supposed depths of this dialogue, the Neoplatonists found hidden meanings in connections with the Jewish and Christian scriptures, and out of them, they elicited doctrines quite at variance with the spirit of Plato.",
+   "errors": 3
+  },
+  {
+   "id": "2961-960-0003",
+   "group": "librispeech-test-clean",
+   "reference": "THEY WERE ABSORBED IN HIS THEOLOGY AND WERE UNDER THE DOMINION OF HIS NAME WHILE THAT WHICH WAS TRULY GREAT AND TRULY CHARACTERISTIC IN HIM HIS EFFORT TO REALIZE AND CONNECT ABSTRACTIONS WAS NOT UNDERSTOOD BY THEM AT ALL",
+   "hypothesis": "They were absorbed in his theology and were under the dominion of his name. While that, which was truly great and truly characteristic in him, his effort to realize and connect abstractions was not understood by them at all.",
+   "errors": 0
+  },
+  {
+   "id": "3570-5694-0000",
+   "group": "librispeech-test-clean",
+   "reference": "BUT ALREADY AT A POINT IN ECONOMIC EVOLUTION FAR ANTEDATING THE EMERGENCE OF THE LADY SPECIALISED CONSUMPTION OF GOODS AS AN EVIDENCE OF PECUNIARY STRENGTH HAD BEGUN TO WORK OUT IN A MORE OR LESS ELABORATE SYSTEM",
+   "hypothesis": "But already, at a point in economic evolution, far ant-dating the emergence of the Lady, specialized consumption of goods, as an evidence of pecuniary strength, had begun to work out in a more or less elaborate system.",
+   "errors": 3
+  },
+  {
+   "id": "3570-5694-0001",
+   "group": "librispeech-test-clean",
+   "reference": "THE UTILITY OF CONSUMPTION AS AN EVIDENCE OF WEALTH IS TO BE CLASSED AS A DERIVATIVE GROWTH",
+   "hypothesis": "The utility of consumption as an evidence of wealth is to be classed as a derivative growth.",
+   "errors": 0
+  },
+  {
+   "id": "3570-5694-0002",
+   "group": "librispeech-test-clean",
+   "reference": "SUCH CONSUMPTION AS FALLS TO THE WOMEN IS MERELY INCIDENTAL TO THEIR WORK IT IS A MEANS TO THEIR CONTINUED LABOUR AND NOT A CONSUMPTION DIRECTED TO THEIR OWN COMFORT AND FULNESS OF LIFE",
+   "hypothesis": "Such consumption as falls through the women is merely incidental to their work. It is a means to their continued labour and not a consumption directed to their own comfort and fullness of life.",
+   "errors": 2
+  },
+  {
+   "id": "3570-5694-0003",
+   "group": "librispeech-test-clean",
+   "reference": "WITH A FURTHER ADVANCE IN CULTURE THIS TABU MAY CHANGE INTO SIMPLE CUSTOM OF A MORE OR LESS RIGOROUS CHARACTER BUT WHATEVER BE THE THEORETICAL BASIS OF THE DISTINCTION WHICH IS MAINTAINED WHETHER IT BE A TABU OR A LARGER CONVENTIONALITY THE FEATURES OF THE CONVENTIONAL SCHEME OF CONSUMPTION DO NOT CHANGE EASILY",
+   "hypothesis": "With a further advance in culture, this taboo may change into simple custom of a more or less rigorous character, but whatever be the theoretical basis of the distinction which is maintained, whether it be a taboo or a larger conventionality, the features of the conventional scheme of consumption do not change easily.",
+   "errors": 2
+  },
+  {
+   "id": "3575-170457-0000",
+   "group": "librispeech-test-clean",
+   "reference": "AND OFTEN HAS MY MOTHER SAID WHILE ON HER LAP I LAID MY HEAD SHE FEARED FOR TIME I WAS NOT MADE BUT FOR ETERNITY",
+   "hypothesis": "And often, as my mother said, while on her lap I laid my head, she feared for time I was not made, but for eternity.",
+   "errors": 1
+  },
+  {
+   "id": "3575-170457-0001",
+   "group": "librispeech-test-clean",
+   "reference": "WHY ARE WE TO BE DENIED EACH OTHER'S SOCIETY",
+   "hypothesis": "Why are we to be denied each other's society?",
+   "errors": 0
+  },
+  {
+   "id": "3575-170457-0002",
+   "group": "librispeech-test-clean",
+   "reference": "WHY ARE WE TO BE DIVIDED",
+   "hypothesis": "Why are we to be divided?",
+   "errors": 0
+  },
+  {
+   "id": "3575-170457-0003",
+   "group": "librispeech-test-clean",
+   "reference": "SURELY IT MUST BE BECAUSE WE ARE IN DANGER OF LOVING EACH OTHER TOO WELL OF LOSING SIGHT OF THE CREATOR IN IDOLATRY OF THE CREATURE",
+   "hypothesis": "Surely it must be because we're in danger of loving each other too well, of losing sight of the creator and idolatry of the creature.",
+   "errors": 3
+  },
+  {
+   "id": "3729-6852-0000",
+   "group": "librispeech-test-clean",
+   "reference": "TO CELEBRATE THE ARRIVAL OF HER SON SILVIA GAVE A SPLENDID SUPPER TO WHICH SHE HAD INVITED ALL HER RELATIVES AND IT WAS A GOOD OPPORTUNITY FOR ME TO MAKE THEIR ACQUAINTANCE",
+   "hypothesis": "To celebrate the arrival of her son, Sylvia gave a splendid supper to which she had invited all her relatives, and it was a good opportunity for me to make their acquaintance.",
+   "errors": 1
+  },
+  {
+   "id": "3729-6852-0001",
+   "group": "librispeech-test-clean",
+   "reference": "WITHOUT SAYING IT POSITIVELY SHE MADE ME UNDERSTAND THAT BEING HERSELF AN ILLUSTRIOUS MEMBER OF THE REPUBLIC OF LETTERS SHE WAS WELL AWARE THAT SHE WAS SPEAKING TO AN INSECT",
+   "hypothesis": "Without saying it positively, she made me understand that being herself an illustrious member of the Republic of Letters, she was well aware that she was speaking to an insect.",
+   "errors": 0
+  },
+  {
+   "id": "3729-6852-0002",
+   "group": "librispeech-test-clean",
+   "reference": "IN ORDER TO PLEASE HER I SPOKE TO HER OF THE ABBE CONTI AND I HAD OCCASION TO QUOTE TWO LINES OF THAT PROFOUND WRITER",
+   "hypothesis": "In order to please her, I spoke to her of the Abbey Conti and I had occasion to quote two lines of that profound writer.",
+   "errors": 1
+  },
+  {
+   "id": "3729-6852-0003",
+   "group": "librispeech-test-clean",
+   "reference": "MADAM CORRECTED ME WITH A PATRONIZING AIR FOR MY PRONUNCIATION OF THE WORD SCEVRA WHICH MEANS DIVIDED SAYING THAT IT OUGHT TO BE PRONOUNCED SCEURA AND SHE ADDED THAT I OUGHT TO BE VERY GLAD TO HAVE LEARNED SO MUCH ON THE FIRST DAY OF MY ARRIVAL IN PARIS TELLING ME THAT IT WOULD BE AN IMPORTANT DAY IN MY LIFE",
+   "hypothesis": "Madame corrected me with a patronizing air for my pronunciation of the word scevra, which means divided, saying that it ought to be pronounced skeura. And she added that I ought to be very glad to have learned so much on the first day of my arrival in Paris, telling me that it would be an important day in my life.",
+   "errors": 2
+  },
+  {
+   "id": "4077-13751-0000",
+   "group": "librispeech-test-clean",
+   "reference": "ON THE SIXTH OF APRIL EIGHTEEN THIRTY THE CHURCH OF JESUS CHRIST OF LATTER DAY SAINTS WAS FORMALLY ORGANIZED AND THUS TOOK ON A LEGAL EXISTENCE",
+   "hypothesis": "On the 6th of April, 1830, the Church of Jesus Christ of Latter-day Saints was formerly organized and thus took on a legal existence.",
+   "errors": 4
+  },
+  {
+   "id": "4077-13751-0001",
+   "group": "librispeech-test-clean",
+   "reference": "ITS ORIGIN WAS SMALL A GERM AN INSIGNIFICANT SEED HARDLY TO BE THOUGHT OF AS LIKELY TO AROUSE OPPOSITION",
+   "hypothesis": "its origin was small, a germ, an insignificant seed, hardly to be thought of as likely to arouse opposition.",
+   "errors": 0
+  },
+  {
+   "id": "4077-13751-0002",
+   "group": "librispeech-test-clean",
+   "reference": "INSTEAD OF BUT SIX REGULARLY AFFILIATED MEMBERS AND AT MOST TWO SCORE OF ADHERENTS THE ORGANIZATION NUMBERS TODAY MANY HUNDRED THOUSAND SOULS",
+   "hypothesis": "Instead of but six regularly affiliated members, and at most, two score of adherents, the organization numbers today many hundred thousand souls.",
+   "errors": 0
+  },
+  {
+   "id": "4077-13751-0003",
+   "group": "librispeech-test-clean",
+   "reference": "IN PLACE OF A SINGLE HAMLET IN THE SMALLEST CORNER OF WHICH THE MEMBERS COULD HAVE CONGREGATED THERE NOW ARE ABOUT SEVENTY STAKES OF ZION AND ABOUT SEVEN HUNDRED ORGANIZED WARDS EACH WARD AND STAKE WITH ITS FULL COMPLEMENT OF OFFICERS AND PRIESTHOOD ORGANIZATIONS",
+   "hypothesis": "In place have a single hamlet, in the smallest corner of which the members could have congregated. There now are about 70 stakes of Zion and about 700 organized wards, each ward and stake with its full complement of officers and priesthood organizations.",
+   "errors": 4
+  },
+  {
+   "id": "4446-2271-0000",
+   "group": "librispeech-test-clean",
+   "reference": "MAINHALL LIKED ALEXANDER BECAUSE HE WAS AN ENGINEER",
+   "hypothesis": "Main hall liked Alexander because he was an engineer.",
+   "errors": 2
+  },
+  {
+   "id": "4446-2271-0001",
+   "group": "librispeech-test-clean",
+   "reference": "HE HAD PRECONCEIVED IDEAS ABOUT EVERYTHING AND HIS IDEA ABOUT AMERICANS WAS THAT THEY SHOULD BE ENGINEERS OR MECHANICS",
+   "hypothesis": "He had preconceived ideas about everything, and his idea about Americans was that they should be engineers or mechanics.",
+   "errors": 0
+  },
+  {
+   "id": "4446-2271-0002",
+   "group": "librispeech-test-clean",
+   "reference": "IT'S TREMENDOUSLY WELL PUT ON TOO",
+   "hypothesis": "It's tremendously well put on, too.",
+   "errors": 0
+  },
+  {
+   "id": "4446-2271-0003",
+   "group": "librispeech-test-clean",
+   "reference": "IT'S BEEN ON ONLY TWO WEEKS AND I'VE BEEN HALF A DOZEN TIMES ALREADY",
+   "hypothesis": "It's been on only two weeks, and I've been half a dozen times already.",
+   "errors": 0
+  },
+  {
+   "id": "4507-16021-0000",
+   "group": "librispeech-test-clean",
+   "reference": "CHAPTER ONE ORIGIN",
+   "hypothesis": "Chapter 1 Origin",
+   "errors": 1
+  },
+  {
+   "id": "4507-16021-0001",
+   "group": "librispeech-test-clean",
+   "reference": "IT ENGENDERS A WHOLE WORLD LA PEGRE FOR WHICH READ THEFT AND A HELL LA PEGRENNE FOR WHICH READ HUNGER",
+   "hypothesis": "It engenders a whole world, La Pegre, for which red theft, and a hell, La Pegren, for which red hunger.",
+   "errors": 3
+  },
+  {
+   "id": "4507-16021-0002",
+   "group": "librispeech-test-clean",
+   "reference": "THUS IDLENESS IS THE MOTHER",
+   "hypothesis": "Thus, idleness is the mother.",
+   "errors": 0
+  },
+  {
+   "id": "4507-16021-0003",
+   "group": "librispeech-test-clean",
+   "reference": "SHE HAS A SON THEFT AND A DAUGHTER HUNGER",
+   "hypothesis": "She has a son, theft, and a daughter, hunger.",
+   "errors": 0
+  },
+  {
+   "id": "4970-29093-0000",
+   "group": "librispeech-test-clean",
+   "reference": "YOU'LL NEVER DIG IT OUT OF THE ASTOR LIBRARY",
+   "hypothesis": "You'll never dig it out of the Astor Library.",
+   "errors": 0
+  },
+  {
+   "id": "4970-29093-0001",
+   "group": "librispeech-test-clean",
+   "reference": "TO THE YOUNG AMERICAN HERE OR ELSEWHERE THE PATHS TO FORTUNE ARE INNUMERABLE AND ALL OPEN THERE IS INVITATION IN THE AIR AND SUCCESS IN ALL HIS WIDE HORIZON",
+   "hypothesis": "To the young American, here or elsewhere, the paths to fortune are innumerable and all open. There is invitation in the air and success in all his wide horizon.",
+   "errors": 0
+  },
+  {
+   "id": "4970-29093-0002",
+   "group": "librispeech-test-clean",
+   "reference": "HE HAS NO TRADITIONS TO BIND HIM OR GUIDE HIM AND HIS IMPULSE IS TO BREAK AWAY FROM THE OCCUPATION HIS FATHER HAS FOLLOWED AND MAKE A NEW WAY FOR HIMSELF",
+   "hypothesis": "He has no traditions to bind him or guide him, and his impulse is to break away from the occupation his father has followed, and make a new way for himself.",
+   "errors": 0
+  },
+  {
+   "id": "4970-29093-0003",
+   "group": "librispeech-test-clean",
+   "reference": "THE MODEST FELLOW WOULD HAVE LIKED FAME THRUST UPON HIM FOR SOME WORTHY ACHIEVEMENT IT MIGHT BE FOR A BOOK OR FOR THE SKILLFUL MANAGEMENT OF SOME GREAT NEWSPAPER OR FOR SOME DARING EXPEDITION LIKE THAT OF LIEUTENANT STRAIN OR DOCTOR KANE",
+   "hypothesis": "The modest fellow would have liked fame thrust upon him for some worthy achievement. It might be for a book, or for the skillful management of some great newspaper, or for some daring expedition like that of Lieutenant Strain or Dr. Cain.",
+   "errors": 2
+  },
+  {
+   "id": "4992-23283-0000",
+   "group": "librispeech-test-clean",
+   "reference": "BUT THE MORE FORGETFULNESS HAD THEN PREVAILED THE MORE POWERFUL WAS THE FORCE OF REMEMBRANCE WHEN SHE AWOKE",
+   "hypothesis": "But the more forgetfulness had then prevailed, the more powerful was the force of remembrance when she awoke.",
+   "errors": 0
+  },
+  {
+   "id": "4992-23283-0001",
+   "group": "librispeech-test-clean",
+   "reference": "MISS MILNER'S HEALTH IS NOT GOOD",
+   "hypothesis": "Miss Milner's health is not good.",
+   "errors": 0
+  },
+  {
+   "id": "4992-23283-0002",
+   "group": "librispeech-test-clean",
+   "reference": "SAID MISSUS HORTON A FEW MINUTES AFTER",
+   "hypothesis": "said Mrs. Horton a few minutes after.",
+   "errors": 1
+  },
+  {
+   "id": "4992-23283-0003",
+   "group": "librispeech-test-clean",
+   "reference": "SO THERE IS TO ME ADDED SANDFORD WITH A SARCASTIC SNEER",
+   "hypothesis": "So there is, to me, added Samford with a sarcastic sneer.",
+   "errors": 1
+  },
+  {
+   "id": "5105-28233-0000",
+   "group": "librispeech-test-clean",
+   "reference": "LENGTH OF SERVICE FOURTEEN YEARS THREE MONTHS AND FIVE DAYS",
+   "hypothesis": "Length of service, 14 years, 3 months, and 5 days.",
+   "errors": 3
+  },
+  {
+   "id": "5105-28233-0001",
+   "group": "librispeech-test-clean",
+   "reference": "HE SEEMED BORN TO PLEASE WITHOUT BEING CONSCIOUS OF THE POWER HE POSSESSED",
+   "hypothesis": "He seemed born to please without being conscious of the power he possessed.",
+   "errors": 0
+  },
+  {
+   "id": "5105-28233-0002",
+   "group": "librispeech-test-clean",
+   "reference": "IT MUST BE OWNED AND NO ONE WAS MORE READY TO CONFESS IT THAN HIMSELF THAT HIS LITERARY ATTAINMENTS WERE BY NO MEANS OF A HIGH ORDER",
+   "hypothesis": "It must be owned, and no one was more ready to confess it than himself, that his literary attainments were by no means of a high order.",
+   "errors": 0
+  },
+  {
+   "id": "5105-28233-0003",
+   "group": "librispeech-test-clean",
+   "reference": "WE DON'T SPIN TOPS IS A FAVORITE SAYING AMONGST ARTILLERY OFFICERS INDICATING THAT THEY DO NOT SHIRK THEIR DUTY BY FRIVOLOUS PURSUITS BUT IT MUST BE CONFESSED THAT SERVADAC BEING NATURALLY IDLE WAS VERY MUCH GIVEN TO SPINNING TOPS",
+   "hypothesis": "We don't spin tops, is a favorite saying amongst artillery officers, indicating that they do not shirk their duty by frivolous pursuits. But it must be confessed that Servidak, being naturally idle, was very much given to spinning tops.",
+   "errors": 1
+  },
+  {
+   "id": "5142-33396-0000",
+   "group": "librispeech-test-clean",
+   "reference": "AT ANOTHER TIME HARALD ASKED",
+   "hypothesis": "At another time, Harold asked,",
+   "errors": 1
+  },
+  {
+   "id": "5142-33396-0001",
+   "group": "librispeech-test-clean",
+   "reference": "WHAT IS YOUR COUNTRY OLAF HAVE YOU ALWAYS BEEN A THRALL THE THRALL'S EYES FLASHED",
+   "hypothesis": "What is your country, Olaf? Have you always been a thrall? The thrall's eyes flashed.",
+   "errors": 0
+  },
+  {
+   "id": "5142-33396-0002",
+   "group": "librispeech-test-clean",
+   "reference": "TWO HUNDRED WARRIORS FEASTED IN HIS HALL AND FOLLOWED HIM TO BATTLE",
+   "hypothesis": "200 warriors feasted in his hall and followed him to battle.",
+   "errors": 2
+  },
+  {
+   "id": "5142-33396-0003",
+   "group": "librispeech-test-clean",
+   "reference": "THE REST OF YOU OFF A VIKING HE HAD THREE SHIPS",
+   "hypothesis": "The rest of you, off of hiking. He had three ships.",
+   "errors": 2
+  },
+  {
+   "id": "5639-40744-0000",
+   "group": "librispeech-test-clean",
+   "reference": "ELEVEN O'CLOCK HAD STRUCK IT WAS A FINE CLEAR NIGHT THEY WERE THE ONLY PERSONS ON THE ROAD AND THEY SAUNTERED LEISURELY ALONG TO AVOID PAYING THE PRICE OF FATIGUE FOR THE RECREATION PROVIDED FOR THE TOLEDANS IN THEIR VALLEY OR ON THE BANKS OF THEIR RIVER",
+   "hypothesis": "11 o'clock had struck. It was a fine clear night. There were the only persons on the road, and they sauntered leisurely along, to avoid paying the price of fatigue for the recreation provided for the Toledans in the valley or on the banks of their river.",
+   "errors": 3
+  },
+  {
+   "id": "5639-40744-0001",
+   "group": "librispeech-test-clean",
+   "reference": "SECURE AS HE THOUGHT IN THE CAREFUL ADMINISTRATION OF JUSTICE IN THAT CITY AND THE CHARACTER OF ITS WELL DISPOSED INHABITANTS THE GOOD HIDALGO WAS FAR FROM THINKING THAT ANY DISASTER COULD BEFAL HIS FAMILY",
+   "hypothesis": "Secure, as he thought, in the careful administration of justice in that city, and the character of its well-disposed inhabitants, the good Hidalgo was far from thinking that any disaster could befall his family.",
+   "errors": 1
+  },
+  {
+   "id": "5639-40744-0002",
+   "group": "librispeech-test-clean",
+   "reference": "RODOLFO AND HIS COMPANIONS WITH THEIR FACES MUFFLED IN THEIR CLOAKS STARED RUDELY AND INSOLENTLY AT THE MOTHER THE DAUGHTER AND THE SERVANT MAID",
+   "hypothesis": "Rudolfo and his companions, with their faces muffled in their cloaks, stared rudely and insolently at the mother the daughter and the servant made.",
+   "errors": 2
+  },
+  {
+   "id": "5639-40744-0003",
+   "group": "librispeech-test-clean",
+   "reference": "IN A MOMENT HE COMMUNICATED HIS THOUGHTS TO HIS COMPANIONS AND IN THE NEXT MOMENT THEY RESOLVED TO TURN BACK AND CARRY HER OFF TO PLEASE RODOLFO FOR THE RICH WHO ARE OPEN HANDED ALWAYS FIND PARASITES READY TO ENCOURAGE THEIR BAD PROPENSITIES AND THUS TO CONCEIVE THIS WICKED DESIGN TO COMMUNICATE IT APPROVE IT RESOLVE ON RAVISHING LEOCADIA AND TO CARRY THAT DESIGN INTO EFFECT WAS THE WORK OF A MOMENT",
+   "hypothesis": "In a moment, he communicated his thoughts to his companions, and in the next moment, they resolved to turn back and carry her off to please Rudolfo. For the rich, who are open-handed, always find parasites ready to encourage their bad propensities. And thus, to conceive this wicked design, to communicate it, approve it, resolve unravellingly Ocadia, and to carry that design into effect was the work of a moment.",
+   "errors": 4
+  },
+  {
+   "id": "5683-32865-0000",
+   "group": "librispeech-test-clean",
+   "reference": "YOU KNOW CAPTAIN LAKE",
+   "hypothesis": "You know Captain Leak?",
+   "errors": 1
+  },
+  {
+   "id": "5683-32865-0001",
+   "group": "librispeech-test-clean",
+   "reference": "SAID LORD CHELFORD ADDRESSING ME",
+   "hypothesis": "said Lord Shelford, addressing me.",
+   "errors": 1
+  },
+  {
+   "id": "5683-32865-0002",
+   "group": "librispeech-test-clean",
+   "reference": "HE HAD HIS HAND UPON LAKE'S SHOULDER",
+   "hypothesis": "He had his hand upon Lake's shoulder",
+   "errors": 0
+  },
+  {
+   "id": "5683-32865-0003",
+   "group": "librispeech-test-clean",
+   "reference": "THEY ARE COUSINS YOU KNOW WE ARE ALL COUSINS",
+   "hypothesis": "They're cousins, you know. We are all cousins.",
+   "errors": 2
+  },
+  {
+   "id": "6829-68769-0000",
+   "group": "librispeech-test-clean",
+   "reference": "KENNETH AND BETH REFRAINED FROM TELLING THE OTHER GIRLS OR UNCLE JOHN OF OLD WILL ROGERS'S VISIT BUT THEY GOT MISTER WATSON IN THE LIBRARY AND QUESTIONED HIM CLOSELY ABOUT THE PENALTY FOR FORGING A CHECK",
+   "hypothesis": "Kenneth and Beth refrained from telling the other girls or Uncle John of old Will Rogers visit But they got Mr. Watson in the library and questioned him closely about the penalty for forging a check",
+   "errors": 2
+  },
+  {
+   "id": "6829-68769-0001",
+   "group": "librispeech-test-clean",
+   "reference": "IT WAS A SERIOUS CRIME INDEED MISTER WATSON TOLD THEM AND TOM GATES BADE FAIR TO SERVE A LENGTHY TERM IN STATE'S PRISON AS A CONSEQUENCE OF HIS RASH ACT",
+   "hypothesis": "It was a serious crime indeed, Mr. Watson told them, and Tom Gates bade fair to serve a lengthy term in the state's prison as a consequence of his rash act.",
+   "errors": 2
+  },
+  {
+   "id": "6829-68769-0002",
+   "group": "librispeech-test-clean",
+   "reference": "I CAN'T SEE IT IN THAT LIGHT SAID THE OLD LAWYER",
+   "hypothesis": "I can't see it in that light,\" said the old lawyer.",
+   "errors": 0
+  },
+  {
+   "id": "6829-68769-0003",
+   "group": "librispeech-test-clean",
+   "reference": "IT WAS A DELIBERATE THEFT FROM HIS EMPLOYERS TO PROTECT A GIRL HE LOVED",
+   "hypothesis": "It was a deliberate theft from his employers to protect a girl he loved.",
+   "errors": 0
+  },
+  {
+   "id": "6930-75918-0000",
+   "group": "librispeech-test-clean",
+   "reference": "CONCORD RETURNED TO ITS PLACE AMIDST THE TENTS",
+   "hypothesis": "Concord returned to its place amidst the tents.",
+   "errors": 0
+  },
+  {
+   "id": "6930-75918-0001",
+   "group": "librispeech-test-clean",
+   "reference": "THE ENGLISH FORWARDED TO THE FRENCH BASKETS OF FLOWERS OF WHICH THEY HAD MADE A PLENTIFUL PROVISION TO GREET THE ARRIVAL OF THE YOUNG PRINCESS THE FRENCH IN RETURN INVITED THE ENGLISH TO A SUPPER WHICH WAS TO BE GIVEN THE NEXT DAY",
+   "hypothesis": "The English voted to the French baskets of flowers of which they had made a plentiful provision to greet the arrival of the young princess. The French, in return, invited the English to a supper, which was to be given the next day.",
+   "errors": 1
+  },
+  {
+   "id": "6930-75918-0002",
+   "group": "librispeech-test-clean",
+   "reference": "CONGRATULATIONS WERE POURED IN UPON THE PRINCESS EVERYWHERE DURING HER JOURNEY",
+   "hypothesis": "Congratulations were poured in upon the princess everywhere during her journey.",
+   "errors": 0
+  },
+  {
+   "id": "6930-75918-0003",
+   "group": "librispeech-test-clean",
+   "reference": "FROM THE RESPECT PAID HER ON ALL SIDES SHE SEEMED LIKE A QUEEN AND FROM THE ADORATION WITH WHICH SHE WAS TREATED BY TWO OR THREE SHE APPEARED AN OBJECT OF WORSHIP THE QUEEN MOTHER GAVE THE FRENCH THE MOST AFFECTIONATE RECEPTION FRANCE WAS HER NATIVE COUNTRY AND SHE HAD SUFFERED TOO MUCH UNHAPPINESS IN ENGLAND FOR ENGLAND TO HAVE MADE HER FORGET FRANCE",
+   "hypothesis": "From the respect paid her on all sides, she seemed like a queen, and from the adoration with which she was treated by two or three, she appeared an object of worship. The queen mother gave the French the most affectionate reception. France was her native country, and she had suffered too much unhappiness in England for England to have made her forget France.",
+   "errors": 0
+  },
+  {
+   "id": "7021-79730-0000",
+   "group": "librispeech-test-clean",
+   "reference": "THE THREE MODES OF MANAGEMENT",
+   "hypothesis": "the three modes of management.",
+   "errors": 0
+  },
+  {
+   "id": "7021-79730-0001",
+   "group": "librispeech-test-clean",
+   "reference": "TO SUPPOSE THAT THE OBJECT OF THIS WORK IS TO AID IN EFFECTING SUCH A SUBSTITUTION AS THAT IS ENTIRELY TO MISTAKE ITS NATURE AND DESIGN",
+   "hypothesis": "To suppose that the object of this work is to aid in affecting such a substitution as that is entirely to mistake its nature and design.",
+   "errors": 1
+  },
+  {
+   "id": "7021-79730-0002",
+   "group": "librispeech-test-clean",
+   "reference": "BY REASON AND AFFECTION",
+   "hypothesis": "by reason and affection.",
+   "errors": 0
+  },
+  {
+   "id": "7021-79730-0003",
+   "group": "librispeech-test-clean",
+   "reference": "AS THE CHAISE DRIVES AWAY MARY STANDS BEWILDERED AND PERPLEXED ON THE DOOR STEP HER MIND IN A TUMULT OF EXCITEMENT IN WHICH HATRED OF THE DOCTOR DISTRUST AND SUSPICION OF HER MOTHER DISAPPOINTMENT VEXATION AND ILL HUMOR SURGE AND SWELL AMONG THOSE DELICATE ORGANIZATIONS ON WHICH THE STRUCTURE AND DEVELOPMENT OF THE SOUL SO CLOSELY DEPEND DOING PERHAPS AN IRREPARABLE INJURY",
+   "hypothesis": "As the chase drives away, Mary stands bewildered and perplexed on the doorstep, her mind in a tumult of excitement in which hatred of the doctor, distrust and suspicion of her mother, disappointment, vexation, and ill humor surge and swell among those delicate organizations on which the structure and development of the soul so closely depend, doing perhaps an irreparable injury.",
+   "errors": 3
+  },
+  {
+   "id": "7127-75946-0000",
+   "group": "librispeech-test-clean",
+   "reference": "AT THE CONCLUSION OF THE BANQUET WHICH WAS SERVED AT FIVE O'CLOCK THE KING ENTERED HIS CABINET WHERE HIS TAILORS WERE AWAITING HIM FOR THE PURPOSE OF TRYING ON THE CELEBRATED COSTUME REPRESENTING SPRING WHICH WAS THE RESULT OF SO MUCH IMAGINATION AND HAD COST SO MANY EFFORTS OF THOUGHT TO THE DESIGNERS AND ORNAMENT WORKERS OF THE COURT",
+   "hypothesis": "At the conclusion of the banquet, which was served at 5 o'clock, the king entered his cabinet where his tailors were awaiting him for the purpose of trying on the celebrated costume representing spring, which was the result of so much imagination and had cost so many efforts of thought to the designers and ornament workers of the court.",
+   "errors": 1
+  },
+  {
+   "id": "7127-75946-0001",
+   "group": "librispeech-test-clean",
+   "reference": "AH VERY WELL",
+   "hypothesis": "Ah, very well.",
+   "errors": 0
+  },
+  {
+   "id": "7127-75946-0002",
+   "group": "librispeech-test-clean",
+   "reference": "LET HIM COME IN THEN SAID THE KING AND AS IF COLBERT HAD BEEN LISTENING AT THE DOOR FOR THE PURPOSE OF KEEPING HIMSELF AU COURANT WITH THE CONVERSATION HE ENTERED AS SOON AS THE KING HAD PRONOUNCED HIS NAME TO THE TWO COURTIERS",
+   "hypothesis": "Let him come in, then, said the king, and as if Colbert had been listening at the door for the purpose of keeping himself au courant with the conversation, he entered as soon as the king had pronounced his name to the two courtiers.",
+   "errors": 0
+  },
+  {
+   "id": "7127-75946-0003",
+   "group": "librispeech-test-clean",
+   "reference": "GENTLEMEN TO YOUR POSTS WHEREUPON SAINT AIGNAN AND VILLEROY TOOK THEIR LEAVE",
+   "hypothesis": "Gentlemen, do your posts. We're up on St. Aignan and Vila Roy took their leave.",
+   "errors": 7
+  },
+  {
+   "id": "7176-88083-0000",
+   "group": "librispeech-test-clean",
+   "reference": "ALL ABOUT HIM WAS A TUMULT OF BRIGHT AND BROKEN COLOR SCATTERED IN BROAD SPLASHES",
+   "hypothesis": "All about him was a tumult of bright and broken color scattered in broad splashes",
+   "errors": 0
+  },
+  {
+   "id": "7176-88083-0001",
+   "group": "librispeech-test-clean",
+   "reference": "THE MERGANSER HAD A CRESTED HEAD OF IRIDESCENT GREEN BLACK A BROAD COLLAR OF LUSTROUS WHITE BLACK BACK BLACK AND WHITE WINGS WHITE BELLY SIDES FINELY PENCILLED IN BLACK AND WHITE AND A BREAST OF RICH CHESTNUT RED STREAKED WITH BLACK",
+   "hypothesis": "The mergancer had a crusted head of iridescent green black, a broad collar of lustrous white, black back, black and white wings, white belly, sides finely penciled in black and white, and a breast of rich chestnut red streaked with black.",
+   "errors": 3
+  },
+  {
+   "id": "7176-88083-0002",
+   "group": "librispeech-test-clean",
+   "reference": "HIS FEET WERE RED HIS LONG NARROW BEAK WITH ITS SAW TOOTHED EDGES AND SHARP HOOKED TIP WAS BRIGHT RED",
+   "hypothesis": "His feet were red, his long, narrow beak, with its sawtoothed edges and sharp hooked tip was bright red.",
+   "errors": 2
+  },
+  {
+   "id": "7176-88083-0003",
+   "group": "librispeech-test-clean",
+   "reference": "BUT HERE HE WAS AT A TERRIBLE DISADVANTAGE AS COMPARED WITH THE OWLS HAWKS AND EAGLES HE HAD NO RENDING CLAWS",
+   "hypothesis": "But here he was at a terrible disadvantage as compared with the owls, hawks and eagles. He had no rinding claws.",
+   "errors": 1
+  },
+  {
+   "id": "7729-102255-0000",
+   "group": "librispeech-test-clean",
+   "reference": "THE BOGUS LEGISLATURE NUMBERED THIRTY SIX MEMBERS",
+   "hypothesis": "The bogus legislature numbered 36 members.",
+   "errors": 2
+  },
+  {
+   "id": "7729-102255-0001",
+   "group": "librispeech-test-clean",
+   "reference": "THIS WAS AT THE MARCH ELECTION EIGHTEEN FIFTY FIVE",
+   "hypothesis": "This was at the March election, 1855.",
+   "errors": 3
+  },
+  {
+   "id": "7729-102255-0002",
+   "group": "librispeech-test-clean",
+   "reference": "THAT SUMMER'S EMIGRATION HOWEVER BEING MAINLY FROM THE FREE STATES GREATLY CHANGED THE RELATIVE STRENGTH OF THE TWO PARTIES",
+   "hypothesis": "That summer's immigration, however, being mainly from the free states, greatly changed the relative strengths of the two parties.",
+   "errors": 2
+  },
+  {
+   "id": "7729-102255-0003",
+   "group": "librispeech-test-clean",
+   "reference": "FOR GENERAL SERVICE THEREFORE REQUIRING NO SPECIAL EFFORT THE NUMERICAL STRENGTH OF THE FACTIONS WAS ABOUT EQUAL WHILE ON EXTRAORDINARY OCCASIONS THE TWO THOUSAND BORDER RUFFIAN RESERVE LYING A LITTLE FARTHER BACK FROM THE STATE LINE COULD AT ANY TIME EASILY TURN THE SCALE",
+   "hypothesis": "For general service, therefore, requiring no special effort, the numerical strength of the factions was about equal, while on extraordinary occasions, the 2,000 Borderoffian reserve lying a little farther back from the state line could at any time easily turn the scale.",
+   "errors": 4
+  },
+  {
+   "id": "8224-274381-0000",
+   "group": "librispeech-test-clean",
+   "reference": "THOUGH THROWN INTO PRISON FOR THIS ENTERPRISE AND DETAINED SOME TIME HE WAS NOT DISCOURAGED BUT STILL CONTINUED BY HIS COUNTENANCE AND PROTECTION TO INFUSE SPIRIT INTO THE DISTRESSED ROYALISTS",
+   "hypothesis": "Though thrown into prison for this enterprise and detained some time, he was not discouraged, but still continued by his countenance and protection to infuse spirit into the distressed royalists.",
+   "errors": 0
+  },
+  {
+   "id": "8224-274381-0001",
+   "group": "librispeech-test-clean",
+   "reference": "AMONG OTHER PERSONS OF DISTINCTION WHO UNITED THEMSELVES TO HIM WAS LORD NAPIER OF MERCHISTON SON OF THE FAMOUS INVENTOR OF THE LOGARITHMS THE PERSON TO WHOM THE TITLE OF A GREAT MAN IS MORE JUSTLY DUE THAN TO ANY OTHER WHOM HIS COUNTRY EVER PRODUCED",
+   "hypothesis": "Among other persons of distinction who united themselves to him was Lord Napier of Merchaston, son of the famous inventor of the logarithms, the person to whom the title of A Great Man is more justly due than to any other whom his country ever produced.",
+   "errors": 1
+  },
+  {
+   "id": "8224-274381-0002",
+   "group": "librispeech-test-clean",
+   "reference": "WHILE THE FORMER FORETOLD THAT THE SCOTTISH COVENANTERS WERE SECRETLY FORMING A UNION WITH THE ENGLISH PARLIAMENT AND INCULCATED THE NECESSITY OF PREVENTING THEM BY SOME VIGOROUS UNDERTAKING THE LATTER STILL INSISTED THAT EVERY SUCH ATTEMPT WOULD PRECIPITATE THEM INTO MEASURES TO WHICH OTHERWISE THEY WERE NOT PERHAPS INCLINED",
+   "hypothesis": "While the former foretold that the Scottish Covenanters were secretly forming a union with the English Parliament and inculcated the necessity of preventing them by some vigorous undertaking, the latter still insisted that every such attempt would precipitate them into measures to which otherwise they were not perhaps inclined.",
+   "errors": 0
+  },
+  {
+   "id": "8224-274381-0003",
+   "group": "librispeech-test-clean",
+   "reference": "THE KING'S EARS WERE NOW OPEN TO MONTROSE'S COUNSELS WHO PROPOSED NONE BUT THE BOLDEST AND MOST DARING AGREEABLY TO THE DESPERATE STATE OF THE ROYAL CAUSE IN SCOTLAND",
+   "hypothesis": "The king's ears were now open to Montrose's councils, who proposed none but the boldest and most daring, agreeably to the desperate state of the royal cause in Scotland.",
+   "errors": 1
+  },
+  {
+   "id": "8230-279154-0000",
+   "group": "librispeech-test-clean",
+   "reference": "THE ANALYSIS OF KNOWLEDGE WILL OCCUPY US UNTIL THE END OF THE THIRTEENTH LECTURE AND IS THE MOST DIFFICULT PART OF OUR WHOLE ENTERPRISE",
+   "hypothesis": "The analysis of knowledge will occupy us until the end of the 13th lecture and is the most difficult part of our whole enterprise.",
+   "errors": 1
+  },
+  {
+   "id": "8230-279154-0001",
+   "group": "librispeech-test-clean",
+   "reference": "WHAT IS CALLED PERCEPTION DIFFERS FROM SENSATION BY THE FACT THAT THE SENSATIONAL INGREDIENTS BRING UP HABITUAL ASSOCIATES IMAGES AND EXPECTATIONS OF THEIR USUAL CORRELATES ALL OF WHICH ARE SUBJECTIVELY INDISTINGUISHABLE FROM THE SENSATION",
+   "hypothesis": "What is called perception differs from sensation by the fact that the sensational ingredients bring up habitual associates, images and expectations of their usual correlates, all of which are subjectively indistinguishable from the sensation.",
+   "errors": 0
+  },
+  {
+   "id": "8230-279154-0002",
+   "group": "librispeech-test-clean",
+   "reference": "WHETHER OR NOT THIS PRINCIPLE IS LIABLE TO EXCEPTIONS EVERYONE WOULD AGREE THAT IS HAS A BROAD MEASURE OF TRUTH THOUGH THE WORD EXACTLY MIGHT SEEM AN OVERSTATEMENT AND IT MIGHT SEEM MORE CORRECT TO SAY THAT IDEAS APPROXIMATELY REPRESENT IMPRESSIONS",
+   "hypothesis": "Whether or not this principle is liable to exceptions, everyone would agree that it has a broad measure of truth, though the word exactly might seem an overstatement, and it might seem more correct to say that ideas approximately represent impressions.",
+   "errors": 1
+  },
+  {
+   "id": "8230-279154-0003",
+   "group": "librispeech-test-clean",
+   "reference": "AND WHAT SORT OF EVIDENCE IS LOGICALLY POSSIBLE",
+   "hypothesis": "And what sort of evidence is logically possible?",
+   "errors": 0
+  },
+  {
+   "id": "8455-210777-0000",
+   "group": "librispeech-test-clean",
+   "reference": "I REMAINED THERE ALONE FOR MANY HOURS BUT I MUST ACKNOWLEDGE THAT BEFORE I LEFT THE CHAMBERS I HAD GRADUALLY BROUGHT MYSELF TO LOOK AT THE MATTER IN ANOTHER LIGHT",
+   "hypothesis": "I remained there alone for many hours, but I must acknowledge that before I left the chambers, I had gradually brought myself to look at the matter in another light.",
+   "errors": 0
+  },
+  {
+   "id": "8455-210777-0001",
+   "group": "librispeech-test-clean",
+   "reference": "HAD EVA CRASWELLER NOT BEEN GOOD LOOKING HAD JACK BEEN STILL AT COLLEGE HAD SIR KENNINGTON OVAL REMAINED IN ENGLAND HAD MISTER BUNNIT AND THE BAR KEEPER NOT SUCCEEDED IN STOPPING MY CARRIAGE ON THE HILL SHOULD I HAVE SUCCEEDED IN ARRANGING FOR THE FINAL DEPARTURE OF MY OLD FRIEND",
+   "hypothesis": "Had Eva Kressweller not been good-looking? Had Jack been still at college? Had Sir Kennington Oval remained in England? Had Mr. Bunnett and the barkeeper not succeeded in stopping my carriage on the hill? Should I have succeeded in arranging for the final departure of my old friend?",
+   "errors": 5
+  },
+  {
+   "id": "8455-210777-0002",
+   "group": "librispeech-test-clean",
+   "reference": "ON ARRIVING AT HOME AT MY OWN RESIDENCE I FOUND THAT OUR SALON WAS FILLED WITH A BRILLIANT COMPANY",
+   "hypothesis": "On arriving at home at my own residence, I found that our salon was filled with a brilliant company.",
+   "errors": 0
+  },
+  {
+   "id": "8455-210777-0003",
+   "group": "librispeech-test-clean",
+   "reference": "AS I SPOKE I MADE HIM A GRACIOUS BOW AND I THINK I SHOWED HIM BY MY MODE OF ADDRESS THAT I DID NOT BEAR ANY GRUDGE AS TO MY INDIVIDUAL SELF",
+   "hypothesis": "As I spoke, I made him a gracious bow, and I think I showed him by my mode of address that I did not bear any grudge as to my individual self.",
+   "errors": 0
+  },
+  {
+   "id": "8463-287645-0000",
+   "group": "librispeech-test-clean",
+   "reference": "THIS WAS WHAT DID THE MISCHIEF SO FAR AS THE RUNNING AWAY WAS CONCERNED",
+   "hypothesis": "This was what did the mischief so far as the running away was concerned.",
+   "errors": 0
+  },
+  {
+   "id": "8463-287645-0001",
+   "group": "librispeech-test-clean",
+   "reference": "IT IS HARDLY NECESSARY TO SAY MORE OF THEM HERE",
+   "hypothesis": "It is hardly necessary to say more of them here.",
+   "errors": 0
+  },
+  {
+   "id": "8463-287645-0002",
+   "group": "librispeech-test-clean",
+   "reference": "FROM THE MANNER IN WHICH HE EXPRESSED HIMSELF WITH REGARD TO ROBERT HOLLAN NO MAN IN THE WHOLE RANGE OF HIS RECOLLECTIONS WILL BE LONGER REMEMBERED THAN HE HIS ENTHRALMENT WHILE UNDER HOLLAN WILL HARDLY EVER BE FORGOTTEN",
+   "hypothesis": "From the manner in which he expressed himself, with regard to Robert Holland, no man in the whole range of his recollections will be longer remembered than he. His enthrallment while under Holland will hardly ever be forgotten.",
+   "errors": 3
+  },
+  {
+   "id": "8463-287645-0003",
+   "group": "librispeech-test-clean",
+   "reference": "OF THIS PARTY EDWARD A BOY OF SEVENTEEN CALLED FORTH MUCH SYMPATHY HE TOO WAS CLAIMED BY HOLLAN",
+   "hypothesis": "Of this party, Edward, a boy of seventeen, called forth much sympathy. He too was claimed by Holland.",
+   "errors": 1
+  },
+  {
+   "id": "8555-284447-0000",
+   "group": "librispeech-test-clean",
+   "reference": "THEN HE RUSHED DOWN STAIRS INTO THE COURTYARD SHOUTING LOUDLY FOR HIS SOLDIERS AND THREATENING TO PATCH EVERYBODY IN HIS DOMINIONS IF THE SAILORMAN WAS NOT RECAPTURED",
+   "hypothesis": "Then he rushed downstairs into the courtyard, shouting loudly for his soldiers and threatening to patch everybody and his dominions that the sailor man was not recaptured.",
+   "errors": 6
+  },
+  {
+   "id": "8555-284447-0001",
+   "group": "librispeech-test-clean",
+   "reference": "HOLD HIM FAST MY MEN AND AS SOON AS I'VE HAD MY COFFEE AND OATMEAL I'LL TAKE HIM TO THE ROOM OF THE GREAT KNIFE AND PATCH HIM",
+   "hypothesis": "Hold him fast, my man, and as soon as I've had my coffee and oatmeal, I'll take him to the room of the Great Knife and pat him.",
+   "errors": 2
+  },
+  {
+   "id": "8555-284447-0002",
+   "group": "librispeech-test-clean",
+   "reference": "I WOULDN'T MIND A CUP O COFFEE MYSELF SAID CAP'N BILL I'VE HAD CONSID'BLE EXERCISE THIS MORNIN AND I'M ALL READY FOR BREAKFAS",
+   "hypothesis": "I wouldn't mind a cup of coffee myself, said Ken Bull. I've had considerable exercise this morning, and I'm all ready for breakfast.",
+   "errors": 6
+  },
+  {
+   "id": "8555-284447-0003",
+   "group": "librispeech-test-clean",
+   "reference": "BUT CAP'N BILL MADE NO SUCH ATTEMPT KNOWING IT WOULD BE USELESS",
+   "hypothesis": "But Captain Bill made no such attempt, knowing it would be useless.",
+   "errors": 1
+  }
+ ]
+}

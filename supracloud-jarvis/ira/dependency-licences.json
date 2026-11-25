@@ -1,6 +1,6 @@
 {
   "generated_by": "scripts/build_licence_inventory.py",
-  "package_count": 175,
+  "package_count": 174,
   "packages": {
     "aiohappyeyeballs": {
       "licence": "PSF-2.0",
@@ -85,13 +85,6 @@
       "resolved": true,
       "source": "pypi-json",
       "version": "26.1.0"
-    },
-    "av": {
-      "licence": "BSD-3-Clause",
-      "lock": "requirements.lock",
-      "resolved": true,
-      "source": "pypi-json",
-      "version": "18.1.0"
     },
     "bcrypt": {
       "licence": "Apache License, Version 2.0",

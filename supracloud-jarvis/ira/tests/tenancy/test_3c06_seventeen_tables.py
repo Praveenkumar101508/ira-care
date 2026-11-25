@@ -88,6 +88,8 @@ WORKSPACE_SCOPED = (
     "care_plans",
     # 117: SELECT, INSERT and DELETE granted; no UPDATE, which the UPDATE probe accepts.
     "care_staff_designations",
+    # 121: SELECT, INSERT and DELETE granted; no UPDATE, which the UPDATE probe accepts.
+    "care_activity_periods",
     # 122: instructions are SELECT, INSERT, UPDATE (no DELETE); the audit trail SELECT and INSERT
     # only. The UPDATE and DELETE probes accept the refusal.
     "care_device_admin_instructions",
@@ -192,6 +194,9 @@ SPECS: dict[str, Spec] = {
     "care_push_tickets": Spec(parents=(("care_alerts", "alert_id"),)),
     "care_plans": Spec(columns={"version": "int", "reason": "text"}, parents=(("care_people", "person_id"),)),
     "care_staff_designations": Spec(columns={"user_id": "user", "designation": "literal:coordinator"}),
+    "care_activity_periods": Spec(columns={"period_start": "now", "period_end": "later", "model_version": "text",
+                                           "model_sha256": "literal:" + "0" * 64},
+                                  parents=(("care_people", "person_id"),)),
     "care_device_admin_instructions": Spec(
         columns={"action": "literal:MAINTENANCE_WINDOW", "nonce": "text", "expires_at": "soon", "issued_by": "uuid",
                  "reason": "text", "payload": "text", "signature": "text", "key_id": "text"},
