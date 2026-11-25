@@ -2228,8 +2228,17 @@
    "title": "New versioned care-conversation dataset",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_conversation_dataset.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/conversation/DATASET_CARD.md"
+    }
+   ]
   },
   {
    "id": "F2.e",
