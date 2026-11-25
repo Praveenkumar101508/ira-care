@@ -1,0 +1,11 @@
+IRA Care Activity model (activity_model.json)
+
+Trained by IRA CARE on the WISDM Smartphone and Smartwatch Activity and Biometrics Dataset:
+G. Weiss (2019). WISDM Smartphone and Smartwatch Activity and Biometrics Dataset [Dataset].
+UCI Machine Learning Repository. https://doi.org/10.24432/C5HK59
+Licensed under the Creative Commons Attribution 4.0 International licence (CC BY 4.0),
+https://creativecommons.org/licenses/by/4.0/. The model is IRA CARE's own work derived from
+that data; the dataset's creators do not endorse IRA CARE.
+
+A wellbeing context estimate only. Not a medical device. Not validated on older adults or on
+the IRA watch. See docs/ai/activity/MODEL_CARD.md in the IRA CARE repository.
