@@ -387,3 +387,61 @@ def test_control_the_voice_route_accepts_wav(monkeypatch):
         "/api/v1/voice/transcribe", files={"audio": ("u.wav", _wav(_tone(SR, 1.0), SR), "audio/wav")})
     assert r.status_code == 200, r.text
     assert r.json()["text"] == "hi"
+
+
+# ── 6. Untrusted headers cannot make the decoder do disproportionate work (REVIEW.md S8) ──
+
+def test_a_header_rate_that_needs_a_huge_filter_is_refused_before_any_work(monkeypatch):
+    # 383,999 Hz is in range, but 16,000/383,999 is already in lowest terms: the filter would
+    # have 12,288,000 taps (about 1 GB while it is designed) for a 46-byte file.
+    designed = []
+    monkeypatch.setattr(ad, "_polyphase_bank", lambda *a, **k: designed.append(a))
+    blob = _wav(np.zeros(4), 383_999, width=1)
+    with pytest.raises(ad.UnsupportedAudio, match="383999 Hz, a rate this server does not convert"):
+        ad.decode_to_16k_mono(blob)
+    with pytest.raises(ad.UnsupportedAudio, match="383999 Hz"):
+        ad.decode_audio(blob)
+    with pytest.raises(ad.UnsupportedAudio, match="383999 Hz"):
+        ad.resample(np.zeros(4, np.float32), 383_999)
+    assert designed == []
+
+
+def test_control_every_common_and_the_slowest_odd_rate_still_convert():
+    for rate in (4_001, 8_000, 11_025, 12_000, 22_050, 24_000, 32_000, 37_800, 44_056, 44_100,
+                 47_250, 48_000, 88_200, 96_000, 176_400, 192_000, 352_800, 384_000):
+        assert ad._filter_taps(rate, SR) <= ad._MAX_FILTER_TAPS, rate
+    out = ad.decode_to_16k_mono(_wav(_tone(4_001, 0.5), 4_001))
+    assert abs(out.size - 8_000) <= 2
+    assert ad._filter_taps(383_999, SR) > ad._MAX_FILTER_TAPS
+
+
+def test_a_file_of_endless_empty_chunks_is_refused_not_looped_over():
+    fmt = struct.pack("<HHIIHH", 1, 1, SR, 2 * SR, 2, 16)
+    junk = (b"junk" + struct.pack("<I", 0)) * (ad._MAX_CHUNKS + 1)
+    body = b"WAVE" + junk + b"fmt " + struct.pack("<I", 16) + fmt + b"data" + struct.pack("<I", 2) + b"\0\0"
+    with pytest.raises(ad.UnsupportedAudio, match="more than 1024 chunks"):
+        ad.decode_to_16k_mono(b"RIFF" + struct.pack("<I", len(body)) + body)
+
+
+def test_control_a_few_extra_chunks_are_skipped():
+    fmt = struct.pack("<HHIIHH", 1, 1, SR, 2 * SR, 2, 16)
+    junk = (b"junk" + struct.pack("<I", 0)) * 20
+    body = b"WAVE" + junk + b"fmt " + struct.pack("<I", 16) + fmt + b"data" + struct.pack("<I", 2) + b"\0\0"
+    assert ad.decode_to_16k_mono(b"RIFF" + struct.pack("<I", len(body)) + body).size == 1
+
+
+def test_a_truncated_rf64_size_chunk_is_refused_as_a_bad_wav():
+    body = b"WAVE" + b"ds64" + struct.pack("<I", 28) + b"\0" * 4
+    with pytest.raises(ad.UnsupportedAudio, match="truncated ds64"):
+        ad.decode_to_16k_mono(b"RF64" + struct.pack("<I", 0xFFFFFFFF) + body)
+
+
+def test_control_an_rf64_file_with_a_huge_declared_size_reads_only_what_is_there():
+    # The 64-bit data size says 2**62 bytes; only 4 samples are present, and that is all
+    # that is read (no allocation follows the declared size).
+    fmt = struct.pack("<HHIIHH", 1, 1, SR, 2 * SR, 2, 16)
+    ds64 = struct.pack("<QQQI", 2**62, 2**62, 2**61, 0)
+    body = (b"WAVE" + b"ds64" + struct.pack("<I", len(ds64)) + ds64 + b"fmt " + struct.pack("<I", 16) + fmt
+            + b"data" + struct.pack("<I", 0xFFFFFFFF) + b"\x00\x40" * 4)
+    out = ad.decode_to_16k_mono(b"RF64" + struct.pack("<I", 0xFFFFFFFF) + body)
+    assert out.size == 4 and np.allclose(out, 0.5)

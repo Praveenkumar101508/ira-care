@@ -120,6 +120,9 @@ def create_care_app() -> FastAPI:
                            # X-Idempotency-Key is what the watch's outbox sends with help, falls and answers.
                            allow_headers=["Authorization", "Content-Type", "X-Workspace-ID", "X-Device-Token", "X-Idempotency-Key"])
     app.add_middleware(RequestContextMiddleware)
+    # Outermost: an oversized body is refused before anything reads it (care/body_limit.py).
+    from care.body_limit import BodySizeLimitMiddleware
+    app.add_middleware(BodySizeLimitMiddleware)
     return app
 
 
