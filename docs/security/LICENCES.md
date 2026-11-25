@@ -117,7 +117,7 @@ wired into CI. Each of those tests has a negative control.
 
 **What it was.** faster-whisper, the speech recogniser, declares PyAV (`av`) as a hard
 dependency. PyAV's wheels bundle FFmpeg, including `libx264` and `libx265`, which are
-GPL-2.0-or-later. The owner decided PyAV must not ship (D-082).
+GPL-2.0-or-later. The owner decided PyAV must not ship (D-083).
 
 **What changed.**
 

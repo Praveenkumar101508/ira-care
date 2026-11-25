@@ -1369,7 +1369,7 @@ literally (LIKE wildcards escaped, passed as a parameter), searches are rationed
 address, and each search is written to the access log once per person it returned, with the kinds of
 record found and never the words typed.
 
-## D-082 PyAV does not ship; the server transcribes WAV only (owner decision, 25 November 2026)
+## D-083 PyAV does not ship; the server transcribes WAV only (owner decision, 25 November 2026)
 
 faster-whisper, the server's speech recogniser, declares PyAV (`av`) as a hard dependency, and
 PyAV's wheels bundle FFmpeg built with the GPL-2.0-or-later encoders `libx264` and `libx265`
