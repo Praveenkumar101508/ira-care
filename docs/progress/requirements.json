@@ -2309,8 +2309,9 @@
    "title": "Cross-dataset fall evaluation (train on one dataset, test on another)",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a second wrist fall dataset with a licence that allows it (KFall and FallAllD permission pending; SisFall excluded by the owner; UMAFall terms conflict)"
   },
   {
    "id": "F4.g",
@@ -2328,8 +2329,21 @@
    "title": "A wrist fall model on licensed data that loses no sensitivity against the rule detector ships in release builds",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/fall/results_v3.json"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/sensors/RecoveringFallDetectorTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/sensors/FallModelReleaseTest.kt"
+    }
+   ]
   },
   {
    "id": "F5.a",

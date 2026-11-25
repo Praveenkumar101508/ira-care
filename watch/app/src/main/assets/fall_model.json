@@ -1,0 +1,24 @@
+{
+ "threshold": 0.95,
+ "mean": [
+  0.0014038723893463612,
+  0.0008883678237907588,
+  0.000236475418205373,
+  1.1483241319656372
+ ],
+ "std": [
+  0.7754079699516296,
+  0.7756180167198181,
+  0.776393711566925,
+  0.6881756782531738
+ ],
+ "windowSamples": 200,
+ "rateHz": 50,
+ "candidateG": 2.0,
+ "mode": "recover",
+ "provenance": "ira-fall-v3-licensed",
+ "trained_on": "BITS-2 (Zenodo 10013090, CC BY 4.0) and UCI HAR (UCI 240, CC BY 4.0) only; see docs/ai/fall/MODEL_CARD_V3.md",
+ "cv_sensitivity": 0.7627,
+ "cv_alarms_per_hour_of_adl": 9.85,
+ "tfliteSha256": "2cab7c9bcbf60de51d7c42f5690ad549bcbf4f13eb6266c35bf5d0a59b063278"
+}

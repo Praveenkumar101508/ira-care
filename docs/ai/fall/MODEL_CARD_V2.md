@@ -1,5 +1,7 @@
 # IRA Care Fall v2: model card
 
+> **Superseded (25 November 2026):** v3 (`MODEL_CARD_V3.md`, D-080) passed the shipping gate that v2 failed and is the model release builds carry. This card is kept as the record of v2.
+
 A wrist fall classifier trained only on data whose original licence permits commercial use.
 It is a candidate to replace the v1 fall model, which was trained on a SisFall copy (Zenodo
 22212281) that is a third-party re-upload with unconfirmed terms. The owner has excluded v1 from

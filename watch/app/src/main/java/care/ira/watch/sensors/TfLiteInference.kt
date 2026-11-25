@@ -13,11 +13,11 @@ import java.nio.channels.FileChannel
  * `load` returns null when the asset is missing or the interpreter cannot start,
  * and the caller then runs the rule detector alone.
  *
- * D-077: the current model was trained on a SisFall copy whose terms are unconfirmed, so it is
- * a research asset only. It lives in `src/debug/assets` (engineering and demonstration builds);
- * release builds, and so every commercial build and the IRA CARE OS image, carry no model and
- * detect falls with the rules. A replacement trained only on commercially licensed data goes
- * back into `src/main/assets` once evaluated.
+ * Which model a build carries (D-077, D-080): release builds, and so the IRA CARE OS image, carry
+ * fall model v3 from `src/main/assets`, trained only on commercially licensed data (BITS-2 and UCI
+ * HAR) and run in "recover" mode by RecoveringFallDetector. Debug builds carry the SisFall-trained
+ * v1 from `src/debug/assets` instead (build-type assets win over main), a research asset kept for
+ * the comparison. `FallModelReleaseTest` pins which file may ship.
  */
 class TfLiteInference private constructor(private val interpreter: Interpreter, private val windowSamples: Int) : Inference {
     override fun fallProbability(window: Array<FloatArray>): Float? {
