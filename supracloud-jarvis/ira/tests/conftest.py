@@ -326,3 +326,20 @@ def _ledger_journal_isolated(tmp_path_factory, monkeypatch):
     _journal._reset_for_tests()
     yield
     _journal._reset_for_tests()
+
+
+# ---------------------------------------------------------------------------
+# Every test starts with empty rate-limit counters.
+#
+# The limiter is one process-wide object keyed by client address, and every
+# TestClient is the same address, so without this a test's budget would depend
+# on how many requests the tests before it made. Within a test the limits apply
+# as in production. Only reset if something already imported it: no import here.
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(autouse=True)
+def _rate_limits_fresh_per_test():
+    mod = sys.modules.get("app.middleware")
+    if mod is not None:
+        mod.limiter.reset()
+    yield

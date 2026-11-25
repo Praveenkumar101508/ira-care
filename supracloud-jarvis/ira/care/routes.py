@@ -24,12 +24,18 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from fastapi.encoders import jsonable_encoder
 
 from api.middleware.auth import require_auth
+from app.middleware import limiter
 from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
 from . import authz, audit, checkin_cycle, consent, history, onboarding, ops, personal, plans, push, reports, repository as repo, schemas, sos, visits
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
+
+# The two care routes anyone can call without signing in (the Twilio callback is the third,
+# and is refused unless its signature is valid). Per client address (P2-03 key).
+PAIR_LIMIT = "10/minute"
+SIGNUP_LIMIT = "3/minute"
 
 router = APIRouter(prefix="/care", tags=["care"])
 logger = logging.getLogger("ira.care.routes")
@@ -105,7 +111,8 @@ def _refused(exc: onboarding.OnboardingRefused) -> HTTPException:
 # ── Onboarding: sign-up, the organisation, invitations, the plan ─────────────
 
 @router.post("/signup", status_code=202)
-async def care_signup(body: schemas.Signup):
+@limiter.limit(SIGNUP_LIMIT)   # unauthenticated and it creates rows: the same budget as /auth/register
+async def care_signup(request: Request, body: schemas.Signup):
     """A care organisation's founder creates an account. Unauthenticated; the
     answer never says whether the address existed; a confirmation link goes by
     mail (log-only unless SMTP is configured). 404 when sign-up is not enabled."""
@@ -351,7 +358,8 @@ async def revoke_device(device_id: uuid.UUID, p: Principal = Depends(require_wor
 # ── Devices (watch side) ─────────────────────────────────────────────────────
 
 @router.post("/devices/pair")
-async def pair_device(body: schemas.PairRequest):
+@limiter.limit(PAIR_LIMIT)   # unauthenticated: the code is the credential, so guesses are rationed per address
+async def pair_device(request: Request, body: schemas.PairRequest):
     """Exchange a pairing code for a device token. No login: the code is the credential."""
     device = await repo.pair_device(body.pairing_code, app_version=body.app_version)
     if device is None:

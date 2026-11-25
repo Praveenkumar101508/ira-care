@@ -2260,9 +2260,17 @@
    "title": "Wrist-specific fall model trained on commercially licensed wrist data",
    "area": "ai",
    "hardware_independent": true,
-   "state": "blocked_external",
-   "evidence": [],
-   "blocked_by": "a commercially licensed wrist fall dataset (KFall or FallAllD permission)"
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/fall/results_v2.json"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "scripts/training/fall_model_v2.py"
+    }
+   ]
   },
   {
    "id": "F4.f",
@@ -2282,6 +2290,15 @@
    "state": "blocked_external",
    "evidence": [],
    "blocked_by": "a physical watch"
+  },
+  {
+   "id": "F4.h",
+   "parent": "F4",
+   "title": "A wrist fall model on licensed data that loses no sensitivity against the rule detector ships in release builds",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
   },
   {
    "id": "F5.a",
