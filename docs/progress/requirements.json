@@ -1243,8 +1243,17 @@
    "title": "Android native build of the phone app (APK / AAB)",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml::mobile-android"
+    },
+    {
+     "kind": "build",
+     "ref": "docs/evidence/builds/ANDROID.md"
+    }
+   ]
   },
   {
    "id": "D2.h",

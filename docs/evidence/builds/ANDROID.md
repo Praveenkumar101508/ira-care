@@ -64,5 +64,6 @@ No build file in the repository was changed.
 Because jitpack.io is refused from the development sandbox, the family app's native Android build
 now runs in CI instead: the job "Family app Android build" in `.github/workflows/test.yml`
 (`mobile-android`) generates the native project with `expo prebuild`, builds the release APK with
-debug signing for arm64-v8a, and records its size in the run summary. Its first result is on the
-pull request that added it; requirement D2.g records that result, not this sandbox's attempt.
+debug signing for arm64-v8a, and records its size in the run summary. Its first run, on the pull request that added it (#82, commit `cbbc727`), passed: the family app
+built as a release APK. Requirement D2.g records that CI result, not this sandbox's attempt. It is a
+build, not a signed store build, and nothing ran on a phone or emulator.
