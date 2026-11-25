@@ -79,9 +79,9 @@ openpyxl==3.1.5                  # MUST match requirements.txt
 #   pip install --no-deps --require-hashes -r requirements-nodeps.txt
 # (see that file and docs/security/LICENCES.md). These are its other dependencies, with the
 # ranges faster-whisper 1.2.1 itself declares, so this tree resolves as it did when pip
-# pulled them in; the API image adds onnxruntime 1.20.1 and tokenizers 0.21.0 on the same
-# pip command line (deploy/Dockerfile.api), inside these ranges. No torch: faster-whisper
-# runs on CTranslate2. No model is downloaded by the suite.
+# pulled them in. The API image does not install this file: it installs requirements-api.lock
+# (the lock's versions: onnxruntime 1.31.0, tokenizers 0.22.2), inside these ranges, and no test
+# tool. No torch: faster-whisper runs on CTranslate2. No model is downloaded by the suite.
 ctranslate2==4.8.3               # MUST match requirements.txt — the Whisper inference engine
 huggingface-hub>=0.21
 tokenizers>=0.13,<1

@@ -50,8 +50,8 @@ Python wheels (`site-packages/*.libs`) are judged the same way, keyed by library
 
 | Image (snapshot, 25 November 2026) | Packages | Linked OS libraries | Bundled in wheels | Models |
 |---|---|---|---|---|
-| API (`deploy/Dockerfile.api`) | 128 Python, 87 Debian | 13: libc6 and libcrypt1 (LGPL-2.1-or-later, excepted), libgcc-s1 and libstdc++6 (GCC runtime exception), OpenSSL, zlib, libffi, liblzma, bzip2, SQLite, ncurses, libuuid | 37: Pillow 18, psycopg-binary 14, numpy 3, ctranslate2 2 | the MiniLM encoder, the classifier heads, the heart selector, the activity model, and Silero VAD inside the faster-whisper wheel |
-| Dashboard (`deploy/Dockerfile.dashboard`) | 23 npm in the image (Next.js bundles the rest of the 24-package production tree into `.next`), 19 Alpine | 3: musl, libgcc, libstdc++ | none | none |
+| API (`deploy/Dockerfile.api`) | 112 Python (111 from its two hashed locks, and the base image's pip), 87 Debian | 13: libc6 and libcrypt1 (LGPL-2.1-or-later, excepted), libgcc-s1 and libstdc++6 (GCC runtime exception), OpenSSL, zlib, libffi, liblzma, bzip2, SQLite, ncurses, libuuid | 37: Pillow 18, psycopg-binary 14, numpy 3, ctranslate2 2 | the MiniLM encoder, the classifier heads, the heart selector, the activity model, and Silero VAD inside the faster-whisper wheel |
+| Dashboard (`deploy/Dockerfile.dashboard`) | 22 npm in the image (Next.js bundles the rest of the 24-package production tree into `.next`; TypeScript is excluded from its file tracing), 19 Alpine | 3: musl, libgcc, libstdc++ | none | none |
 | Backup (`deploy/Dockerfile.backup`) | 45 Alpine | 16, linked by PostgreSQL from the base image | none | none |
 
 The snapshots were built in this container, which cannot reach the Debian and Alpine package
@@ -59,10 +59,17 @@ mirrors, so the OS package steps (`curl`, `postgresql-client`, `openssl`) are mi
 them; each inventory says so in its `note`. CI builds the real images and runs the same scan
 with `--check` on every image build: a forbidden package, an unreviewed bundled or linked
 library, or a linked GPL library fails the job. The fresh inventories and full syft CycloneDX
-SBOMs of the real images are kept as the `image-sboms` artifact of that job (30 days). The
-Python packages in the API image are not fully pinned (`requirements-test.txt` has ranges), so
-CI reports a drift from the snapshot as a note rather than a failure; the policy is what it
-enforces.
+SBOMs of the real images are kept as the `image-sboms` artifact of that job (30 days).
+
+The API image's Python packages are fully pinned: it installs `requirements-api.lock` and
+`requirements-nodeps.txt`, both with `--no-deps --require-hashes`, and the build runs `pip check`
+(only faster-whisper's deliberately absent PyAV may be reported). `requirements-api.lock` is a
+strict subset of `requirements.lock`, with the same versions and hashes, for what the care server
+and worker load (`requirements-api.txt`, derived by `supracloud-jarvis/ira/scripts/api_image_lock.py`).
+So for that image the scan is strict: a Python package that is not in the two locks, a locked
+package that is missing, or any difference from the committed snapshot fails the job. For the
+dashboard image, whose npm packages come from Next.js's file tracing, a difference from the
+snapshot is still reported as a note.
 
 ### SBOMs and notices
 
@@ -77,7 +84,24 @@ enforces.
   `supply_chain.py copyrights` from the installed packages), the models with their training
   data's required citations, and the full text of every licence named (SPDX texts in
   `docs/legal/licences/`); and the index `docs/legal/THIRD_PARTY_NOTICES.md`, which says which
-  artefact must carry which file.
+  artefact carries which file;
+- the copies the apps bundle: `dashboard/src/legal/THIRD_PARTY_NOTICES.txt`,
+  `mobile/assets/legal/THIRD_PARTY_NOTICES.json` (the same text in JSON, which the app's bundler
+  takes as a module) and `watch/app/src/<flavour>/assets/THIRD_PARTY_NOTICES.txt` for each watch
+  build. `render --check` fails if one differs from its notices file.
+
+How the notices travel with each artefact:
+
+| Artefact | Where its notices are |
+|---|---|
+| API, dashboard and backup images | `/usr/share/doc/ira-care/THIRD_PARTY_NOTICES.txt`, copied by each Dockerfile; CI compares the file inside each built image with the committed one |
+| Dashboard | also shown at `/licences` (linked from the footer of every page), rendered on the server with no script of its own |
+| Family app | Settings, Open-source licences |
+| Watch (Wear OS and AOSP builds) | `assets/THIRD_PARTY_NOTICES.txt` in each release APK, that build's own file; shown under About, Open-source licences |
+
+`tests/readiness/test_notices_travel.py` fails if a Dockerfile stops copying its file into the
+image it builds, if an app's copy goes stale, if a distributed artefact has no way to carry its
+notices, or if CI stops comparing the files inside the images.
 
 Copyright lines are taken from the licence files a package ships. Where none has one, the
 author from the package metadata, or the publisher from the POM, is given and labelled as such:
@@ -132,8 +156,6 @@ fifteen exceptions at present:
 - **@img/sharp-wasm32** (dashboard image only, Apache-2.0 AND LGPL-3.0-or-later AND MIT).
   Next.js's file tracing copies its JavaScript loader into the image (180 KB, no `.wasm`
   file); on Linux sharp uses the native build.
-- **huggingface-hub** (API image only, declared "Apache" with no version). The LICENSE file in
-  the installed wheel is the Apache License 2.0 text.
 - **libquadmath** (bundled by numpy) and **libkeyutils** (bundled by psycopg-binary), both
   LGPL-2.1-or-later: separate shared libraries, loaded at run time, unmodified and replaceable.
 - **libselinux** (bundled by psycopg-binary): public domain, which has no SPDX id.
@@ -143,7 +165,7 @@ fifteen exceptions at present:
 
 The LGPL exceptions depend on one condition. If we ever give an image or a build to someone
 else, the licence text and notice for these libraries must go with it. The notices files in
-`docs/legal/notices/` carry them; they are not yet copied into the images or the apps (below).
+`docs/legal/notices/` carry them, and each artefact now carries its own file (below).
 
 ## How to run
 
@@ -215,18 +237,35 @@ control.
 - **Training dependencies** (`scripts/training/`, Kaggle notebooks): development only; the
   trained weights are what ships, and they are covered with their training data.
 - **The image snapshots lack the OS package steps** (above). CI scans the real images.
-- **Development tools that ship anyway.** The API image installs `requirements-test.txt`, so
-  pytest, pytest-asyncio, moto, responses, Werkzeug, boto3 and their dependencies are in the
-  production image. The dashboard image contains TypeScript (copied by Next.js's file tracing).
-  They are inventoried and pass the policy, but they need not ship.
 - **Licence texts of libraries bundled without them.** psycopg-binary's wheel bundles fourteen
   libraries (libpq, OpenSSL, MIT Kerberos, OpenLDAP, Cyrus SASL and others) and states only its
   own LGPL-3.0 licence; ctranslate2's bundles GCC's libgomp without a notice. Their licences in
   `native_libraries.json` are the upstream projects', and our notices carry the texts.
-- **The notices do not yet travel with the artefacts.** The files exist, but no app shows them
-  and no image contains them yet (`docs/legal/THIRD_PARTY_NOTICES.md` says where each must go).
+- **The OS packages the sandbox cannot install** are missing from the committed notices of the
+  API, dashboard and backup images (the snapshots above), so the notices file inside a real
+  image omits them too. For the API image the Debian packages carry their own notices in
+  `/usr/share/doc`; for the Alpine images (`curl`, `openssl` and their dependencies) the
+  notices file is the only notice, and it is complete only once a snapshot of the real image is
+  committed (`supply_chain.py image ... --write` where the mirrors can be reached).
 - **Copyright lines are found by a heuristic** over licence files; where a package has none,
   its author or publisher is given instead and labelled. They have not been reviewed by hand.
+
+## Closed finding: test tools in the production image, notices left behind (25 November 2026)
+
+**What it was.** The API image installed `requirements-test.txt`: pytest, pytest-asyncio, moto
+and their dependencies (Werkzeug and MarkupSafe, responses, xmltodict, pluggy, iniconfig) shipped in
+production, and every package that file did not pin floated (128 Python packages, 46 of them at
+versions other than the lock's). The dashboard image carried TypeScript. The notices files
+existed only in the repository.
+
+**What changed (D-088).** The API image installs `requirements-api.lock` and
+`requirements-nodeps.txt` with `--no-deps --require-hashes` and runs `pip check`; its scan now
+holds 112 Python packages, exactly the two locks and the base image's pip, and the scan fails
+on any drift. `test_api_image_lock.py` fails if the Dockerfile installs anything unhashed or
+the test requirements, if the subset lock departs from `requirements.lock` or contains a
+test-only package, or if the snapshot holds a package outside the locks. The dashboard's file
+tracing leaves TypeScript out (22 npm packages in the image). Each artefact carries its
+notices, as in the table under "SBOMs and notices".
 
 ## Closed finding: GPL libraries linked by the base image's Python (25 November 2026)
 

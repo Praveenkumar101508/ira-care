@@ -14,15 +14,22 @@ RUN rm -f /usr/local/lib/python3.12/lib-dynload/readline.cpython-312-*.so \
           /usr/local/lib/python3.12/lib-dynload/_dbm.cpython-312-*.so \
     && python -c "import importlib.util as u, sys; sys.exit([m for m in ('readline', '_gdbm', '_dbm') if u.find_spec(m)] or 0)"
 WORKDIR /app
-# The care server needs the backend's runtime libraries, not the full server's
-# model stack (torch, the embedding model): requirements-test.txt is that set.
-COPY supracloud-jarvis/ira/requirements-test.txt ./requirements.txt
+# What the care server and worker load, and nothing else: requirements-api.lock is a strict
+# subset of requirements.lock (same versions, same hashes; scripts/api_image_lock.py), installed
+# with --no-deps --require-hashes so every artefact is the one the lock names and nothing floats.
+# No test tool ships: pytest, moto and the rest stay in requirements-test.txt, which CI installs
+# in its own jobs. The full server's model stack (torch, the embedding model) is not needed.
+COPY supracloud-jarvis/ira/requirements-api.lock ./requirements-api.lock
 COPY supracloud-jarvis/ira/requirements-nodeps.txt ./requirements-nodeps.txt
-RUN pip install -r requirements.txt psutil==6.1.0 onnxruntime==1.20.1 tokenizers==0.21.0
+RUN pip install --no-deps --require-hashes -r requirements-api.lock
 # faster-whisper without PyAV, whose wheels bundle FFmpeg built with GPL encoders
-# (docs/security/LICENCES.md). The build fails if anything brought `av` in anyway.
+# (docs/security/LICENCES.md). The build fails if anything brought `av` in anyway, and if any
+# installed package lacks a dependency other than that one deliberate absence (pip check).
 RUN pip install --no-deps --require-hashes -r requirements-nodeps.txt \
-    && python -c "import importlib.util as u, sys; sys.exit('av is installed' if u.find_spec('av') else 0)"
+    && python -c "import importlib.util as u, sys; sys.exit('av is installed' if u.find_spec('av') else 0)" \
+    && { pip check > /tmp/pip-check.txt || true; } \
+    && ! grep -v '^faster-whisper [0-9.]* requires av, which is not installed\.$' /tmp/pip-check.txt \
+    && rm /tmp/pip-check.txt
 COPY supracloud-jarvis/ira /app
 # The small red-flag classifier's public text encoder (Apache-2.0), fetched at build time so
 # the running server needs no network for it (docs/MODEL_CHOICE.md).
@@ -31,6 +38,8 @@ RUN python /tmp/fetch_encoder.py --dest /app/care/models/encoder && rm /tmp/fetc
 COPY supracloud-jarvis/postgres /app/postgres-migrations
 # utils/migrations.py looks beside the repository by default; in the image the files are here.
 ENV IRA_MIGRATIONS_DIR=/app/postgres-migrations
+# The third-party notices travel with the image (docs/legal/THIRD_PARTY_NOTICES.md).
+COPY docs/legal/notices/api-image.txt /usr/share/doc/ira-care/THIRD_PARTY_NOTICES.txt
 COPY deploy/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh && chown -R ira:ira /app
 USER ira

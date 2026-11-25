@@ -3890,6 +3890,14 @@
     {
      "kind": "config_check",
      "ref": "scripts/supply_chain.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_notices_travel.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/architecture/test_api_image_lock.py"
     }
    ]
   },

@@ -5,6 +5,9 @@ FROM postgres:16-alpine
 RUN apk add --no-cache openssl curl && openssl version && curl --version
 COPY deploy/backup.sh deploy/restore.sh deploy/offsite.sh /usr/local/bin/
 RUN chmod 0555 /usr/local/bin/backup.sh /usr/local/bin/restore.sh /usr/local/bin/offsite.sh
+# The third-party notices travel with the image. Alpine packages carry no licence texts of their
+# own, so this file is their notice (docs/legal/THIRD_PARTY_NOTICES.md).
+COPY docs/legal/notices/backup-image.txt /usr/share/doc/ira-care/THIRD_PARTY_NOTICES.txt
 # Nightly at BACKUP_HOUR_UTC. No cron daemon: a loop that sleeps to the hour. A failed backup
 # exits the loop, so the container restarts and the failure shows in `docker compose ps`.
 ENTRYPOINT ["/bin/sh", "-c", "while true; do if [ \"$(date -u +%H)\" = \"$BACKUP_HOUR_UTC\" ]; then sh /usr/local/bin/backup.sh || exit 1; sleep 3600; fi; sleep 300; done"]

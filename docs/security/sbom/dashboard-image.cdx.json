@@ -613,29 +613,6 @@
       "version": "2.9.1"
     },
     {
-      "bom-ref": "pkg:npm/typescript@5.9.3",
-      "copyright": "Author (package.json): Microsoft Corp.",
-      "licenses": [
-        {
-          "expression": "Apache-2.0"
-        }
-      ],
-      "name": "typescript",
-      "properties": [
-        {
-          "name": "ira:licence-status",
-          "value": "allowed"
-        },
-        {
-          "name": "ira:where",
-          "value": "/app/node_modules/typescript"
-        }
-      ],
-      "purl": "pkg:npm/typescript@5.9.3",
-      "type": "library",
-      "version": "5.9.3"
-    },
-    {
       "bom-ref": "pkg:apk/alpine/alpine-baselayout-data@3.7.2-r1",
       "licenses": [
         {
@@ -1096,7 +1073,6 @@
         "pkg:npm/source-map-js@1.2.4",
         "pkg:npm/styled-jsx@5.1.6",
         "pkg:npm/tslib@2.9.1",
-        "pkg:npm/typescript@5.9.3",
         "pkg:apk/alpine/alpine-baselayout-data@3.7.2-r1",
         "pkg:apk/alpine/alpine-baselayout@3.7.2-r1",
         "pkg:apk/alpine/alpine-keys@2.6-r0",

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.material.Text
 import care.ira.watch.R
 import care.ira.watch.api.ApiOutcome
@@ -59,7 +61,7 @@ import kotlinx.coroutines.withContext
  * Three screens, one at a time, big text and two big buttons:
  *  pairing (until the watch has a token), permission (until background
  *  sensors are allowed), then home: the question when there is one,
- *  "I'm OK" and "Help".
+ *  "I'm OK" and "Help". From home, About shows the open-source licences.
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,12 +80,16 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
                 val status by deps.statusFlow().collectAsStateWithLifecycle()
                 var unpairing by remember { mutableStateOf(false) }
+                var about by remember { mutableStateOf(false) }
+                BackHandler(enabled = about) { about = false }
                 when {
+                    about -> AboutScreen(onBack = { about = false })
                     !status.paired -> { unpairing = false; PairingScreen(deps) }
                     !status.permissionGranted -> PermissionScreen(deps)
                     unpairing -> UnpairScreen(deps, status, onKeep = { unpairing = false })
                     else -> HomeScreen(
                         onUnpair = { unpairing = true },
+                        onAbout = { about = true },
                         question = status.question, listening = status.listening,
                         lastAnswer = status.lastAnswer, sos = status.sos, online = status.online, visit = status.visit,
                         fallCountdown = status.fallCountdown,
@@ -189,6 +195,27 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** About, Open-source licences: the notices this build carries (Notices), as a scrolling list. */
+    @Composable
+    private fun AboutScreen(onBack: () -> Unit) {
+        val text = remember { runCatching { Notices.read { assets.open(it) } }.getOrElse { "The notices could not be read: ${it.message}" } }
+        val paragraphs = remember(text) { Notices.paragraphs(text) }
+        ScalingLazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
+            item {
+                Text("Open-source licences", fontSize = 14.sp, textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().semantics { heading() })
+            }
+            item {
+                Button(
+                    onClick = onBack,
+                    modifier = Modifier.fillMaxWidth().height(44.dp).semantics { contentDescription = "Back to the watch face." },
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF37474F)),
+                ) { Text("Back", fontSize = 14.sp) }
+            }
+            items(paragraphs.size) { i -> Text(paragraphs[i], fontSize = 11.sp, color = Color(0xFFECEFF1)) }
+        }
+    }
+
     /** Permissions granted in Settings (or at first boot) take effect as soon as the person is
      *  back here, rather than leaving them on the permission screen until a restart. */
     override fun onResume() {
@@ -233,6 +260,7 @@ fun HomeScreen(
     onOk: () -> Unit, onHelp: () -> Unit, fallCountdown: Int? = null,
     onTalk: () -> Unit = {}, talking: Boolean = false, visit: VisitState = VisitState.None,
     onUnpair: () -> Unit = {},
+    onAbout: () -> Unit = {},
     reminderChoices: List<ReminderChoice> = emptyList(), onChoice: (ReminderChoice) -> Unit = {},
     activityLine: String? = null,
 ) {
@@ -292,6 +320,12 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth().height(44.dp).semantics { contentDescription = "Unpair this watch. Asks before doing anything." },
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF263238)),
             ) { Text("Unpair watch…", fontSize = 12.sp, color = Color(0xFFCFD8DC)) }
+            Spacer(Modifier.height(4.dp))
+            Button(
+                onClick = onAbout,
+                modifier = Modifier.fillMaxWidth().height(44.dp).semantics { contentDescription = "About. The open-source licences of the software on this watch." },
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF263238)),
+            ) { Text("About", fontSize = 12.sp, color = Color(0xFFCFD8DC)) }
         }
     }
 }
