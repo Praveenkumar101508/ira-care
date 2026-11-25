@@ -33,14 +33,14 @@ Nothing is marked done because code or a document exists.
 <!-- completion-summary:begin -->
 | Measure | Value |
 |---|---|
-| Overall, weighted | 66.4 % |
+| Overall, weighted | 67.2 % |
 | Implemented (built, here or before) | 91.2 % |
-| Tested (unit, integration, evaluated or better) | 60.2 % |
+| Tested (unit, integration, evaluated or better) | 62.7 % |
 | Merged and evidenced in this programme | 51.0 % |
 | Safety remediation (section C) | 84.2 % |
-| AI components (section F) | 61.9 % |
+| AI components (section F) | 65.6 % |
 | IRA CARE OS (section E) | 58.0 % |
-| Rows blocked in part by an external dependency | 20 of 51 |
+| Rows blocked in part by an external dependency | 21 of 51 |
 
 Computed by `scripts/completion_summary.py` from the status column, with the fixed scores and
 weights stated in that script. No device has been used, so no row is device tested.
@@ -125,7 +125,7 @@ weights stated in that script. No device has been used, so no row is device test
 | F1 | Dataset licence register (PPG-DaLiA, UMAFall, KFall, FallAllD, conversation data, model weights) | pre-existing (partial) | `docs/DATASETS.md`. Re-verification against the original sources, plus permission-request drafts: **not started**. KFall and FallAllD: **needs external** (permission) |
 | F2 | IRA Care Conversation: new versioned dataset, LoRA / QLoRA run, evaluation, promotion gate | pre-existing experiment | 507 synthetic conversations; rule pass 0.94 base against 0.92 fine-tuned on 50 prompts; the 162-turn product evaluation is a different measure (`docs/MODEL_CHOICE.md`). A new run: **not started**; GPU time: **needs external** (Kaggle account session) |
 | F3 | IRA Care Heart (PPG-DaLiA, subject-independent) | evaluated | #58 · `docs/ai/heart/MODEL_CARD.md`, `docs/ai/heart/results.json`, `scripts/training/heart_ppg_dalia.py`. Leave-one-subject-out on all 15 PPG-DaLiA subjects (CC BY 4.0): classical spectral estimator with accelerometer suppression and tracking 13.28 ± 5.01 bpm MAE (shipped, numpy only: `supracloud-jarvis/ira/care/heart_estimate.py`, tests `supracloud-jarvis/ira/tests/care/test_heart_estimate.py`); learned candidate selection 7.75 ± 3.23 bpm (training script only); Deep PPG 7.65 bpm as reported, not reproduced. Adults 30.6 ± 9.6 years on an Empatica E4: accuracy on the IRA watch and on older adults: **needs external** (recordings with an ECG reference) |
-| F4 | IRA Care Fall (wrist-specific, cross-dataset) | pre-existing model + deterministic fallback | Improvement run: **not started** |
+| F4 | IRA Care Fall (wrist-specific, cross-dataset) | unit tested | `fix/fall-model-research-only` · D-077: the SisFall-trained model is research-only (debug builds); release builds and the OS image run the fall rules; `FallModelReleaseTest`. Replacement model on commercially licensed wrist data: in progress. SisFall terms: **needs external** (authors) |
 | F5 | IRA Care Safety (deterministic rules, model only more cautious) | integration tested | #44 (A1, A2, A4) |
 | F6 | IRA Care Memory (consent, correction, deletion) | integration tested | `fix/care-memory-promises` · REMEDIATION F2: correction kept and read back, forgotten day gone from context, erasure removes memory; check-in notes no longer copied into the general memory store (migration 115 purges old ones). Topic lists need the `topics` consent (110) |
 | F7 | IRA Care Activity (IMU) | not started | needs a dataset whose licence allows commercial use |
