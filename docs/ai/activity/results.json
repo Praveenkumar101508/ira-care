@@ -1,0 +1,1706 @@
+{
+  "dataset": {
+    "name": "WISDM Smartphone and Smartwatch Activity and Biometrics Dataset",
+    "source": "https://archive.ics.uci.edu/dataset/507/wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset",
+    "doi": "10.24432/C5HK59",
+    "archive_sha256": "6e0147f181d8f5275918db65eeb9dc842a0185d37cb6b2f30cbf74ee6e205469",
+    "licence": "CC BY 4.0",
+    "licence_checked": "2026-11-25",
+    "citation": "Weiss, G. (2019). WISDM Smartphone and Smartwatch Activity and Biometrics Dataset [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5HK59.",
+    "inputs": "watch accelerometer (m/s^2) and watch gyroscope (rad/s) only; phone not used",
+    "subjects_with_windows": 51,
+    "windows": 15304,
+    "windowing": "per subject and activity: duplicate timestamps dropped, both sensors resampled to one 20 Hz grid, non-overlapping 10 s windows with no gap over 0.25 s",
+    "duplicate_rows_dropped": 129773,
+    "windows_dropped_for_gaps": 18,
+    "windows_refused_by_input_checks": {
+      "saturated_accelerometer": 129
+    },
+    "blocks_by_native_rate_hz": {
+      "20": 835,
+      "100": 7,
+      "50": 65
+    },
+    "identical_recordings_across_subject_ids": []
+  },
+  "classes": {
+    "care_classes": [
+      "walking",
+      "stairs",
+      "sitting",
+      "standing",
+      "eating_drinking",
+      "other"
+    ],
+    "mapping": {
+      "walking": "walking",
+      "jogging": "other",
+      "stairs": "stairs",
+      "sitting": "sitting",
+      "standing": "standing",
+      "typing": "other",
+      "brushing_teeth": "other",
+      "eating_soup": "eating_drinking",
+      "eating_chips": "eating_drinking",
+      "eating_pasta": "eating_drinking",
+      "drinking": "eating_drinking",
+      "eating_sandwich": "eating_drinking",
+      "kicking": "other",
+      "catch": "other",
+      "dribbling": "other",
+      "writing": "other",
+      "clapping": "other",
+      "folding_clothes": "other"
+    },
+    "window_counts": {
+      "walking": 870,
+      "stairs": 815,
+      "sitting": 868,
+      "standing": 850,
+      "eating_drinking": 4286,
+      "other": 7615
+    },
+    "unknown_output": "'unknown' when the top probability is below 0.5"
+  },
+  "protocol": "10-fold cross-validation grouped by subject (a seeded permutation of subjects dealt into folds; every subject is tested exactly once, never trained on in that fold). Metrics are over the pooled out-of-fold predictions, forced to the top class (no 'unknown'); the coverage table shows the effect of the threshold.",
+  "seed": 20261125,
+  "methods": {
+    "majority": {
+      "per_class": {
+        "walking": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 870
+        },
+        "stairs": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 815
+        },
+        "sitting": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 868
+        },
+        "standing": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 850
+        },
+        "eating_drinking": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 4286
+        },
+        "other": {
+          "precision": 0.4976,
+          "recall": 1.0,
+          "f1": 0.6645,
+          "support": 7615
+        }
+      },
+      "macro_f1": 0.1108,
+      "accuracy": 0.4976,
+      "confusion_matrix": {
+        "rows_true_columns_predicted": [
+          "walking",
+          "stairs",
+          "sitting",
+          "standing",
+          "eating_drinking",
+          "other"
+        ],
+        "counts": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            870
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            815
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            868
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            850
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            4286
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            7615
+          ]
+        ]
+      },
+      "macro_f1_mean_of_folds": 0.1108,
+      "macro_f1_std_of_folds": 0.0009
+    },
+    "logistic_regression": {
+      "per_class": {
+        "walking": {
+          "precision": 0.831,
+          "recall": 0.8701,
+          "f1": 0.8501,
+          "support": 870
+        },
+        "stairs": {
+          "precision": 0.6437,
+          "recall": 0.8601,
+          "f1": 0.7363,
+          "support": 815
+        },
+        "sitting": {
+          "precision": 0.3966,
+          "recall": 0.7051,
+          "f1": 0.5077,
+          "support": 868
+        },
+        "standing": {
+          "precision": 0.4837,
+          "recall": 0.7835,
+          "f1": 0.5981,
+          "support": 850
+        },
+        "eating_drinking": {
+          "precision": 0.9165,
+          "recall": 0.7965,
+          "f1": 0.8523,
+          "support": 4286
+        },
+        "other": {
+          "precision": 0.9569,
+          "recall": 0.8368,
+          "f1": 0.8928,
+          "support": 7615
+        }
+      },
+      "macro_f1": 0.7396,
+      "accuracy": 0.8182,
+      "confusion_matrix": {
+        "rows_true_columns_predicted": [
+          "walking",
+          "stairs",
+          "sitting",
+          "standing",
+          "eating_drinking",
+          "other"
+        ],
+        "counts": [
+          [
+            757,
+            66,
+            2,
+            0,
+            3,
+            42
+          ],
+          [
+            47,
+            701,
+            2,
+            0,
+            0,
+            65
+          ],
+          [
+            2,
+            2,
+            612,
+            114,
+            96,
+            42
+          ],
+          [
+            1,
+            1,
+            94,
+            666,
+            53,
+            35
+          ],
+          [
+            7,
+            15,
+            430,
+            317,
+            3414,
+            103
+          ],
+          [
+            97,
+            304,
+            403,
+            280,
+            159,
+            6372
+          ]
+        ]
+      },
+      "macro_f1_mean_of_folds": 0.7462,
+      "macro_f1_std_of_folds": 0.0604
+    },
+    "mlp": {
+      "per_class": {
+        "walking": {
+          "precision": 0.8552,
+          "recall": 0.8621,
+          "f1": 0.8586,
+          "support": 870
+        },
+        "stairs": {
+          "precision": 0.8137,
+          "recall": 0.8147,
+          "f1": 0.8142,
+          "support": 815
+        },
+        "sitting": {
+          "precision": 0.5215,
+          "recall": 0.629,
+          "f1": 0.5702,
+          "support": 868
+        },
+        "standing": {
+          "precision": 0.6276,
+          "recall": 0.7812,
+          "f1": 0.696,
+          "support": 850
+        },
+        "eating_drinking": {
+          "precision": 0.8994,
+          "recall": 0.8528,
+          "f1": 0.8754,
+          "support": 4286
+        },
+        "other": {
+          "precision": 0.9366,
+          "recall": 0.9153,
+          "f1": 0.9258,
+          "support": 7615
+        }
+      },
+      "macro_f1": 0.7901,
+      "accuracy": 0.8657,
+      "confusion_matrix": {
+        "rows_true_columns_predicted": [
+          "walking",
+          "stairs",
+          "sitting",
+          "standing",
+          "eating_drinking",
+          "other"
+        ],
+        "counts": [
+          [
+            750,
+            47,
+            1,
+            1,
+            1,
+            70
+          ],
+          [
+            66,
+            664,
+            1,
+            1,
+            5,
+            78
+          ],
+          [
+            0,
+            2,
+            546,
+            61,
+            138,
+            121
+          ],
+          [
+            0,
+            3,
+            57,
+            664,
+            70,
+            56
+          ],
+          [
+            2,
+            11,
+            265,
+            206,
+            3655,
+            147
+          ],
+          [
+            59,
+            89,
+            177,
+            125,
+            195,
+            6970
+          ]
+        ]
+      },
+      "macro_f1_mean_of_folds": 0.7955,
+      "macro_f1_std_of_folds": 0.056
+    }
+  },
+  "folds": [
+    {
+      "fold": 0,
+      "train_windows": 13526,
+      "test_windows": 1778,
+      "majority_class": "other",
+      "macro_f1": {
+        "majority": 0.1101,
+        "logistic_regression": 0.7289,
+        "mlp": 0.754
+      },
+      "json_vs_sklearn_max_abs_prob_diff": 0.0,
+      "json_vs_sklearn_argmax_agreement": 1.0,
+      "mlp_iterations": 103,
+      "train_s": {
+        "logistic_regression": 2.01,
+        "mlp": 17.24
+      },
+      "test_subjects": [
+        1613,
+        1624,
+        1627,
+        1633,
+        1642,
+        1644
+      ]
+    },
+    {
+      "fold": 1,
+      "train_windows": 13810,
+      "test_windows": 1494,
+      "majority_class": "other",
+      "macro_f1": {
+        "majority": 0.1127,
+        "logistic_regression": 0.7007,
+        "mlp": 0.7726
+      },
+      "json_vs_sklearn_max_abs_prob_diff": 0.0,
+      "json_vs_sklearn_argmax_agreement": 1.0,
+      "mlp_iterations": 112,
+      "train_s": {
+        "logistic_regression": 2.28,
+        "mlp": 19.0
+      },
+      "test_subjects": [
+        1604,
+        1615,
+        1635,
+        1640,
+        1646
+      ]
+    },
+    {
+      "fold": 2,
+      "train_windows": 13809,
+      "test_windows": 1495,
+      "majority_class": "other",
+      "macro_f1": {
+        "majority": 0.1111,
+        "logistic_regression": 0.6985,
+        "mlp": 0.7656
+      },
+      "json_vs_sklearn_max_abs_prob_diff": 0.0,
+      "json_vs_sklearn_argmax_agreement": 1.0,
+      "mlp_iterations": 112,
+      "train_s": {
+        "logistic_regression": 2.24,
+        "mlp": 19.48
+      },
+      "test_subjects": [
+        1609,
+        1619,
+        1622,
+        1639,
+        1649
+      ]
+    },
+    {
+      "fold": 3,
+      "train_windows": 13804,
+      "test_windows": 1500,
+      "majority_class": "other",
+      "macro_f1": {
+        "majority": 0.1096,
+        "logistic_regression": 0.812,
+        "mlp": 0.858
+      },
+      "json_vs_sklearn_max_abs_prob_diff": 0.0,
+      "json_vs_sklearn_argmax_agreement": 1.0,
+      "mlp_iterations": 101,
+      "train_s": {
+        "logistic_regression": 2.2,
+        "mlp": 17.3
+      },
+      "test_subjects": [
+        1606,
+        1608,
+        1614,
+        1617,
+        1625
+      ]
+    },
+    {
+      "fold": 4,
+      "train_windows": 13787,
+      "test_windows": 1517,
+      "majority_class": "other",
+      "macro_f1": {
+        "majority": 0.1103,
+        "logistic_regression": 0.768,
+        "mlp": 0.8184
+      },
+      "json_vs_sklearn_max_abs_prob_diff": 0.0,
+      "json_vs_sklearn_argmax_agreement": 1.0,
+      "mlp_iterations": 113,
+      "train_s": {
+        "logistic_regression": 1.92,
+        "mlp": 21.26
+      },
+      "test_subjects": [
+        1605,
+        1610,
+        1618,
+        1628,
+        1641
+      ]
+    },
+    {
+      "fold": 5,
+      "train_windows": 13798,
+      "test_windows": 1506,
+      "majority_class": "other",
+      "macro_f1": {
+        "majority": 0.1099,
+        "logistic_regression": 0.8552,
+        "mlp": 0.8942
+      },
+      "json_vs_sklearn_max_abs_prob_diff": 0.0,
+      "json_vs_sklearn_argmax_agreement": 1.0,
+      "mlp_iterations": 116,
+      "train_s": {
+        "logistic_regression": 2.11,
+        "mlp": 21.91
+      },
+      "test_subjects": [
+        1602,
+        1616,
+        1626,
+        1634,
+        1643
+      ]
+    },
+    {
+      "fold": 6,
+      "train_windows": 13774,
+      "test_windows": 1530,
+      "majority_class": "other",
+      "macro_f1": {
+        "majority": 0.111,
+        "logistic_regression": 0.7179,
+        "mlp": 0.7689
+      },
+      "json_vs_sklearn_max_abs_prob_diff": 0.0,
+      "json_vs_sklearn_argmax_agreement": 1.0,
+      "mlp_iterations": 117,
+      "train_s": {
+        "logistic_regression": 2.15,
+        "mlp": 21.32
+      },
+      "test_subjects": [
+        1601,
+        1607,
+        1621,
+        1629,
+        1631
+      ]
+    },
+    {
+      "fold": 7,
+      "train_windows": 13830,
+      "test_windows": 1474,
+      "majority_class": "other",
+      "macro_f1": {
+        "majority": 0.1115,
+        "logistic_regression": 0.6914,
+        "mlp": 0.71
+      },
+      "json_vs_sklearn_max_abs_prob_diff": 0.0,
+      "json_vs_sklearn_argmax_agreement": 1.0,
+      "mlp_iterations": 116,
+      "train_s": {
+        "logistic_regression": 2.04,
+        "mlp": 21.53
+      },
+      "test_subjects": [
+        1600,
+        1603,
+        1637,
+        1648,
+        1650
+      ]
+    },
+    {
+      "fold": 8,
+      "train_windows": 13824,
+      "test_windows": 1480,
+      "majority_class": "other",
+      "macro_f1": {
+        "majority": 0.1103,
+        "logistic_regression": 0.6695,
+        "mlp": 0.7528
+      },
+      "json_vs_sklearn_max_abs_prob_diff": 0.0,
+      "json_vs_sklearn_argmax_agreement": 1.0,
+      "mlp_iterations": 108,
+      "train_s": {
+        "logistic_regression": 2.49,
+        "mlp": 18.31
+      },
+      "test_subjects": [
+        1630,
+        1636,
+        1638,
+        1645,
+        1647
+      ]
+    },
+    {
+      "fold": 9,
+      "train_windows": 13774,
+      "test_windows": 1530,
+      "majority_class": "other",
+      "macro_f1": {
+        "majority": 0.1111,
+        "logistic_regression": 0.8203,
+        "mlp": 0.8605
+      },
+      "json_vs_sklearn_max_abs_prob_diff": 0.0,
+      "json_vs_sklearn_argmax_agreement": 1.0,
+      "mlp_iterations": 112,
+      "train_s": {
+        "logistic_regression": 2.07,
+        "mlp": 19.49
+      },
+      "test_subjects": [
+        1611,
+        1612,
+        1620,
+        1623,
+        1632
+      ]
+    }
+  ],
+  "per_subject": {
+    "1600": {
+      "fold": 7,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.9285,
+      "mlp_macro_f1": 0.969,
+      "mlp_accuracy": 0.9771
+    },
+    "1601": {
+      "fold": 6,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7572,
+      "mlp_macro_f1": 0.8681,
+      "mlp_accuracy": 0.9085
+    },
+    "1602": {
+      "fold": 5,
+      "windows": 304,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8774,
+      "mlp_macro_f1": 0.9036,
+      "mlp_accuracy": 0.9408
+    },
+    "1603": {
+      "fold": 7,
+      "windows": 294,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7433,
+      "mlp_macro_f1": 0.7149,
+      "mlp_accuracy": 0.8367
+    },
+    "1604": {
+      "fold": 1,
+      "windows": 305,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7389,
+      "mlp_macro_f1": 0.8635,
+      "mlp_accuracy": 0.9148
+    },
+    "1605": {
+      "fold": 4,
+      "windows": 312,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7907,
+      "mlp_macro_f1": 0.8489,
+      "mlp_accuracy": 0.9327
+    },
+    "1606": {
+      "fold": 3,
+      "windows": 304,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8458,
+      "mlp_macro_f1": 0.9214,
+      "mlp_accuracy": 0.9474
+    },
+    "1607": {
+      "fold": 6,
+      "windows": 308,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.4378,
+      "mlp_macro_f1": 0.4732,
+      "mlp_accuracy": 0.6429
+    },
+    "1608": {
+      "fold": 3,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7861,
+      "mlp_macro_f1": 0.8565,
+      "mlp_accuracy": 0.8824
+    },
+    "1609": {
+      "fold": 2,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.6598,
+      "mlp_macro_f1": 0.7652,
+      "mlp_accuracy": 0.8301
+    },
+    "1610": {
+      "fold": 4,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.882,
+      "mlp_macro_f1": 0.9169,
+      "mlp_accuracy": 0.9641
+    },
+    "1611": {
+      "fold": 9,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8917,
+      "mlp_macro_f1": 0.9262,
+      "mlp_accuracy": 0.951
+    },
+    "1612": {
+      "fold": 9,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.89,
+      "mlp_macro_f1": 0.8254,
+      "mlp_accuracy": 0.8595
+    },
+    "1613": {
+      "fold": 0,
+      "windows": 308,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.688,
+      "mlp_macro_f1": 0.7086,
+      "mlp_accuracy": 0.8799
+    },
+    "1614": {
+      "fold": 3,
+      "windows": 290,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8838,
+      "mlp_macro_f1": 0.8856,
+      "mlp_accuracy": 0.9379
+    },
+    "1615": {
+      "fold": 1,
+      "windows": 305,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.834,
+      "mlp_macro_f1": 0.9226,
+      "mlp_accuracy": 0.9508
+    },
+    "1616": {
+      "fold": 5,
+      "windows": 289,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8915,
+      "mlp_macro_f1": 0.9012,
+      "mlp_accuracy": 0.9273
+    },
+    "1617": {
+      "fold": 3,
+      "windows": 295,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7043,
+      "mlp_macro_f1": 0.7883,
+      "mlp_accuracy": 0.8237
+    },
+    "1618": {
+      "fold": 4,
+      "windows": 289,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8217,
+      "mlp_macro_f1": 0.7908,
+      "mlp_accuracy": 0.872
+    },
+    "1619": {
+      "fold": 2,
+      "windows": 291,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8612,
+      "mlp_macro_f1": 0.8459,
+      "mlp_accuracy": 0.9278
+    },
+    "1620": {
+      "fold": 9,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.6403,
+      "mlp_macro_f1": 0.6467,
+      "mlp_accuracy": 0.8333
+    },
+    "1621": {
+      "fold": 6,
+      "windows": 304,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7333,
+      "mlp_macro_f1": 0.7878,
+      "mlp_accuracy": 0.9013
+    },
+    "1622": {
+      "fold": 2,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.6567,
+      "mlp_macro_f1": 0.8558,
+      "mlp_accuracy": 0.9052
+    },
+    "1623": {
+      "fold": 9,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8796,
+      "mlp_macro_f1": 0.9883,
+      "mlp_accuracy": 0.9837
+    },
+    "1624": {
+      "fold": 0,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.6119,
+      "mlp_macro_f1": 0.6393,
+      "mlp_accuracy": 0.8007
+    },
+    "1625": {
+      "fold": 3,
+      "windows": 305,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8597,
+      "mlp_macro_f1": 0.8679,
+      "mlp_accuracy": 0.9279
+    },
+    "1626": {
+      "fold": 5,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8734,
+      "mlp_macro_f1": 0.9585,
+      "mlp_accuracy": 0.9739
+    },
+    "1627": {
+      "fold": 0,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8479,
+      "mlp_macro_f1": 0.9032,
+      "mlp_accuracy": 0.9379
+    },
+    "1628": {
+      "fold": 4,
+      "windows": 304,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.5321,
+      "mlp_macro_f1": 0.61,
+      "mlp_accuracy": 0.7566
+    },
+    "1629": {
+      "fold": 6,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7973,
+      "mlp_macro_f1": 0.8088,
+      "mlp_accuracy": 0.915
+    },
+    "1630": {
+      "fold": 8,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8454,
+      "mlp_macro_f1": 0.9199,
+      "mlp_accuracy": 0.9542
+    },
+    "1631": {
+      "fold": 6,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.9008,
+      "mlp_macro_f1": 0.9182,
+      "mlp_accuracy": 0.9575
+    },
+    "1632": {
+      "fold": 9,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7561,
+      "mlp_macro_f1": 0.8785,
+      "mlp_accuracy": 0.9477
+    },
+    "1633": {
+      "fold": 0,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7035,
+      "mlp_macro_f1": 0.7061,
+      "mlp_accuracy": 0.8072
+    },
+    "1634": {
+      "fold": 5,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8279,
+      "mlp_macro_f1": 0.8151,
+      "mlp_accuracy": 0.8987
+    },
+    "1635": {
+      "fold": 1,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8523,
+      "mlp_macro_f1": 0.8887,
+      "mlp_accuracy": 0.9444
+    },
+    "1636": {
+      "fold": 8,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7231,
+      "mlp_macro_f1": 0.7686,
+      "mlp_accuracy": 0.902
+    },
+    "1637": {
+      "fold": 7,
+      "windows": 272,
+      "classes_present": [
+        "walking",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.2138,
+      "mlp_macro_f1": 0.1535,
+      "mlp_accuracy": 0.3382
+    },
+    "1638": {
+      "fold": 8,
+      "windows": 272,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.3965,
+      "mlp_macro_f1": 0.5422,
+      "mlp_accuracy": 0.5
+    },
+    "1639": {
+      "fold": 2,
+      "windows": 289,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.5158,
+      "mlp_macro_f1": 0.4148,
+      "mlp_accuracy": 0.5571
+    },
+    "1640": {
+      "fold": 1,
+      "windows": 272,
+      "classes_present": [
+        "walking",
+        "sitting",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.5183,
+      "mlp_macro_f1": 0.4583,
+      "mlp_accuracy": 0.4743
+    },
+    "1641": {
+      "fold": 4,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8485,
+      "mlp_macro_f1": 0.9094,
+      "mlp_accuracy": 0.951
+    },
+    "1642": {
+      "fold": 0,
+      "windows": 258,
+      "classes_present": [
+        "walking",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7618,
+      "mlp_macro_f1": 0.8296,
+      "mlp_accuracy": 0.8217
+    },
+    "1643": {
+      "fold": 5,
+      "windows": 301,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8104,
+      "mlp_macro_f1": 0.886,
+      "mlp_accuracy": 0.9435
+    },
+    "1644": {
+      "fold": 0,
+      "windows": 294,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7571,
+      "mlp_macro_f1": 0.6919,
+      "mlp_accuracy": 0.8333
+    },
+    "1645": {
+      "fold": 8,
+      "windows": 290,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8156,
+      "mlp_macro_f1": 0.86,
+      "mlp_accuracy": 0.9207
+    },
+    "1646": {
+      "fold": 1,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.7506,
+      "mlp_macro_f1": 0.8348,
+      "mlp_accuracy": 0.915
+    },
+    "1647": {
+      "fold": 8,
+      "windows": 306,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.6205,
+      "mlp_macro_f1": 0.7169,
+      "mlp_accuracy": 0.7712
+    },
+    "1648": {
+      "fold": 7,
+      "windows": 300,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.6568,
+      "mlp_macro_f1": 0.736,
+      "mlp_accuracy": 0.8167
+    },
+    "1649": {
+      "fold": 2,
+      "windows": 303,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.9055,
+      "mlp_macro_f1": 0.9252,
+      "mlp_accuracy": 0.9604
+    },
+    "1650": {
+      "fold": 7,
+      "windows": 302,
+      "classes_present": [
+        "walking",
+        "stairs",
+        "sitting",
+        "standing",
+        "eating_drinking",
+        "other"
+      ],
+      "logistic_regression_macro_f1": 0.8639,
+      "mlp_macro_f1": 0.9202,
+      "mlp_accuracy": 0.9404
+    }
+  },
+  "mlp_per_subject_macro_f1": {
+    "mean": 0.7948,
+    "std": 0.1597,
+    "min": 0.1535,
+    "max": 0.9883
+  },
+  "mlp_by_original_activity": {
+    "walking": {
+      "care_class": "walking",
+      "windows": 870,
+      "predicted_share": {
+        "walking": 0.862,
+        "stairs": 0.054,
+        "sitting": 0.001,
+        "standing": 0.001,
+        "eating_drinking": 0.001,
+        "other": 0.08
+      }
+    },
+    "jogging": {
+      "care_class": "other",
+      "windows": 741,
+      "predicted_share": {
+        "walking": 0.011,
+        "stairs": 0.018,
+        "sitting": 0.0,
+        "standing": 0.0,
+        "eating_drinking": 0.001,
+        "other": 0.97
+      }
+    },
+    "stairs": {
+      "care_class": "stairs",
+      "windows": 815,
+      "predicted_share": {
+        "walking": 0.081,
+        "stairs": 0.815,
+        "sitting": 0.001,
+        "standing": 0.001,
+        "eating_drinking": 0.006,
+        "other": 0.096
+      }
+    },
+    "sitting": {
+      "care_class": "sitting",
+      "windows": 868,
+      "predicted_share": {
+        "walking": 0.0,
+        "stairs": 0.002,
+        "sitting": 0.629,
+        "standing": 0.07,
+        "eating_drinking": 0.159,
+        "other": 0.139
+      }
+    },
+    "standing": {
+      "care_class": "standing",
+      "windows": 850,
+      "predicted_share": {
+        "walking": 0.0,
+        "stairs": 0.004,
+        "sitting": 0.067,
+        "standing": 0.781,
+        "eating_drinking": 0.082,
+        "other": 0.066
+      }
+    },
+    "typing": {
+      "care_class": "other",
+      "windows": 850,
+      "predicted_share": {
+        "walking": 0.0,
+        "stairs": 0.0,
+        "sitting": 0.078,
+        "standing": 0.019,
+        "eating_drinking": 0.049,
+        "other": 0.854
+      }
+    },
+    "brushing_teeth": {
+      "care_class": "other",
+      "windows": 867,
+      "predicted_share": {
+        "walking": 0.006,
+        "stairs": 0.001,
+        "sitting": 0.022,
+        "standing": 0.036,
+        "eating_drinking": 0.036,
+        "other": 0.9
+      }
+    },
+    "eating_soup": {
+      "care_class": "eating_drinking",
+      "windows": 851,
+      "predicted_share": {
+        "walking": 0.0,
+        "stairs": 0.001,
+        "sitting": 0.031,
+        "standing": 0.041,
+        "eating_drinking": 0.907,
+        "other": 0.02
+      }
+    },
+    "eating_chips": {
+      "care_class": "eating_drinking",
+      "windows": 867,
+      "predicted_share": {
+        "walking": 0.001,
+        "stairs": 0.0,
+        "sitting": 0.066,
+        "standing": 0.047,
+        "eating_drinking": 0.857,
+        "other": 0.029
+      }
+    },
+    "eating_pasta": {
+      "care_class": "eating_drinking",
+      "windows": 851,
+      "predicted_share": {
+        "walking": 0.0,
+        "stairs": 0.0,
+        "sitting": 0.063,
+        "standing": 0.015,
+        "eating_drinking": 0.844,
+        "other": 0.078
+      }
+    },
+    "drinking": {
+      "care_class": "eating_drinking",
+      "windows": 867,
+      "predicted_share": {
+        "walking": 0.0,
+        "stairs": 0.0,
+        "sitting": 0.089,
+        "standing": 0.054,
+        "eating_drinking": 0.837,
+        "other": 0.02
+      }
+    },
+    "eating_sandwich": {
+      "care_class": "eating_drinking",
+      "windows": 850,
+      "predicted_share": {
+        "walking": 0.001,
+        "stairs": 0.012,
+        "sitting": 0.06,
+        "standing": 0.082,
+        "eating_drinking": 0.819,
+        "other": 0.026
+      }
+    },
+    "kicking": {
+      "care_class": "other",
+      "windows": 868,
+      "predicted_share": {
+        "walking": 0.013,
+        "stairs": 0.032,
+        "sitting": 0.002,
+        "standing": 0.01,
+        "eating_drinking": 0.003,
+        "other": 0.939
+      }
+    },
+    "catch": {
+      "care_class": "other",
+      "windows": 824,
+      "predicted_share": {
+        "walking": 0.01,
+        "stairs": 0.011,
+        "sitting": 0.0,
+        "standing": 0.001,
+        "eating_drinking": 0.002,
+        "other": 0.976
+      }
+    },
+    "dribbling": {
+      "care_class": "other",
+      "windows": 863,
+      "predicted_share": {
+        "walking": 0.021,
+        "stairs": 0.023,
+        "sitting": 0.003,
+        "standing": 0.007,
+        "eating_drinking": 0.012,
+        "other": 0.934
+      }
+    },
+    "writing": {
+      "care_class": "other",
+      "windows": 867,
+      "predicted_share": {
+        "walking": 0.0,
+        "stairs": 0.0,
+        "sitting": 0.067,
+        "standing": 0.029,
+        "eating_drinking": 0.077,
+        "other": 0.827
+      }
+    },
+    "clapping": {
+      "care_class": "other",
+      "windows": 867,
+      "predicted_share": {
+        "walking": 0.005,
+        "stairs": 0.007,
+        "sitting": 0.021,
+        "standing": 0.03,
+        "eating_drinking": 0.018,
+        "other": 0.919
+      }
+    },
+    "folding_clothes": {
+      "care_class": "other",
+      "windows": 868,
+      "predicted_share": {
+        "walking": 0.006,
+        "stairs": 0.014,
+        "sitting": 0.013,
+        "standing": 0.013,
+        "eating_drinking": 0.026,
+        "other": 0.929
+      }
+    }
+  },
+  "mlp_confidence_coverage": {
+    "0.0": {
+      "share_answered": 1.0,
+      "accuracy_when_answered": 0.8657,
+      "macro_f1_when_answered": 0.7901
+    },
+    "0.3": {
+      "share_answered": 1.0,
+      "accuracy_when_answered": 0.8657,
+      "macro_f1_when_answered": 0.7901
+    },
+    "0.4": {
+      "share_answered": 0.9997,
+      "accuracy_when_answered": 0.8659,
+      "macro_f1_when_answered": 0.7902
+    },
+    "0.5": {
+      "share_answered": 0.9987,
+      "accuracy_when_answered": 0.8665,
+      "macro_f1_when_answered": 0.7908
+    },
+    "0.6": {
+      "share_answered": 0.9884,
+      "accuracy_when_answered": 0.8717,
+      "macro_f1_when_answered": 0.7971
+    },
+    "0.7": {
+      "share_answered": 0.9776,
+      "accuracy_when_answered": 0.8764,
+      "macro_f1_when_answered": 0.8024
+    },
+    "0.8": {
+      "share_answered": 0.9655,
+      "accuracy_when_answered": 0.8815,
+      "macro_f1_when_answered": 0.8078
+    },
+    "0.9": {
+      "share_answered": 0.946,
+      "accuracy_when_answered": 0.8898,
+      "macro_f1_when_answered": 0.8175
+    }
+  },
+  "shipped_model": {
+    "path": "supracloud-jarvis/ira/care/models/activity_model.json",
+    "bytes": 242171,
+    "sha256": "06475f27740a2bc9ba7e736333966c94b2325a27c78f2bc9ce36b1395462c445",
+    "parameters": 10328,
+    "features": 121,
+    "architecture": "121 features, standardised -> 64 -> 32 ReLU -> 6 softmax",
+    "params": {
+      "hidden_layer_sizes": [
+        64,
+        32
+      ],
+      "alpha": 0.001,
+      "learning_rate_init": 0.001,
+      "batch_size": 256,
+      "max_iter": 200,
+      "random_state": 20261125
+    },
+    "iterations": 111,
+    "json_vs_sklearn_max_abs_prob_diff_all_windows": 0.0,
+    "reference_max_abs_prob_diff": 0.0,
+    "logistic_regression_params": {
+      "C": 1.0,
+      "class_weight": "balanced",
+      "max_iter": 3000
+    }
+  },
+  "runtime": {
+    "shipped_ms_per_window_checks_features_mlp": 1.13,
+    "shipped_ms_per_window_mlp_only": 0.0407,
+    "latency_note": "one process, numpy only, 300 synthetic 10 s windows at 20 Hz after 20 warm-up calls",
+    "data_load_s": 1.2,
+    "windowing_s": 3.3,
+    "cross_validation_s": 65.7,
+    "final_train_s": 22.4,
+    "total_s": 93.9,
+    "machine": "x86_64, 4 CPUs, no GPU, 4 worker processes",
+    "versions": {
+      "python": "3.13.18",
+      "numpy": "2.5.5",
+      "scikit-learn": "1.9.1"
+    }
+  }
+}
