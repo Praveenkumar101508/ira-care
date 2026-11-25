@@ -640,3 +640,8 @@ class CarePlanVersion(BaseModel):
         if not v.strip():
             raise ValueError("say why the plan is changing")
         return v.strip()
+
+
+class CoordinatorDesignation(BaseModel):
+    """Name a member of the care team coordinator, or stop (D-081)."""
+    coordinator: bool

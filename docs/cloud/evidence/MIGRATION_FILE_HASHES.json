@@ -601,6 +601,11 @@
    "sha256": "836482a8f8626aca96511e6188d986f9b39c5914ba34304e8562205124bf843c",
    "status": "applied"
   },
+  "117_care_staff_designations.sql": {
+   "migration_number": 117,
+   "sha256": "422074787d1927905424fc9910c43a66890343430765b8e89d1bf0c94594248f",
+   "status": "applied"
+  },
   "init.sql": {
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",

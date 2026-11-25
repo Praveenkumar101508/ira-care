@@ -63,8 +63,16 @@ test('the server asks a check-in and the person answers from the watch', async (
 
 test('a heart rate outside the range opens an alert the family answers on the phone', async ({ page, browser }) => {
   const api = await Api.signIn(i, coordinator);
-  // The family member is in Edith's circle, called first.
-  await api.req('POST', `/api/v1/care/people/${personId}/circle`, { display_name: family.name ?? 'Family', role: 'family', tier: 1, phone: '+447700900001', relationship: 'daughter', user_id: null, sms_enabled: true, call_enabled: true, push_enabled: true, email: family.email });
+  // The family member is in Edith's circle, called first, linked to their own account: since D-076 a
+  // family member sees only the people whose circle their account is in. The seeded circles hold that link.
+  let familyUserId: string | null = null;
+  for (const p of i.people) {
+    const { members } = await api.req<{ members: { display_name: string; user_id: string | null }[] }>('GET', `/api/v1/care/people/${p.id}/circle`);
+    familyUserId = members.find((m) => m.display_name === family.name && m.user_id)?.user_id ?? null;
+    if (familyUserId) break;
+  }
+  expect(familyUserId, 'the seeded family account is linked in a seeded circle').toBeTruthy();
+  await api.req('POST', `/api/v1/care/people/${personId}/circle`, { display_name: family.name ?? 'Family', role: 'family', tier: 1, phone: '+447700900001', relationship: 'daughter', user_id: familyUserId, sms_enabled: true, call_enabled: true, push_enabled: true, email: family.email });
   const settings = await api.req<Record<string, unknown>>('GET', `/api/v1/care/people/${personId}/settings`);
   await api.req('PUT', `/api/v1/care/people/${personId}/settings`, { ...settings, heart_rate_min: 45, heart_rate_max: 130, quiet_start: '00:00', quiet_end: '00:00' });
   // The watch's own readings: three samples a minute apart at 160 bpm, sent by the watch page's device client.

@@ -41,6 +41,9 @@ export function TopBar() {
           <nav aria-label="Main">
             <Link href="/">People</Link>
             <Link href="/alerts">Alerts</Link>
+            <Link href="/visits">Visit plan</Link>
+            <Link href="/team">Caseload</Link>
+            <Link href="/search">Search</Link>
         {session.role === 'workspace_admin' ? <Link href="/billing">Plan</Link> : null}
           </nav>
           <span className="muted who">{session.workspaceName} · {roleWords(session.role)}</span>

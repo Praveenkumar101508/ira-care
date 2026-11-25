@@ -1,9 +1,9 @@
 {
-  "measured_at": "2026-11-24T20:13:08+00:00",
-  "revision": "89e8c18e9bbebe76f315c8871db03806f70f4da7",
-  "machine": "Linux-6.18.44-fc-v819-x86_64-with-glibc2.39",
+  "measured_at": "2026-11-25T10:58:57+00:00",
+  "revision": "a348b8cbfa3e096f59412e691d73f20db5e774f5",
+  "machine": "Linux-6.18.44-fc-v880-x86_64-with-glibc2.39",
   "result": "passed",
-  "total_seconds": 186,
+  "total_seconds": 300,
   "steps": [
     {
       "step": "clone",
@@ -26,7 +26,7 @@
     {
       "step": "pip-install",
       "status": "ok",
-      "seconds": 1,
+      "seconds": 0,
       "note": ""
     },
     {
@@ -44,19 +44,19 @@
     {
       "step": "worker-up",
       "status": "ok",
-      "seconds": 62,
+      "seconds": 63,
       "note": ""
     },
     {
       "step": "dashboard-install",
       "status": "ok",
-      "seconds": 8,
+      "seconds": 11,
       "note": ""
     },
     {
       "step": "dashboard-build",
       "status": "ok",
-      "seconds": 31,
+      "seconds": 44,
       "note": ""
     },
     {
@@ -68,13 +68,13 @@
     {
       "step": "app-install",
       "status": "ok",
-      "seconds": 8,
+      "seconds": 12,
       "note": ""
     },
     {
       "step": "app-export",
       "status": "ok",
-      "seconds": 3,
+      "seconds": 5,
       "note": ""
     },
     {
@@ -86,19 +86,19 @@
     {
       "step": "seed",
       "status": "ok",
-      "seconds": 3,
+      "seconds": 2,
       "note": ""
     },
     {
       "step": "e2e-install",
       "status": "ok",
-      "seconds": 0,
+      "seconds": 1,
       "note": ""
     },
     {
       "step": "e2e",
       "status": "ok",
-      "seconds": 51,
+      "seconds": 132,
       "note": ""
     }
   ]

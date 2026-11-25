@@ -86,6 +86,8 @@ WORKSPACE_SCOPED = (
     # 116: insert-only (SELECT and INSERT granted, no UPDATE or DELETE). The UPDATE and DELETE
     # probes below accept the refusal; the read and insert probes apply as to every other table.
     "care_plans",
+    # 117: SELECT, INSERT and DELETE granted; no UPDATE, which the UPDATE probe accepts.
+    "care_staff_designations",
 )
 
 
@@ -185,6 +187,7 @@ SPECS: dict[str, Spec] = {
                              parents=(("care_people", "person_id"), ("care_circle_members", "member_id"))),
     "care_push_tickets": Spec(parents=(("care_alerts", "alert_id"),)),
     "care_plans": Spec(columns={"version": "int", "reason": "text"}, parents=(("care_people", "person_id"),)),
+    "care_staff_designations": Spec(columns={"user_id": "user", "designation": "literal:coordinator"}),
     "care_visits": Spec(columns={"planned_start": "now", "planned_end": "later"}, parents=(("care_people", "person_id"),)),
     "care_visit_tasks": Spec(columns={"title": "text"}, parents=(("care_visits", "visit_id"),)),
     "care_communication_profiles": Spec(parents=(("care_people", "person_id"),)),
