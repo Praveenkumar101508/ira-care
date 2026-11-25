@@ -308,7 +308,7 @@ jobs:
           n=$(docker run --rm --entrypoint sh ira-care/api:ci -c 'ls "$IRA_MIGRATIONS_DIR"/*.sql | wc -l')
           echo "migrations in the image: $n"; test "$n" -gt 100
       - name: The backup image can encrypt and dump
-        run: docker run --rm --network none --entrypoint sh ira-care/backup:ci -c 'openssl version && pg_dump --version && test -x /usr/local/bin/backup.sh && test -x /usr/local/bin/restore.sh'
+        run: docker run --rm --network none --entrypoint sh ira-care/backup:ci -c 'openssl version && pg_dump --version && curl --version && test -x /usr/local/bin/backup.sh && test -x /usr/local/bin/restore.sh && test -x /usr/local/bin/offsite.sh'
 
   dashboard:
     name: Carer dashboard (Next.js)

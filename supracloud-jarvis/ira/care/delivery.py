@@ -112,6 +112,25 @@ def status_callback_url(tenant_id, workspace_id, attempt_id, *, env=None) -> Opt
     return f"{base}/api/v1/care/providers/twilio/status/{tenant_id}/{workspace_id}/{attempt_id}?t={token}"
 
 
+#: An alarm-receiving centre's words for how far it got, to ours. "handling" means an
+#: operator has the alarm: the furthest a centre can report, and still not a person
+#: reaching the one who needs help.
+ARC_STATUS = {"received": "accepted", "queued": "accepted", "handling": "delivered",
+              "rejected": "failed", "failed": "failed"}
+
+
+def arc_callback_url(tenant_id, workspace_id, alert_id, *, env=None) -> Optional[str]:
+    """Where the centre reports back about one alert: our token in the URL (as for
+    Twilio), the centre's own signature on the body. None without a public HTTPS
+    address or a callback secret; the state then stays 'accepted'."""
+    env = os.environ if env is None else env
+    base = (env.get("IRA_CARE_PUBLIC_BASE_URL") or "").strip().rstrip("/")
+    token = callback_token(tenant_id, workspace_id, alert_id, env=env)
+    if not base.startswith("https://") or not token:
+        return None
+    return f"{base}/api/v1/care/providers/arc/status/{tenant_id}/{workspace_id}/{alert_id}?t={token}"
+
+
 def twilio_signature(url: str, params: dict, auth_token: str) -> str:
     """Twilio's request signature: HMAC-SHA1 over the full URL followed by each
     POST parameter name and value, sorted by name, base64-encoded."""
@@ -227,7 +246,7 @@ async def _finish(principal, attempt: dict, outcome: str, now: dt.datetime, **st
 
 
 async def _send_one(principal, attempt: dict, now: dt.datetime, provider, push_provider,
-                    sem: asyncio.Semaphore) -> str:
+                    sem: asyncio.Semaphore, email_provider=None) -> str:
     """Send one claimed message and record what the provider said."""
     from core.identity.db_context import workspace_connection
 
@@ -263,6 +282,14 @@ async def _send_one(principal, attempt: dict, now: dt.datetime, provider, push_p
                     send = provider.send_sms if channel == "sms" else provider.call
                     delivery = await asyncio.wait_for(
                         send(member["phone"], f"{title}. {body}", status_callback=callback), SEND_TIMEOUT_S)
+            elif channel == "email":
+                if email_provider is None or not getattr(email_provider, "configured", False):
+                    delivery = providers.Delivery("skipped", "no mail server is configured")
+                elif not member["email"]:
+                    delivery = providers.Delivery("skipped", "no email address")
+                else:
+                    delivery = await asyncio.wait_for(
+                        email_provider.send_email(member["email"], title, body), SEND_TIMEOUT_S)
             else:
                 delivery = providers.Delivery("skipped", f"channel {channel} is not sent by the dispatcher")
         except providers.EmergencyNumberRefused as exc:
@@ -285,19 +312,22 @@ async def _send_one(principal, attempt: dict, now: dt.datetime, provider, push_p
                              provider_ref=delivery.provider_ref)
 
 
-async def dispatch(principal, now: Optional[dt.datetime] = None, *, provider=None, push_provider=None) -> DispatchOutcome:
+async def dispatch(principal, now: Optional[dt.datetime] = None, *, provider=None, push_provider=None,
+                   email_provider=None) -> DispatchOutcome:
     """Send every queued message of one workspace whose time has come."""
     from . import providers, push
     now = now or dt.datetime.now(dt.timezone.utc)
     provider = provider or providers.provider_from_env()
     push_provider = push_provider or push.provider_from_env()
+    email_provider = email_provider or providers.email_from_env()
     out = DispatchOutcome()
     rows = await _claim(principal, now)
     out.claimed = len(rows)
     if not rows:
         return out
     sem = asyncio.Semaphore(CONCURRENCY)
-    results = await asyncio.gather(*(_send_one(principal, r, now, provider, push_provider, sem) for r in rows),
+    results = await asyncio.gather(*(_send_one(principal, r, now, provider, push_provider, sem, email_provider)
+                                     for r in rows),
                                    return_exceptions=True)
     for r in results:
         if isinstance(r, Exception):

@@ -150,10 +150,10 @@ edited since are not credited.
 
 | # | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
-| G1 | Containers, CPU / GPU profiles, Postgres, Redis, workers, proxy, HTTPS | pre-existing | `deploy/`, `docs/DEPLOY.md`. Container images rebuilt in this programme: **not started** |
-| G2 | Observability, outage recovery, encrypted backups, restore | pre-existing (partial) | CI restore round trip. Outage drills: **not started** |
-| G3 | Push, SMS, call, email, monitoring-centre adapters | SMS / call / push delivery states integration tested (#46) | Live delivery: **needs external** (provider credentials, a decision to pay). Monitoring centre: **needs external** (contract) |
-| G4 | Hosting proposal, cost model, runbooks | pre-existing (partial) | Renting a server: **needs external** (owner's approval to spend) |
+| G1 | Containers, CPU / GPU profiles, Postgres, Redis, workers, proxy, HTTPS | integration tested (containers) | #78 · the stack run as containers (`docs/evidence/staging/CONTAINERS.md`); the API, dashboard and backup images built and checked in CI. A rented server: **needs external** |
+| G2 | Observability, outage recovery, encrypted backups, restore | integration tested | #78 · outage drills on containers; CI restore round trip; `fix/infra-adapters-backups` · encrypted off-site copies with a restore drill (`docs/evidence/staging/OFFSITE.md`, against a local S3 stand-in). 24-hour soak: a simulated day recorded (`docs/evidence/soak/SOAK.md`); 24 wall-clock hours: **not started**. Capacity on a representative server: **needs external** |
+| G3 | Push, SMS, call, email, monitoring-centre adapters | integration tested | #46 · SMS / call / push delivery states; `fix/infra-adapters-backups` · email (SMTP) and a signed monitoring-centre webhook with signed acknowledgements, both off unless configured, tested against stand-ins. Live delivery: **needs external** (provider credentials, a decision to pay). A contracted centre: **needs external** |
+| G4 | Hosting proposal, cost model, runbooks | pre-existing (partial); runbooks written | `docs/ops/RUNBOOKS.md` (incident, worker, database, restore, key rotation; every path and service checked by a test). Hosting proposal and cost model: **not started**. Renting a server: **needs external** (owner's approval to spend) |
 
 ## H, I. Hardware and compliance preparation
 

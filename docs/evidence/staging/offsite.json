@@ -1,0 +1,23 @@
+{
+  "measured_at": "2026-11-25T10:46:01+00:00",
+  "revision": "eec19a00858dd9a384b761af8e39a975e6426cd6",
+  "s3_endpoint": "http://<local>",
+  "object": "ira-care-20261125T1045Z.sql.gz.enc",
+  "object_bytes": 92816,
+  "seconds_backup_to_restored": 2,
+  "source": {
+    "tables": 155,
+    "migrations": 115,
+    "rows": 238
+  },
+  "restored": {
+    "tables": 155,
+    "migrations": 115,
+    "rows": 238
+  },
+  "identical": true,
+  "wrong_passphrase": {
+    "exit_code": 3,
+    "tables_written": 0
+  }
+}

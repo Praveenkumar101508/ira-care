@@ -2783,8 +2783,21 @@
    "title": "Encrypted off-site backups with a restore drill",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_offsite_backup.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "docs/evidence/staging/offsite.json"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/staging/OFFSITE.md"
+    }
+   ]
   },
   {
    "id": "G2.i",
@@ -2854,8 +2867,17 @@
    "title": "Email adapter",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_email_and_centre_providers.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_email_and_centre_db.py::test_a_tier_is_emailed_when_a_mail_server_is_configured"
+    }
+   ]
   },
   {
    "id": "G3.d",
@@ -2863,8 +2885,17 @@
    "title": "Monitoring-centre adapter",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_email_and_centre_providers.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_email_and_centre_db.py::test_tier_3_goes_to_the_centre_and_only_its_signed_acknowledgement_moves_it"
+    }
+   ]
   },
   {
    "id": "G3.e",
@@ -2915,8 +2946,17 @@
    "title": "Operations runbooks (incident, restore, key rotation)",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/ops/RUNBOOKS.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_runbooks.py"
+    }
+   ]
   },
   {
    "id": "G4.d",
