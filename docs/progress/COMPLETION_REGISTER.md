@@ -182,7 +182,7 @@ edited since are not credited.
 
 | # | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
-| J | Integrated live demonstration, the 22-step care journey (D-079), presenter guide | integration tested | #79 · the 22 steps against the real API and PostgreSQL (`docs/demo/CARE_JOURNEY_22.md`); #64 · `docs/demo/RERUN.md`: scripted scenarios and the browser demo re-run on the remediated stack (fake model, log-only providers); two defects found and fixed (REMEDIATION B4, B5). Film voice-over and devices: not re-run |
+| J | Integrated live demonstration, the 22-step care journey (D-079), presenter guide | integration tested | #79 · the 22 steps against the real API and PostgreSQL (`docs/demo/CARE_JOURNEY_22.md`); #64 · `docs/demo/RERUN.md`: scripted scenarios and the browser demo re-run on the remediated stack (fake model, log-only providers); two defects found and fixed (REMEDIATION B4, B5). Film voice-over and devices: not re-run; the 22 steps with the real model chain (gemma4:e4b then gemma4:e2b on CPU), 8 of 8 runs passed, the safety rules held (`docs/evidence/demo/REAL_MODEL_RUN.md`) |
 | K | Full verification on integrated `main` (every suite, builds, load, outage, backup, licence scan) | integration tested | `docs/progress/VERIFICATION.md`: backend unit and database suites, dashboard, phone, watch builds, outage, backup and restore, secret scan, licences. Load (24 h soak): not run. Device, emulator and OS image runs: **needs external** |
 | L | Endorsement evidence pack, GO / NO-GO decisions | not started | |
 

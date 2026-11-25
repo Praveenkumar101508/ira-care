@@ -1,0 +1,406 @@
+{
+ "what": "The 22-step care journey against the product's real model chain (requirement J.e)",
+ "measured_at": "2026-11-25T12:09:01Z",
+ "machine": {
+  "platform": "Linux-6.18.44-fc-v880-x86_64-with-glibc2.39",
+  "cpus": 4,
+  "gpu": "none"
+ },
+ "model_server": "http://127.0.0.1:11434",
+ "models": [
+  {
+   "name": "gemma4:e4b",
+   "digest": "dc35e8d9c6061baa6f0fa870975ab6932e2542b579b13ea0f199fa4bb7300c9c",
+   "size": 6583656505
+  },
+  {
+   "name": "gemma4:e2b",
+   "digest": "b37049369adfe3d2b653af0ab301a062ca5cbe96ace6aa0d3f2559ee9b563fc2",
+   "size": 4587156505
+  }
+ ],
+ "chain": [
+  "gemma4:e4b",
+  "gemma4:e2b"
+ ],
+ "runs": 8,
+ "passed": 8,
+ "step5_question_source": {
+  "model": 6,
+  "template": 2
+ },
+ "latency_by_call_kind": {
+  "answer_reading": {
+   "calls": 16,
+   "total_s_median": 11.89,
+   "total_s_max": 24.02,
+   "first_token_s_median": null
+  },
+  "checkin_question": {
+   "calls": 8,
+   "total_s_median": 4.66,
+   "total_s_max": 9.14,
+   "first_token_s_median": 1.28
+  },
+  "talk": {
+   "calls": 8,
+   "total_s_median": 8.72,
+   "total_s_max": 14.62,
+   "first_token_s_median": 1.69
+  }
+ },
+ "per_run": [
+  {
+   "run": 1,
+   "passed": true,
+   "seconds": 34.5,
+   "failure": [],
+   "warm_s": 0.018854496000017207,
+   "step5_question_source": [
+    "model"
+   ],
+   "calls": [
+    {
+     "kind": "checkin_question",
+     "call": "stream",
+     "first_token_s": 0.3027391920001037,
+     "total_s": 1.758,
+     "chars": 42,
+     "text": "Hello Edith. How was your lunch today? Did"
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 12.995,
+     "chars": 193,
+     "text": "{\"wellbeing\": \"good\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [\"fine\", \"quiet\"], \"summary\": \"Edith reported having a fine and quiet morning.\"}"
+    },
+    {
+     "kind": "talk",
+     "call": "stream",
+     "first_token_s": 1.504417215999979,
+     "total_s": 6.66,
+     "chars": 101,
+     "text": "It's a lovely afternoon out there, Edith. I hope your garden roses are looking their prettiest today."
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 8.697,
+     "chars": 191,
+     "text": "{\"wellbeing\": \"unknown\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [], \"summary\": \"The person is unsure if they have taken their medication.\"}"
+    }
+   ]
+  },
+  {
+   "run": 2,
+   "passed": true,
+   "seconds": 38.2,
+   "failure": [],
+   "warm_s": 0.01856138900006954,
+   "step5_question_source": [
+    "model"
+   ],
+   "calls": [
+    {
+     "kind": "checkin_question",
+     "call": "stream",
+     "first_token_s": 1.1083745270000236,
+     "total_s": 3.124,
+     "chars": 51,
+     "text": "Hello Edith. How was your afternoon meal today? Did"
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 11.946,
+     "chars": 201,
+     "text": "{\"wellbeing\": \"good\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [\"fine\", \"quiet\"], \"summary\": \"The person reported feeling fine after a quiet morning.\"}"
+    },
+    {
+     "kind": "talk",
+     "call": "stream",
+     "first_token_s": 1.52014727400001,
+     "total_s": 9.396,
+     "chars": 150,
+     "text": "It is a lovely afternoon today, Edith. I hope your garden roses are looking their best. Would you like me to tell Carer Cal about how you are feeling?"
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 8.95,
+     "chars": 191,
+     "text": "{\"wellbeing\": \"unknown\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [], \"summary\": \"The person is unsure if they have taken their medication.\"}"
+    }
+   ]
+  },
+  {
+   "run": 3,
+   "passed": true,
+   "seconds": 36.2,
+   "failure": [],
+   "warm_s": 0.01891629900001135,
+   "step5_question_source": [
+    "model"
+   ],
+   "calls": [
+    {
+     "kind": "checkin_question",
+     "call": "stream",
+     "first_token_s": 1.136922229999982,
+     "total_s": 3.997,
+     "chars": 55,
+     "text": "Hello Edith. How is your spirit feeling this afternoon?"
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 10.675,
+     "chars": 195,
+     "text": "{\"wellbeing\": \"good\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [\"fine\", \"quiet\"], \"summary\": \"Edith reports feeling fine after a quiet morning.\"}"
+    },
+    {
+     "kind": "talk",
+     "call": "stream",
+     "first_token_s": 1.691521985999998,
+     "total_s": 7.175,
+     "chars": 90,
+     "text": "It is a lovely afternoon for you, Edith. I bet your roses are looking so bright right now."
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 9.521,
+     "chars": 191,
+     "text": "{\"wellbeing\": \"unknown\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [], \"summary\": \"The person is unsure if they have taken their medication.\"}"
+    }
+   ]
+  },
+  {
+   "run": 4,
+   "passed": true,
+   "seconds": 48.1,
+   "failure": [],
+   "warm_s": 0.01855443599993123,
+   "step5_question_source": [
+    "template"
+   ],
+   "calls": [
+    {
+     "kind": "checkin_question",
+     "call": "stream",
+     "first_token_s": 1.5764818519999153,
+     "total_s": 4.418,
+     "chars": 59,
+     "text": "Edith, how was your afternoon meal today? Did you enjoy it?"
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 11.836,
+     "chars": 185,
+     "text": "{\"wellbeing\": \"good\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [\"fine\", \"quiet\"], \"summary\": \"Edith reports a fine and quiet morning.\"}"
+    },
+    {
+     "kind": "talk",
+     "call": "stream",
+     "first_token_s": 2.8747213569999985,
+     "total_s": 14.621,
+     "chars": 138,
+     "text": "It's such a lovely afternoon out. I bet your garden roses are looking beautiful right now. They always bring such bright cheer to the day."
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 12.538,
+     "chars": 191,
+     "text": "{\"wellbeing\": \"unknown\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [], \"summary\": \"The person is unsure if they have taken their medication.\"}"
+    }
+   ]
+  },
+  {
+   "run": 5,
+   "passed": true,
+   "seconds": 56.9,
+   "failure": [],
+   "warm_s": 0.018284668999967835,
+   "step5_question_source": [
+    "model"
+   ],
+   "calls": [
+    {
+     "kind": "checkin_question",
+     "call": "stream",
+     "first_token_s": 1.806219548999934,
+     "total_s": 7.868,
+     "chars": 79,
+     "text": "Hello Edith. How are your plans looking for the rest of the afternoon? Anything"
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 16.939,
+     "chars": 195,
+     "text": "{\"wellbeing\": \"good\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [\"fine\"], \"summary\": \"Edith is doing fine and plans for the afternoon are quiet.\"}"
+    },
+    {
+     "kind": "talk",
+     "call": "stream",
+     "first_token_s": 2.8779174159999457,
+     "total_s": 11.886,
+     "chars": 102,
+     "text": "The roses in your garden must be looking lovely this afternoon. I hope you're enjoying the quiet time."
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 15.138,
+     "chars": 191,
+     "text": "{\"wellbeing\": \"unknown\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [], \"summary\": \"The person is unsure if they have taken their medication.\"}"
+    }
+   ]
+  },
+  {
+   "run": 6,
+   "passed": true,
+   "seconds": 59.1,
+   "failure": [],
+   "warm_s": 0.018223922000061066,
+   "step5_question_source": [
+    "template"
+   ],
+   "calls": [
+    {
+     "kind": "checkin_question",
+     "call": "stream",
+     "first_token_s": 1.2485618979999344,
+     "total_s": 9.144,
+     "chars": 75,
+     "text": "Edith, what are you thinking of doing this afternoon? Anything fun planned?"
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 24.022,
+     "chars": 0,
+     "text": ""
+    },
+    {
+     "kind": "talk",
+     "call": "stream",
+     "first_token_s": null,
+     "total_s": 8.053,
+     "chars": 0,
+     "text": ""
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 12.903,
+     "chars": 191,
+     "text": "{\"wellbeing\": \"unknown\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [], \"summary\": \"The person is unsure if they have taken their medication.\"}"
+    }
+   ]
+  },
+  {
+   "run": 7,
+   "passed": true,
+   "seconds": 39.8,
+   "failure": [],
+   "warm_s": 0.018726740999909453,
+   "step5_question_source": [
+    "model"
+   ],
+   "calls": [
+    {
+     "kind": "checkin_question",
+     "call": "stream",
+     "first_token_s": 1.3072477900000194,
+     "total_s": 4.907,
+     "chars": 56,
+     "text": "Hello Edith. How is your comfort feeling this afternoon?"
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 12.669,
+     "chars": 195,
+     "text": "{\"wellbeing\": \"good\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [\"fine\", \"quiet\"], \"summary\": \"Edith reports feeling fine after a quiet morning.\"}"
+    },
+    {
+     "kind": "talk",
+     "call": "stream",
+     "first_token_s": 1.8329996720001418,
+     "total_s": 7.765,
+     "chars": 98,
+     "text": "It is such a lovely afternoon for you, Edith. I hope your roses are looking their prettiest today."
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 9.526,
+     "chars": 191,
+     "text": "{\"wellbeing\": \"unknown\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [], \"summary\": \"The person is unsure if they have taken their medication.\"}"
+    }
+   ]
+  },
+  {
+   "run": 8,
+   "passed": true,
+   "seconds": 42.1,
+   "failure": [],
+   "warm_s": 0.018710536000071443,
+   "step5_question_source": [
+    "model"
+   ],
+   "calls": [
+    {
+     "kind": "checkin_question",
+     "call": "stream",
+     "first_token_s": 1.6604665250001744,
+     "total_s": 4.984,
+     "chars": 55,
+     "text": "Hello Edith. How is your spirit feeling this afternoon?"
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 11.58,
+     "chars": 195,
+     "text": "{\"wellbeing\": \"good\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [\"fine\", \"quiet\"], \"summary\": \"Edith reports feeling fine after a quiet morning.\"}"
+    },
+    {
+     "kind": "talk",
+     "call": "stream",
+     "first_token_s": 1.4532524989999729,
+     "total_s": 11.251,
+     "chars": 174,
+     "text": "It is a lovely afternoon for you, Edith. I hope your garden roses are looking their prettiest right now. Would you like me to let Carer Cal know how cheerful you are feeling?"
+    },
+    {
+     "kind": "answer_reading",
+     "call": "json",
+     "first_token_s": null,
+     "total_s": 9.407,
+     "chars": 191,
+     "text": "{\"wellbeing\": \"unknown\", \"pain_mentioned\": false, \"medication_taken\": \"unknown\", \"needs_help\": false, \"mood_words\": [], \"summary\": \"The person is unsure if they have taken their medication.\"}"
+    }
+   ]
+  }
+ ]
+}
