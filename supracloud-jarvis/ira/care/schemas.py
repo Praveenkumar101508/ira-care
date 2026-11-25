@@ -601,3 +601,42 @@ class GenerateReport(BaseModel):
         if v not in ("daily_carer", "weekly_family"):
             raise ValueError("kind must be daily_carer or weekly_family")
         return v
+
+
+# ── Care plans (116) ─────────────────────────────────────────────────────────
+
+PLAN_WHO = ("carer", "family", "person")
+
+
+class PlanRoutineItem(BaseModel):
+    """One thing in the daily routine: what, when (plain words, "08:00" or "after lunch"), who does it."""
+    what: str = Field(..., min_length=1, max_length=200)
+    when: str = Field("", max_length=60)
+    who: str = "carer"
+
+    @field_validator("who")
+    @classmethod
+    def _who(cls, v):
+        if v not in PLAN_WHO:
+            raise ValueError(f"who must be one of {', '.join(PLAN_WHO)}")
+        return v
+
+
+class CarePlanVersion(BaseModel):
+    """A new version of the care plan. `based_on` is the version the editor started from
+    (0 for the first plan), so two managers saving at once cannot overwrite each other."""
+    based_on: int = Field(..., ge=0)
+    goals: str = Field("", max_length=2000)
+    support: str = Field("", max_length=4000)
+    routine: list[PlanRoutineItem] = Field(default_factory=list, max_length=40)
+    risks: str = Field("", max_length=4000)
+    emergency: str = Field("", max_length=2000)
+    review_on: Optional[dt.date] = None
+    reason: str = Field(..., min_length=1, max_length=500)
+
+    @field_validator("reason")
+    @classmethod
+    def _reason(cls, v):
+        if not v.strip():
+            raise ValueError("say why the plan is changing")
+        return v.strip()

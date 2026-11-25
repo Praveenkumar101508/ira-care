@@ -28,7 +28,7 @@ from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
-from . import authz, audit, checkin_cycle, consent, history, onboarding, ops, personal, push, reports, repository as repo, schemas, sos, visits
+from . import authz, audit, checkin_cycle, consent, history, onboarding, ops, personal, plans, push, reports, repository as repo, schemas, sos, visits
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
 router = APIRouter(prefix="/care", tags=["care"])
@@ -649,6 +649,54 @@ async def put_my_preferences(body: schemas.Preferences, p: Principal = Depends(r
     if isinstance(appearance, str):
         appearance = json.loads(appearance)
     return {"appearance": appearance, "updated_at": row["updated_at"]}
+
+
+@router.get("/me/permissions")
+async def my_permissions(p: Principal = Depends(require_workspace_principal)):
+    """This account's staff role and the actions it may take (authz.STAFF_ROLES, ACTIONS), so
+    the dashboard shows only what will work. Every route still checks for itself."""
+    return authz.permissions_for(p)
+
+
+# ── The care plan (116) ──────────────────────────────────────────────────────
+
+async def _person_exists(conn, person_id: uuid.UUID) -> None:
+    if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+        raise _not_found("Person not found.")
+
+
+@router.get("/people/{person_id}/plan", dependencies=[Depends(person_guard)])
+async def get_plan(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    """The current care plan, or `plan: null` when none has been written yet."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        await _person_exists(conn, person_id)
+        return {"plan": await plans.current(conn, p, person_id)}
+
+
+@router.get("/people/{person_id}/plan/history", dependencies=[Depends(person_guard)])
+async def get_plan_history(person_id: uuid.UUID, limit: int = Query(50, ge=1, le=200),
+                           p: Principal = Depends(require_workspace_principal)):
+    """Every version of the plan, newest first, each with who changed it and why."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        await _person_exists(conn, person_id)
+        versions = await plans.history(conn, p, person_id, limit=limit)
+    return {"versions": versions, "count": len(versions)}
+
+
+@router.post("/people/{person_id}/plan", status_code=201, dependencies=[Depends(person_guard)])
+async def save_plan(person_id: uuid.UUID, body: schemas.CarePlanVersion, p: Principal = Depends(require_workspace_principal)):
+    """A care manager saves a new version of the plan. The old one is kept."""
+    ensure_can_manage(p)
+    async with workspace_connection(p) as conn:
+        await _person_exists(conn, person_id)
+        try:
+            return await plans.save(conn, p, person_id, body.model_dump(), author_name=p.username or "")
+        except plans.PlanConflict as c:
+            raise HTTPException(status_code=409, detail=(
+                f"Someone else saved the plan first (it is now version {c.args[0]}). "
+                "Reload it, then make your change again.")) from c
 
 
 @router.post("/people/{person_id}/help", status_code=201, dependencies=[Depends(person_guard)])

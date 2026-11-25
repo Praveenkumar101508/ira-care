@@ -88,3 +88,63 @@ async def may_see_person(conn, principal: Principal, person_id) -> bool:
     return bool(await conn.fetchval(
         "SELECT 1 FROM care_circle_members WHERE person_id = $1 AND user_id = $2 AND active LIMIT 1",
         uuid.UUID(str(person_id)), principal.user_id))
+
+
+# ── Staff roles: what a care organisation's people can do (D-078) ────────────
+#
+# The three workspace roles, named as a care organisation names its staff. This is a
+# description of the rules above, not a second set of rules: every action below names the
+# routes that enforce it and the level they check, and tests/care/test_care_staff_roles.py
+# fails if a route's check and this table ever disagree. Nothing here grants anything.
+
+STAFF_ROLES: dict[str, dict] = {
+    "workspace_admin": {
+        "label": "Care manager",
+        "who": "Runs the service: sees everyone cared for in the organisation, writes care plans, "
+               "adds people, carers and watches, and changes safety settings.",
+    },
+    "member": {
+        "label": "Carer",
+        "who": "Gives care: sees only the people whose circle they are in, answers alerts, records "
+               "visits and medication, and reads the care plan.",
+    },
+    "viewer": {
+        "label": "Viewer",
+        "who": "Can look but not change anything, for the people whose circle they are in.",
+    },
+}
+
+#: action -> (level, the routes that enforce it). Levels: read, act, manage.
+ACTIONS: dict[str, tuple[str, tuple[str, ...]]] = {
+    "view_care_plan": ("read", ("GET /care/people/{person_id}/plan", "GET /care/people/{person_id}/plan/history")),
+    "edit_care_plan": ("manage", ("POST /care/people/{person_id}/plan",)),
+    "acknowledge_alerts": ("act", ("POST /care/alerts/{alert_id}/acknowledge", "POST /care/alerts/{alert_id}/resolve")),
+    "record_visits": ("act", ("POST /care/people/{person_id}/visits", "POST /care/visits/{visit_id}/arrive",
+                              "POST /care/visits/{visit_id}/depart")),
+    "record_medication": ("act", ("POST /care/people/{person_id}/medication-events",)),
+    "set_reminders": ("act", ("POST /care/people/{person_id}/reminders",)),
+    "manage_people": ("manage", ("POST /care/people", "PATCH /care/people/{person_id}", "DELETE /care/people/{person_id}")),
+    "manage_circle": ("manage", ("POST /care/people/{person_id}/circle", "PATCH /care/circle/{member_id}",
+                                 "DELETE /care/circle/{member_id}", "POST /care/people/{person_id}/invitations")),
+    "manage_watches": ("manage", ("POST /care/people/{person_id}/devices", "POST /care/devices/{device_id}/revoke")),
+    "manage_safety_settings": ("manage", ("PUT /care/people/{person_id}/settings",)),
+    "manage_medication_list": ("manage", ("POST /care/people/{person_id}/medications",)),
+    "manage_consents": ("manage", ("POST /care/people/{person_id}/consents",)),
+}
+
+_LEVEL = {"read": can_read, "act": can_act, "manage": can_manage}
+
+
+def permissions_for(principal: Principal) -> dict:
+    """What this caller may do, for the dashboard to show only the actions that will work.
+    The server still checks every request: hiding a button is a courtesy, not the control."""
+    role = "workspace_admin" if principal.is_owner else (principal.workspace_role or "")
+    staff = STAFF_ROLES.get(role)
+    return {
+        "role": role or None,
+        "label": staff["label"] if staff else "No access",
+        "who": staff["who"] if staff else "This account has no role in this workspace.",
+        "sees_everyone": can_manage(principal),
+        "can_read": can_read(principal), "can_act": can_act(principal), "can_manage": can_manage(principal),
+        "actions": {name: _LEVEL[level](principal) for name, (level, _) in ACTIONS.items()},
+    }

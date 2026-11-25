@@ -112,3 +112,25 @@ export interface Capability {
   key: string; label: string; status: 'available' | 'not_available';
   reading?: string; how?: string; reason?: string;
 }
+
+/** A care organisation's staff role and what it may do (GET /care/me/permissions, care/authz.py). */
+export type StaffAction = 'view_care_plan' | 'edit_care_plan' | 'acknowledge_alerts' | 'record_visits' | 'record_medication'
+  | 'set_reminders' | 'manage_people' | 'manage_circle' | 'manage_watches' | 'manage_safety_settings'
+  | 'manage_medication_list' | 'manage_consents';
+export interface Permissions {
+  role: string | null; label: string; who: string; sees_everyone: boolean;
+  can_read: boolean; can_act: boolean; can_manage: boolean; actions: Partial<Record<StaffAction, boolean>>;
+}
+
+/** One version of a person's care plan (migration 116). Versions are never rewritten. */
+export type PlanWho = 'carer' | 'family' | 'person';
+export interface PlanRoutineItem { what: string; when: string; who: PlanWho }
+export interface CarePlan {
+  id: string; person_id: string; version: number; goals: string; support: string; routine: PlanRoutineItem[];
+  risks: string; emergency: string; review_on: string | null; reason: string; author_user_id: string | null;
+  author_name: string; created_at: string;
+}
+export interface CarePlanDraft {
+  based_on: number; goals: string; support: string; routine: PlanRoutineItem[]; risks: string; emergency: string;
+  review_on: string | null; reason: string;
+}

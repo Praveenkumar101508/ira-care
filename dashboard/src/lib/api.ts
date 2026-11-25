@@ -1,6 +1,6 @@
 import type { AlertOutcome,
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, Person,
-  AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitCreate, VisitDepart, WorkspaceList, CommunicationProfile, Overview, Capability,
+  AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitCreate, VisitDepart, WorkspaceList, CommunicationProfile, Overview, Capability, Permissions, CarePlan, CarePlanDraft,
 } from './types';
 
 export class ApiError extends Error {
@@ -114,6 +114,10 @@ export class Api {
   overview() { return this.req<Overview>('GET', '/api/v1/care/overview'); }
   profileAccessNotes(id: string) { return this.req<{ allowed: boolean; access_notes: string; home_address: string; emergency_summary: string }>('GET', `/api/v1/care/people/${id}/access-notes`); }
   opsStatus() { return this.req<OpsStatus>('GET', '/api/v1/care/ops/status'); }
+  permissions() { return this.req<Permissions>('GET', '/api/v1/care/me/permissions'); }
+  carePlan(id: string) { return this.req<{ plan: CarePlan | null }>('GET', `/api/v1/care/people/${id}/plan`).then((o) => o.plan); }
+  carePlanHistory(id: string) { return this.req<{ versions: CarePlan[] }>('GET', `/api/v1/care/people/${id}/plan/history`).then((o) => o.versions); }
+  saveCarePlan(id: string, body: CarePlanDraft) { return this.req<CarePlan>('POST', `/api/v1/care/people/${id}/plan`, body); }
   plan() { return this.req<PlanSummary>('GET', '/api/v1/care/plan'); }
   invite(personId: string, body: { email: string; display_name: string; relationship: string; role: string; tier: number; phone: string; consents: { kind: string; granted: boolean; granted_by: string; granted_by_name: string }[] }) {
     return this.req<InvitationOut>('POST', `/api/v1/care/people/${personId}/invitations`, body);
