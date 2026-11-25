@@ -2,7 +2,7 @@
 -- 117_care_staff_designations.sql — IRA CARE: the care coordinator
 --
 --   care_staff_designations
---     A care manager names a member of the care team as a COORDINATOR (D-080).
+--     A care manager names a member of the care team as a COORDINATOR (D-081).
 --     A coordinator plans visits for everyone the organisation cares for and sees
 --     every carer's caseload; nothing else changes. The workspace role is still
 --     `member` (a designation on a viewer or a manager has no effect), so a

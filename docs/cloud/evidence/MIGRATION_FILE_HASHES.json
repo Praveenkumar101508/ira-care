@@ -603,7 +603,7 @@
   },
   "117_care_staff_designations.sql": {
    "migration_number": 117,
-   "sha256": "c0b99b5a9ceef03a9d04c8a5c4e510c6a886187e10c2c8ad88ae011d16f69a40",
+   "sha256": "422074787d1927905424fc9910c43a66890343430765b8e89d1bf0c94594248f",
    "status": "applied"
   },
   "init.sql": {

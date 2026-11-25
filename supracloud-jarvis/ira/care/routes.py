@@ -672,7 +672,7 @@ async def my_permissions(p: Principal = Depends(require_workspace_principal)):
     return authz.permissions_for(p, coordinator=coordinator)
 
 
-# ── The care team: search, caseloads, the visit plan, coordinators (D-080) ───
+# ── The care team: search, caseloads, the visit plan, coordinators (D-081) ───
 
 @router.get("/search")
 @limiter.limit(SEARCH_LIMIT)
@@ -1256,6 +1256,58 @@ async def twilio_status(tenant_id: uuid.UUID, workspace_id: uuid.UUID, attempt_i
         await delivery.record_state(conn, attempt_id, outcome, source="callback", provider_status=status,
                                     provider_ref=sid)
     return Response(status_code=204)
+
+
+@router.post("/providers/arc/status/{tenant_id}/{workspace_id}/{alert_id}")
+async def arc_status(tenant_id: uuid.UUID, workspace_id: uuid.UUID, alert_id: uuid.UUID, request: Request,
+                     t: str = Query("", max_length=80),
+                     x_ira_timestamp: Optional[str] = Header(default=None, alias="X-IRA-Timestamp"),
+                     x_ira_signature: Optional[str] = Header(default=None, alias="X-IRA-Signature")):
+    """How far a monitoring centre got with an alarm. Refused with nothing written
+    unless BOTH our token in the URL and the centre's signature over the timestamp
+    and body verify, and the timestamp is recent. It moves the state of this alert's
+    monitoring-centre attempt forward only: never acknowledges the alert itself,
+    which only a person in the circle or the centre's operator through the
+    dashboard does."""
+    import json
+    import os
+
+    from fastapi import Response
+
+    from . import delivery, providers
+    from .checkin_cycle import job_principal
+    body = await request.body()
+    if len(body) > _ARC_BODY_LIMIT:
+        raise HTTPException(status_code=400, detail="Too large.")
+    secret = (os.getenv("IRA_CARE_ARC_SECRET") or "").strip()
+    if not delivery.verify_token(tenant_id, workspace_id, alert_id, t) or not providers.verify_arc(
+            secret, x_ira_timestamp or "", body, x_ira_signature or ""):
+        raise HTTPException(status_code=403, detail="Signature not valid.")
+    try:
+        payload = json.loads(body or b"{}")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Not JSON.")
+    status = str(payload.get("status", "")).strip().lower()[:40]
+    outcome = delivery.ARC_STATUS.get(status)
+    if outcome is None:
+        return Response(status_code=204)
+    principal = job_principal(tenant_id, workspace_id)
+    async with workspace_connection(principal) as conn:
+        # Every hand-over of this alert is the same alarm (one idempotency key), so the
+        # centre's word about the alarm is recorded on each of them.
+        attempt_ids = [r["id"] for r in await conn.fetch(
+            "SELECT id FROM care_alert_attempts WHERE alert_id = $1 AND channel = 'monitoring_centre' "
+            "AND outcome <> 'skipped'", alert_id)]
+        if not attempt_ids:
+            logger.warning("care monitoring centre callback: no attempt for alert %s", alert_id)
+            return Response(status_code=204)
+        for attempt_id in attempt_ids:
+            await delivery.record_state(conn, attempt_id, outcome, source="callback", provider_status=status,
+                                        provider_ref=str(payload.get("alarm_id", ""))[:200])
+    return Response(status_code=204)
+
+
+_ARC_BODY_LIMIT = 4096
 
 
 # ── Transcripts and consents ─────────────────────────────────────────────────

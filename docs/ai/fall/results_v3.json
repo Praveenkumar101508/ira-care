@@ -1,0 +1,262 @@
+{
+  "design": {
+    "candidate_g": 2.0,
+    "settle_samples": 75,
+    "alignment": "window index 100 = the peak in the settle period",
+    "decision": "model at or above the fold threshold; no 20 s stillness requirement; the watch's countdown asks first",
+    "threshold_rule": "per fold, the highest threshold at which validation falls are caught at least as often as the rule plus 0.05",
+    "fixed_before_held_out_results": true
+  },
+  "data": {
+    "bits2": "Zenodo 10013090, CC BY 4.0",
+    "uci_har": "UCI 240, CC BY 4.0, negatives only",
+    "fall_files": 316,
+    "fall_files_without_candidate": 45,
+    "adl_candidates": 955,
+    "adl_seconds": 8039.260000000007,
+    "adl_hours": 2.233,
+    "excluded_subjects": [
+      "user1"
+    ]
+  },
+  "protocol": {
+    "folds": 5,
+    "epochs": 12,
+    "seed": 20261126,
+    "folds_detail": [
+      {
+        "fold": 0,
+        "threshold": 0.95,
+        "rule_validation_sensitivity": 0.5833,
+        "test_subjects": [
+          "user11",
+          "user13",
+          "user15",
+          "user17",
+          "user28",
+          "user35",
+          "user37",
+          "user41"
+        ],
+        "train_windows": 10303,
+        "train_positive": 2556
+      },
+      {
+        "fold": 1,
+        "threshold": 0.93,
+        "rule_validation_sensitivity": 0.625,
+        "test_subjects": [
+          "user6",
+          "user9",
+          "user21",
+          "user25",
+          "user27",
+          "user33",
+          "user34",
+          "user38"
+        ],
+        "train_windows": 10495,
+        "train_positive": 2616
+      },
+      {
+        "fold": 2,
+        "threshold": 0.95,
+        "rule_validation_sensitivity": 0.5417,
+        "test_subjects": [
+          "user4",
+          "user8",
+          "user18",
+          "user20",
+          "user26",
+          "user30",
+          "user32",
+          "user40"
+        ],
+        "train_windows": 10251,
+        "train_positive": 2592
+      },
+      {
+        "fold": 3,
+        "threshold": 0.95,
+        "rule_validation_sensitivity": 0.5417,
+        "test_subjects": [
+          "user10",
+          "user14",
+          "user19",
+          "user22",
+          "user23",
+          "user24",
+          "user31",
+          "user36"
+        ],
+        "train_windows": 10289,
+        "train_positive": 2700
+      },
+      {
+        "fold": 4,
+        "threshold": 0.95,
+        "rule_validation_sensitivity": 0.5833,
+        "test_subjects": [
+          "user2",
+          "user3",
+          "user5",
+          "user7",
+          "user12",
+          "user16",
+          "user29",
+          "user39"
+        ],
+        "train_windows": 10338,
+        "train_positive": 2544
+      }
+    ],
+    "split": "by BITS-2 subject and by UCI HAR subject; thresholds chosen on validation subjects inside each fold's training subjects"
+  },
+  "held_out": {
+    "rule_detector": {
+      "falls_caught": 195,
+      "falls_missed": 121,
+      "sensitivity": 0.6171,
+      "alarms_on_adl": 118,
+      "adl_events": 1075,
+      "specificity_on_adl_events": 0.8902,
+      "precision": 0.623,
+      "alarms_per_hour_of_adl": 52.84
+    },
+    "v3": {
+      "falls_caught": 241,
+      "falls_missed": 75,
+      "sensitivity": 0.7627,
+      "alarms_on_adl": 22,
+      "adl_events": 955,
+      "specificity_on_adl_events": 0.977,
+      "precision": 0.9163,
+      "alarms_per_hour_of_adl": 9.85
+    },
+    "gate": {
+      "sensitivity_at_least_the_rule": true,
+      "fewer_alarms_per_hour_than_the_rule": true,
+      "passed": true
+    },
+    "falls_caught_by": {
+      "rule_only": 20,
+      "v3_only": 66,
+      "both": 175,
+      "neither": 55
+    },
+    "shipped_pipeline_v3_or_rule_stillness": {
+      "a_complete_20_s_still_window_only": {
+        "rule_outcomes_counted": [
+          "fall"
+        ],
+        "falls_caught": 246,
+        "sensitivity": 0.7785,
+        "alarms_on_adl_at_most": 23,
+        "alarms_per_hour_of_adl_at_most": 10.3,
+        "falls_the_rule_caught_that_this_misses": 15
+      },
+      "b_also_recordings_that_ended_still": {
+        "rule_outcomes_counted": [
+          "fall",
+          "open"
+        ],
+        "falls_caught": 261,
+        "sensitivity": 0.8259,
+        "alarms_on_adl_at_most": 140,
+        "alarms_per_hour_of_adl_at_most": 62.69,
+        "falls_the_rule_caught_that_this_misses": 0
+      }
+    },
+    "uci_har_windows_flagged_cross_dataset_negatives": "0/5847",
+    "falls_by_activity": {
+      "fall1": {
+        "n": 39,
+        "rule": 27,
+        "v3": 31
+      },
+      "fall2": {
+        "n": 40,
+        "rule": 23,
+        "v3": 30
+      },
+      "fall3": {
+        "n": 39,
+        "rule": 25,
+        "v3": 35
+      },
+      "fall4": {
+        "n": 39,
+        "rule": 27,
+        "v3": 36
+      },
+      "fall5": {
+        "n": 40,
+        "rule": 20,
+        "v3": 23
+      },
+      "fall6": {
+        "n": 39,
+        "rule": 26,
+        "v3": 36
+      },
+      "fall7": {
+        "n": 40,
+        "rule": 16,
+        "v3": 16
+      },
+      "fall8": {
+        "n": 40,
+        "rule": 31,
+        "v3": 34
+      }
+    }
+  },
+  "post_hoc_shared_threshold_sweep_not_held_out": {
+    "0.1": {
+      "sensitivity": 0.8481,
+      "alarms_per_hour_of_adl": 55.98
+    },
+    "0.2": {
+      "sensitivity": 0.8481,
+      "alarms_per_hour_of_adl": 47.91
+    },
+    "0.3": {
+      "sensitivity": 0.8386,
+      "alarms_per_hour_of_adl": 42.54
+    },
+    "0.4": {
+      "sensitivity": 0.8323,
+      "alarms_per_hour_of_adl": 36.72
+    },
+    "0.5": {
+      "sensitivity": 0.8323,
+      "alarms_per_hour_of_adl": 34.03
+    },
+    "0.6": {
+      "sensitivity": 0.8291,
+      "alarms_per_hour_of_adl": 31.79
+    },
+    "0.7": {
+      "sensitivity": 0.8196,
+      "alarms_per_hour_of_adl": 26.42
+    },
+    "0.8": {
+      "sensitivity": 0.8133,
+      "alarms_per_hour_of_adl": 24.18
+    },
+    "0.9": {
+      "sensitivity": 0.7848,
+      "alarms_per_hour_of_adl": 17.46
+    }
+  },
+  "final_model": {
+    "threshold": 0.95,
+    "tflite_bytes": 18216,
+    "tflite_agrees_with_keras": "200/200",
+    "keras_bytes": 125931,
+    "params": 6705,
+    "train_windows": 12919,
+    "train_positive": 3252
+  },
+  "seconds": 110.3
+}

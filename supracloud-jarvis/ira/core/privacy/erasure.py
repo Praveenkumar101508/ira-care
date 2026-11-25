@@ -850,7 +850,7 @@ async def _delete_own_care_user_preferences(conn, principal) -> int:
 
 
 async def _delete_own_care_staff_designations(conn, principal) -> int:
-    """`care_staff_designations` rows name an ACCOUNT as coordinator (117, D-080); they go
+    """`care_staff_designations` rows name an ACCOUNT as coordinator (117, D-081); they go
     with the account, inside each workspace pass, like the preferences."""
     result = await conn.execute("DELETE FROM care_staff_designations WHERE user_id = $1", principal.user_id)
     return int(result.split()[-1]) if result else 0

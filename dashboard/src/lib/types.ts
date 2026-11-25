@@ -142,7 +142,7 @@ export interface CarePlanDraft {
 export type SearchKind = 'person' | 'visit' | 'alert';
 export interface SearchHit { kind: SearchKind; id: string; person_id: string; person_name: string; text: string; at: string | null }
 
-/** The care team's views (D-080). */
+/** The care team's views (D-081). */
 export interface CaseloadPerson { person_id: string; name: string; member_id: string; next_visit: string | null }
 export interface CaseloadCarer { user_id: string; name: string; people: CaseloadPerson[] }
 export interface Caseload { everyone: boolean; carers: CaseloadCarer[] }

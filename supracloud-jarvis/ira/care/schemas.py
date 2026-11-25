@@ -643,5 +643,5 @@ class CarePlanVersion(BaseModel):
 
 
 class CoordinatorDesignation(BaseModel):
-    """Name a member of the care team coordinator, or stop (D-080)."""
+    """Name a member of the care team coordinator, or stop (D-081)."""
     coordinator: bool

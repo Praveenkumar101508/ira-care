@@ -138,7 +138,7 @@ async def _tell_tier(conn, principal: Principal, person: dict, alert: dict, tier
                      provider: providers.MessageProvider, outcome: EscalationOutcome,
                      *, wording_tier: Optional[int] = None,
                      push_provider: Optional[push.PushProvider] = None,
-                     now: Optional[dt.datetime] = None) -> int:
+                     now: Optional[dt.datetime] = None, email_on: bool = False) -> int:
     """Reach every active member of circle `tier`. `wording_tier` is the tier
     the alert has REACHED (tier 3 wording adds 'call 999 now' when tiers 1 and
     2 are being repeated)."""
@@ -155,6 +155,10 @@ async def _tell_tier(conn, principal: Principal, person: dict, alert: dict, tier
             attempts += 1
         if m["call_enabled"] and m["phone"] and alert["severity"] != monitoring.NOTICE:
             await _queue(conn, alert["id"], tier, m["id"], "call", words, now)
+            attempts += 1
+        # Email only when the deployment has a mail server and the member an address.
+        if email_on and m["email"]:
+            await _queue(conn, alert["id"], tier, m["id"], "email", words, now)
             attempts += 1
     if not members and alert["severity"] != monitoring.NOTICE:
         # Nobody in this tier: said plainly on the record, never silently passed over.
@@ -190,11 +194,14 @@ async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
                               provider: Optional[providers.MessageProvider] = None,
                               centre: Optional[providers.MonitoringCentreProvider] = None,
                               outcome: Optional[EscalationOutcome] = None,
-                              push_provider: Optional[push.PushProvider] = None) -> EscalationOutcome:
+                              push_provider: Optional[push.PushProvider] = None,
+                              email_provider: Optional[providers.EmailProvider] = None) -> EscalationOutcome:
     """Advance every alert whose next action is due, inside one workspace."""
     outcome = outcome or EscalationOutcome()
     provider = provider or providers.provider_from_env()
     centre = centre or providers.monitoring_centre_from_env()
+    email_provider = email_provider or providers.email_from_env()
+    email_on = bool(getattr(email_provider, "configured", False))
     push_provider = push_provider or push.provider_from_env()
     # Receipts for pushes sent earlier: delivered, failed, or a dead token revoked.
     try:
@@ -234,23 +241,25 @@ async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
         person = dict(person)
         wait = dt.timedelta(minutes=int(settings["ack_wait_minutes"]) if settings else 5)
         if alert["severity"] == monitoring.NOTICE:
-            await _tell_tier(conn, principal, person, alert, 1, provider, outcome, push_provider=push_provider, now=now)
+            await _tell_tier(conn, principal, person, alert, 1, provider, outcome, push_provider=push_provider, now=now, email_on=email_on)
             await conn.execute("UPDATE care_alerts SET current_tier = 1, next_action_at = NULL WHERE id = $1",
                                alert["id"])
             outcome.notices += 1
             continue
         tier = int(alert["current_tier"]) + 1
         if tier == 1 or tier == 2:
-            await _tell_tier(conn, principal, person, alert, tier, provider, outcome, push_provider=push_provider, now=now)
+            await _tell_tier(conn, principal, person, alert, tier, provider, outcome, push_provider=push_provider, now=now, email_on=email_on)
             await conn.execute(
                 "UPDATE care_alerts SET status = 'escalating', current_tier = $2, next_action_at = $3 WHERE id = $1",
                 alert["id"], tier, now + wait)
         else:
             details = dict(alert["details"] or {})
             if getattr(centre, "configured", False):
-                delivery = await centre.raise_alarm(person_label=person["display_name"],
-                                                    summary=details.get("summary", alert["kind"]),
-                                                    reference=str(alert["id"]))
+                from . import delivery as _delivery
+                delivery = await centre.raise_alarm(
+                    person_label=person["display_name"], summary=details.get("summary", alert["kind"]),
+                    reference=str(alert["id"]), idempotency_key=f"ira-alert-{alert['id']}",
+                    callback_url=_delivery.arc_callback_url(principal.tenant_id, principal.workspace_id, alert["id"]))
                 await _attempt(conn, alert["id"], 3, None, "monitoring_centre", delivery)
                 outcome.attempts += 1
             else:
@@ -260,7 +269,7 @@ async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
                 details[CALL_999_FLAG] = True
                 for repeat_tier in (1, 2):
                     await _tell_tier(conn, principal, person, alert, repeat_tier, provider, outcome,
-                                     wording_tier=3, push_provider=push_provider, now=now)
+                                     wording_tier=3, push_provider=push_provider, now=now, email_on=email_on)
                 outcome.repeated_tier3 += 1
             await conn.execute(
                 "UPDATE care_alerts SET status = 'escalating', current_tier = 3, next_action_at = $2, "
@@ -318,7 +327,8 @@ async def evaluate_person(conn, person: dict, settings: dict, now: dt.datetime,
 async def run_workspace(principal: Principal, now: Optional[dt.datetime] = None, *,
                         provider: Optional[providers.MessageProvider] = None,
                         centre: Optional[providers.MonitoringCentreProvider] = None,
-                        push_provider: Optional[push.PushProvider] = None) -> EscalationOutcome:
+                        push_provider: Optional[push.PushProvider] = None,
+                        email_provider: Optional[providers.EmailProvider] = None) -> EscalationOutcome:
     from core.identity.db_context import workspace_connection
     now = now or _now()
     outcome = EscalationOutcome()
@@ -334,12 +344,13 @@ async def run_workspace(principal: Principal, now: Optional[dt.datetime] = None,
                 logger.exception("care monitoring: evaluation failed for a person")
                 outcome.errors += 1
         await run_due_escalations(conn, principal, now, provider=provider, centre=centre, outcome=outcome,
-                                  push_provider=push_provider)
+                                  push_provider=push_provider, email_provider=email_provider)
     # The chain's decisions are committed: now send what it queued, outside that
     # transaction (care/delivery.py). Anything not sent now is sent next pass.
     from . import delivery
     try:
-        sent = await delivery.dispatch(principal, now, provider=provider, push_provider=push_provider)
+        sent = await delivery.dispatch(principal, now, provider=provider, push_provider=push_provider,
+                                       email_provider=email_provider)
         outcome.dispatched = sent.claimed
     except Exception:  # noqa: BLE001 - queued rows stay queued and are sent next pass
         logger.exception("care delivery: dispatch failed; queued messages stay queued")

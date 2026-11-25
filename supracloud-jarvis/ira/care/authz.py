@@ -71,7 +71,7 @@ def ensure_can_manage(principal: Principal) -> None:
 
 
 async def is_coordinator(conn, principal: Principal) -> bool:
-    """A care coordinator (D-080): a `member` of the workspace whom a care manager has named
+    """A care coordinator (D-081): a `member` of the workspace whom a care manager has named
     coordinator. The designation does nothing for any other role: a viewer stays a viewer."""
     if principal.workspace_role != "member" or principal.user_id is None:
         return False

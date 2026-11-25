@@ -3324,7 +3324,7 @@
         "required": false,
         "specification": "not required: no secret or biometric material"
       },
-      "justification": "A care manager naming a member of the care team COORDINATOR (117, D-080): who, which designation, who named them and when. No health data. Belongs to the account; goes with the account (care step of erasure, ON DELETE CASCADE from users) and with the tenant.",
+      "justification": "A care manager naming a member of the care team COORDINATOR (117, D-081): who, which designation, who named them and when. No health data. Belongs to the account; goes with the account (care step of erasure, ON DELETE CASCADE from users) and with the tenant.",
       "migration": {
         "done_by": "117_care_staff_designations.sql",
         "requires_migration": false,

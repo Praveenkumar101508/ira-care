@@ -1,0 +1,56 @@
+{
+  "measured_at": "2026-11-25T10:55:31+00:00",
+  "revision": "eec19a00858dd9a384b761af8e39a975e6426cd6",
+  "kind": "simulated day: 289 steps of 5 simulated minutes, run as fast as the machine allows; not 24 wall-clock hours",
+  "database": "a fresh PostgreSQL 16 database (iratest_soak), the full migration chain applied as ira_migrator",
+  "machine": "the 4-CPU build container, shared with other jobs during the run",
+  "report": {
+    "people": 200,
+    "step_minutes": 5,
+    "steps": 289,
+    "checkins_answered": 6815,
+    "checkins_missed": 385,
+    "silent_people": 20,
+    "escalated": 20,
+    "missing_escalations": 0,
+    "late_escalations": 0,
+    "tier_reached_min": 3,
+    "checkin_pass_s": {
+      "mean": 0.176,
+      "p95": 0.337,
+      "max": 0.754
+    },
+    "monitoring_pass_s": {
+      "mean": 0.264,
+      "p95": 0.502,
+      "max": 0.919
+    }
+  },
+  "hourly": [
+    "00:00  check-in pass 0.13s  monitoring pass 0.13s  answered 0 missed 0",
+    "01:00  check-in pass 0.09s  monitoring pass 0.08s  answered 0 missed 0",
+    "02:00  check-in pass 0.11s  monitoring pass 0.10s  answered 0 missed 0",
+    "03:00  check-in pass 0.11s  monitoring pass 0.14s  answered 0 missed 0",
+    "04:00  check-in pass 0.08s  monitoring pass 0.14s  answered 0 missed 0",
+    "05:00  check-in pass 0.12s  monitoring pass 0.14s  answered 0 missed 0",
+    "06:00  check-in pass 0.09s  monitoring pass 0.12s  answered 0 missed 0",
+    "07:00  check-in pass 0.15s  monitoring pass 0.13s  answered 0 missed 0",
+    "08:00  check-in pass 0.22s  monitoring pass 0.17s  answered 531 missed 0",
+    "09:00  check-in pass 0.15s  monitoring pass 0.13s  answered 1000 missed 0",
+    "10:00  check-in pass 0.37s  monitoring pass 0.19s  answered 1445 missed 4",
+    "11:00  check-in pass 0.17s  monitoring pass 0.17s  answered 1986 missed 14",
+    "12:00  check-in pass 0.19s  monitoring pass 0.24s  answered 2375 missed 25",
+    "13:00  check-in pass 0.75s  monitoring pass 0.26s  answered 2886 missed 45",
+    "14:00  check-in pass 0.10s  monitoring pass 0.32s  answered 3335 missed 65",
+    "15:00  check-in pass 0.34s  monitoring pass 0.33s  answered 3758 missed 91",
+    "16:00  check-in pass 0.20s  monitoring pass 0.25s  answered 4276 missed 124",
+    "17:00  check-in pass 0.21s  monitoring pass 0.46s  answered 4647 missed 153",
+    "18:00  check-in pass 0.29s  monitoring pass 0.26s  answered 5133 missed 198",
+    "19:00  check-in pass 0.20s  monitoring pass 0.35s  answered 5555 missed 245",
+    "20:00  check-in pass 0.26s  monitoring pass 0.43s  answered 5957 missed 292",
+    "21:00  check-in pass 0.23s  monitoring pass 0.43s  answered 6455 missed 345",
+    "22:00  check-in pass 0.11s  monitoring pass 0.31s  answered 6815 missed 385",
+    "23:00  check-in pass 0.12s  monitoring pass 0.49s  answered 6815 missed 385",
+    "00:00  check-in pass 0.14s  monitoring pass 0.40s  answered 6815 missed 385"
+  ]
+}

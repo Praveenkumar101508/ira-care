@@ -159,7 +159,7 @@ EXEMPT: dict[str, str] = {
         "the person, not to an account; a member's or creator's user link is ON DELETE SET NULL. Removed by the "
         "care package's per-person erasure and, when the TENANT is deleted, by ON DELETE CASCADE.",
     "care_staff_designations":
-        "IRA CARE (117): a care manager naming an ACCOUNT coordinator (D-080). Deleted by account erasure "
+        "IRA CARE (117): a care manager naming an ACCOUNT coordinator (D-081). Deleted by account erasure "
         "through the care-specific step in erase_postgres (by user_id, inside each workspace pass), by ON "
         "DELETE CASCADE from users, and with the TENANT. Listed here rather than in SUBJECT_TABLES because "
         "the generic tenant-wide DELETE would take every coordinator's designation, not this account's.",
