@@ -114,7 +114,7 @@ off-site bucket.
 
 | # | STRIDE | Threat | Control | Code | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| T31 | T | A dependency with a known vulnerability ships | `pip-audit` and `npm audit` in each review; overrides for PostCSS, xmldom and the Expo build tools (S6) | `dashboard/package.json`, `mobile/package.json` | `security_headers.test.ts` | partly (round 7): production trees clean; the dashboard's test runner has two critical and one moderate advisory (S13); the API image is built from a partly unpinned list the audit does not cover (S14) |
+| T31 | T | A dependency with a known vulnerability ships | `pip-audit` and `npm audit` in each review; overrides for PostCSS, xmldom and the Expo build tools (S6) | `dashboard/package.json`, `mobile/package.json` | `security_headers.test.ts` | partly (round 7): production trees clean, and the dashboard's development tree too since S13 was fixed; the API image is built from a partly unpinned list the audit does not cover (S14) |
 | T32 | I | Secrets committed to the repository | gitleaks on every pull request | `scripts/ci/gitleaks.sh` | — | controlled in CI (`.github/workflows/test.yml`, job `secrets`) |
 | T33 | I | Traffic read or altered in transit | HTTPS through Caddy; HSTS on the dashboard | `deploy/Caddyfile` | `security_headers.test.ts` | controlled where deployed behind Caddy; certificate on a real domain unverified (G1.e) |
 
