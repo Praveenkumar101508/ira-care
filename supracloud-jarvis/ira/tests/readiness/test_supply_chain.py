@@ -56,13 +56,36 @@ def _pom(home: Path, g: str, a: str, v: str, body: str) -> None:
         "</project>", encoding="utf-8")
 
 
+def _poms(home: Path) -> dict[str, str]:
+    """{coordinate: path} for the POMs written by _pom, as the init script reports them."""
+    return {":".join(p.relative_to(home / "caches/modules-2/files-2.1").parts[:3]): str(p)
+            for p in home.rglob("*.pom")}
+
+
 def test_pom_licence_names_and_urls_map_to_spdx(tmp_path):
     _pom(tmp_path, "g", "a", "1", "<licenses><license><name>The Apache Software License, "
          "Version 2.0</name></license></licenses>")
     _pom(tmp_path, "g", "b", "1", "<licenses><license><name>whatever</name>"
          "<url>https://opensource.org/licenses/MIT</url></license></licenses>")
-    assert lc.pom_declared("g", "a", "1", tmp_path) == ("Apache-2.0", "POM", "jar")
-    assert lc.pom_declared("g", "b", "1", tmp_path)[0] == "MIT"
+    assert lc.pom_declared("g", "a", "1", _poms(tmp_path)) == ("Apache-2.0", "POM", "jar")
+    assert lc.pom_declared("g", "b", "1", _poms(tmp_path))[0] == "MIT"
+
+
+def test_the_result_does_not_depend_on_the_local_gradle_cache(tmp_path, monkeypatch):
+    _pom(tmp_path / "a", "x", "lib", "1", "<packaging>pom</packaging>")
+    poms = _poms(tmp_path / "a")
+    monkeypatch.setattr(lc, "gradle_modules", lambda eco: ({"wearos": ["x:lib:1"],
+                                                            "aosp": []}, poms))
+    sections = []
+    for home in (tmp_path / "empty-home", tmp_path / "a"):
+        monkeypatch.setenv("GRADLE_USER_HOME", str(home))
+        sections.append(lc.gradle_section("gradle-watch", []))
+    assert sections[0] == sections[1] and sections[0]["no_code_modules"] == ["x:lib@1"]
+    # Negative control: a module whose POM Gradle did not report is never silently allowed.
+    monkeypatch.setattr(lc, "gradle_modules", lambda eco: ({"wearos": ["x:lib:1"],
+                                                            "aosp": []}, {}))
+    sec = lc.gradle_section("gradle-watch", [])
+    assert sec["packages"]["x:lib@1"]["status"] == "forbidden"
 
 
 def test_pom_without_licences_follows_its_parent(tmp_path):
@@ -70,7 +93,7 @@ def test_pom_without_licences_follows_its_parent(tmp_path):
          "<name>BSD-3-Clause</name></license></licenses>")
     _pom(tmp_path, "g", "child", "1", "<parent><groupId>g</groupId><artifactId>parent"
          "</artifactId><version>2</version></parent><packaging>aar</packaging>")
-    assert lc.pom_declared("g", "child", "1", tmp_path) == ("BSD-3-Clause",
+    assert lc.pom_declared("g", "child", "1", _poms(tmp_path)) == ("BSD-3-Clause",
                                                            "parent POM g:parent:2", "aar")
 
 
@@ -78,21 +101,22 @@ def test_negative_control_a_pom_with_no_licence_or_a_gpl_one_is_forbidden(tmp_pa
     _pom(tmp_path, "g", "none", "1", "")
     _pom(tmp_path, "g", "gpl", "1", "<licenses><license><name>GNU General Public License v3 "
          "(GPLv3)</name></license></licenses>")
-    declared, source, _ = lc.pom_declared("g", "none", "1", tmp_path)
+    declared, source, _ = lc.pom_declared("g", "none", "1", _poms(tmp_path))
     assert source == "POM names no licence" and not lc.classify(declared).allowed
-    assert not lc.classify(lc.pom_declared("g", "gpl", "1", tmp_path)[0]).allowed
-    assert lc.pom_declared("g", "missing", "1", tmp_path)[1] == "no POM in the Gradle cache"
+    assert not lc.classify(lc.pom_declared("g", "gpl", "1", _poms(tmp_path))[0]).allowed
+    assert lc.pom_declared("g", "missing", "1", _poms(tmp_path))[1] == "no POM resolved"
 
 
 def test_gradle_section_reads_both_flavours_and_sets_aside_no_code_modules(tmp_path,
                                                                            monkeypatch):
-    monkeypatch.setenv("GRADLE_USER_HOME", str(tmp_path))
+    """The POMs come from what Gradle reports, not from wherever a cache happens to be: the
+    section is the same on any machine (the CI failure on PR #105 was a cache lookup)."""
     _pom(tmp_path, "x", "lib", "1", "<licenses><license><name>MIT</name></license></licenses>")
     _pom(tmp_path, "x", "bom", "1", "<packaging>pom</packaging>")
     _pom(tmp_path, "x", "gms", "1", "<licenses><license><name>Proprietary</name></license>"
          "</licenses>")
-    monkeypatch.setattr(lc, "gradle_modules", lambda eco: {
-        "wearos": ["x:lib:1", "x:bom:1", "x:gms:1"], "aosp": ["x:lib:1"]})
+    monkeypatch.setattr(lc, "gradle_modules", lambda eco: (
+        {"wearos": ["x:lib:1", "x:bom:1", "x:gms:1"], "aosp": ["x:lib:1"]}, _poms(tmp_path)))
     sec = lc.gradle_section("gradle-watch", [])
     assert sec["flavours"] == {"aosp": ["x:lib@1"], "wearos": ["x:gms@1", "x:lib@1"]}
     assert sec["no_code_modules"] == ["x:bom@1"]

@@ -16,7 +16,8 @@ Four ecosystems are covered:
   npm-mobile      the production dependency tree of mobile/, read the same way
   gradle-watch    the release runtime classpath of both watch flavours (wearos, aosp), resolved
                   by Gradle through scripts/ci/gradle_runtime_deps.init.gradle; each module's
-                  licence is read from its POM in the Gradle cache (following <parent> POMs).
+                  licence is read from its POM (following <parent> POMs); the init script has
+                  Gradle fetch every POM and reports its path, so the cache does not matter.
                   Modules with POM packaging carry no code (a bill of materials, or a Kotlin
                   Multiplatform root whose code is in the -jvm module listed beside it); they
                   are listed apart under "no_code_modules".
@@ -443,7 +444,7 @@ def npm_section(ecosystem: str, exceptions: list[dict]) -> dict:
 
 
 # ---------------------------------------------------------------------------------------------
-# Gradle: the release runtime classpath, read from each module's POM in the Gradle cache
+# Gradle: the release runtime classpath, read from each module's POM as Gradle resolves it
 # ---------------------------------------------------------------------------------------------
 
 _POM_NS = "{http://maven.apache.org/POM/4.0.0}"
@@ -462,9 +463,11 @@ def gradle_visible(project: Path) -> tuple[bool, str]:
     return True, ""
 
 
-def gradle_modules(ecosystem: str) -> dict[str, list[str]]:
-    """{flavour: ["group:module:version", ...]} as Gradle resolves the release runtime
-    classpath. The init script fails rather than print a partial list."""
+def gradle_modules(ecosystem: str) -> tuple[dict[str, list[str]], dict[str, str]]:
+    """({flavour: ["group:module:version", ...]}, {"group:module:version": POM path}) as Gradle
+    resolves the release runtime classpath, with the POM of every module and of every parent
+    POM fetched through Gradle itself. The init script fails rather than print a partial list.
+    """
     project, module, configs = GRADLE_PROJECTS[ecosystem]
     extra = shlex.split(os.environ.get("LICENCE_CHECK_GRADLE_ARGS", ""))
     cmd = ["./gradlew", "-q", "--console=plain", "-I", str(GRADLE_INIT), *extra,
@@ -475,10 +478,14 @@ def gradle_modules(ecosystem: str) -> dict[str, list[str]]:
     if run.returncode != 0 or line is None:
         raise RuntimeError(f"gradle in {project} failed: {(run.stderr or run.stdout)[-800:]}")
     resolved = json.loads(line.split(" ", 1)[1])
-    return {flavour: resolved[conf] for flavour, conf in configs.items()}
+    return ({flavour: resolved["configurations"][conf] for flavour, conf in configs.items()},
+            resolved["poms"])
 
 
 def pom_path(group: str, module: str, version: str, home: Path | None = None) -> Path | None:
+    """A POM already in the local Gradle cache, if any. Only the copyright collector uses this
+    (scripts/supply_chain.py copyrights); the licence check uses the POMs Gradle resolves,
+    because whether a POM is cached depends on the machine."""
     base = (home or gradle_user_home()) / "caches" / "modules-2" / "files-2.1"
     hits = sorted((base / group / module / version).glob(f"*/{module}-{version}.pom"))
     return hits[0] if hits else None
@@ -506,12 +513,12 @@ def _maven_licence(name: str, url: str) -> str:
 
 
 def pom_declared(group: str, module: str, version: str,
-                 home: Path | None = None) -> tuple[str, str, str]:
+                 poms: dict[str, str]) -> tuple[str, str, str]:
     """(declared licence, where it came from, POM packaging) for one module. Follows <parent>
     when a POM names no licence, as Maven does."""
-    path = pom_path(group, module, version, home)
+    path = poms.get(f"{group}:{module}:{version}")
     if path is None:
-        return "", "no POM in the Gradle cache", "unknown"
+        return "", "no POM resolved", "unknown"
     root = _pom_root(path)
     packaging = _pom_text(root, "packaging") or "jar"
     coord = f"{group}:{module}:{version}"
@@ -535,16 +542,16 @@ def pom_declared(group: str, module: str, version: str,
         if parent is None:
             break
         coord = ":".join(_pom_text(parent, t) for t in ("groupId", "artifactId", "version"))
-        ppath = pom_path(*coord.split(":"), home=home)
+        ppath = poms.get(coord)
         if ppath is None:
-            return "", f"parent POM {coord} not in the Gradle cache", packaging
+            return "", f"parent POM {coord} not resolved", packaging
         root = _pom_root(ppath)
     return "", "POM names no licence", packaging
 
 
 def gradle_section(ecosystem: str, exceptions: list[dict]) -> dict:
     project, module, configs = GRADLE_PROJECTS[ecosystem]
-    by_flavour = gradle_modules(ecosystem)
+    by_flavour, poms = gradle_modules(ecosystem)
     packages: dict[str, dict] = {}
     no_code: set[str] = set()
     flavours: dict[str, list[str]] = {}
@@ -552,7 +559,7 @@ def gradle_section(ecosystem: str, exceptions: list[dict]) -> dict:
         keys = []
         for coord in coords:
             group, name, version = coord.split(":")
-            declared, source, packaging = pom_declared(group, name, version)
+            declared, source, packaging = pom_declared(group, name, version, poms)
             if packaging == "pom":  # a bill of materials or a multiplatform root: no code
                 no_code.add(f"{group}:{name}@{version}")
                 continue
