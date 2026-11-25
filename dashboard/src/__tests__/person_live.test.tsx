@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
 let personId = 'p1';
@@ -23,6 +23,7 @@ const fakeApi = {
       devices: [{ id: 'd', platform: 'wearos', status: 'paired', battery_percent: 80, on_wrist: onWrist, background_sensor_permission: true, last_sync_at: new Date().toISOString() }],
     };
   }),
+  opsStatus: vi.fn(async () => ({ monitoring_paused: false, delivery: { delivery_problem: false } })),
   alerts: vi.fn(async () => []), checkins: vi.fn(async () => ({ checkins: [], answers_included: false })), vitals: vi.fn(async () => []),
   routines: vi.fn(async () => []), medications: vi.fn(async () => []), medicationEvents: vi.fn(async () => []), circle: vi.fn(async () => []),
   settings: vi.fn(async () => null), consents: vi.fn(async () => { if (failConsents) throw new Error('503'); return { consents: [] }; }),
@@ -59,4 +60,21 @@ test('one section failing is named and the rest of the record still shows', asyn
   render(<PersonPage />);
   expect(await screen.findByTestId('headline')).toBeInTheDocument();
   expect(screen.getByTestId('live')).toHaveTextContent('Some sections could not be loaded (consents)');
+});
+
+test('a health check that fails withholds All well, and the record still loads', async () => {
+  onWrist = true;
+  fakeApi.opsStatus.mockImplementationOnce(async () => { throw new Error('down'); });
+  render(<PersonPage />);
+  const h = await screen.findByTestId('headline');
+  expect(screen.getByTestId('live')).toHaveTextContent(/^Live: updated/);
+  expect(h).not.toHaveTextContent(/^All well/);
+  expect(h).toHaveTextContent(/Cannot confirm all is well/);
+});
+
+test('with the system healthy and nothing wrong, the headline says All well', async () => {
+  onWrist = true;
+  render(<PersonPage />);
+  const h = await screen.findByTestId('headline');
+  await waitFor(() => expect(h).toHaveTextContent(/^All well/));
 });

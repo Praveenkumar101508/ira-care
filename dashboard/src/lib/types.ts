@@ -91,7 +91,9 @@ export interface SafetySettings {
   night_off_wrist_minutes: number; usual_wake_time: string; wake_grace_minutes: number; visit_late_minutes?: number; hydration_every_minutes?: number; reading_upload_interval_s?: number; follow_up_minutes?: number; follow_up_grace_minutes?: number;
   fall_detection_enabled: boolean; fall_countdown_s: number; fall_impact_g: number; fall_still_seconds: number; fall_still_threshold_g: number;
 }
-export interface OpsStatus { monitoring_paused: boolean; stale_after_s: number; checked_at: string; jobs: Record<string, { last_run_at: string | null; age_s: number | null; stale: boolean }> }
+export interface OpsStatus { monitoring_paused: boolean; stale_after_s: number; checked_at: string; jobs: Record<string, { last_run_at: string | null; age_s: number | null; stale: boolean }>;
+  /** Alert messages still queued after five minutes, or reported failed in the last hour. */
+  delivery?: { queued_overdue: number; failed_recent: number; delivery_problem: boolean } }
 export interface PersonStatus { person: Person; devices: Device[]; latest_readings: Reading[]; open_alerts: Alert[]; last_checkin: Checkin | null }
 export interface AccessEntry { id: string; actor_user_id: string | null; actor_label: string; resource_kind: string; action: string; at: string; detail: Record<string, unknown> }
 export interface Report { id: string; kind: 'daily_carer' | 'weekly_family'; period_start: string; period_end: string; generated_at: string; title: string; body_text: string; delivered_channels: string[] }
