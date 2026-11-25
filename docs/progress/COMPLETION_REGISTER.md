@@ -33,12 +33,12 @@ Nothing is marked done because code or a document exists.
 <!-- completion-summary:begin -->
 | Measure | Value |
 |---|---|
-| Overall, weighted | 67.2 % |
+| Overall, weighted | 67.9 % |
 | Implemented (built, here or before) | 91.2 % |
-| Tested (unit, integration, evaluated or better) | 62.7 % |
+| Tested (unit, integration, evaluated or better) | 65.2 % |
 | Merged and evidenced in this programme | 51.0 % |
 | Safety remediation (section C) | 84.2 % |
-| AI components (section F) | 65.6 % |
+| AI components (section F) | 69.4 % |
 | IRA CARE OS (section E) | 58.0 % |
 | Rows blocked in part by an external dependency | 21 of 51 |
 
