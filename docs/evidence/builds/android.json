@@ -1,0 +1,30 @@
+{
+  "measured_at": "2026-11-25",
+  "revision": "eec19a00858dd9a384b761af8e39a975e6426cd6",
+  "machine": "Linux x86_64 container, 4 CPUs, 16 GB RAM, shared with another test run; Gradle --max-workers=2",
+  "licence": "Android SDK licence terms accepted with sdkmanager --licenses, with the owner's approval on 2026-11-25",
+  "not_device_tested": "Nothing ran on a device or an emulator. No signed store build: the release APKs are unsigned (no IRA key exists here) and the family app would be signed with Expo's public debug key.",
+  "sdk": {"cmdline_tools": "commandlinetools-linux-9862592", "platforms": ["android-34", "android-35"], "build_tools": ["34.0.0", "35.0.0"], "ndk": "26.1.10909125 (installed by Gradle for the family app)"},
+  "network_note": "repo.maven.apache.org answered 429 to this shared address, so a Gradle init script kept outside the repository redirected Maven Central to Google's public mirror (maven-central.storage-download.googleapis.com). Same artifacts; the build files were not changed.",
+  "watch": {
+    "jdk": "OpenJDK 21.0.13 (the project targets Java 17 bytecode)",
+    "gradle": "8.14.3 (wrapper)", "agp": "8.7.3", "kotlin": "2.0.21", "compile_sdk": 35, "target_sdk": 35, "min_sdk": 30,
+    "release": {"command": "./gradlew --max-workers=2 assembleWearosRelease assembleAospRelease", "result": "passed", "seconds": 274,
+      "apks": {"app-wearos-release-unsigned.apk": 17321915, "app-aosp-release-unsigned.apk": 17111278},
+      "fall_model_tflite_entries": {"wearos": 0, "aosp": 0}},
+    "debug_and_tests": {"command": "./gradlew --max-workers=2 assembleWearosDebug assembleAospDebug testWearosDebugUnitTest testAospDebugUnitTest", "result": "passed", "seconds": 97,
+      "apks": {"app-wearos-debug.apk": 42930577, "app-aosp-debug.apk": 38410943},
+      "fall_model_in_debug": "assets/fall_model.tflite (17,864 bytes) and assets/fall_model.json in both debug APKs, as D-077 intends",
+      "unit_tests": {"wearos": {"tests": 111, "failures": 0, "errors": 0, "skipped": 0}, "aosp": {"tests": 111, "failures": 0, "errors": 0, "skipped": 0}}},
+    "aosp_dependency_check": {"command": "bash scripts/ci/check_watch_aosp_deps.sh", "result": "passed", "detail": "aosp runtime classpath: 626 dependency lines, none from a Google service", "seconds": 9}
+  },
+  "family_app": {
+    "expo": "52.0.49", "react_native": "0.76.9", "gradle": "8.10.2 (generated wrapper)", "jdk": "OpenJDK 17.0.21 (installed for this build; React Native's Gradle plugin requires a Java 17 toolchain)",
+    "npm_ci": {"result": "passed", "seconds": 11},
+    "prebuild": {"command": "npx expo prebuild --platform android --no-install (in a copy outside the repository)", "result": "passed", "seconds": 7,
+      "warning": "userInterfaceStyle: Install expo-system-ui in your project to enable this feature (Android)"},
+    "assemble_release": {"command": "./gradlew --max-workers=2 -PreactNativeArchitectures=arm64-v8a assembleRelease", "result": "blocked", "seconds": 298,
+      "reason": "com.github.CanHub:Android-Image-Cropper:4.3.1 (required by expo-image-picker, which the Settings tab uses to pick a photo) is served only from jitpack.io, and this sandbox's network policy refuses that host (403 from the proxy). Not a defect in the repository.",
+      "first_attempt": "failed before compiling: no Java 17 toolchain on the machine and Gradle's toolchain download (foojay) is refused by the proxy; fixed by installing OpenJDK 17"}
+  }
+}

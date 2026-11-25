@@ -284,6 +284,42 @@ jobs:
       - run: npm run typecheck
       - run: npm test
 
+  mobile-android:
+    name: Family app Android build
+    needs: detect
+    # The native Android build of the family app: Expo prebuild into a throwaway android/ folder,
+    # then a release APK with debug signing (no store key exists). It runs here because one
+    # dependency (the image cropper behind expo-image-picker) is only on jitpack.io, which the
+    # development sandbox cannot reach (docs/evidence/builds/ANDROID.md).
+    if: needs.detect.outputs.mobile == 'true' && needs.detect.outputs.mobile_changed == 'true' && needs.detect.outputs.already_tested != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: npm ci
+      - name: Generate the native Android project (not committed)
+        run: npx expo prebuild --platform android --no-install
+      - name: Build the release APK (debug signing, arm64-v8a)
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+      - name: Record the APK
+        run: |
+          apk=$(ls android/app/build/outputs/apk/release/*.apk | head -1)
+          ls -l "$apk"
+          echo "### Family app APK: $(stat -c %s "$apk") bytes" >> "$GITHUB_STEP_SUMMARY"
+
   images:
     name: Container images build
     needs: detect
