@@ -1411,9 +1411,11 @@ How:
   (`tests/readiness/test_training_scripts_publish_nothing.py`) fails if any training script calls a
   model-publishing function or pushes a dataset or kernel with public visibility.
 
-Kept: v1's evaluation evidence (`docs/evidence/training/fall.json`, `docs/MODEL_CHOICE.md`) and its
-file `docs/evidence/training/ira_fall_model.tflite`, as historical research records. They are in no
-build source set: no Gradle source set, Dockerfile or image build reads `docs/`.
+Kept: v1's evaluation evidence (`docs/evidence/training/fall.json`, `docs/MODEL_CHOICE.md`) as a
+historical research record. The v1 weights file itself (`ira_fall_model.tflite`, SHA-256
+`8182ea37154ab52e1d9383b3de42add2a2bb902cafb38daa6056f767d84ae6cb`) is removed from the tree, so no
+copy of weights with unconfirmed rights sits beside the product; git history keeps it, and
+`FallModelReleaseTest` refuses that hash in any build.
 
 Cost: none in the field; debug builds now behave as release builds do. The side-by-side comparison
 of v1 and v3 on a device is no longer possible from a debug build.

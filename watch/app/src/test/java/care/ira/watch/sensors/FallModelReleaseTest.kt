@@ -100,7 +100,7 @@ class FallModelReleaseTest {
     companion object {
         /** scripts/training/fall_model_v3.py, reproduced byte for byte in two runs (MODEL_CARD_V3.md). */
         const val LICENSED_V3_SHA256 = "2cab7c9bcbf60de51d7c42f5690ad549bcbf4f13eb6266c35bf5d0a59b063278"
-        /** v1 (scripts/training/kaggle_fall_model.py): docs/evidence/training/ira_fall_model.tflite, a research record only. */
+        /** v1 (scripts/training/kaggle_fall_model.py): removed from the tree (D-082); its hash is kept so no build can carry it. */
         const val V1_TFLITE_SHA256 = "8182ea37154ab52e1d9383b3de42add2a2bb902cafb38daa6056f767d84ae6cb"
         /** The v1 spec that debug builds carried until D-082. */
         const val V1_SPEC_SHA256 = "5bb67e334955f3c4ae07da6b4d0dad93a9df666f13d80ada65eec9a03981eff6"
