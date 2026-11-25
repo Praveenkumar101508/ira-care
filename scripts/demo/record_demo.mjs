@@ -63,7 +63,7 @@ for (let attempt = 0; attempt < 12; attempt++) {
 await page.getByRole('button', { name: /sign in/i }).click();
 await page.waitForURL((u) => !u.pathname.includes('login'), { timeout: 20000 });
 await pause(1200); await shot('01-dashboard-people');
-await page.goto(`${DASH}/people/${personA.id}?tab=home`); await pause(1500); await shot('02-dashboard-home-record');
+await page.goto(`${DASH}/people/${personA.id}?tab=overview`); await pause(1500); await shot('02-dashboard-home-record');
 await page.goto(`${DASH}/people/${personA.id}?tab=timeline`); await pause(1500); await shot('03-dashboard-timeline');
 
 // 2. The watch in the browser (/watch), driven from the presenter tab: the device key goes in
@@ -107,7 +107,9 @@ await page.getByTestId('sign-in').click();
 await pause(3500); await shot('10-family-home');
 await page.getByText(/alerts/i).first().click().catch(() => {});
 await pause(2500); await shot('11-family-alerts');
-const ack = page.getByTestId(/^ack-/).first();
+// The fall alert: the first card that says so, not whichever acknowledge button comes first in the page.
+const fallCard = page.getByText(/Suspected fall/).first();
+const ack = fallCard.locator('xpath=ancestor::*[.//*[starts-with(@data-testid, "ack-")]][1]').getByTestId(/^ack-/).first();
 if (await ack.count()) { await ack.click(); await pause(2500); await shot('12-family-on-my-way'); }
 
 await context.close();
