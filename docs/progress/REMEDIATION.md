@@ -26,9 +26,14 @@ true.
 
 ## Negative control
 
-Migration 112: of the 6 new database tests, run against the code from before 112 on the migrated
-database, 4 fail (binding, scheduler binding, provenance, correction). The other 2 pass because
+Migration 112: of the 5 new database tests, run against the code from before 112 on the migrated
+database, 4 fail (binding, scheduler binding, provenance, correction). The fifth passes because
 the old code also wrote nothing for a late answer or a stopped medicine.
+
+Skipped tests: `main` gives 193 skipped. This branch gives 194 without `psycopg2` installed
+(one new database module) and 544 with it, because four database modules that
+`importorskip("psycopg2")` then skip test by test instead of as one module. Same two failures
+in every run.
 
 
 The 30 database tests in `tests/tenancy/test_care_safety_answers_db.py` were run against the
