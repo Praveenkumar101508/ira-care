@@ -8,7 +8,7 @@ RUN apt-get update \
 # The base image's CPython links GNU readline and GDBM (GPL-3.0-or-later) and Berkeley DB 5.3
 # (Sleepycat) through three standard-library modules the server never imports (an interactive
 # prompt and two on-disk key-value stores). They go, so none of our code links those
-# libraries (D-084, docs/security/LICENCES.md); the build fails if one is still importable.
+# libraries (D-087, docs/security/LICENCES.md); the build fails if one is still importable.
 RUN rm -f /usr/local/lib/python3.12/lib-dynload/readline.cpython-312-*.so \
           /usr/local/lib/python3.12/lib-dynload/_gdbm.cpython-312-*.so \
           /usr/local/lib/python3.12/lib-dynload/_dbm.cpython-312-*.so \

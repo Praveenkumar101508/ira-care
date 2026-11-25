@@ -237,7 +237,7 @@ links three libraries that do not pass the policy, through standard-library modu
 The IRA server imports none of them: they serve an interactive prompt and two on-disk
 key-value stores.
 
-**What changed (D-084).** `deploy/Dockerfile.api` deletes those three extension modules and
+**What changed (D-087).** `deploy/Dockerfile.api` deletes those three extension modules and
 fails the build if one is still importable. The libraries stay in the image as Debian packages
 (bash uses readline), which is aggregation; nothing of ours links them. The image scan
 (`linked_os_libraries`) no longer lists them, and `test_supply_chain.py` fails if the Dockerfile

@@ -1398,7 +1398,7 @@ numpy) where faster-whisper expects PyAV's, so `import av` is never attempted.
 
 What would change it: a client that has to send compressed audio and cannot record WAV.
 
-## D-084 The API image drops three Python modules that link GPL and Sleepycat libraries (25 November 2026)
+## D-087 The API image drops three Python modules that link GPL and Sleepycat libraries (25 November 2026)
 
 The first scan of what the API image contains (`scripts/supply_chain.py image`) found that the
 base image's CPython links GNU readline and GDBM (GPL-3.0-or-later) and Berkeley DB 5.3
