@@ -86,6 +86,15 @@ off-site bucket.
 | --- | --- | --- | --- | --- | --- | --- |
 | T27 | T | A watch is offered an older, vulnerable image | Not on `main` yet: the OTA server (E4.d) is in an open pull request | — | — | **not controlled** on `main` |
 
+## Device administration (deployment administrators, D-085)
+
+| # | STRIDE | Threat | Control | Code | Tests | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| T34 | E | A care manager, carer, coordinator, family member or tenant owner lifts a watch's restrictions | Only an account with a live grant in `deployment_administrators` may issue, revoke or read device instructions; the grant is written only by the operator as the migrator, and RLS refuses runtime writes even after a blanket grant (R-47) | `care/deviceadmin.py`, `scripts/deployment_admin.py` | `test_device_admin_db.py::test_no_care_or_tenant_role_is_a_deployment_administrator`, `test_device_admin_db.py::test_the_runtime_cannot_make_anyone_an_administrator_even_with_every_grant` | controlled in software; the device-owner app is not provisioned on a device (E4.f) |
+| T35 | T | A forged, altered, replayed, expired or foreign instruction opens a watch, or one carries a command | ECDSA P-256 signature over the exact payload checked first; device id, 15-minute bound, single-use nonce kept across reboots; closed list of three actions, anything else refused | `watch/.../devicepolicy/DevicePolicy.kt`, `care/devicepolicy.py` | `DevicePolicyTest.kt`, `test_devicepolicy.py`, `test_device_admin_db.py::test_only_the_closed_list_and_at_most_fifteen_minutes` | controlled in software (JVM tests); not run on a device |
+| T36 | E | A maintenance window stays open, or survives revoking the administrator | The window closes at expiry and at every start; a revoked instruction, or anything issued by an administrator revoked afterwards, is withheld and put on the watch's revocation list, which closes an open window at once | `care/deviceadmin.py`, `watch/.../devicepolicy/DevicePolicy.kt` | `DevicePolicyTest.kt`, `test_device_admin_db.py::test_a_revoked_administrator_can_do_nothing_and_what_they_issued_is_withdrawn` | controlled in software; the timer and boot receiver that call it on a device are not built (E4.f) |
+| T37 | R | An administrator denies having opened a watch | Every instruction is stored with who issued it and why, and every step (issued, delivered, revoked, applied, refused, restored) is an insert-only audit row | `care/deviceadmin.py` | `test_device_admin_db.py::test_an_instruction_is_signed_for_one_watch_collected_once_and_fully_audited` | controlled |
+
 ## Backups
 
 | # | STRIDE | Threat | Control | Code | Tests | Status |

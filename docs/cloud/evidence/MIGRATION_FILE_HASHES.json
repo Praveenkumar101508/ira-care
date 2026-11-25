@@ -620,6 +620,11 @@
    "migration_number": null,
    "sha256": "a807ea435090483285c04ba3081fc30afa8e6ec93f053933c38ad08f4e226f26",
    "status": "applied"
+  },
+  "122_device_admin_instructions.sql": {
+   "migration_number": 122,
+   "sha256": "cca6443ef08bdd8e4326f0a6fb9c8809de468f2bd7fa593e3721bd5cfc203be6",
+   "status": "applied"
   }
  }
 }
