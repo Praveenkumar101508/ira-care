@@ -112,6 +112,12 @@ curl -fsS https://<domain>/health
 curl -fsS https://<domain>/health/jobs
 ```
 
+Without the conversation model (a staging machine without the ~10 GB the models need), add
+`-f deploy/compose.nomodel.yml`: no Ollama, check-ins use their set questions, and the
+safety rules work exactly as with the model. If the API container stops at start with
+"no migration files found", the image's `IRA_MIGRATIONS_DIR` does not point at the
+migrations: the server refuses rather than start on an empty database.
+
 The first says the process, the database and Redis are up. The second says the care jobs
 have run in the last five minutes; the dashboard shows a red "monitoring paused" banner
 when they have not, and the worker's health check fails.
