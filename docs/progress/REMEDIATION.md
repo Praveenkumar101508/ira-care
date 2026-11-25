@@ -119,7 +119,6 @@ countdown as OK" fails against the original `FallCountdown.kt` and passes with t
 
 ## Still open
 
-Rows marked `open` above, and the groups not started yet: D (watch speech, text-to-speech,
-encrypted storage, durable queues, unpairing), E (system security and integration review),
-F (full care-journey and accessibility testing) and G (final documents and release evidence).
-Each is a separate branch and pull request.
+Rows marked `open` above (C1, C2, C5, B3, D4, D6), and the groups not started yet: E (system
+security and integration review), F (full care-journey and accessibility testing) and G (final
+documents and release evidence). The whole programme's state is in `COMPLETION_REGISTER.md`.
