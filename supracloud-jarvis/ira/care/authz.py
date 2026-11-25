@@ -70,10 +70,26 @@ def ensure_can_manage(principal: Principal) -> None:
         raise _refuse()
 
 
+async def is_coordinator(conn, principal: Principal) -> bool:
+    """A care coordinator (D-081): a `member` of the workspace whom a care manager has named
+    coordinator. The designation does nothing for any other role: a viewer stays a viewer."""
+    if principal.workspace_role != "member" or principal.user_id is None:
+        return False
+    return bool(await conn.fetchval(
+        "SELECT 1 FROM care_staff_designations WHERE user_id = $1 AND designation = 'coordinator' LIMIT 1",
+        principal.user_id))
+
+
+async def sees_everyone(conn, principal: Principal) -> bool:
+    """A care manager, the deployment owner and a care coordinator see every person in the
+    workspace; everyone else only the people whose circle they are in (D-076)."""
+    return can_manage(principal) or await is_coordinator(conn, principal)
+
+
 async def visible_people(conn, principal: Principal) -> Optional[set]:
-    """The people this caller may see: None means every person in the workspace (a manager);
-    otherwise the ids of the circles they are an active member of."""
-    if can_manage(principal):
+    """The people this caller may see: None means every person in the workspace (a manager
+    or a coordinator); otherwise the ids of the circles they are an active member of."""
+    if await sees_everyone(conn, principal):
         return None
     rows = await conn.fetch(
         "SELECT DISTINCT person_id FROM care_circle_members WHERE user_id = $1 AND active", principal.user_id)
@@ -81,7 +97,7 @@ async def visible_people(conn, principal: Principal) -> Optional[set]:
 
 
 async def may_see_person(conn, principal: Principal, person_id) -> bool:
-    if can_manage(principal):
+    if await sees_everyone(conn, principal):
         return True
     if principal.user_id is None:
         return False
@@ -108,6 +124,12 @@ STAFF_ROLES: dict[str, dict] = {
         "who": "Gives care: sees only the people whose circle they are in, answers alerts, records "
                "visits and medication, and reads the care plan.",
     },
+    "coordinator": {
+        "label": "Care coordinator",
+        "who": "A carer the care manager has named coordinator: sees everyone cared for and every carer's "
+               "caseload, and plans visits for all of them. Cannot add people, carers or watches, change "
+               "safety settings or write care plans.",
+    },
     "viewer": {
         "label": "Viewer",
         "who": "Can look but not change anything, for the people whose circle they are in.",
@@ -130,21 +152,28 @@ ACTIONS: dict[str, tuple[str, tuple[str, ...]]] = {
     "manage_safety_settings": ("manage", ("PUT /care/people/{person_id}/settings",)),
     "manage_medication_list": ("manage", ("POST /care/people/{person_id}/medications",)),
     "manage_consents": ("manage", ("POST /care/people/{person_id}/consents",)),
+    "search": ("read", ("GET /care/search",)),
+    "view_caseload": ("read", ("GET /care/caseload",)),
+    "view_visit_plan": ("read", ("GET /care/visits",)),
+    "designate_coordinators": ("manage", ("GET /care/staff", "PUT /care/staff/{user_id}/coordinator")),
 }
 
 _LEVEL = {"read": can_read, "act": can_act, "manage": can_manage}
 
 
-def permissions_for(principal: Principal) -> dict:
+def permissions_for(principal: Principal, *, coordinator: bool = False) -> dict:
     """What this caller may do, for the dashboard to show only the actions that will work.
     The server still checks every request: hiding a button is a courtesy, not the control."""
     role = "workspace_admin" if principal.is_owner else (principal.workspace_role or "")
-    staff = STAFF_ROLES.get(role)
+    # The designation counts only on a `member`, exactly as is_coordinator() decides it.
+    coordinator = bool(coordinator) and role == "member"
+    staff = STAFF_ROLES.get("coordinator" if coordinator else role)
     return {
         "role": role or None,
+        "coordinator": coordinator,
         "label": staff["label"] if staff else "No access",
         "who": staff["who"] if staff else "This account has no role in this workspace.",
-        "sees_everyone": can_manage(principal),
+        "sees_everyone": can_manage(principal) or coordinator,
         "can_read": can_read(principal), "can_act": can_act(principal), "can_manage": can_manage(principal),
         "actions": {name: _LEVEL[level](principal) for name, (level, _) in ACTIONS.items()},
     }

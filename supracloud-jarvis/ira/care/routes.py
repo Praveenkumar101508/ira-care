@@ -29,6 +29,8 @@ from api.middleware.workspace import require_workspace_principal
 from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
+from . import staff as care_staff
+from . import search as care_search
 from . import authz, audit, checkin_cycle, consent, history, onboarding, ops, personal, plans, push, reports, repository as repo, schemas, sos, visits
 from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 
@@ -36,6 +38,8 @@ from .authz import ensure_can_act, ensure_can_manage, ensure_can_read
 # and is refused unless its signature is valid). Per client address (P2-03 key).
 PAIR_LIMIT = "10/minute"
 SIGNUP_LIMIT = "3/minute"
+# Workspace-wide search reads across everyone the caller may see: rationed per address.
+SEARCH_LIMIT = "30/minute"
 
 router = APIRouter(prefix="/care", tags=["care"])
 logger = logging.getLogger("ira.care.routes")
@@ -680,7 +684,67 @@ async def put_my_preferences(body: schemas.Preferences, p: Principal = Depends(r
 async def my_permissions(p: Principal = Depends(require_workspace_principal)):
     """This account's staff role and the actions it may take (authz.STAFF_ROLES, ACTIONS), so
     the dashboard shows only what will work. Every route still checks for itself."""
-    return authz.permissions_for(p)
+    async with workspace_connection(p) as conn:
+        coordinator = await authz.is_coordinator(conn, p)
+    return authz.permissions_for(p, coordinator=coordinator)
+
+
+# ── The care team: search, caseloads, the visit plan, coordinators (D-081) ───
+
+@router.get("/search")
+@limiter.limit(SEARCH_LIMIT)
+async def search_workspace(request: Request, q: str = Query(..., min_length=care_search.MIN_QUERY, max_length=200),
+                           limit: int = Query(care_search.MAX_RESULTS, ge=1, le=care_search.MAX_RESULTS),
+                           p: Principal = Depends(require_workspace_principal)):
+    """People by name, visits by purpose or carer, alerts by kind, across the people this
+    caller may see. Never what anyone said. Audited without the words typed."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        return await care_search.search(conn, p, q, limit=limit)
+
+
+@router.get("/caseload")
+async def caseload(p: Principal = Depends(require_workspace_principal)):
+    """Which people each carer covers and their next visit. Every carer's for a care manager
+    or coordinator; only the caller's own for anyone else."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        return await care_staff.caseload(conn, p)
+
+
+@router.get("/visits")
+async def visit_plan(since: Optional[dt.datetime] = Query(None), until: Optional[dt.datetime] = Query(None),
+                     limit: int = Query(200, ge=1, le=1000), p: Principal = Depends(require_workspace_principal)):
+    """Every visit in a window (default: from now to seven days ahead) for the people this
+    caller may see: the coordinator's planning view."""
+    ensure_can_read(p)
+    now = dt.datetime.now(dt.timezone.utc)
+    since = since or now - dt.timedelta(hours=12)
+    until = until or now + dt.timedelta(days=7)
+    if until <= since or until - since > dt.timedelta(days=62):
+        raise HTTPException(status_code=422, detail="The window must be positive and at most 62 days.")
+    async with workspace_connection(p) as conn:
+        return await care_staff.visit_plan(conn, p, since=since, until=until, limit=limit)
+
+
+@router.get("/staff")
+async def list_staff(p: Principal = Depends(require_workspace_principal)):
+    """The care team (everyone with an account in a circle) and who is coordinator. Managers only."""
+    ensure_can_manage(p)
+    async with workspace_connection(p) as conn:
+        return await care_staff.staff(conn)
+
+
+@router.put("/staff/{user_id}/coordinator")
+async def set_coordinator(user_id: uuid.UUID, body: schemas.CoordinatorDesignation,
+                          p: Principal = Depends(require_workspace_principal)):
+    """Name a carer coordinator, or stop. Managers only. Somebody in no circle is "not found"."""
+    ensure_can_manage(p)
+    async with workspace_connection(p) as conn:
+        out = await care_staff.set_coordinator(conn, p, user_id, body.coordinator)
+    if out is None:
+        raise _not_found("Nobody on the care team has that account.")
+    return out
 
 
 # ── The care plan (116) ──────────────────────────────────────────────────────
@@ -1209,6 +1273,58 @@ async def twilio_status(tenant_id: uuid.UUID, workspace_id: uuid.UUID, attempt_i
         await delivery.record_state(conn, attempt_id, outcome, source="callback", provider_status=status,
                                     provider_ref=sid)
     return Response(status_code=204)
+
+
+@router.post("/providers/arc/status/{tenant_id}/{workspace_id}/{alert_id}")
+async def arc_status(tenant_id: uuid.UUID, workspace_id: uuid.UUID, alert_id: uuid.UUID, request: Request,
+                     t: str = Query("", max_length=80),
+                     x_ira_timestamp: Optional[str] = Header(default=None, alias="X-IRA-Timestamp"),
+                     x_ira_signature: Optional[str] = Header(default=None, alias="X-IRA-Signature")):
+    """How far a monitoring centre got with an alarm. Refused with nothing written
+    unless BOTH our token in the URL and the centre's signature over the timestamp
+    and body verify, and the timestamp is recent. It moves the state of this alert's
+    monitoring-centre attempt forward only: never acknowledges the alert itself,
+    which only a person in the circle or the centre's operator through the
+    dashboard does."""
+    import json
+    import os
+
+    from fastapi import Response
+
+    from . import delivery, providers
+    from .checkin_cycle import job_principal
+    body = await request.body()
+    if len(body) > _ARC_BODY_LIMIT:
+        raise HTTPException(status_code=400, detail="Too large.")
+    secret = (os.getenv("IRA_CARE_ARC_SECRET") or "").strip()
+    if not delivery.verify_token(tenant_id, workspace_id, alert_id, t) or not providers.verify_arc(
+            secret, x_ira_timestamp or "", body, x_ira_signature or ""):
+        raise HTTPException(status_code=403, detail="Signature not valid.")
+    try:
+        payload = json.loads(body or b"{}")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Not JSON.")
+    status = str(payload.get("status", "")).strip().lower()[:40]
+    outcome = delivery.ARC_STATUS.get(status)
+    if outcome is None:
+        return Response(status_code=204)
+    principal = job_principal(tenant_id, workspace_id)
+    async with workspace_connection(principal) as conn:
+        # Every hand-over of this alert is the same alarm (one idempotency key), so the
+        # centre's word about the alarm is recorded on each of them.
+        attempt_ids = [r["id"] for r in await conn.fetch(
+            "SELECT id FROM care_alert_attempts WHERE alert_id = $1 AND channel = 'monitoring_centre' "
+            "AND outcome <> 'skipped'", alert_id)]
+        if not attempt_ids:
+            logger.warning("care monitoring centre callback: no attempt for alert %s", alert_id)
+            return Response(status_code=204)
+        for attempt_id in attempt_ids:
+            await delivery.record_state(conn, attempt_id, outcome, source="callback", provider_status=status,
+                                        provider_ref=str(payload.get("alarm_id", ""))[:200])
+    return Response(status_code=204)
+
+
+_ARC_BODY_LIMIT = 4096
 
 
 # ── Transcripts and consents ─────────────────────────────────────────────────

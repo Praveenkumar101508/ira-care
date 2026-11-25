@@ -30,11 +30,22 @@ data class FallModelSpec(
     val std: List<Float>,
     val windowSamples: Int = 200,
     val rateHz: Int = 50,
+    /** "veto" (v1: the model can only clear the rule's impacts) or "recover" (v3: the model also
+     *  raises falls the rule misses, from a lower impact; RecoveringFallDetector). */
+    val mode: String = MODE_VETO,
+    /** The impact that opens a model candidate in "recover" mode, in g. */
+    val candidateG: Float = 2.0f,
+    /** Where the model came from. A release build may carry only [PROVENANCE_LICENSED_V3]. */
+    val provenance: String = "",
 ) {
     fun normalise(window: Array<FloatArray>): Array<FloatArray> =
         Array(window.size) { i -> FloatArray(4) { c -> (window[i][c] - mean[c]) / std[c] } }
 
     companion object {
+        const val MODE_VETO = "veto"
+        const val MODE_RECOVER = "recover"
+        /** The fall model trained only on commercially licensed data (BITS-2, UCI HAR; MODEL_CARD_V3). */
+        const val PROVENANCE_LICENSED_V3 = "ira-fall-v3-licensed"
         private val json = Json { ignoreUnknownKeys = true }
         fun parse(text: String): FallModelSpec = json.decodeFromString(serializer(), text)
         fun parse(stream: InputStream): FallModelSpec = parse(stream.bufferedReader().readText())

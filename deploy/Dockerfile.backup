@@ -2,9 +2,9 @@
 # openssl is installed here, at build time, so a missing package fails the build where someone
 # sees it, never silently at 02:00 when the container starts without a network.
 FROM postgres:16-alpine
-RUN apk add --no-cache openssl && openssl version
-COPY deploy/backup.sh deploy/restore.sh /usr/local/bin/
-RUN chmod 0555 /usr/local/bin/backup.sh /usr/local/bin/restore.sh
+RUN apk add --no-cache openssl curl && openssl version && curl --version
+COPY deploy/backup.sh deploy/restore.sh deploy/offsite.sh /usr/local/bin/
+RUN chmod 0555 /usr/local/bin/backup.sh /usr/local/bin/restore.sh /usr/local/bin/offsite.sh
 # Nightly at BACKUP_HOUR_UTC. No cron daemon: a loop that sleeps to the hour. A failed backup
 # exits the loop, so the container restarts and the failure shows in `docker compose ps`.
 ENTRYPOINT ["/bin/sh", "-c", "while true; do if [ \"$(date -u +%H)\" = \"$BACKUP_HOUR_UTC\" ]; then sh /usr/local/bin/backup.sh || exit 1; sleep 3600; fi; sleep 300; done"]
