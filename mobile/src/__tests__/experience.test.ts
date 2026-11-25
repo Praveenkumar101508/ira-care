@@ -1,5 +1,5 @@
 import type { Alert, Person, Reminder, Visit } from '../api/types';
-import { alertBadge, nextVisit, nextVisitWords, openReminders, pickPerson, todaysVisits, HOME_CARDS } from '../model/experience';
+import { alertBadge, isWearerOf, nextVisit, nextVisitWords, openReminders, pickPerson, todaysVisits, HOME_CARDS } from '../model/experience';
 
 const person = (id: string): Person => ({ id, display_name: id, preferred_name: '', timezone: 'UTC', status: 'active' });
 const visit = (id: string, start: string, status: Visit['status'] = 'planned'): Visit => ({
@@ -46,4 +46,17 @@ test('every experience has Help or Alerts first, so the urgent action is never b
   expect(HOME_CARDS.wearer[0].key).toBe('help');
   expect(HOME_CARDS.family[0].key).toBe('alerts');
   expect(HOME_CARDS.carer[0].key).toBe('alerts');
+});
+
+describe('isWearerOf', () => {
+  const m = (person_id: string, relationship: string) =>
+    ({ id: 'm', person_id, person_name: 'P', role: 'family', relationship, display_name: 'X', tier: 1 });
+  it('is true only for the person themself, in that person\'s own circle', () => {
+    expect(isWearerOf([m('a', 'self')], 'a')).toBe(true);
+    expect(isWearerOf([m('a', ' Self ')], 'a')).toBe(true);
+    expect(isWearerOf([m('a', 'daughter')], 'a')).toBe(false);
+    expect(isWearerOf([m('b', 'self')], 'a')).toBe(false);
+    expect(isWearerOf([], 'a')).toBe(false);
+    expect(isWearerOf([m('a', 'self')], undefined)).toBe(false);
+  });
 });

@@ -15,7 +15,7 @@ ADMIN_DSN = os.getenv("IRA_TEST_ADMIN_DSN", "")
 if not DSN or not ADMIN_DSN:
     pytest.skip("IRA_TEST_DATABASE_DSN / IRA_TEST_ADMIN_DSN not set", allow_module_level=True)
 
-from tests.tenancy._care_fixtures import client, families, pool  # noqa: E402,F401
+from tests.tenancy._care_fixtures import add_wearer, client, families, pool  # noqa: E402,F401
 from tests.tenancy.test_care_follow_up_db import _setup  # noqa: E402
 
 from care import checkin_cycle as cycle  # noqa: E402
@@ -104,7 +104,10 @@ async def test_the_daily_report_carries_visits_reminders_and_what_ira_remembers(
     r = await client.post(f"{C}/people/{p['id']}/reminders", json={"text": "ring Sravani", "due_at": reminder_due.isoformat()})
     assert r.status_code == 201
     await client.post(f"{C}/reminders/{r.json()['id']}/act", json={"action": "confirm"})
-    await client.post(f"{C}/people/{p['id']}/talk", json={"text": "I had a lovely morning in the garden"})
+    await add_wearer(client, fam, p["id"])
+    client.act_as(fam, "wearer", "member")
+    r = await client.post(f"{C}/people/{p['id']}/talk", json={"text": "I had a lovely morning in the garden"})
+    assert r.status_code == 200, r.text
     client.act_as(fam, "admin", "workspace_admin")
     r = await client.post(f"{C}/people/{p['id']}/reports/generate", json={"kind": "daily_carer", "date": now.date().isoformat()})
     assert r.status_code in (200, 201), r.text

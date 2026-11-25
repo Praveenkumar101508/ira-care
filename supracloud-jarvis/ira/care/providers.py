@@ -76,18 +76,19 @@ class LogOnlyProvider:
     async def send_sms(self, to: str, text: str) -> Delivery:
         assert_not_emergency_number(to)
         self.log.append(("sms", to, text))
-        logger.info("care sms (log only) to %s: %s", _mask(to), text[:80])
+        # Never the message: it names the person and says what happened to them.
+        logger.info("care sms (log only) to %s: %d characters, not sent", _mask(to), len(text or ""))
         return Delivery("logged", "log-only provider: no message was sent")
 
     async def call(self, to: str, text: str) -> Delivery:
         assert_not_emergency_number(to)
         self.log.append(("call", to, text))
-        logger.info("care call (log only) to %s: %s", _mask(to), text[:80])
+        logger.info("care call (log only) to %s: %d characters, not placed", _mask(to), len(text or ""))
         return Delivery("logged", "log-only provider: no call was placed")
 
     async def raise_alarm(self, *, person_label: str, summary: str, reference: str) -> Delivery:
         self.log.append(("monitoring_centre", person_label, summary))
-        logger.info("care monitoring centre (log only) ref %s: %s", reference, summary[:80])
+        logger.info("care monitoring centre (log only) ref %s: not raised", reference)
         return Delivery("logged", "no monitoring centre is configured")
 
 

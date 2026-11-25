@@ -23,7 +23,7 @@ ADMIN_DSN = os.getenv("IRA_TEST_ADMIN_DSN", "")
 if not DSN or not ADMIN_DSN:
     pytest.skip("IRA_TEST_DATABASE_DSN / IRA_TEST_ADMIN_DSN not set", allow_module_level=True)
 
-from tests.tenancy._care_fixtures import client, families, pool  # noqa: E402,F401
+from tests.tenancy._care_fixtures import add_wearer, client, families, pool  # noqa: E402,F401
 
 from care import checkin_cycle as cycle  # noqa: E402
 from care import conversation as conv  # noqa: E402
@@ -153,7 +153,8 @@ async def test_talk_streams_sentences_keeps_transcripts_under_consent_and_rolls_
 async def test_talk_from_the_phone_shows_a_contact_to_call_and_a_concerning_phrase_asks_first(client, families):
     fam = families["a"]
     p = await _setup(client, fam)
-    client.act_as(fam, "member", "member")
+    await add_wearer(client, fam, p["id"])
+    client.act_as(fam, "wearer", "member")
     r = await client.post(f"{C}/people/{p['id']}/talk", json={"text": "call my daughter"})
     assert r.status_code == 200
     done = _lines(r.text)[-1]

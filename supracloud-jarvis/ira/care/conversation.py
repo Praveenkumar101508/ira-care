@@ -246,7 +246,7 @@ class ChainModel:
             try:
                 await self.warm()
             except Exception as exc:  # noqa: BLE001 - the next turn will try again
-                logger.info("care conversation: background load failed (%s)", exc)
+                logger.info("care conversation: background load failed (%s)", type(exc).__name__)
         self._warming = asyncio.create_task(warm())
 
     @property
@@ -336,7 +336,7 @@ async def warm_configured_model() -> Optional[float]:
     try:
         took = await warm()
     except Exception as exc:  # noqa: BLE001 - a cold model is slow, not broken
-        logger.info("care conversation: could not warm the model (%s)", exc)
+        logger.info("care conversation: could not warm the model (%s)", type(exc).__name__)
         return None
     logger.info("care conversation: model %s warm in %.2f s", getattr(model, "name", "?"), took)
     return took
@@ -570,7 +570,7 @@ async def compose_checkin(ctx: Context, kind: str, template: str, *, model: Opti
             return verdict.text, "model"
         logger.info("care conversation: model question rejected (%s); template used", verdict.reason or "no question")
     except Exception as exc:  # noqa: BLE001 - the template is the fallback, always
-        logger.info("care conversation: model unavailable (%s); template used", exc)
+        logger.info("care conversation: model unavailable (%s); template used", type(exc).__name__)
     return template, "template"
 
 
@@ -639,10 +639,15 @@ CLASSIFIER_MIN_CONFIDENCE = {"needs_help": 0.9, "pain": 0.8, "wellbeing": 0.7, "
 
 
 def merge(keyword: rules.AnswerReading, structured: Optional[StructuredAnswer], text: str, kind: str,
-          classified=None) -> Reading:
+          classified=None, *, subject: Optional[str] = None) -> Reading:
     """The stricter reading always wins: neither the model nor the classifier
     can downgrade a safety signal, and a red-flag phrase overrides everything.
-    `classified` is the small classifier's reading (care/classifier.py), when it runs."""
+    `classified` is the small classifier's reading (care/classifier.py), when it runs.
+
+    For a dose the rules decide alone (`checkins.read_dose_answer`): the model
+    and the classifier may only make the answer MORE cautious, never turn an
+    unclear or negative answer into "taken". The merged `said`, the structured
+    `medication_taken`, the summary and the `dose` always agree."""
     flag = red_flag(text)
     s = structured or StructuredAnswer()
     c_help = bool(classified and classified.needs_help and classified.confidence.get("needs_help", 0) >= CLASSIFIER_MIN_CONFIDENCE["needs_help"])
@@ -652,12 +657,20 @@ def merge(keyword: rules.AnswerReading, structured: Optional[StructuredAnswer], 
     pain_kw = any("pain" in sig for sig in keyword.signals)
     pain = pain_kw or s.pain_mentioned or flag or c_pain
     said = keyword.said
+    dose = keyword.dose
     if kind in ("meal", "medication"):
         c_said = (classified.said if classified and classified.said in ("yes", "no")
                   and classified.confidence.get("said", 0) >= CLASSIFIER_MIN_CONFIDENCE["said"] else "unknown")
-        if "no" in (keyword.said, s.medication_taken if kind == "medication" else "unknown", c_said):
+        if kind == "medication":
+            # Only ever more cautious. A "yes" from the rules that the model or the
+            # classifier doubts is no longer a yes; nothing upgrades to yes.
+            if said == "yes" and "no" in (s.medication_taken, c_said):
+                said, dose = "no", "unclear"
+            if said not in ("yes", "no"):
+                said, dose = "unclear", dose if dose in ("later", "skip") else "unclear"
+        elif "no" in (keyword.said, c_said):
             said = "no"
-        elif keyword.said == "yes" or (kind == "medication" and s.medication_taken == "yes") or c_said == "yes":
+        elif keyword.said == "yes" or c_said == "yes":
             said = "yes"
         else:
             said = keyword.said or "unclear"
@@ -671,6 +684,9 @@ def merge(keyword: rules.AnswerReading, structured: Optional[StructuredAnswer], 
     if (s.wellbeing == "poor" or c_poor) and "sounded low" not in signals:
         signals.append("sounded low")
     summary = keyword.summary
+    if kind in ("meal", "medication") and said != keyword.said:
+        base = rules.yes_no_summary(kind, said, subject, dose=dose)
+        summary = base if not signals else f"{base} ({'; '.join(signals)})"
     # The keyword summary already says yes or no about a meal or a dose; the
     # model's sentence is used for the open questions, when it adds something.
     informative = len(s.summary.split()) >= 3 and s.summary.strip().lower().rstrip(".") not in ("answered the question", "gave an answer")
@@ -679,19 +695,21 @@ def merge(keyword: rules.AnswerReading, structured: Optional[StructuredAnswer], 
         base = s.summary.strip().rstrip(".") + "."
         summary = base if not signals else f"{base} ({'; '.join(signals)})"
     merged = rules.AnswerReading(summary=summary[:400], said=said, signals=tuple(dict.fromkeys(signals)),
-                                 asked_for_help=needs_help)
+                                 asked_for_help=needs_help, dose=dose if kind == "medication" else keyword.dose)
     wellbeing = "poor" if (s.wellbeing == "poor" or c_poor) else s.wellbeing
     if wellbeing == "unknown" and classified and classified.wellbeing in ("good", "ok"):
         wellbeing = classified.wellbeing
     return Reading(merged, StructuredAnswer(wellbeing=wellbeing, pain_mentioned=pain,
-                                            medication_taken="yes" if said == "yes" else "no" if said == "no" else s.medication_taken,
+                                            medication_taken=("yes" if said == "yes" else "no" if said == "no" else "unknown")
+                                            if kind == "medication" else "unknown",
                                             needs_help=needs_help, mood_words=s.mood_words, summary=merged.summary),
                    "model+rules" if structured is not None else "rules", red_flag=flag)
 
 
 async def read_answer(kind: str, question: str, text: str, *, subject: Optional[str] = None,
-                      model: Optional[Model] = None, language: str = DEFAULT_LANGUAGE) -> Reading:
-    keyword = rules.summarise_answer(kind, text, subject=subject)
+                      model: Optional[Model] = None, language: str = DEFAULT_LANGUAGE,
+                      other_medications: tuple = ()) -> Reading:
+    keyword = rules.summarise_answer(kind, text, subject=subject, other_medications=other_medications)
     model = model if model is not None else configured_model()
     structured: Optional[StructuredAnswer] = None
     classified = None
@@ -702,17 +720,17 @@ async def read_answer(kind: str, question: str, text: str, *, subject: Optional[
             try:
                 classified = clf.read(text)
             except Exception as exc:  # noqa: BLE001 - the rules and the model still decide
-                logger.info("care classifier failed on an answer (%s)", exc)
+                logger.info("care classifier failed on an answer (%s)", type(exc).__name__)
     if model is not None and (text or "").strip():
         try:
             raw = await asyncio.wait_for(model.complete_json(answer_messages(kind, question, text, language), max_tokens=200),
                                          timeout=first_sentence_budget_s() * 2)
             structured = StructuredAnswer.model_validate(json.loads(raw))
         except (ValidationError, ValueError, TypeError) as exc:
-            logger.info("care conversation: model answer did not fit the schema (%s); keyword reading used", exc)
+            logger.info("care conversation: model answer did not fit the schema (%s); keyword reading used", type(exc).__name__)
         except Exception as exc:  # noqa: BLE001
-            logger.info("care conversation: model unavailable for the answer (%s)", exc)
-    return merge(keyword, structured, text, kind, classified)
+            logger.info("care conversation: model unavailable for the answer (%s)", type(exc).__name__)
+    return merge(keyword, structured, text, kind, classified, subject=subject)
 
 
 # ── Talk to IRA ──────────────────────────────────────────────────────────────
@@ -931,7 +949,7 @@ async def talk(text: str, ctx: TalkContext, *, recent: Sequence[tuple[str, str]]
             if len(spoken) >= 3:
                 break
     except Exception as exc:  # noqa: BLE001
-        logger.info("care conversation: talk fell back (%s)", exc)
+        logger.info("care conversation: talk fell back (%s)", type(exc).__name__)
         if not spoken:
             if on_sentence:
                 on_sentence(fallback)

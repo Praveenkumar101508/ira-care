@@ -1,7 +1,7 @@
 {
   "phase": "3B batch 0/1",
   "schema_version": 1,
-  "table_count": 151,
+  "table_count": 152,
   "tables": {
     "access_audit_log": {
       "access": {
@@ -1801,7 +1801,7 @@
       "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_checkins:{key}",
       "classification": "WORKSPACE_SCOPED",
       "current": {
-        "column_count": 16,
+        "column_count": 18,
         "has_tenant_id": true,
         "has_user_id": false,
         "has_workspace_id": true,
@@ -2305,6 +2305,77 @@
         "update": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid"
       }
     },
+    "care_medication_event_corrections": {
+      "access": {
+        "background_worker_call_sites": [],
+        "delete_call_sites": [],
+        "non_test_code_files": 1,
+        "read_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ],
+        "referenced_in_code": true,
+        "write_call_sites": [
+          "supracloud-jarvis/ira/care/repository.py"
+        ]
+      },
+      "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_medication_event_corrections:{key}",
+      "classification": "WORKSPACE_SCOPED",
+      "current": {
+        "column_count": 14,
+        "has_tenant_id": true,
+        "has_user_id": false,
+        "has_workspace_id": true,
+        "policy_count": 2,
+        "rls_enabled": true,
+        "rls_forced": true
+      },
+      "data_kind": {
+        "audit_data": false,
+        "authentication_data": false,
+        "biometric_data": false,
+        "customer_data": true,
+        "financial_data": false
+      },
+      "deletion": {
+        "hard_delete": "with its dose record (ON DELETE CASCADE from care_medication_events), on person erasure (care package) or tenant deletion",
+        "legal_hold": "n/a",
+        "membership_removal": "revoke access; the rows belong to the person cared for, not the member",
+        "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
+        "user_deletion": "unaffected: rows belong to the person cared for, not to an account; a member's user_id link is SET NULL where one exists",
+        "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
+      },
+      "encryption": {
+        "required": false,
+        "specification": "not required: no secret or biometric material"
+      },
+      "justification": "The append-only history of changes to the person cared for's dose records (112): what a dose said before, what it says now, who changed it and why. Belongs to the person; removed with its dose record, with the person and with the tenant. The application role may SELECT and INSERT only.",
+      "migration": {
+        "done_by": "112_care_medication_provenance.sql",
+        "requires_migration": false,
+        "requires_tenant_id": false,
+        "requires_user_ownership_conversion": false,
+        "requires_workspace_id": false,
+        "target_columns": {}
+      },
+      "object_storage_prefix": "tenant/{tenant_id}/workspace/{workspace_id}/care_medication_event_corrections/",
+      "retention": "care_consents.retention_months per person, default 12 months",
+      "rls": {
+        "already_satisfied": true,
+        "application_role_bypassrls": false,
+        "background_worker": "sets the same GUCs via core/identity/background.py",
+        "delete": "none: no DELETE policy and no DELETE grant; rows leave only by ON DELETE CASCADE",
+        "force": true,
+        "insert": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "required": true,
+        "select": "tenant_id = current_setting('app.tenant_id', true)::uuid AND workspace_id = current_setting('app.workspace_id', true)::uuid",
+        "session_context": [
+          "app.tenant_id",
+          "app.workspace_id"
+        ],
+        "support_access": "via admin_access_grants only; time-limited, audited, never implicit",
+        "update": "none: no UPDATE policy and no UPDATE grant (append-only)"
+      }
+    },
     "care_medication_events": {
       "access": {
         "background_worker_call_sites": [
@@ -2326,7 +2397,7 @@
       "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_medication_events:{key}",
       "classification": "WORKSPACE_SCOPED",
       "current": {
-        "column_count": 10,
+        "column_count": 12,
         "has_tenant_id": true,
         "has_user_id": false,
         "has_workspace_id": true,

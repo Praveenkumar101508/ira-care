@@ -48,7 +48,7 @@ async def pool():
 
 
 async def _make_family(pool, admin, key: str) -> dict:
-    tenant_id, admin_user, member_user, viewer_user = (uuid.uuid4() for _ in range(4))
+    tenant_id, admin_user, member_user, viewer_user, wearer_user = (uuid.uuid4() for _ in range(5))
     ws = _ws_of(tenant_id)
     slug = f"careapi-{key}-{tenant_id.hex[:8]}"
     await admin.execute("INSERT INTO tenants (id,name,slug,edition) VALUES ($1,$2,$3,'cloud')",
@@ -61,7 +61,8 @@ async def _make_family(pool, admin, key: str) -> dict:
         await conn.execute(
             "INSERT INTO workspaces (id,tenant_id,organisation_id,name,slug,is_default,status) "
             "VALUES ($1,$2,$3,'Default','default',TRUE,'active')", ws, tenant_id, org)
-        for uid, tenant_role in ((admin_user, "owner"), (member_user, "member"), (viewer_user, "viewer")):
+        for uid, tenant_role in ((admin_user, "owner"), (member_user, "member"), (viewer_user, "viewer"),
+                                 (wearer_user, "member")):
             await conn.execute(
                 "INSERT INTO users (id,email,display_name,status) VALUES ($1,$2,'care probe','active')",
                 uid, f"{slug}-{uid.hex[:8]}@example.invalid")
@@ -72,7 +73,7 @@ async def _make_family(pool, admin, key: str) -> dict:
         for k in ("app.tenant_id", "app.user_id", "app.workspace_id"):
             await conn.execute(f"SELECT set_config('{k}','',false)")
     return {"tenant_id": tenant_id, "workspace_id": ws, "admin": admin_user,
-            "member": member_user, "viewer": viewer_user}
+            "member": member_user, "viewer": viewer_user, "wearer": wearer_user}
 
 
 @pytest.fixture
@@ -86,9 +87,18 @@ async def families(pool):
             await admin.execute("DELETE FROM care_access_log WHERE tenant_id = $1", fam["tenant_id"])
             await admin.execute("DELETE FROM tenants WHERE id = $1", fam["tenant_id"])
             await admin.execute("DELETE FROM users WHERE id = ANY($1::uuid[])",
-                                [fam["admin"], fam["member"], fam["viewer"]])
+                                [fam["admin"], fam["member"], fam["viewer"], fam["wearer"]])
     finally:
         await admin.close()
+
+
+async def add_wearer(client, fam, person_id) -> None:
+    """Put the family's `wearer` account in the person's circle as the person
+    themself (relationship 'self'): the only account that may talk AS them."""
+    client.act_as(fam, "admin", "workspace_admin")
+    r = await client.post(f"/api/v1/care/people/{person_id}/circle", json={
+        "display_name": "The person", "role": "family", "relationship": "self", "user_id": str(fam["wearer"])})
+    assert r.status_code in (200, 201), r.text
 
 
 def _principal(fam: dict, who: str, role: str):

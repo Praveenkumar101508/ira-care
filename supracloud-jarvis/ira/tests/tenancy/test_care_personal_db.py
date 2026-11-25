@@ -23,7 +23,7 @@ ADMIN_DSN = os.getenv("IRA_TEST_ADMIN_DSN", "")
 if not DSN or not ADMIN_DSN:
     pytest.skip("IRA_TEST_DATABASE_DSN / IRA_TEST_ADMIN_DSN not set", allow_module_level=True)
 
-from tests.tenancy._care_fixtures import client, families, pool  # noqa: E402,F401
+from tests.tenancy._care_fixtures import add_wearer, client, families, pool  # noqa: E402,F401
 
 from care import checkin_cycle as cycle  # noqa: E402
 from core.identity.db_context import workspace_connection  # noqa: E402
@@ -97,8 +97,9 @@ async def test_the_profile_is_edited_by_the_representative_and_reaches_the_watch
 async def test_a_reminder_spoken_to_ira_is_asked_at_its_time_and_ticked_off(client, families):
     fam = families["a"]
     p = await _setup(client, fam)
-    client.act_as(fam, "member", "member")
-    # "Remind me to ring Sravani in 20 minutes" from the phone's Talk to IRA.
+    await add_wearer(client, fam, p["id"])
+    client.act_as(fam, "wearer", "member")
+    # "Remind me to ring Sravani in 20 minutes" from the person's own phone.
     r = await client.post(f"{C}/people/{p['id']}/talk", json={"text": "Remind me to ring Sravani in 20 minutes"})
     assert r.status_code == 200, r.text
     lines = [line for line in r.text.strip().split("\n") if line.strip()]
@@ -196,9 +197,11 @@ async def test_a_dose_is_confirmed_in_two_steps_and_hydration_prompts_follow_the
 async def test_what_ira_remembers_is_the_persons_to_change_and_a_concern_is_labelled(client, families):
     fam = families["a"]
     p = await _setup(client, fam)
-    client.act_as(fam, "member", "member")
+    await add_wearer(client, fam, p["id"])
+    client.act_as(fam, "wearer", "member")
     r = await client.post(f"{C}/people/{p['id']}/talk", json={"text": "I had a lovely morning in the garden"})
     assert r.status_code == 200
+    client.act_as(fam, "member", "member")
     mem = (await client.get(f"{C}/people/{p['id']}/memory")).json()["memory"]
     assert len(mem) == 1 and not mem[0].get("edited_at")
     day = mem[0]["day"]
@@ -217,6 +220,7 @@ async def test_what_ira_remembers_is_the_persons_to_change_and_a_concern_is_labe
     client.act_as(fam, "member", "member")
     assert (await client.delete(f"{C}/people/{p['id']}/memory/{day}")).status_code == 204
     assert (await client.get(f"{C}/people/{p['id']}/memory")).json()["memory"] == []
+    client.act_as(fam, "wearer", "member")
     # A concerning phrase: the alert's details are a summary by IRA, labelled and linked to the transcript row.
     r = await client.post(f"{C}/people/{p['id']}/talk", json={"text": "I can't breathe properly"})
     assert r.status_code == 200

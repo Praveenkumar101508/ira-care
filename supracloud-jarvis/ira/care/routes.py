@@ -996,12 +996,32 @@ async def list_medication_events(person_id: uuid.UUID, limit: int = Query(100, g
 @router.post("/people/{person_id}/medication-events", status_code=201)
 async def record_medication_event(person_id: uuid.UUID, body: schemas.MedicationEventRecord,
                                   p: Principal = Depends(require_workspace_principal)):
-    """A family member or carer confirming a dose was taken (or missed)."""
+    """A family member or carer confirming a dose was taken (or missed). Who
+    recorded it is taken from the signed-in caller, not from the request."""
     ensure_can_act(p)
-    event = await repo.record_medication_event(p, person_id, body.model_dump())
+    try:
+        event = await repo.record_medication_event(p, person_id, body.model_dump())
+    except repo.DoseConflict:
+        raise HTTPException(
+            status_code=409,
+            detail="This dose is already recorded differently. It is not overwritten. "
+                   "To correct it, send the change again with a correction_reason; the old record is kept.")
     if event is None:
         raise _not_found("Medication not found for this person.")
     return event
+
+
+@router.get("/people/{person_id}/medication-corrections")
+async def list_medication_corrections(person_id: uuid.UUID, p: Principal = Depends(require_workspace_principal)):
+    """Every change made to a dose already recorded: what it was, what it became, who changed it and why."""
+    ensure_can_read(p)
+    async with workspace_connection(p) as conn:
+        if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
+            raise _not_found("Person not found.")
+        rows = await repo.list_medication_corrections(conn, person_id)
+        await audit.record_access(conn, p, person_id=person_id, resource_kind="medication",
+                                  detail={"view": "corrections", "rows": len(rows)})
+    return {"corrections": rows, "count": len(rows)}
 
 
 # ── Transcripts and consents ─────────────────────────────────────────────────
@@ -1017,6 +1037,14 @@ async def person_talk(person_id: uuid.UUID, body: schemas.Talk, p: Principal = D
     async with workspace_connection(p) as conn:
         if not await conn.fetchval("SELECT 1 FROM care_people WHERE id = $1", person_id):
             raise _not_found("Person not found.")
+        # Only the person themself may talk AS the person: an active member of
+        # THIS person's circle whose relationship is 'self'. A family member, a
+        # carer, a workspace admin or another wearer would otherwise put words in
+        # the person's mouth: transcripts, memory, reminders and alerts. Checked
+        # before the stream starts, so a refusal writes nothing.
+        if not await repo.is_wearer(conn, person_id, p.user_id):
+            raise HTTPException(status_code=403,
+                                detail="Only the person themself can talk to IRA as this person.")
     return StreamingResponse(talk.ndjson(talk.exchange(p, person_id, body.text, source="phone")),
                              media_type="application/x-ndjson")
 

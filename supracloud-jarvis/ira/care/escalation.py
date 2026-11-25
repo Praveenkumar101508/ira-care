@@ -165,7 +165,7 @@ async def _push(conn, title: str, body: str, alert: dict, member: dict,
         outcome, detail, tickets = await push.send_to_member(conn, member, alert, title, body, provider)
         return providers.Delivery(outcome, detail), tickets
     except Exception as exc:  # noqa: BLE001 - a push failure is recorded, never raised
-        logger.warning("care push failed: %s", exc)
+        logger.warning("care push failed: %s", type(exc).__name__)
         return providers.Delivery("failed", f"push error: {type(exc).__name__}"), []
 
 

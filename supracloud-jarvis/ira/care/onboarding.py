@@ -180,7 +180,7 @@ async def limits_for(principal: Principal) -> dict:
     try:
         limits = await effective_limits(principal)
     except Exception as exc:  # noqa: BLE001 - billing unavailable never blocks care
-        logger.warning("care onboarding: entitlements unavailable (%s)", exc)
+        logger.warning("care onboarding: entitlements unavailable (%s)", type(exc).__name__)
         return {}
     return {k: v for k, v in limits.items() if k in PLAN_KEYS}
 
