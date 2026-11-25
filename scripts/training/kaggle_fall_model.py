@@ -2,7 +2,10 @@
 #
 # Runs as a private Kaggle script kernel (pushed by scripts/training/run_kaggle.py with
 # enable_gpu and enable_internet). It downloads only public, commercially licensed data
-# (SisFall, CC BY 4.0, from the authors' Zenodo record; UCI HAR, CC BY 4.0), never a
+# (SisFall from Zenodo record 22212281, labelled CC BY 4.0 but NOT the authors' own release:
+# its creator is "None" and it was published 2026-08-31, so commercial use is unclear until the
+# SisFall authors confirm (docs/DATASETS.md, docs/legal/dataset_permission_requests/SISFALL.md);
+# UCI HAR, CC BY 4.0), never a
 # token, and prints everything the repository needs back into its log:
 #
 #   METRICS {json}        sensitivity, specificity, false alarms per day, the rule detector
@@ -206,7 +209,7 @@ for i in range(min(200, len(Xte))):
     interp.set_tensor(inp["index"], norm(Xte[i:i + 1]).astype(np.float32)); interp.invoke()
     agree += int((interp.get_tensor(outp["index"]).ravel()[0] >= chosen_t) == (p[i] >= chosen_t))
 metrics = {
-    "data": {"sisfall": "Zenodo 22212281, CC BY 4.0, 200 Hz resampled to 50 Hz, ADXL345 only",
+    "data": {"sisfall": "Zenodo 22212281 (third-party re-upload labelled CC BY 4.0; authors' terms unconfirmed), 200 Hz resampled to 50 Hz, ADXL345 only",
              "uci_har": "UCI 240, CC BY 4.0, 50 Hz, negatives only",
              "train_windows": len(Xtr), "train_falls": int(ytr.sum()), "test_windows": len(Xte), "test_falls": int(yte.sum()),
              "train_subjects": sorted(train_subjects), "test_subjects": sorted(set(subj[te])), "window_s": WINDOW_S, "rate_hz": RATE_HZ},
