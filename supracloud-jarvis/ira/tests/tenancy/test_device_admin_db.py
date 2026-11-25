@@ -5,7 +5,9 @@ Who: only an account with a live row in `deployment_administrators`, which only 
 writes. A care manager, coordinator, carer, viewer, the person themself, a tenant owner and a
 principal flagged as the deployment owner are all refused, and their attempts leave nothing behind.
 What: a closed list of actions, at most 15 minutes, for one paired watch named with its own
-tenant and workspace; signed; collected only by that watch; revocable; every step audited."""
+tenant and workspace; signed; collected only by that watch; revocable; every step audited.
+Two people for a factory reset (migration 123, D-089): a request, signed only once a different,
+live deployment administrator approves it within 30 minutes."""
 from __future__ import annotations
 
 import base64
@@ -292,7 +294,9 @@ async def test_a_revoked_administrator_can_do_nothing_and_what_they_issued_is_wi
     act_as_admin(client, families, uid)
     held = (await client.post(ISSUE, json=_body(families["a"], device))).json()
     await _collect(client, token)
-    pending = (await client.post(ISSUE, json=_body(families["a"], device, action="FACTORY_RESET"))).json()
+    # Signed but not yet collected. (A factory reset would not be signed at all on one person's
+    # say-so since 123; what happens to one is tested under "Two people for a factory reset".)
+    pending = (await client.post(ISSUE, json=_body(families["a"], device, action="RESTORE_RESTRICTIONS"))).json()
     assert await operator.revoke(admins.conn, uid) == 1
     assert await operator.revoke(admins.conn, uid) == 0
 
@@ -402,3 +406,268 @@ def act_as_admin_principal(families, uid: uuid.UUID):
     from core.editions import EDITION_CLOUD
     from core.identity import Principal
     return Principal(user_id=uid, tenant_id=families["b"]["tenant_id"], session_id=uuid.uuid4(), edition=EDITION_CLOUD)
+
+
+# ── Two people for a factory reset (migration 123, D-089, security review S15) ──────────────
+
+
+def _target(fam) -> dict:
+    return {"tenant_id": str(fam["tenant_id"]), "workspace_id": str(fam["workspace_id"])}
+
+
+async def _history(client, fam, device) -> list[dict]:
+    r = await client.get(ISSUE, params={**_target(fam), "device_id": device})
+    assert r.status_code == 200, r.text
+    return r.json()["instructions"]
+
+
+async def _row(instruction_id) -> dict:
+    conn = await asyncpg.connect(ADMIN_DSN)
+    try:
+        return dict(await conn.fetchrow("SELECT * FROM care_device_admin_instructions WHERE id = $1",
+                                        uuid.UUID(str(instruction_id))))
+    finally:
+        await conn.close()
+
+
+async def _request_reset(client, families, uid, device, minutes=10) -> dict:
+    act_as_admin(client, families, uid)
+    r = await client.post(ISSUE, json=_body(families["a"], device, action="FACTORY_RESET", minutes=minutes))
+    assert r.status_code == 202, r.text
+    return r.json()
+
+
+async def _approve(client, families, uid, instruction_id):
+    act_as_admin(client, families, uid)
+    return await client.post(f"{ISSUE}/{instruction_id}/approve", json=_target(families["a"]))
+
+
+async def test_a_factory_reset_is_signed_only_when_a_second_administrator_approves(client, families, admins,
+                                                                                    policy_key):
+    token, device = await _watch(client, families["a"])
+    fam = families["a"]
+    first, second, ungranted = await admins(), await admins(), await admins(grant=False)
+
+    req = await _request_reset(client, families, first, device, minutes=5)
+    assert req["state"] == "pending_approval" and req["status"] == "awaiting_approval"
+    assert req["nonce"] is None and req["issued_at"] is None and req["expires_at"] is None
+    assert req["issued_by"] == str(first) and req["window_minutes"] == 5
+    stored = await _row(req["id"])
+    assert stored["payload"] is None and stored["signature"] is None, "nothing signed yet"
+    assert (await _collect(client, token)) == {"instructions": [], "revoked_nonces": []}
+
+    # The requester cannot approve their own request: refused, audited, still unsigned.
+    r = await _approve(client, families, first, req["id"])
+    assert r.status_code == 403, r.text
+    # An account with no grant cannot approve at all.
+    r = await _approve(client, families, ungranted, req["id"])
+    assert r.status_code == 403 and r.json()["message"] == deviceadmin.REFUSED
+    assert (await _row(req["id"]))["state"] == "pending_approval"
+    assert (await _collect(client, token))["instructions"] == []
+
+    # A different, live administrator approves: signed now, for the five minutes asked for.
+    r = await _approve(client, families, second, req["id"])
+    assert r.status_code == 200, r.text
+    signed = r.json()
+    assert signed["state"] == "signed" and signed["approved_by"] == str(second) and signed["issued_by"] == str(first)
+    got = await _collect(client, token)
+    assert [i["id"] for i in got["instructions"]] == [req["id"]]
+    fields = _verify_as_the_watch(got["instructions"][0], device)
+    assert fields["action"] == "FACTORY_RESET" and fields["expires"] - fields["issued"] == 5 * 60_000
+    assert fields["nonce"] == signed["nonce"]
+    assert (await _approve(client, families, second, req["id"])).status_code == 409, "approved once only"
+
+    h = next(i for i in await _history(client, fam, device) if i["id"] == req["id"])
+    trail = [(e["event"], str(e["actor_id"])) for e in h["events"]]
+    assert trail == [("requested", str(first)), ("approval_refused", str(first)), ("approved", str(second)),
+                     ("delivered", device)]
+    assert "second, different" in h["events"][1]["detail"]
+
+    # The other two actions are unchanged: one administrator, signed at once.
+    for action in ("MAINTENANCE_WINDOW", "RESTORE_RESTRICTIONS"):
+        act_as_admin(client, families, first)
+        r = await client.post(ISSUE, json=_body(fam, device, action=action))
+        assert r.status_code == 201 and r.json()["state"] == "signed" and r.json()["nonce"], action
+
+
+async def test_a_request_not_approved_in_time_lapses_unsigned(client, families, admins, policy_key):
+    token, device = await _watch(client, families["a"])
+    first, second = await admins(), await admins()
+    asked = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=deviceadmin.APPROVAL_MINUTES + 1)
+    req = await deviceadmin.issue(admin_id=first, tenant_id=families["a"]["tenant_id"],
+                                  workspace_id=families["a"]["workspace_id"], device_id=uuid.UUID(device),
+                                  action="FACTORY_RESET", minutes=10, reason=REASON, key=KEY, now=asked)
+    r = await _approve(client, families, second, req["id"])
+    assert r.status_code == 409 and "lapsed" in r.json()["message"]
+    assert (await _row(req["id"]))["signature"] is None
+    assert (await _collect(client, token)) == {"instructions": [], "revoked_nonces": []}
+    act_as_admin(client, families, second)
+    h = next(i for i in await _history(client, families["a"], device) if i["id"] == str(req["id"]))
+    assert h["status"] == "lapsed" and [e["event"] for e in h["events"]] == ["requested", "approval_refused"]
+
+    # Control: the same request made a minute inside the window is approved.
+    inside = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=deviceadmin.APPROVAL_MINUTES - 1)
+    ok = await deviceadmin.issue(admin_id=first, tenant_id=families["a"]["tenant_id"],
+                                 workspace_id=families["a"]["workspace_id"], device_id=uuid.UUID(device),
+                                 action="FACTORY_RESET", minutes=10, reason=REASON, key=KEY, now=inside)
+    assert (await _approve(client, families, second, ok["id"])).status_code == 200
+
+
+async def test_revoking_either_administrator_before_signing_kills_the_request(client, families, admins, policy_key):
+    token, device = await _watch(client, families["a"])
+    fam = families["a"]
+
+    # The requester is revoked: nobody can approve what they asked for.
+    requester, approver = await admins(), await admins()
+    req = await _request_reset(client, families, requester, device)
+    assert await operator.revoke(admins.conn, requester) == 1
+    r = await _approve(client, families, approver, req["id"])
+    assert r.status_code == 409 and "no longer a deployment administrator" in r.json()["message"]
+    assert (await _row(req["id"]))["state"] == "pending_approval"
+
+    # The would-be approver is revoked: they can approve nothing; a third, live one still can.
+    requester2, approver2, third = await admins(), await admins(), await admins()
+    req2 = await _request_reset(client, families, requester2, device)
+    assert await operator.revoke(admins.conn, approver2) == 1
+    assert (await _approve(client, families, approver2, req2["id"])).status_code == 403
+    assert (await _row(req2["id"]))["state"] == "pending_approval"
+    assert (await _approve(client, families, third, req2["id"])).status_code == 200
+
+    # A request withdrawn (revoked) before approval cannot be approved.
+    req3 = await _request_reset(client, families, third, device)
+    act_as_admin(client, families, third)
+    assert (await client.post(f"{ISSUE}/{req3['id']}/revoke", json={**_target(fam), "reason": REASON})).status_code == 200
+    r = await _approve(client, families, requester2, req3["id"])
+    assert r.status_code == 409 and "withdrawn" in r.json()["message"]
+
+    got = await _collect(client, token)
+    assert [i["id"] for i in got["instructions"]] == [req2["id"]], "only the properly approved reset"
+    act_as_admin(client, families, third)
+    h = {i["id"]: i for i in await _history(client, fam, device)}
+    assert [e["event"] for e in h[req["id"]]["events"]] == ["requested", "approval_refused"]
+    assert h[req3["id"]]["status"] == "withdrawn"
+    assert [e["event"] for e in h[req3["id"]]["events"]] == ["requested", "revoked", "approval_refused"]
+
+
+@pytest.mark.parametrize("who", ["requester", "approver"])
+async def test_revoking_either_administrator_after_signing_withdraws_the_reset(client, families, admins,
+                                                                                policy_key, who):
+    token, device = await _watch(client, families["a"])
+    requester, approver = await admins(), await admins()
+    req = await _request_reset(client, families, requester, device)
+    signed = (await _approve(client, families, approver, req["id"])).json()
+    assert [i["id"] for i in (await _collect(client, token))["instructions"]] == [req["id"]]
+    assert await operator.revoke(admins.conn, requester if who == "requester" else approver) == 1
+    got = await _collect(client, token)
+    assert got["instructions"] == [] and got["revoked_nonces"] == [signed["nonce"]]
+
+
+async def test_a_one_person_reset_from_before_123_is_withdrawn_not_delivered(client, families, admins, policy_key):
+    """A FACTORY_RESET signed on one administrator's say-so (possible before migration 123) is put
+    on the watch's revocation list. Such a row can no longer be written; the test writes it the
+    way 122 would have, with the 123 triggers off for this one session only."""
+    token, device = await _watch(client, families["a"])
+    uid = await admins()
+    now = dt.datetime.now(dt.timezone.utc).replace(microsecond=0)
+    ins = devicepolicy.new_instruction(device, "FACTORY_RESET", now_ms=int(now.timestamp() * 1000))
+    sig = devicepolicy.signed(ins, KEY)
+    conn = await asyncpg.connect(ADMIN_DSN)
+    try:
+        await conn.execute("SET session_replication_role = replica")
+        await conn.execute(
+            "INSERT INTO care_device_admin_instructions (tenant_id, workspace_id, device_id, action, nonce, issued_at,"
+            " expires_at, issued_by, reason, payload, signature, key_id)"
+            " VALUES ($1, $2, $3, 'FACTORY_RESET', $4, $5, $6, $7, $8, $9, $10, $11)",
+            families["a"]["tenant_id"], families["a"]["workspace_id"], uuid.UUID(device), ins.nonce, now,
+            now + dt.timedelta(minutes=10), uid, REASON, sig["payload"], sig["signature"], sig["key_id"])
+    finally:
+        await conn.close()
+    got = await _collect(client, token)
+    assert got["instructions"] == [] and got["revoked_nonces"] == [ins.nonce]
+
+
+async def test_the_table_refuses_a_one_person_reset_whatever_the_code_does(client, families, admins, policy_key):
+    _, device = await _watch(client, families["a"])
+    fam = families["a"]
+    requester, approver = await admins(), await admins()
+    from core.identity.db_context import workspace_connection
+    p = deviceadmin.target_principal(fam["tenant_id"], fam["workspace_id"])
+
+    async def runtime(sql, *args):
+        async with workspace_connection(p) as conn:
+            return await conn.execute(sql, *args)
+
+    # A reset written straight in as signed, as 122 allowed: refused.
+    with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):
+        await runtime("INSERT INTO care_device_admin_instructions (device_id, action, nonce, expires_at, issued_by,"
+                      " reason, payload, signature, key_id) VALUES ($1, 'FACTORY_RESET', $2, NOW() + interval"
+                      " '5 minutes', $3, 'a long enough reason', 'p', 's', 'k')",
+                      uuid.UUID(device), uuid.uuid4().hex, requester)
+    # Requests longer than 30 minutes, or for another action, or half-signed: refused.
+    req_sql = ("INSERT INTO care_device_admin_instructions (device_id, action, state, issued_at, issued_by, reason,"
+               " requested_at, approval_deadline, window_minutes, nonce)"
+               " VALUES ($1, $2, 'pending_approval', NULL, $3, 'a long enough reason', $4, $5, 10, $6)")
+    now = dt.datetime.now(dt.timezone.utc)
+    for action, deadline, nonce in (("FACTORY_RESET", now + dt.timedelta(minutes=31), None),
+                                    ("MAINTENANCE_WINDOW", now + dt.timedelta(minutes=10), None),
+                                    ("FACTORY_RESET", now + dt.timedelta(minutes=10), uuid.uuid4().hex)):
+        with pytest.raises(asyncpg.exceptions.CheckViolationError):
+            await runtime(req_sql, uuid.UUID(device), action, requester, now, deadline, nonce)
+
+    async def pending(asked: dt.datetime) -> uuid.UUID:
+        rid = uuid.uuid4()
+        await runtime(req_sql.replace("(device_id,", "(id, device_id,").replace("VALUES ($1,", "VALUES ($7, $1,"),
+                      uuid.UUID(device), "FACTORY_RESET", requester, asked, asked + dt.timedelta(minutes=30), None, rid)
+        return rid
+
+    approve_sql = ("UPDATE care_device_admin_instructions SET state = 'signed', nonce = $2, issued_at = NOW(),"
+                   " expires_at = NOW() + interval '10 minutes', payload = 'p', signature = 's', key_id = 'k',"
+                   " approved_by = $3, approved_at = NOW() WHERE id = $1")
+    rid = await pending(now)
+    for approved_by in (requester, None):  # the requester, or nobody
+        with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):
+            await runtime(approve_sql, rid, uuid.uuid4().hex, approved_by)
+    with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):  # approving and rewriting the reason
+        await runtime(approve_sql.replace("state = 'signed',", "state = 'signed', reason = 'another reason here',"),
+                      rid, uuid.uuid4().hex, approver)
+    with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):  # signing without approving
+        await runtime("UPDATE care_device_admin_instructions SET payload = 'p' WHERE id = $1", rid)
+    with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):
+        await runtime("DELETE FROM care_device_admin_instructions WHERE id = $1", rid)
+    lapsed = await pending(now - dt.timedelta(minutes=31))
+    with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):
+        await runtime(approve_sql, lapsed, uuid.uuid4().hex, approver)
+    # Control: the one legitimate change, by somebody else in time, is accepted, and cannot go back.
+    assert await runtime(approve_sql, rid, uuid.uuid4().hex, approver) == "UPDATE 1"
+    with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):
+        await runtime("UPDATE care_device_admin_instructions SET state = 'pending_approval' WHERE id = $1", rid)
+    # A requester revoked since asking: the table refuses the approval too.
+    revoked_one = await pending(now)
+    await operator.revoke(admins.conn, requester)
+    with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):
+        await runtime(approve_sql, revoked_one, uuid.uuid4().hex, approver)
+
+
+async def test_the_123_rollback_refuses_while_a_reset_request_exists(client, families, admins, policy_key):
+    """Dropping the approval columns would lose who approved a wipe. The script runs inside a
+    transaction that is always rolled back, with its own BEGIN and COMMIT taken out, so a
+    rollback that did not refuse could still not damage the test database."""
+    import pathlib
+    _, device = await _watch(client, families["a"])
+    await _request_reset(client, families, await admins(), device)
+    script = (pathlib.Path(__file__).resolve().parents[3] / "postgres" / "rollback"
+              / "123_device_admin_factory_reset_approval_down.sql").read_text(encoding="utf-8")
+    body = "\n".join(line for line in script.splitlines() if line.strip() not in ("BEGIN;", "COMMIT;"))
+    conn = await asyncpg.connect(ADMIN_DSN)
+    try:
+        tx = conn.transaction()
+        await tx.start()
+        try:
+            with pytest.raises(asyncpg.exceptions.RaiseError, match="Refusing rollback"):
+                await conn.execute(body)
+        finally:
+            await tx.rollback()
+        assert await conn.fetchval("SELECT count(*) FROM information_schema.columns WHERE table_name ="
+                                   " 'care_device_admin_instructions' AND column_name = 'approved_by'") == 1
+    finally:
+        await conn.close()

@@ -100,7 +100,7 @@ off-site bucket.
 | T36 | E | A maintenance window stays open, or survives revoking the administrator | The window closes at expiry and at every start; a revoked instruction, or anything issued by an administrator revoked afterwards, is withheld and put on the watch's revocation list, which closes an open window at once | `care/deviceadmin.py`, `watch/.../devicepolicy/DevicePolicy.kt` | `DevicePolicyTest.kt`, `test_device_admin_db.py::test_a_revoked_administrator_can_do_nothing_and_what_they_issued_is_withdrawn` | controlled in software; the timer and boot receiver that call it on a device are not built (E4.f) |
 | T37 | R | An administrator denies having opened a watch | Every instruction is stored with who issued it and why, and every step (issued, delivered, revoked, applied, refused, restored) is an insert-only audit row | `care/deviceadmin.py` | `test_device_admin_db.py::test_an_instruction_is_signed_for_one_watch_collected_once_and_fully_audited` | controlled |
 | T42 | S | **(round 7)** The device-policy key, which can wipe a watch, is mishandled because no custody procedure names it | Listed in the custody document with generation, storage and rotation; the guard finds every key variable the server declares and fails if one is undocumented | `docs/security/SIGNING_KEYS.md` | `test_signing_keys.py::test_every_key_variable_the_server_declares_is_in_the_custody_document` | partly: custody is procedural (S12) |
-| T43 | S | **(round 7)** A phished or stolen deployment administrator session issues a factory reset | Every instruction is audited and revocable, single-use and at most 15 minutes; no second factor or second person is asked for | `care/deviceadmin.py` | `test_device_admin_db.py::test_an_instruction_is_signed_for_one_watch_collected_once_and_fully_audited` | **not controlled**: no step-up authentication for deployment administrators (S15) |
+| T43 | S | **(round 7)** A phished or stolen deployment administrator session issues a factory reset | Two people (D-089, migration 123): a factory reset is stored unsigned as a request and signed only when a different deployment administrator with a live grant approves it within 30 minutes; self-approval, a lapsed or withdrawn request, and one whose requester has since been revoked are refused and audited; revoking either administrator withdraws a signed reset from the watch; the table refuses a one-person reset whatever the code does. Every instruction is also audited, revocable, single-use and at most 15 minutes | `care/deviceadmin.py`, `supracloud-jarvis/postgres/123_device_admin_factory_reset_approval.sql` | `test_device_admin_db.py::test_a_factory_reset_is_signed_only_when_a_second_administrator_approves`, `test_device_admin_db.py::test_revoking_either_administrator_before_signing_kills_the_request`, `test_device_admin_db.py::test_the_table_refuses_a_one_person_reset_whatever_the_code_does` | partly controlled: one stolen session can no longer reset a watch, two can; no step-up authentication, because the session token carries no authentication time (S15) |
 
 ## Backups
 
@@ -120,6 +120,7 @@ off-site bucket.
 
 ## Not controlled, in one place
 
-T43 (no step-up for deployment administrators, round 7), and the partial items T3, T8, T27
-(device side), T31, T33 and T42. T10 (script
+Nothing is wholly uncontrolled. Partial: T3, T8, T27 (device side), T31, T33, T42, and T43
+(a factory reset now needs two deployment administrators, D-089; there is still no step-up
+authentication). T10 (script
 injection on the dashboard) has been controlled since the nonce policy (REVIEW.md S7). Each is named in `REVIEW.md` or the register with what it needs.

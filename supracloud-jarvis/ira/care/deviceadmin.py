@@ -14,6 +14,21 @@ at most 15 minutes. Every step lands in `care_device_admin_events`: issued and r
 which administrator, with the reason), delivered, and applied, refused or restored (by the
 watch).
 
+Two people for a factory reset (D-089, migration 123, security review S15): `FACTORY_RESET` is
+stored as a request (`state = 'pending_approval'`) with no nonce, payload or signature, so there
+is nothing a watch could be given. A DIFFERENT deployment administrator with a live grant
+approves it within `APPROVAL_MINUTES` of the request; only then is it signed, with a fresh issue
+time and the life the requester asked for. The requester cannot approve their own request; a
+request past its deadline, withdrawn, or whose requester's grant has been revoked since cannot
+be approved; and once signed, revoking either administrator withdraws it from the watch. Each
+request, approval and refused approval is an audit row. The table enforces the same rules
+(trigger and CHECKs in 123), so a bug here cannot sign a reset on one person's say-so.
+`MAINTENANCE_WINDOW` and `RESTORE_RESTRICTIONS` are signed at once, as before.
+
+Step-up authentication is NOT asked for: the session token carries no authentication time (no
+`iat` or `auth_time` claim, and a refresh re-stamps it), so the server cannot tell a session
+signed in a minute ago from one refreshed for a week. That stays open (S15, T43).
+
 Where: the administrator names the watch by its tenant, workspace and device id (from the
 care organisation's support request; the device id is in the workspace's device list,
 GET /care/people/{id}/devices). The work then runs on a connection bound to THAT workspace,
@@ -51,6 +66,21 @@ class NotFound(LookupError):
 
 class Conflict(RuntimeError):
     pass
+
+
+class ApprovalRefused(Conflict):
+    """A second administrator's approval of a factory-reset request was refused (and audited).
+    `forbidden` marks the requester trying to approve their own request."""
+
+    def __init__(self, message: str, *, forbidden: bool = False):
+        super().__init__(message)
+        self.forbidden = forbidden
+
+
+#: The one action that needs a second deployment administrator (D-089).
+NEEDS_APPROVAL = frozenset({"FACTORY_RESET"})
+#: How long a request waits for that approval before it lapses unsigned (the table allows 30).
+APPROVAL_MINUTES = 30
 
 
 async def is_deployment_admin(conn, user_id: Optional[uuid.UUID]) -> bool:
@@ -97,10 +127,26 @@ async def _event(conn, instruction_id, event: str, actor_kind: str, actor_id, de
         " VALUES ($1, $2, $3, $4, $5)", instruction_id, event, actor_kind, actor_id, detail[:200])
 
 
-def _public(row) -> dict:
-    keep = ("id", "device_id", "action", "nonce", "issued_at", "expires_at", "issued_by", "reason",
-            "key_id", "delivered_at", "revoked_at", "revoked_by", "outcome", "outcome_reason", "outcome_at")
-    return {k: row[k] for k in keep}
+def _status(row, now: dt.datetime) -> str:
+    """One word for where an instruction stands, for the administrator's history."""
+    if row["state"] == "pending_approval":
+        if row["revoked_at"] is not None:
+            return "withdrawn"
+        return "lapsed" if row["approval_deadline"] <= now else "awaiting_approval"
+    if row["revoked_at"] is not None:
+        return "revoked"
+    if row["outcome"] is not None:
+        return row["outcome"]
+    return "delivered" if row["delivered_at"] is not None else "signed"
+
+
+def _public(row, now: Optional[dt.datetime] = None) -> dict:
+    keep = ("id", "device_id", "action", "state", "nonce", "issued_at", "expires_at", "issued_by", "reason",
+            "key_id", "delivered_at", "revoked_at", "revoked_by", "outcome", "outcome_reason", "outcome_at",
+            "requested_at", "approval_deadline", "window_minutes", "approved_by", "approved_at")
+    out = {k: row[k] for k in keep}
+    out["status"] = _status(row, now or dt.datetime.now(dt.timezone.utc))
+    return out
 
 
 def _ms(t: dt.datetime) -> int:
@@ -110,7 +156,10 @@ def _ms(t: dt.datetime) -> int:
 async def issue(*, admin_id: uuid.UUID, tenant_id: uuid.UUID, workspace_id: uuid.UUID, device_id: uuid.UUID,
                 action: str, minutes: int, reason: str, key, now: Optional[dt.datetime] = None) -> dict:
     """Sign and store one instruction for one paired watch. ValueError for anything outside the
-    allow-list or the 15-minute bound (checked here, again by the watch, and by the table)."""
+    allow-list or the 15-minute bound (checked here, again by the watch, and by the table).
+
+    A `FACTORY_RESET` is not signed here: it is stored as a request waiting for a second
+    deployment administrator (`approve`), and the result says `state: pending_approval`."""
     if action not in devicepolicy.ACTIONS:
         raise ValueError(f"unknown action {action!r}")
     window_ms = int(minutes) * 60_000
@@ -121,6 +170,18 @@ async def issue(*, admin_id: uuid.UUID, tenant_id: uuid.UUID, workspace_id: uuid
         found = await conn.fetchval("SELECT id FROM care_devices WHERE id = $1 AND status = 'paired'", device_id)
         if found is None:
             raise NotFound("No paired watch with that id in that workspace.")
+        if action in NEEDS_APPROVAL:
+            deadline = now + dt.timedelta(minutes=APPROVAL_MINUTES)
+            row = await conn.fetchrow(
+                "INSERT INTO care_device_admin_instructions (device_id, action, state, issued_at, issued_by, reason,"
+                " requested_at, approval_deadline, window_minutes)"
+                " VALUES ($1, $2, 'pending_approval', NULL, $3, $4, $5, $6, $7) RETURNING *",
+                device_id, action, admin_id, reason.strip(), now, deadline, int(minutes))
+            await _event(conn, row["id"], "requested", "deployment_admin", admin_id,
+                         f"{action} for {minutes} min; needs a second administrator by {deadline:%Y-%m-%d %H:%M} UTC")
+            logger.info("device instruction requested id=%s action=%s device=%s by=%s", row["id"], action,
+                        device_id, admin_id)
+            return _public(row, now)
         ins = devicepolicy.new_instruction(str(device_id), action, now_ms=_ms(now), window_ms=window_ms)
         sig = devicepolicy.signed(ins, key)
         row = await conn.fetchrow(
@@ -130,7 +191,64 @@ async def issue(*, admin_id: uuid.UUID, tenant_id: uuid.UUID, workspace_id: uuid
             reason.strip(), sig["payload"], sig["signature"], sig["key_id"])
         await _event(conn, row["id"], "issued", "deployment_admin", admin_id, f"{action} for {minutes} min")
     logger.info("device instruction issued id=%s action=%s device=%s by=%s", row["id"], action, device_id, admin_id)
-    return _public(row)
+    return _public(row, now)
+
+
+# A grant revoked at or after a request was made. Only revoked grants are read, which every
+# connection may see (migration 122), so this works on the workspace-bound connection.
+_REVOKED_SINCE = ("SELECT 1 FROM deployment_administrators"
+                  " WHERE user_id = $1 AND revoked_at IS NOT NULL AND revoked_at >= $2")
+
+
+async def approve(*, admin_id: uuid.UUID, tenant_id: uuid.UUID, workspace_id: uuid.UUID,
+                  instruction_id: uuid.UUID, key, now: Optional[dt.datetime] = None) -> dict:
+    """The second deployment administrator approves a factory-reset request; it is signed now,
+    for the life the requester asked for. `admin_id` must already be a live administrator (the
+    route checks; the table refuses one revoked since the request). Refusals are audited
+    ('approval_refused') and raised as ApprovalRefused; an unknown id is NotFound."""
+    now = (now or dt.datetime.now(dt.timezone.utc)).replace(microsecond=0)
+    refused: Optional[ApprovalRefused] = None
+    async with _in_workspace(tenant_id, workspace_id) as conn:
+        row = await conn.fetchrow(
+            "SELECT * FROM care_device_admin_instructions WHERE id = $1 FOR UPDATE", instruction_id)
+        if row is None:
+            raise NotFound("No such instruction in that workspace.")
+        if row["state"] != "pending_approval":
+            raise Conflict("That instruction is not waiting for approval.")
+        if row["issued_by"] == admin_id:
+            refused = ApprovalRefused("A factory reset needs a second, different deployment administrator.",
+                                      forbidden=True)
+        elif row["revoked_at"] is not None:
+            refused = ApprovalRefused("That request was withdrawn.")
+        elif now > row["approval_deadline"]:
+            refused = ApprovalRefused("That request has lapsed: it was not approved in time.")
+        elif await conn.fetchval(_REVOKED_SINCE, row["issued_by"], row["requested_at"]):
+            refused = ApprovalRefused("The administrator who asked for it is no longer a deployment administrator.")
+        elif await conn.fetchval("SELECT id FROM care_devices WHERE id = $1 AND status = 'paired'",
+                                 row["device_id"]) is None:
+            refused = ApprovalRefused("That watch is no longer paired.")
+        if refused is not None:
+            # Recorded, and committed with the transaction; the refusal is raised after it.
+            await _event(conn, instruction_id, "approval_refused", "deployment_admin", admin_id, str(refused))
+        else:
+            minutes = int(row["window_minutes"])
+            ins = devicepolicy.new_instruction(str(row["device_id"]), row["action"], now_ms=_ms(now),
+                                               window_ms=minutes * 60_000)
+            sig = devicepolicy.signed(ins, key)
+            row = await conn.fetchrow(
+                "UPDATE care_device_admin_instructions SET state = 'signed', nonce = $2, issued_at = $3,"
+                " expires_at = $4, payload = $5, signature = $6, key_id = $7, approved_by = $8, approved_at = $3"
+                " WHERE id = $1 AND state = 'pending_approval' RETURNING *",
+                instruction_id, ins.nonce, now, now + dt.timedelta(minutes=minutes), sig["payload"],
+                sig["signature"], sig["key_id"], admin_id)
+            await _event(conn, instruction_id, "approved", "deployment_admin", admin_id,
+                         f"{row['action']} signed for {minutes} min")
+    if refused is not None:
+        logger.warning("device instruction approval refused id=%s by=%s", instruction_id, admin_id)
+        raise refused
+    logger.info("device instruction approved id=%s by=%s requested_by=%s", instruction_id, admin_id,
+                row["issued_by"])
+    return _public(row, now)
 
 
 async def revoke(*, admin_id: uuid.UUID, tenant_id: uuid.UUID, workspace_id: uuid.UUID,
@@ -168,11 +286,14 @@ async def history(*, tenant_id: uuid.UUID, workspace_id: uuid.UUID, device_id: u
 
 # ── The watch's side (device token; care/routes.py) ──────────────────────────
 
-# An issuer's grant revoked at or after the instruction was issued. The watch's connection can
-# see revoked grants and no live ones (migration 122), and this needs only the former: a later
-# re-grant is a new row, so what was issued before the revocation stays withdrawn.
+# An issuer's (or, for a factory reset, the approver's) grant revoked at or after the instruction
+# was issued. The watch's connection can see revoked grants and no live ones (migration 122), and
+# this needs only the former: a later re-grant is a new row, so what was issued before the
+# revocation stays withdrawn. A factory reset with no approver (signed before migration 123) is
+# withdrawn too: it never had the second person it now needs.
 _ISSUER_REVOKED = ("EXISTS (SELECT 1 FROM deployment_administrators a"
-                   " WHERE a.user_id = i.issued_by AND a.revoked_at >= i.issued_at)")
+                   " WHERE a.user_id IN (i.issued_by, i.approved_by) AND a.revoked_at >= i.issued_at)"
+                   " OR (i.action = 'FACTORY_RESET' AND i.approved_by IS NULL)")
 
 
 async def for_device(conn, device_id: uuid.UUID, *, now: Optional[dt.datetime] = None) -> dict:
@@ -182,7 +303,8 @@ async def for_device(conn, device_id: uuid.UUID, *, now: Optional[dt.datetime] =
     now = now or dt.datetime.now(dt.timezone.utc)
     rows = await conn.fetch(
         f"SELECT i.*, NOT (i.revoked_at IS NOT NULL OR {_ISSUER_REVOKED}) AS live"  # noqa: S608 - constant fragment
-        " FROM care_device_admin_instructions i WHERE i.device_id = $1 AND i.expires_at > $2"
+        " FROM care_device_admin_instructions i WHERE i.device_id = $1 AND i.state = 'signed'"
+        " AND i.expires_at > $2"
         " ORDER BY i.issued_at", device_id, now)
     deliver, revoked = [], []
     for r in rows:
@@ -206,7 +328,8 @@ _NEXT = {None: {"applied", "refused"}, "applied": {"restored"}}
 async def record_outcome(conn, device_id: uuid.UUID, instruction_id: uuid.UUID, outcome: str, reason: str) -> dict:
     """The watch reports what it did. Only for its own instruction; applied then restored, or refused."""
     row = await conn.fetchrow(
-        "SELECT * FROM care_device_admin_instructions WHERE id = $1 AND device_id = $2", instruction_id, device_id)
+        "SELECT * FROM care_device_admin_instructions WHERE id = $1 AND device_id = $2 AND state = 'signed'",
+        instruction_id, device_id)
     if row is None:
         raise NotFound("No such instruction for this watch.")
     if outcome not in _NEXT.get(row["outcome"], set()):

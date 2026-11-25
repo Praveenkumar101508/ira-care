@@ -1525,6 +1525,10 @@ row in `deployment_administrators` (migration 122). Nothing else confers it.
   not chosen because not every Android release the device-owner app may run on verifies it.
 - **Audited.** Every instruction keeps who issued it and why; every step (issued, delivered,
   revoked, applied, refused, restored) is an insert-only row with its actor.
+- **Amended 25 November 2026 by D-089:** `FACTORY_RESET` is no longer signed on one
+  administrator's say-so. It is a request that a second, different deployment administrator must
+  approve within 30 minutes; only then is it signed (migration 123). The other two actions are
+  unchanged.
 
 What this does not decide: making the device-policy app the device owner (provisioning, E4.f, needs
 an image), the timer and boot receiver that call the policy on a device, a dashboard screen for
@@ -1627,6 +1631,51 @@ Decision:
 What would change it: a care module that needs a package outside `requirements-api.txt` (the
 image build's `pip check` and the import check in CI fail until it is added and the subset lock
 regenerated).
+
+## D-089 A factory reset needs two deployment administrators (security review S15, threat T43, 25 November 2026)
+
+The round 7 security review (S15) found that one deployment administrator with an ordinary
+session could have the server sign `FACTORY_RESET` for a watch (D-085). A phished password or a
+stolen session was enough to wipe the safety device on a person's wrist, and nothing asked for a
+second factor or a second person. The obvious control, step-up authentication, is not available:
+the session token carries no authentication time (no `iat` or `auth_time` claim; a refresh
+re-stamps the token), so the server cannot tell a session signed in a minute ago from one kept
+alive by refreshes for a week, and `Principal.authentication_strength` is never filled in.
+
+Decision: a **two-person rule for `FACTORY_RESET` only** (`care/deviceadmin.py`, migration 123).
+
+- **A request, not an instruction.** Issuing a reset stores a row in state `pending_approval`
+  with no nonce, payload, signature, issue or expiry time (the route answers 202). There is
+  nothing a watch could be given, and the watch's collection only ever reads signed rows.
+- **A second, different, live administrator approves it within 30 minutes**
+  (`POST /care/deployment-admin/device-instructions/{id}/approve`). Only then is it signed, with
+  a fresh issue time and the 1 to 15 minute life the requester asked for. The requester
+  approving their own request is refused (403). A request past its deadline lapses unsigned; a
+  withdrawn request, or one whose requester's grant has been revoked since, cannot be approved
+  (409). An account without a live grant cannot approve at all (403).
+- **Revoking either administrator kills it.** Before signing, as above. After signing, the
+  watch is handed neither the requester's nor the approver's instruction once either grant is
+  revoked; its nonce goes on the watch's revocation list. A reset signed on one person's say-so
+  before migration 123 is treated the same way: withheld and put on the revocation list.
+- **The table enforces it too.** A trigger refuses a reset inserted in any state but
+  `pending_approval`, approval by the requester or by nobody, approval after the deadline,
+  approval of a withdrawn request, approval once either grant has been revoked since the
+  request, any other change to a request, and going back from signed; CHECK constraints refuse a
+  half-signed request, a request for any other action, and a deadline more than 30 minutes
+  after the request. A bug in the code therefore cannot sign a reset for one person.
+- **Audited.** Three new insert-only events: `requested`, `approved` and `approval_refused`
+  (with the reason). A lapse is not an event (nothing happens); the history shows it as
+  `status: lapsed`.
+- **`MAINTENANCE_WINDOW` and `RESTORE_RESTRICTIONS` are unchanged:** one administrator, signed
+  at once. A maintenance window cannot destroy anything, and restoring restrictions only makes a
+  watch safer.
+
+What this does not decide: step-up authentication. It stays open (S15, T43) until the session
+token records when its holder last proved who they are (and with which factor); `security/reauth.py`
+can already re-check a password, and TOTP exists, so the next step is an authentication-time
+claim and a recent-authentication check on the approve and issue routes. Who should hold the
+grant, and whether two holders are on call at once, is an owner decision; a deployment with a
+single administrator can no longer reset a watch remotely.
 
 ## D-090 The conversation fine-tune of 25 November 2026 is not promoted; the base model stays (requirements F2.e to F2.g)
 

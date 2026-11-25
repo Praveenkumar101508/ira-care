@@ -2425,7 +2425,7 @@
         "required": false,
         "specification": "not required: a signed instruction is not a secret (it is useless to any other watch and after its expiry); no key material, no biometric data"
       },
-      "justification": "E2.o, D-085. The audit trail of deployment-administrator instructions (122): one row per event (issued, delivered, revoked, applied, refused, restored), the actor (a deployment administrator's account id or the watch's device id), a bounded detail and the time. Insert-only for the runtime.",
+      "justification": "E2.o, D-085. The audit trail of deployment-administrator instructions (122): one row per event (issued, delivered, revoked, applied, refused, restored; since 123 also requested, approved and approval_refused for a factory reset), the actor (a deployment administrator's account id or the watch's device id), a bounded detail and the time. Insert-only for the runtime.",
       "migration": {
         "done_by": "122_device_admin_instructions.sql",
         "requires_migration": false,
@@ -2469,7 +2469,7 @@
       "cache_key_pattern": "ira:{env}:tenant:{tenant_id}:workspace:{workspace_id}:care_device_admin_instructions:{key}",
       "classification": "WORKSPACE_SCOPED",
       "current": {
-        "column_count": 19,
+        "column_count": 25,
         "has_tenant_id": true,
         "has_user_id": false,
         "has_workspace_id": true,
@@ -2489,14 +2489,14 @@
         "legal_hold": "n/a",
         "membership_removal": "unaffected: rows belong to the watch, not to a member",
         "tenant_deletion": "HARD DELETE by ON DELETE CASCADE from tenants + crypto-shred the tenant DEK",
-        "user_deletion": "unaffected: issued_by and revoked_by are account ids kept without a foreign key, so the record of who acted outlives the account; no name or address is stored",
+        "user_deletion": "unaffected: issued_by, approved_by and revoked_by are account ids kept without a foreign key, so the record of who acted outlives the account; no name or address is stored",
         "workspace_deletion": "delete by ON DELETE CASCADE from workspaces"
       },
       "encryption": {
         "required": false,
         "specification": "not required: a signed instruction is not a secret (it is useless to any other watch and after its expiry); no key material, no biometric data"
       },
-      "justification": "E2.o, D-085. One deployment-administrator instruction for one watch (122): an action from a closed list (MAINTENANCE_WINDOW, RESTORE_RESTRICTIONS, FACTORY_RESET), its single-use nonce, issue and expiry at most 15 minutes apart, the signed payload and signature, who issued it and why, and whether it was delivered, revoked, applied, refused or restored. Workspace-scoped so a watch collects only its own workspace's rows; the signed columns cannot be changed (trigger) and a revocation cannot be undone.",
+      "justification": "E2.o, D-085. One deployment-administrator instruction for one watch (122): an action from a closed list (MAINTENANCE_WINDOW, RESTORE_RESTRICTIONS, FACTORY_RESET), its single-use nonce, issue and expiry at most 15 minutes apart, the signed payload and signature, who issued it and why, and whether it was delivered, revoked, applied, refused or restored. Workspace-scoped so a watch collects only its own workspace's rows; the signed columns cannot be changed (trigger) and a revocation cannot be undone. Since 123 (D-089) a FACTORY_RESET is first stored as a request (state pending_approval, no nonce, payload or signature) and is signed only when a different deployment administrator approves it within 30 minutes; the requester, approver and their times are kept (requested_at, approval_deadline, window_minutes, approved_by, approved_at).",
       "migration": {
         "done_by": "122_device_admin_instructions.sql",
         "requires_migration": false,

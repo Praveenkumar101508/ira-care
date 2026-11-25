@@ -30,11 +30,41 @@ The runtime role can write no grant (row-level security admits writes only from
 | --- | --- | --- |
 | `MAINTENANCE_WINDOW` | lifts `DISALLOW_DEBUGGING_FEATURES` only; factory reset and safe boot stay locked | closes by itself at expiry (1 to 15 minutes after issue) and at every start of the app or the watch |
 | `RESTORE_RESTRICTIONS` | puts every restriction back now | must be used within its expiry |
-| `FACTORY_RESET` | `DevicePolicyManager.wipeData` | must be used within its expiry |
+| `FACTORY_RESET` | `DevicePolicyManager.wipeData` | **needs a second deployment administrator** (below); then must be used within its expiry |
 
 There is no other action and no field for a command, an argument or a restriction name. The API
 (422), the table (CHECK constraint) and the watch ("unknown action") each refuse anything else, even
 a payload the server's key signed.
+
+## A factory reset needs two people (D-089)
+
+One administrator cannot wipe a watch. `FACTORY_RESET` is first stored as a **request**
+(`state: pending_approval`, answered 202): no nonce, payload or signature, so there is nothing a
+watch could be given. A **different** deployment administrator with a live grant approves it:
+
+    POST /api/v1/care/deployment-admin/device-instructions/{id}/approve
+    {"tenant_id": "...", "workspace_id": "..."}
+
+Only then is it signed, with a fresh issue time and the 1 to 15 minutes the requester asked for,
+and the watch can collect it.
+
+| Attempt | Answer |
+| --- | --- |
+| The requester approves their own request | 403, audited (`approval_refused`) |
+| An account with no live grant (never granted, or revoked) approves | 403 |
+| More than 30 minutes after the request | 409, audited; the request has lapsed unsigned (`status: lapsed`) |
+| The request was withdrawn (revoked) | 409, audited |
+| The requester's grant was revoked after asking | 409, audited |
+| Already approved | 409 |
+
+After signing, revoking either the requester's or the approver's grant withholds the reset from
+the watch and puts its nonce on the revocation list. A reset signed on one person's say-so
+before migration 123 is withheld the same way. The table refuses the same things as the code
+(trigger and CHECK constraints in migration 123), so a bug cannot sign a reset for one person.
+
+**Not asked for: step-up authentication.** The session token carries no authentication time,
+so the server cannot require that an administrator signed in recently, or with a second factor,
+before requesting or approving a reset. That stays open (security review S15, threat T43).
 
 ## The flow
 
@@ -45,7 +75,9 @@ a payload the server's key signed.
    device id paired with another tenant's or workspace's ids is not found (404). Only a paired
    watch can be named. The server builds the payload
    `ira-device-policy-v1|device|ACTION|issued_ms|expires_ms|nonce` (a fresh 128-bit nonce), signs it
-   with ECDSA P-256 (`IRA_DEVICE_POLICY_KEY`; none configured means 503) and stores it.
+   with ECDSA P-256 (`IRA_DEVICE_POLICY_KEY`; none configured means 503) and stores it. A
+   `FACTORY_RESET` is stored unsigned as a request and signed only when a second administrator
+   approves it (above).
 2. **Collect.** The watch calls `POST /api/v1/care/devices/me/admin-instructions` with its device
    token and gets the unexpired instructions for itself it has not reported on, and
    `revoked_nonces`: unexpired instructions it must no longer honour.
@@ -65,7 +97,10 @@ a payload the server's key signed.
    everything they issued that has not expired.
 6. **Audit.** `GET /api/v1/care/deployment-admin/device-instructions?tenant_id=&workspace_id=&device_id=`
    lists every instruction for the watch with its trail: issued and revoked (by which administrator,
-   with the reason), delivered, applied, refused and restored (by the watch), each with its time.
+   with the reason), delivered, applied, refused and restored (by the watch), each with its time;
+   for a factory reset also requested, approved and any refused approval (by which administrator,
+   with why), and a `status` (`awaiting_approval`, `lapsed`, `withdrawn`, `signed`, `delivered`,
+   `applied`, `refused`, `restored`, `revoked`).
 
 ## Where it is proved
 
@@ -76,6 +111,7 @@ a payload the server's key signed.
 | Unknown actions and windows over 15 minutes refused by the API and by the table | same |
 | Revocation, a revoked administrator, an expired instruction, no key, an unpaired watch | same |
 | The runtime cannot grant, even after `GRANT ALL`; it cannot list live administrators | same |
+| A factory reset is signed only after a different, live administrator approves it within 30 minutes; self-approval, a lapsed, withdrawn or revoked-requester request refused and audited; revoking either administrator withdraws a signed reset; a pre-123 one-person reset is withheld; the table refuses a one-person reset on its own; the 123 rollback refuses while a request exists | same (`test_a_factory_reset_is_signed_only_when_a_second_administrator_approves` and the six tests after it) |
 | Forged, altered, foreign, expired, early, over-long, replayed, revoked and unknown-action instructions refused on the watch; the window closes at expiry, early and at a start | `watch/app/src/test/java/care/ira/watch/devicepolicy/DevicePolicyTest.kt` |
 | The watch accepts exactly what the server signs | the same test, with `watch/app/src/test/resources/device_policy_instruction.json` from `scripts/os_device_policy_fixture.py` |
 

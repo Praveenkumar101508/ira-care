@@ -20,7 +20,7 @@ import logging
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
 from fastapi.encoders import jsonable_encoder
 
 from api.middleware.auth import require_auth
@@ -562,24 +562,53 @@ async def _deployment_admin(p: Principal = Depends(require_tenant_principal)) ->
         raise HTTPException(status_code=403, detail=deviceadmin.REFUSED)
 
 
-@router.post("/deployment-admin/device-instructions", status_code=201)
-async def issue_device_instruction(body: schemas.DeviceInstructionCreate,
-                                   admin_id: uuid.UUID = Depends(_deployment_admin)):
-    """Issue one signed instruction from the closed list to one paired watch (E2.o). A deployment
-    administrator only; at most 15 minutes; audited. No device-policy key configured means 503."""
-    from . import deviceadmin, devicepolicy
+def _device_policy_key():
+    from . import devicepolicy
     try:
-        key = devicepolicy.load_key()
+        return devicepolicy.load_key()
     except devicepolicy.KeyNotConfigured:
         raise HTTPException(status_code=503, detail="Device instructions are not configured on this server.")
+
+
+@router.post("/deployment-admin/device-instructions", status_code=201)
+async def issue_device_instruction(body: schemas.DeviceInstructionCreate, response: Response,
+                                   admin_id: uuid.UUID = Depends(_deployment_admin)):
+    """Issue one signed instruction from the closed list to one paired watch (E2.o). A deployment
+    administrator only; at most 15 minutes; audited. No device-policy key configured means 503.
+    A FACTORY_RESET is not signed yet: it is a request (202, `state: pending_approval`) that a
+    second deployment administrator must approve within 30 minutes (D-089)."""
+    from . import deviceadmin
+    key = _device_policy_key()
     try:
-        return await deviceadmin.issue(admin_id=admin_id, tenant_id=body.tenant_id, workspace_id=body.workspace_id,
-                                       device_id=body.device_id, action=body.action, minutes=body.minutes,
-                                       reason=body.reason, key=key)
+        out = await deviceadmin.issue(admin_id=admin_id, tenant_id=body.tenant_id, workspace_id=body.workspace_id,
+                                      device_id=body.device_id, action=body.action, minutes=body.minutes,
+                                      reason=body.reason, key=key)
     except deviceadmin.NotFound as exc:
         raise _not_found(str(exc))
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
+    if out["state"] == "pending_approval":
+        response.status_code = 202
+    return out
+
+
+@router.post("/deployment-admin/device-instructions/{instruction_id}/approve")
+async def approve_device_instruction(instruction_id: uuid.UUID, body: schemas.DeviceTarget,
+                                     admin_id: uuid.UUID = Depends(_deployment_admin)):
+    """A second, different deployment administrator approves a factory-reset request, which is
+    signed only now (D-089). The requester (403), a lapsed, withdrawn or already signed request,
+    or one whose requester has since been revoked (409) are refused; each refusal is audited."""
+    from . import deviceadmin
+    key = _device_policy_key()
+    try:
+        return await deviceadmin.approve(admin_id=admin_id, tenant_id=body.tenant_id,
+                                         workspace_id=body.workspace_id, instruction_id=instruction_id, key=key)
+    except deviceadmin.NotFound as exc:
+        raise _not_found(str(exc))
+    except deviceadmin.ApprovalRefused as exc:
+        raise HTTPException(status_code=403 if exc.forbidden else 409, detail=str(exc))
+    except deviceadmin.Conflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
 
 
 @router.post("/deployment-admin/device-instructions/{instruction_id}/revoke")
