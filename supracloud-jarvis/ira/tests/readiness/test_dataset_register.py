@@ -111,8 +111,14 @@ def test_the_check_notices_a_training_row_without_licence_or_verification():
 
 def test_the_check_notices_an_unclear_shipped_row_without_a_draft():
     text = DATASETS.read_text(encoding="utf-8")
+    # SisFall is 'unclear' and, since D-077, no longer in a shipped model: put it back in one,
+    # with its confirmation draft missing, and the check must object.
     row = next(line for line in text.splitlines() if line.startswith("| SisFall"))
-    tampered = text.replace(row, DRAFT_PATH.sub("docs/legal/dataset_permission_requests/MISSING.md", row))
+    cells = _cells(row)
+    assert cells[4] == "unclear"
+    cells[5] = "shipped model: training (the watch fall model)"
+    shipped = "| " + " | ".join(cells) + " |"
+    tampered = text.replace(row, DRAFT_PATH.sub("docs/legal/dataset_permission_requests/MISSING.md", shipped))
     assert any("names no existing confirmation draft" in p for p in problems(tampered))
 
 
