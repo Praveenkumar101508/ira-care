@@ -58,3 +58,11 @@ Maven Central (`repo.maven.apache.org`) answered 429 Too Many Requests to this s
 A Gradle init script kept outside the repository redirected those requests to Google's public
 mirror of Maven Central (`maven-central.storage-download.googleapis.com`): the same artifacts.
 No build file in the repository was changed.
+
+## The family app's native build in CI
+
+Because jitpack.io is refused from the development sandbox, the family app's native Android build
+now runs in CI instead: the job "Family app Android build" in `.github/workflows/test.yml`
+(`mobile-android`) generates the native project with `expo prebuild`, builds the release APK with
+debug signing for arm64-v8a, and records its size in the run summary. Its first result is on the
+pull request that added it; requirement D2.g records that result, not this sandbox's attempt.
