@@ -42,7 +42,7 @@ def make_tts(voice: str, speed: float = 1.05) -> tts.TTS:
             logger.info("TTS engine: OmniVoice (sidecar)")
             return IRAOmniVoiceTTS(voice=voice, speed=speed)
         except Exception as e:
-            logger.error(f"OmniVoice engine unavailable ({e}); falling back to Supertonic/Kokoro.")
+            logger.error(f"OmniVoice engine unavailable ({type(e).__name__}); falling back to Supertonic/Kokoro.")
 
     if engine == "supertonic":
         try:
@@ -52,7 +52,7 @@ def make_tts(voice: str, speed: float = 1.05) -> tts.TTS:
             logger.info(f"TTS engine: Supertonic (voice={v})")
             return IRASupertonicTTS(voice=v, speed=speed)
         except Exception as e:
-            logger.error(f"Supertonic engine unavailable ({e}); falling back to Kokoro.")
+            logger.error(f"Supertonic engine unavailable ({type(e).__name__}); falling back to Kokoro.")
 
     from voice.tts import IRAKokoroTTS
     logger.info(f"TTS engine: Kokoro (voice={voice})")
@@ -86,7 +86,7 @@ def synthesize_say(text: str, *, lang: str = "en", voice: str | None = None,
                 return wav
             logger.warning("OmniVoice produced no audio; falling back to Supertonic/Indic.")
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"OmniVoice TTS error ({e}); falling back to Supertonic/Indic.")
+            logger.warning(f"OmniVoice TTS error ({type(e).__name__}); falling back to Supertonic/Indic.")
 
     code = (lang or "en").lower().split("-")[0]
     if code in _INDIC_LANGS:
@@ -96,6 +96,6 @@ def synthesize_say(text: str, *, lang: str = "en", voice: str | None = None,
             if wav:
                 return wav
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"Indic TTS error ({e}); falling back to Supertonic 'na'.")
+            logger.warning(f"Indic TTS error ({type(e).__name__}); falling back to Supertonic 'na'.")
     from voice.tts_supertonic import synthesize_wav, DEFAULT_VOICE
     return synthesize_wav(text, voice or DEFAULT_VOICE, code, steps)

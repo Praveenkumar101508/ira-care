@@ -33,7 +33,7 @@ async def gate_from_audio(audio_bytes: bytes, *, session_id: str = "unknown") ->
         from voice.biometrics import is_owner_authenticated
         is_owner = await is_owner_authenticated(audio_bytes, session_id=session_id)
     except Exception as exc:  # noqa: BLE001 — fail closed, never crash the turn
-        logger.warning(f"Biometric gate failed closed: {exc}")
+        logger.warning(f"Biometric gate failed closed: {type(exc).__name__}")
         is_owner = False
     return decide_access(is_owner)
 

@@ -238,7 +238,7 @@ async def ws_notifications(
             watch_socket_credential(websocket, claims),
         )
     except Exception as e:
-        logger.warning(f"WebSocket session ended: {e}")
+        logger.warning(f"WebSocket session ended: {type(e).__name__}")
     finally:
         await pubsub.unsubscribe(channel)
         await pubsub.aclose()

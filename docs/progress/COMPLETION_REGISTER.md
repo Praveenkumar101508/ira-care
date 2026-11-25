@@ -48,13 +48,13 @@ Nothing is marked done because code or a document exists.
 | C-3 | Dose identity, timing, provenance, correction history | integration tested | #44 · A3, A3d, A3e (migration 112) |
 | C-4 | No false safety-check confirmation | integration tested | #44 · A4 |
 | C-5 | No false fall-countdown cancellation | unit tested | #44 · A4b (JVM tests; CI Gradle build) |
-| C-6 | Sensitive log protection | unit tested | #44 · A5. Logs outside `care/` not swept: **not started** |
+| C-6 | Sensitive log protection | unit tested | #44 · A5 (care); `fix/log-exception-text` · A5b (rest of the backend) |
 | C-7 | Wearer-only conversation | integration tested | #44 · A6 |
 | C-8 | Delivery states and verified callbacks | integration tested | #46 · A2-3 |
 | C-9 | Dispatch concurrency and retries | integration tested | #46 · A2-1, A2-2 |
 | C-10 | Live patient-record refresh | unit tested | #45 · B1 (component tests; not browser tested) |
 | C-11 | Unknown and stale wrist status | unit tested | #45 · B2 |
-| C-12 | Mobile conversation streaming | not started | needs `expo/fetch` or a native module; device builds to verify |
+| C-12 | Mobile conversation streaming | unit tested | `fix/mobile-talk-streaming` · C1 (`expo/fetch`, incremental NDJSON). On-device check: **needs external**, a device build |
 | C-13 | Native mobile voice | not started | needs native speech modules; **needs external**: device testing |
 | C-14 | Complete logout isolation | unit tested | #47 · C3 |
 | C-15 | Push-token unregister on sign-out | unit tested | #47 · C3 |

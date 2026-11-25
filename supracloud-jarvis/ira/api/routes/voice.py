@@ -104,7 +104,7 @@ async def get_livekit_token(_user: str = Depends(require_auth)):
             detail="livekit-api package not installed. Run: pip install livekit-api",
         )
     except Exception as e:
-        logger.error(f"LiveKit token generation failed: {e}")
+        logger.error(f"LiveKit token generation failed: {type(e).__name__}")
         raise HTTPException(status_code=500, detail="Failed to generate voice token")
 
     _livekit_url = cfg.livekit_public_url or f"wss://{cfg.ira_domain}/livekit"
@@ -166,7 +166,7 @@ async def say(req: SayRequest, _user: str = Depends(require_auth)):
     try:
         from voice.tts_factory import synthesize_say
     except Exception as e:  # noqa: BLE001
-        logger.error(f"TTS engine module unavailable: {e}")
+        logger.error(f"TTS engine module unavailable: {type(e).__name__}")
         raise HTTPException(status_code=503, detail="On-device TTS engine unavailable.")
 
     # Synthesis is CPU/GPU-bound and synchronous — run it off the event loop.
@@ -232,7 +232,7 @@ async def transcribe(
     try:
         from voice.stt import AudioTooLong, STTUnavailable, transcribe_audio_bytes
     except Exception as e:  # noqa: BLE001
-        logger.error(f"Local STT engine unavailable: {e}")
+        logger.error(f"Local STT engine unavailable: {type(e).__name__}")
         raise HTTPException(status_code=503, detail="Local STT engine unavailable.")
 
     try:
@@ -248,10 +248,10 @@ async def transcribe(
         # The engine, not the audio: faster-whisper missing, an unpinned
         # WHISPER_MODEL, or a failed model load. This used to fall through to the
         # 422 below and tell the browser its recording was undecodable.
-        logger.error(f"Local STT engine unavailable: {e}")
+        logger.error(f"Local STT engine unavailable: {type(e).__name__}")
         raise HTTPException(status_code=503, detail="Local STT engine unavailable.")
     except Exception as e:  # noqa: BLE001 — undecodable/corrupt audio
-        logger.error(f"Transcription failed: {e}")
+        logger.error(f"Transcription failed: {type(e).__name__}")
         raise HTTPException(status_code=422, detail="Could not decode or transcribe the audio.")
 
     cfg = get_settings()
@@ -314,7 +314,7 @@ async def get_voice_challenge(_user: str = Depends(require_auth)):
         redis = get_redis()
         await redis.setex(f"bio:challenge:{challenge_id}", _CHALLENGE_TTL, phrase)
     except Exception as e:
-        logger.error(f"Could not store biometric challenge in Redis: {e}")
+        logger.error(f"Could not store biometric challenge in Redis: {type(e).__name__}")
         raise HTTPException(
             status_code=503,
             detail="Challenge service unavailable — Redis connection failed.",
@@ -350,7 +350,7 @@ async def _consume_challenge(challenge_id: str) -> None:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Could not verify biometric challenge in Redis: {e}")
+        logger.error(f"Could not verify biometric challenge in Redis: {type(e).__name__}")
         raise HTTPException(
             status_code=503,
             detail="Challenge verification failed — Redis connection error.",

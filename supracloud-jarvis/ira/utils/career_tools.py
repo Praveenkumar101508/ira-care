@@ -116,7 +116,7 @@ async def analyze_my_codebase() -> dict:
         logger.info(f"GitHub analysis done: {login}, {len(summaries)} repos")
         return result
     except Exception as e:
-        logger.error(f"GitHub analysis failed: {e}")
+        logger.error(f"GitHub analysis failed: {type(e).__name__}")
         return {"error": str(e)}
 
 
@@ -184,7 +184,7 @@ async def scrape_job_posting(url: str) -> dict:
         logger.info(f"Job scraped: {job['title']} at {job['company']}")
         return job
     except Exception as e:
-        logger.error(f"Apify scrape failed: {e}")
+        logger.error(f"Apify scrape failed: {type(e).__name__}")
         return {"error": str(e)}
 
 
@@ -246,5 +246,5 @@ async def generate_tailored_resume(
             "preview": tailored[:400] + "…" if len(tailored) > 400 else tailored,
         }
     except Exception as e:
-        logger.error(f"Resume generation failed: {e}")
+        logger.error(f"Resume generation failed: {type(e).__name__}")
         return {"error": str(e)}

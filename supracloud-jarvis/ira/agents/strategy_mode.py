@@ -257,12 +257,12 @@ async def _calibrate_and_persist(result: StrategyResult, query: str, author=None
             o.utility = _utility(o.success_probability, o.risk, o.effort)
         await cal.persist_predictions(query, domain, result.options, author=author)
     except Exception as e:  # noqa: BLE001
-        logger.warning(f"strategy: prediction persist skipped ({e})")
+        logger.warning(f"strategy: prediction persist skipped ({type(e).__name__})")
     # Nudge the displayed success estimates toward the owner's own track record.
     try:
         adj, n = await cal.load_calibration(domain)
     except Exception as e:  # noqa: BLE001
-        logger.warning(f"strategy: calibration load skipped ({e})")
+        logger.warning(f"strategy: calibration load skipped ({type(e).__name__})")
         return
     if n > 0 and adj:
         for o in result.options:
@@ -292,7 +292,7 @@ async def run_strategy(query: str, *, context: str = "", author=None) -> Strateg
                 use_deep=deep, temperature=0.4,
             )
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"strategy model call failed: {e}")
+            logger.warning(f"strategy model call failed: {type(e).__name__}")
             continue
         data = _extract_json(raw)
         if isinstance(data, dict):

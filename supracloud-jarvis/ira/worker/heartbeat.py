@@ -141,7 +141,7 @@ async def _fetch_stale_commitments(principal, cutoff: datetime, limit: int = 20)
             )
         return [dict(r) for r in rows]
     except Exception as e:
-        logger.warning(f"heartbeat: stale-commitment fetch failed (fail-closed): {e}")
+        logger.warning(f"heartbeat: stale-commitment fetch failed (fail-closed): {type(e).__name__}")
         return []
 
 
@@ -278,7 +278,7 @@ async def _claim_item(principal, item: SurfacedItem) -> bool:
             )
         return row is not None
     except Exception as e:
-        logger.warning(f"heartbeat: ledger claim failed (fail-closed): {e}")
+        logger.warning(f"heartbeat: ledger claim failed (fail-closed): {type(e).__name__}")
         return False
 
 
@@ -337,4 +337,4 @@ async def _heartbeat_job() -> None:
     try:
         await run_heartbeat_tick()
     except Exception as e:
-        logger.error(f"Heartbeat tick failed: {e}", exc_info=True)
+        logger.error(f"Heartbeat tick failed: {type(e).__name__}", exc_info=True)

@@ -10,7 +10,7 @@ import { BigButton, Card, Muted, Screen , useColors, type Palette } from '../ui'
  * contact and the phone dials only when the person taps: their own action.
  */
 export function TalkScreen({ person, onSend, onBack }: {
-  person: Person; onSend: (text: string) => Promise<TalkReply>; onBack: () => void;
+  person: Person; onSend: (text: string, onSentence: (sentence: string) => void) => Promise<TalkReply>; onBack: () => void;
 }) {
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -25,8 +25,8 @@ export function TalkScreen({ person, onSend, onBack }: {
     setBusy(true); setText(''); setAction(null);
     setLog((l) => [...l, { who: 'you', text: t }]);
     try {
-      const reply = await onSend(t);
-      setLog((l) => [...l, ...reply.sentences.map((s) => ({ who: 'ira' as const, text: s }))]);
+      // Each sentence shows the moment it arrives, so the person is not left looking at nothing.
+      const reply = await onSend(t, (s) => setLog((l) => [...l, { who: 'ira' as const, text: s }]));
       setAction(reply.action);
     } catch {
       setLog((l) => [...l, { who: 'ira', text: "I can't reach IRA right now. Please try again in a moment." }]);

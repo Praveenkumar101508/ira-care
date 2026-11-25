@@ -60,5 +60,5 @@ def send_alert(
             logger.warning(f"Telegram API error {resp.status_code}: {resp.text[:200]}")
         return resp.ok
     except Exception as e:
-        logger.warning(f"Telegram delivery failed: {e}")
+        logger.warning(f"Telegram delivery failed: {type(e).__name__}")
         return False

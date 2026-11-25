@@ -70,7 +70,7 @@ async def open_application(app_name: str) -> dict:
     except FileNotFoundError:
         return {"error": f"'{app_name}' not found on this system."}
     except Exception as e:
-        logger.error(f"open_application('{app_name}') failed: {e}")
+        logger.error(f"open_application('{app_name}') failed: {type(e).__name__}")
         return {"error": str(e)}
 
 
@@ -96,7 +96,7 @@ async def run_terminal_command(command: str) -> dict:
             logger.warning(f"run_terminal_command blocked by path check: {_reason!r} for cmd={cmd_stripped!r}")
             return {"error": f"Command rejected: {_reason}", "blocked": command}
     except Exception as _ce:
-        logger.error(f"cmd_safety check error: {_ce}")
+        logger.error(f"cmd_safety check error: {type(_ce).__name__}")
         return {"error": "Command safety check failed.", "blocked": command}
 
     try:
@@ -124,5 +124,5 @@ async def run_terminal_command(command: str) -> dict:
     except asyncio.TimeoutError:
         return {"error": "Command timed out (15 s)", "command": cmd_stripped}
     except Exception as e:
-        logger.error(f"run_terminal_command failed: {e}")
+        logger.error(f"run_terminal_command failed: {type(e).__name__}")
         return {"error": str(e)}

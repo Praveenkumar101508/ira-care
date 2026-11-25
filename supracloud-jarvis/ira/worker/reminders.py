@@ -30,7 +30,7 @@ def _next_cron_time(cron_expr: str, after: datetime) -> datetime | None:
         itr = croniter(cron_expr, after)
         return itr.get_next(datetime).replace(tzinfo=timezone.utc)
     except Exception as e:
-        logger.warning(f"Invalid cron expression {cron_expr!r}: {e}")
+        logger.warning(f"Invalid cron expression {cron_expr!r}: {type(e).__name__}")
         return None
 
 

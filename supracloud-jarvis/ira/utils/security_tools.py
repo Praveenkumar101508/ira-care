@@ -96,7 +96,7 @@ async def get_lockdown_state() -> LockdownState:
             # the dead b"1" bytes branch has been removed.
             return LockdownState.ACTIVE if val == "1" else LockdownState.INACTIVE
     except Exception as e:
-        logger.debug(f"Redis lockdown read failed (falling back to DB): {e}")
+        logger.debug(f"Redis lockdown read failed (falling back to DB): {type(e).__name__}")
 
     # 2. Fall back to DB and backfill Redis
     try:
@@ -144,7 +144,7 @@ async def _set_lockdown_db(active: bool) -> None:
         redis = get_redis()
         await redis.set(_REDIS_LOCKDOWN_KEY, value)
     except Exception as e:
-        logger.warning(f"Failed to update lockdown state in Redis: {e}")
+        logger.warning(f"Failed to update lockdown state in Redis: {type(e).__name__}")
 
     # 2. Persist to DB for durability across container restarts
     try:
@@ -156,7 +156,7 @@ async def _set_lockdown_db(active: bool) -> None:
                 value,
             )
     except Exception as e:
-        logger.warning(f"Failed to persist lockdown state to DB: {e}")
+        logger.warning(f"Failed to persist lockdown state to DB: {type(e).__name__}")
 
 
 # ── Tool 1: Scan Threats ──────────────────────────────────────────────────────
@@ -221,7 +221,7 @@ async def scan_threats(*, is_owner: bool = False) -> dict:
                     f"Network scan: {len(external)} external connections from {len(unique_ips)} IPs — {ip_summary}",
                 )
         except Exception as e:
-            logger.warning(f"DB write failed for scan_threats: {e}")
+            logger.warning(f"DB write failed for scan_threats: {type(e).__name__}")
 
     logger.info(f"scan_threats complete — {len(external)} external connections, level={threat_level}")
     return result
@@ -253,7 +253,7 @@ async def initiate_lockdown(reason: str = "voice command", *, is_owner: bool = F
                 f"LOCKDOWN initiated at {timestamp}. Reason: {reason}",
             )
     except Exception as e:
-        logger.warning(f"DB write failed for lockdown: {e}")
+        logger.warning(f"DB write failed for lockdown: {type(e).__name__}")
 
     from config import get_settings
     owner_name = get_settings().owner_name
@@ -362,5 +362,5 @@ async def dispatch_secure_message(message: str, *, is_owner: bool = False) -> di
         logger.info(f"Secure message dispatched to Telegram at {timestamp}")
         return {"status": "sent", "timestamp": timestamp}
     except Exception as e:
-        logger.error(f"dispatch_secure_message failed: {e}")
+        logger.error(f"dispatch_secure_message failed: {type(e).__name__}")
         return {"status": "error", "message": str(e)}

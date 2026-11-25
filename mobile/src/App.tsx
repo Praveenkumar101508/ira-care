@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert as Dialog, Linking, View } from 'react-native';
 import { ApiError, CareClient } from './api/client';
+import { streamingFetch } from './api/stream';
 import type { Alert, CircleMember, ConsentList, Person, PersonStatus, Reminder, Visit, Workspace } from './api/types';
 import { ThemeProvider } from './appearance/ThemeContext';
 import { DEFAULT_APPEARANCE, normaliseAppearance, type Appearance } from './appearance/theme';
@@ -63,7 +64,7 @@ export default function App() {
   useEffect(() => {
     generation.current += 1;
     if (!session) { client.current = null; return; }
-    const c = new CareClient({ baseUrl: session.baseUrl, accessToken: session.accessToken, workspaceId: session.workspaceId, refreshToken: session.refreshToken });
+    const c = new CareClient({ baseUrl: session.baseUrl, accessToken: session.accessToken, workspaceId: session.workspaceId, refreshToken: session.refreshToken }, undefined, streamingFetch());
     // A renewed access token is kept for next time, without rebuilding the client or re-registering push.
     c.onRenewed = (accessToken) => { void saveSession({ ...session, accessToken }); };
     client.current = c;
@@ -189,7 +190,7 @@ export default function App() {
   };
 
   const body = overlay?.name === 'talk' && person && isWearerOf(memberships, person.id) ? (
-    <TalkScreen person={person} onSend={(t) => c.talk(person.id, t)} onBack={() => setOverlay(null)} />
+    <TalkScreen person={person} onSend={(t, onSentence) => c.talk(person.id, t, onSentence)} onBack={() => setOverlay(null)} />
   ) : overlay?.name === 'pair' && person ? (
     <PairWatchScreen client={c} person={person} onBack={() => { setOverlay(null); void refreshPerson(); }} />
   ) : tab === 'home' ? (

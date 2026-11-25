@@ -358,14 +358,14 @@ async def _morning_briefing() -> None:
     try:
         await generate_briefing("morning")
     except Exception as e:
-        logger.error(f"Morning briefing failed: {e}", exc_info=True)
+        logger.error(f"Morning briefing failed: {type(e).__name__}", exc_info=True)
 
 
 async def _evening_summary() -> None:
     try:
         await generate_briefing("evening")
     except Exception as e:
-        logger.error(f"Evening summary failed: {e}", exc_info=True)
+        logger.error(f"Evening summary failed: {type(e).__name__}", exc_info=True)
 
 
 async def _security_digest() -> None:
@@ -417,7 +417,7 @@ async def _security_digest() -> None:
         )
         logger.info(f"Security digest sent: {total} events ({critical} critical, {high} high)")
     except Exception as e:
-        logger.error(f"Security digest failed: {e}", exc_info=True)
+        logger.error(f"Security digest failed: {type(e).__name__}", exc_info=True)
 
 
 async def _sync_calendar() -> None:
@@ -430,7 +430,7 @@ async def _sync_calendar() -> None:
         )
         await sync_calcom_bookings(principal)
     except Exception as e:
-        logger.error(f"Calendar sync failed: {e}", exc_info=True)
+        logger.error(f"Calendar sync failed: {type(e).__name__}", exc_info=True)
 
 
 async def _care_checkins() -> None:
@@ -441,7 +441,7 @@ async def _care_checkins() -> None:
         outcome = await run_cycle_once()
         logger.debug("care check-ins: %s", outcome)
     except Exception as e:
-        logger.error(f"care check-in cycle failed: {e}", exc_info=True)
+        logger.error(f"care check-in cycle failed: {type(e).__name__}", exc_info=True)
 
 
 async def _care_model_warm() -> None:
@@ -452,7 +452,7 @@ async def _care_model_warm() -> None:
         from care.conversation import warm_configured_model
         await warm_configured_model()
     except Exception as e:
-        logger.error(f"care model warm-up failed: {e}", exc_info=True)
+        logger.error(f"care model warm-up failed: {type(e).__name__}", exc_info=True)
 
 
 async def _care_monitoring() -> None:
@@ -463,7 +463,7 @@ async def _care_monitoring() -> None:
         outcome = await run_once()
         logger.debug("care monitoring: %s", outcome)
     except Exception as e:
-        logger.error(f"care monitoring pass failed: {e}", exc_info=True)
+        logger.error(f"care monitoring pass failed: {type(e).__name__}", exc_info=True)
 
 
 async def _care_reports() -> None:
@@ -474,7 +474,7 @@ async def _care_reports() -> None:
         outcome = await run_once()
         logger.debug("care reports: %s", outcome)
     except Exception as e:
-        logger.error(f"care reports pass failed: {e}", exc_info=True)
+        logger.error(f"care reports pass failed: {type(e).__name__}", exc_info=True)
 
 
 async def _care_retention() -> None:
@@ -485,7 +485,7 @@ async def _care_retention() -> None:
         outcome = await run_once()
         logger.info("care retention: %s people, %s rows removed", outcome.people, outcome.total)
     except Exception as e:
-        logger.error(f"care retention pass failed: {e}", exc_info=True)
+        logger.error(f"care retention pass failed: {type(e).__name__}", exc_info=True)
 
 
 async def _liveness_tick() -> None:
@@ -494,21 +494,21 @@ async def _liveness_tick() -> None:
         with open(WORKER_HEARTBEAT_FILE, "w") as _hb:
             _hb.write(datetime.now(timezone.utc).isoformat())
     except Exception as e:
-        logger.error(f"Heartbeat write failed ({WORKER_HEARTBEAT_FILE}): {e}")
+        logger.error(f"Heartbeat write failed ({WORKER_HEARTBEAT_FILE}): {type(e).__name__}")
 
 
 async def _self_healing_check() -> None:
     try:
         await run_self_healing_check()
     except Exception as e:
-        logger.error(f"Self-healing check failed: {e}", exc_info=True)
+        logger.error(f"Self-healing check failed: {type(e).__name__}", exc_info=True)
 
 
 async def _self_reflection() -> None:
     try:
         await run_self_reflection()
     except Exception as e:
-        logger.error(f"Self-reflection failed: {e}", exc_info=True)
+        logger.error(f"Self-reflection failed: {type(e).__name__}", exc_info=True)
 
 
 async def _database_backup() -> None:
@@ -519,7 +519,7 @@ async def _database_backup() -> None:
         else:
             logger.error("Daily backup FAILED — check pg_dump logs")
     except Exception as e:
-        logger.error(f"Backup job failed: {e}", exc_info=True)
+        logger.error(f"Backup job failed: {type(e).__name__}", exc_info=True)
 
 
 async def _architect_cycle() -> None:
@@ -532,7 +532,7 @@ async def _architect_cycle() -> None:
         from agents.architect_agent import run_background_architect_cycle
         await run_background_architect_cycle()
     except Exception as e:
-        logger.error(f"Architect evolution cycle failed: {e}", exc_info=True)
+        logger.error(f"Architect evolution cycle failed: {type(e).__name__}", exc_info=True)
 
 
 async def _memory_retention() -> None:
@@ -547,7 +547,7 @@ async def _memory_retention() -> None:
         deleted = await purge_old_memories_for_every_tenant(retention_days=90)
         logger.info(f"Memory retention complete: {deleted} old embeddings purged")
     except Exception as e:
-        logger.error(f"Memory retention job failed: {e}", exc_info=True)
+        logger.error(f"Memory retention job failed: {type(e).__name__}", exc_info=True)
 
 
 async def _token_version_retention() -> None:
@@ -579,7 +579,7 @@ async def _model_perf_retention() -> None:
         count = int(result.split()[-1]) if result else 0
         logger.info(f"Model performance retention: {count} old rows purged")
     except Exception as e:
-        logger.error(f"Model performance retention job failed: {e}", exc_info=True)
+        logger.error(f"Model performance retention job failed: {type(e).__name__}", exc_info=True)
 
 
 def running_jobs() -> list[str]:
