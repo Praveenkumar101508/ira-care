@@ -1,6 +1,7 @@
 'use client';
 
 import { NotMeasured } from '@/components/NotMeasured';
+import { ActivityTrend } from '@/components/ActivityTrend';
 import { demoPagesEnabled } from '@/lib/demoPages';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -320,6 +321,7 @@ export default function PersonPage() {
             );
           })}
           {settings ? <div className="card"><strong>Range set for this person</strong><div className="muted">Heart rate {settings.heart_rate_min ?? 'not set'} to {settings.heart_rate_max ?? 'not set'}. Set by a carer or clinician; there is no built-in range.</div></div> : null}
+          {api ? <ActivityTrend api={api} personId={id} /> : null}
           {api ? <NotMeasured api={api} /> : null}
         </div>
       )}
@@ -392,6 +394,7 @@ export default function PersonPage() {
             <li>Transcripts for family: <strong>{consents.effective.transcripts_family ? 'allowed' : 'not allowed'}</strong></li>
             <li>Transcripts for carers: <strong>{consents.effective.transcripts_carer ? 'allowed' : 'not allowed'}</strong></li>
             <li>Transcripts for the care organisation: <strong>{consents.effective.transcripts_organisation ? 'allowed' : 'not allowed'}</strong></li>
+            <li>Activity estimate shared by the watch: <strong>{consents.effective.activity_sharing ? 'allowed' : 'not allowed'}</strong></li>
             <li>Kept for <strong>{consents.retention_months} months</strong></li>
           </ul>
           <table><thead><tr><th>Kind</th><th>Decision</th><th>By</th><th>When</th></tr></thead><tbody>
@@ -548,6 +551,7 @@ const CONSENT_CHOICES: { kind: string; label: string }[] = [
   { kind: 'health_data_family', label: 'Family may see readings' },
   { kind: 'transcripts_carer', label: 'Carers may read what the person says to IRA' },
   { kind: 'transcripts_organisation', label: 'The organisation may read what the person says to IRA' },
+  { kind: 'activity_sharing', label: "The watch may share its activity estimate (minutes active or still, from the motion sensor)" },
 ];
 
 function InviteForm({ onInvite }: { onInvite: (b: { email: string; display_name: string; relationship: string; role: string; tier: number; phone: string; consents: { kind: string; granted: boolean; granted_by: string; granted_by_name: string }[] }) => Promise<InvitationOut> }) {

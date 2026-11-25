@@ -1275,6 +1275,22 @@ model trained on commercially licensed wrist data is being prepared (register F4
 The copy of the model previously published on Kaggle under Apache 2.0 by
 `scripts/training/run_kaggle.py` is an owner action: only the account holder can withdraw it.
 
+**Correction (25 November 2026, D-082).** The paragraph above is wrong: no copy of the model was
+ever published on Kaggle. It is kept as written; what was verified, and how:
+- The original training run's own log (`docs/evidence/training/fall.json`, written by
+  `scripts/training/kaggle_fall_model.py`, which `run_kaggle.py` only pushes) ends with the upload
+  being refused: `KAGGLE_MODEL_UPLOAD_SKIPPED BackendError: Permission 'models.create' was denied`.
+- Listing the account's models with the Kaggle API (account `Praveen0116`, 25 November 2026)
+  returned "No models found".
+- The training notebook `praveen0116/ira-care-fall-model-training` is private (kernel metadata
+  `is_private: true`), and so are the datasets `praveen0116/ira-care-code` and
+  `praveen0116/ira-care-training-data` (API `is_private: True`).
+
+So no public Kaggle copy of the SisFall-trained model exists and there is nothing to withdraw.
+Copies taken by third parties cannot be ruled out in general, but no public upload ever succeeded.
+The upload call has been removed from the script, and a readiness test now fails if any training
+script publishes model weights or makes a dataset public (D-082).
+
 
 ## D-078 A care plan is a versioned record written by care managers; staff roles are the three workspace roles, named (remediation F5, 25 November 2026)
 
@@ -1330,7 +1346,8 @@ Decision: v3 goes into `watch/app/src/main/assets`, so every release build and t
 image carry it; `RecoveringFallDetector` runs it. The rules keep raising every fall they raise
 today. A suspected fall from either path starts the same 30-second countdown that asks first.
 Debug builds keep the v1 research model for the comparison. `FallModelReleaseTest` pins the one
-file that may ship, by provenance, mode and SHA-256.
+file that may ship, by provenance, mode and SHA-256. (Superseded for debug builds by D-082: no
+build of any kind now carries v1; debug builds carry v3 as release builds do.)
 
 What this does not decide: real use. The measurement is on young volunteers simulating falls with
 a research band. Before anyone relies on it, the owner and a clinical reviewer must approve it,
@@ -1369,6 +1386,40 @@ literally (LIKE wildcards escaped, passed as a parameter), searches are rationed
 address, and each search is written to the access log once per person it returned, with the kinds of
 record found and never the words typed.
 
+## D-082 No build of any kind carries the SisFall-trained model; debug builds use v3 (owner decision, 25 November 2026)
+
+D-077 took the SisFall-trained fall model v1 out of release builds and kept it in debug builds for
+engineering demonstrations. The owner reviewed whether uncertain SisFall-derived artefacts should
+also stay out of debug and demonstration builds, which are shown to people and can be passed on.
+
+Decision: yes. v1 is removed from every build variant, debug included, so no build of any kind can
+carry it until SisFall's original rights are established. Debug builds carry fall model v3 (D-080)
+exactly as release builds do, with the rule detector as the fallback.
+
+How:
+- `watch/app/src/debug/assets/fall_model.tflite` and `fall_model.json` are deleted. Every variant
+  (`wearosDebug`, `aospDebug`, `wearosRelease`, `aospRelease`) now takes v3 from `src/main/assets`.
+- `FallModelSpec.mayRun` and `TfLiteInference.load`: the watch runs a model only if its spec names
+  the licensed v3 provenance and the file's SHA-256 is the reviewed v3 file. Anything else (v1, an
+  unlabelled or unreviewed model) is refused and the rules run alone.
+- `FallModelReleaseTest` fails if any source set other than `main` carries a fall model, or if any
+  file in any source set's assets is SisFall-derived (the v1 files by SHA-256, or anything naming
+  SisFall). With the v1 spec put back in `src/debug/assets` it fails.
+- `scripts/training/kaggle_fall_model.py` no longer tries to upload the model to Kaggle (the
+  original attempt was refused; see the correction under D-077), and the conversation training
+  script keeps its adapter in the private kernel's output instead of uploading it. A readiness test
+  (`tests/readiness/test_training_scripts_publish_nothing.py`) fails if any training script calls a
+  model-publishing function or pushes a dataset or kernel with public visibility.
+
+Kept: v1's evaluation evidence (`docs/evidence/training/fall.json`, `docs/MODEL_CHOICE.md`) as a
+historical research record. The v1 weights file itself (`ira_fall_model.tflite`, SHA-256
+`8182ea37154ab52e1d9383b3de42add2a2bb902cafb38daa6056f767d84ae6cb`) is removed from the tree, so no
+copy of weights with unconfirmed rights sits beside the product; git history keeps it, and
+`FallModelReleaseTest` refuses that hash in any build.
+
+Cost: none in the field; debug builds now behave as release builds do. The side-by-side comparison
+of v1 and v3 on a device is no longer possible from a debug build.
+
 ## D-083 PyAV does not ship; the server transcribes WAV only (owner decision, 25 November 2026)
 
 faster-whisper, the server's speech recogniser, declares PyAV (`av`) as a hard dependency, and
@@ -1394,9 +1445,134 @@ numpy) where faster-whisper expects PyAV's, so `import av` is never attempted.
   bundles LGPL native code (`soundfile` with `libsndfile`, which also carries `mpg123` and
   LAME). None is needed by a client that exists. If one is needed later, recording WAV on the
   client is the first choice; a reviewed LGPL exception for `libsndfile` is the second.
-- **Accuracy:** the LibriSpeech test-clean re-run on the new path is not yet recorded; until it is, the 4.24 % in `docs/ai/speech/RESULTS.md` is the PyAV-path figure.
+- **Accuracy:** unchanged. On LibriSpeech test-clean, run before and after in sequence on the same machine, the WER was 4.16 % on both paths with identical errors (132 / 19 / 8); `docs/ai/speech/RESULTS.md`. The 4.24 % recorded earlier came from another package set and stays as the historical benchmark.
 
 What would change it: a client that has to send compressed audio and cannot record WAV.
+
+## D-084 IRA Care Activity leaves the watch only as hourly summaries, under its own consent, and never alerts (requirements F7.f to F7.k, 25 November 2026)
+
+IRA Care Activity (WISDM-trained; `docs/ai/activity/MODEL_CARD.md`)
+has run on the watch since F7.d, but nothing used its answer. The owner asked for an end-to-end
+integration that never presents the estimate as confirmed behaviour or a medical state and never
+raises an alert from it.
+
+Decision:
+
+- **Summaries, not windows.** The watch keeps every 10 s window to itself and sends only hourly
+  seconds per label (the model's six classes, `unknown`, `unavailable`) and per reason
+  (`low_confidence`; `off_wrist`, `sensor_gap`, `too_short`, `sensor_fault`), with the model's
+  version and SHA-256 and the source (`device` or `simulated`). Nothing is filled in: time the
+  watch did not record stays "not recorded". Contract: `docs/ai/activity/DATA_CONTRACT.md`.
+- **Its own consent kind, `activity_sharing`** (migration 121), following the existing pattern
+  (`topics` was added the same way in 110). `health_data_family` was not reused: it is about family
+  seeing readings, not about a new kind of inference leaving the watch, and reusing it would have
+  started sending for people who never agreed to this. The watch queues only while the server says
+  the consent is granted; the server checks again on arrival and on every carer read.
+- **Its own table, `care_activity_periods`**, not `care_vitals`. Every safety rule reads
+  `care_vitals`; a separate table is what makes "no alert path reads it" checkable
+  (`tests/care/test_activity_no_alert_path.py`). Same tenancy, row-level security, retention and
+  erasure as the readings.
+- **Carers see four groups, not classes:** active (walking, stairs), still (sitting, standing),
+  other arm movement (eating_drinking, other), and could not tell, not worn or not recorded. The
+  class `eating_drinking` is never shown by name: the model confuses sitting and eating
+  (`MODEL_CARD.md`), and "food_intake" stays what the person says at a check-in. Every view
+  carries "Estimated from the watch's motion sensor; not a measurement of health."
+- **The wearer** sees one small line ("On the move today: about N min (the watch's estimate)")
+  when nothing else is on the screen.
+
+What this does not decide: accuracy on the IRA watch or with older adults, and the battery cost of
+the 20 Hz gyroscope. Both need a physical watch (F7.k and the model card's physical validation
+list). The software cost per window was measured on the JVM and is in the model card.
+
+## D-085 Deployment administrators are a grant the operator writes, never a care role; they send a watch one signed instruction from a closed list (requirements E2.m, E2.o, 25 November 2026)
+
+The watch's device policy (E2.m) keeps developer options, factory reset and safe-mode boot locked
+and accepts only server-signed instructions to open them. #88 built both ends and left the middle
+open: who may ask the server to sign one. A care workspace role must never imply it. A care manager
+runs a care organisation; opening the operating system of a watch on somebody's wrist is fleet
+maintenance, and the people who do it work for whoever operates the deployment.
+
+Decision: a **deployment administrator** is an ordinary signed-in account whose user id holds a live
+row in `deployment_administrators` (migration 122). Nothing else confers it.
+
+- **Identified by the existing sign-in.** No second login, token or key: the account authenticates
+  exactly as everyone else does and is resolved to a Principal by `require_tenant_principal`. The
+  check (`care/deviceadmin.py`) reads only the grant table, never the workspace role, the tenant
+  role, the scopes or `Principal.is_owner`. A care manager, coordinator, carer, viewer, the person
+  themself, a tenant owner and a principal flagged as the deployment owner are all refused (403), and
+  the refusal is logged.
+- **Granted the way OS releases are published.** The operator runs `scripts/deployment_admin.py`
+  with the migrator's credentials, as `scripts/os_release.py` publishes releases (E4.d). The runtime
+  role can write no grant: row-level security admits writes only from `ira_schema_owner`, which the
+  migrator reaches with `SET ROLE`, so even a provisioning step that grants `ira_app` everything
+  (R-47) does not let a request make its caller an administrator. A live grant is readable only on a
+  connection bound to that same account, so the runtime can ask "is this caller an administrator?"
+  and cannot list who is.
+- **Revoked by the operator, effective on the next request.** The account can issue, revoke and read
+  nothing more; whatever it issued that has not expired is withheld from the watch and put on the
+  watch's revocation list, which closes a window it opened.
+- **What it can do: three actions, one watch, at most 15 minutes.** `MAINTENANCE_WINDOW` lifts the
+  developer-options restriction until the instruction expires; `RESTORE_RESTRICTIONS` puts every
+  restriction back now; `FACTORY_RESET` wipes the watch (the reset #88 already allowed through a
+  signed instruction). There is no field for a command, an argument or a restriction name; the API,
+  the table and the watch each refuse anything else. Each instruction names one paired watch by its
+  tenant, workspace and device id, and is worked on a connection bound to that workspace, so a
+  mismatched triple is not found.
+- **Signed as #88 signed it.** ECDSA P-256 over SHA-256 of the exact payload string, with a
+  single-use nonce, verified on the watch with the key built into the image. The key is a separate
+  one from the OTA manifest key and is loaded the same way (`IRA_DEVICE_POLICY_KEY`; none
+  configured means 503, never an unsigned instruction). Ed25519, which the OTA manifests use, was
+  not chosen because not every Android release the device-owner app may run on verifies it.
+- **Audited.** Every instruction keeps who issued it and why; every step (issued, delivered,
+  revoked, applied, refused, restored) is an insert-only row with its actor.
+
+What this does not decide: making the device-policy app the device owner (provisioning, E4.f, needs
+an image), the timer and boot receiver that call the policy on a device, a dashboard screen for
+deployment administrators (the routes exist; the screen does not), and who in the operating
+organisation should hold the grant (an owner decision).
+
+## D-086 Heart-rate research mode: raw PPG from recorded or simulated signals, returned and never stored (requirement F3.g, 25 November 2026)
+
+Current Wear OS watches give an app finished heart-rate values, not raw PPG, so the learned
+candidate selector cannot run on a person's watch (F3.d stays blocked). The owner asked for the
+whole raw-PPG pipeline to be built now, in research mode, on recorded (PPG-DaLiA) or simulated
+signals, clearly separated from real measurements and unable to trigger an alert.
+
+Decision: **an endpoint that processes a research recording and returns the result, with no
+database write at all**, rather than a research table.
+
+- **Where:** `care/heart_research.py` (data contract, windowing, signal quality, inference,
+  provenance, built-in samples), `POST /care/research/heart/run` and
+  `GET /care/research/heart/samples`, and the dashboard page `/research/heart`.
+- **Provenance labels:** every heart reading's source is one of `simulated`,
+  `research_recording` or `device`. The research path accepts and produces only the first two:
+  `device` input is refused by the request schema and again by the pipeline, and a result object
+  cannot be built with any other source, or marked as a measurement or as able to alert.
+- **Why no table:** nothing about a research run belongs to a person, and a table would be one
+  more place a research value could be read back as a reading. The route takes no person, opens
+  no database connection and writes nothing; the result says `stored: false`. The readings table
+  already refuses both research sources (`care_vitals.source` CHECK allows `watch`, `phone`,
+  `manual`, `simulator`), so a future change that tried to store one would fail in the
+  database; `tests/tenancy/test_heart_research_db.py` proves that, and that a research run
+  writes no reading, alert, access-log or check-in row while the same values from a paired
+  watch do open a safety check. No migration was needed.
+- **Never an alert:** no module on the alert path (continuous rules, monitoring, ask-first,
+  escalation, SOS, falls, the repository, the worker and the others listed in
+  `tests/care/test_heart_research.py`) can reach `care/heart_research.py` through its imports;
+  only `care/routes.py` uses it. A negative control shows the check catches an indirect import.
+- **Who:** care managers and the deployment owner only (`run_heart_research`, manage level),
+  bound to their verified workspace; carers and viewers get 403. Runs are limited to 10 a minute
+  per address and to 600 s of signal per call, and run off the event loop.
+- **Screens:** the research page is reached from the top bar (care managers only), is headed
+  "Research — not a measurement of this person", and is never linked from a person's record;
+  the person page has no research content (a dashboard test checks both). The page refuses to
+  draw any result that is not marked research, unstored and non-alerting.
+- **Thresholds** (motion rejection at 0.5 g band-limited accelerometer RMS, 2% sampling-rate
+  tolerance, a gap at 1.5 sample periods, 1 s start offset) were fixed before the held-out
+  evaluation and not tuned on it.
+
+What this does not decide: using the learned selector on a person. That needs a watch that
+gives the app raw PPG (F3.d) and validation on the IRA watch and older adults (F3.e).
 
 ## D-087 The API image drops three Python modules that link GPL and Sleepycat libraries (25 November 2026)
 

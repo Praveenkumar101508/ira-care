@@ -3,12 +3,21 @@
  "cases": [
   {
    "device_id": "device-fixture-1",
-   "action": "LIFT_DEBUGGING",
+   "action": "MAINTENANCE_WINDOW",
    "issued_at_ms": 1764072000000,
    "expires_at_ms": 1764072600000,
-   "nonce": "fixturenoncelift_debugging00",
-   "payload": "ira-device-policy-v1|device-fixture-1|LIFT_DEBUGGING|1764072000000|1764072600000|fixturenoncelift_debugging00",
-   "signature": "MEUCIQD+QdjAACvbistFzcgR/RTqDkOEfq6UHCkVyuVHEhYIjQIgAyPPxSujFQJ4TLuUqi31Ww7KDyLMgw7LuiUXUWIR180="
+   "nonce": "fixturenoncemaintenance_window00",
+   "payload": "ira-device-policy-v1|device-fixture-1|MAINTENANCE_WINDOW|1764072000000|1764072600000|fixturenoncemaintenance_window00",
+   "signature": "MEUCIELOoFhvGsbPrgKI8umSi1/vd1cocMnXsqEXq3Y2EBGuAiEA5HppMTvuLTZGYXt9fZc9dtLZFq44PDNZGNN39lI83Ew="
+  },
+  {
+   "device_id": "device-fixture-1",
+   "action": "RESTORE_RESTRICTIONS",
+   "issued_at_ms": 1764072000000,
+   "expires_at_ms": 1764072600000,
+   "nonce": "fixturenoncerestore_restrictions00",
+   "payload": "ira-device-policy-v1|device-fixture-1|RESTORE_RESTRICTIONS|1764072000000|1764072600000|fixturenoncerestore_restrictions00",
+   "signature": "MEUCIBrXZUHiHrZnEW696TGkzP+ResDS4DQEllYTEqrwsyeaAiEAjIHMRH7Ny3N6cw65yEaVA9OFl8zStw3S9v0m41XDHDA="
   },
   {
    "device_id": "device-fixture-1",
@@ -17,7 +26,7 @@
    "expires_at_ms": 1764072600000,
    "nonce": "fixturenoncefactory_reset00",
    "payload": "ira-device-policy-v1|device-fixture-1|FACTORY_RESET|1764072000000|1764072600000|fixturenoncefactory_reset00",
-   "signature": "MEQCIGVBWarCTIk+KKKmX4SMvZFyXxc6l4/Y8Qgkv/l7rszlAiAxvi7Q990UfBHioRG2dspzm0X1sVgQHF1WWQqJvNZZWA=="
+   "signature": "MEYCIQDwMMQ8stBrL2sUaq8myLvNJu4JJAhLfOuDo4aDbDW4NgIhAM0Zth+P0oSvdz+Hm0q+eFVqLYMxenCqDjaxN3WpsSdu"
   }
  ]
 }

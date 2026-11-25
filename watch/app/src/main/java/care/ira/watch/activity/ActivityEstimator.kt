@@ -29,7 +29,8 @@ import kotlin.math.sqrt
  * `ActivityParityTest` holds the two together on a fixture the Python code wrote.
  *
  * A wellbeing context signal only. It is not a medical device, not a fall detector, and no
- * alert may be raised on it. It stays on the watch: the backend has no reading kind for it.
+ * alert may be raised on it. Windows stay on the watch; only hourly summaries can leave it, under
+ * the person's activity-sharing consent (ActivitySharing, docs/ai/activity/DATA_CONTRACT.md).
  * Pure Kotlin, tested on the JVM.
  */
 object ActivityFeatures {

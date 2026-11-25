@@ -1,0 +1,57 @@
+{
+  "what": "care/heart_research.py, per-window processing time and memory",
+  "samples": {
+    "ppg_dalia_s1_excerpt": {
+      "windows": 147,
+      "source": "research_recording"
+    },
+    "simulated_rest": {
+      "windows": 27,
+      "source": "simulated"
+    },
+    "simulated_arm_swing": {
+      "windows": 27,
+      "source": "simulated"
+    },
+    "simulated_faults": {
+      "windows": 27,
+      "source": "simulated"
+    }
+  },
+  "repeats": 5,
+  "model_load_ms": 29.8,
+  "results": {
+    "learned_with_classical_fallback": {
+      "windows_timed": 1140,
+      "per_window_ms": {
+        "mean": 12.604,
+        "median": 12.478,
+        "p95": 20.204,
+        "max": 41.944
+      },
+      "python_peak_alloc_mib_per_run_max": 0.8,
+      "seconds_total": 14.93
+    },
+    "classical_only": {
+      "windows_timed": 1140,
+      "per_window_ms": {
+        "mean": 0.917,
+        "median": 0.914,
+        "p95": 1.604,
+        "max": 3.626
+      },
+      "python_peak_alloc_mib_per_run_max": 0.77,
+      "seconds_total": 1.61
+    }
+  },
+  "process_max_rss_mib": {
+    "at_start": 31.0,
+    "at_end": 44.1
+  },
+  "note": "per-window time includes slicing, the quality checks, both estimators (the learned tracker runs the classical one inside it) and building the result; the windows arrive every 2 s",
+  "machine": "x86_64, 4 CPUs, no GPU, shared with other jobs",
+  "versions": {
+    "python": "3.13.18",
+    "numpy": "2.5.5"
+  }
+}

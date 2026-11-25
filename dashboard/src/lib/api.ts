@@ -1,7 +1,8 @@
 import type { AlertOutcome,
   AccessEntry, Alert, Checkin, CircleMember, ConsentList, Device, Medication, MedicationEvent, Person,
-  AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitCreate, VisitDepart, WorkspaceList, CommunicationProfile, Overview, Capability, Permissions, CarePlan, CarePlanDraft, SearchHit, Caseload, PlannedVisit, StaffMember,
+  AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitCreate, VisitDepart, WorkspaceList, CommunicationProfile, Overview, Capability, ActivitySummary, Permissions, CarePlan, CarePlanDraft, SearchHit, Caseload, PlannedVisit, StaffMember,
 } from './types';
+import type { ResearchResult, ResearchSample } from './research';
 
 export class ApiError extends Error {
   constructor(public readonly status: number, message: string) { super(message); }
@@ -110,11 +111,15 @@ export class Api {
   reports(id: string, kind?: string) { return this.req<{ reports: Report[] }>('GET', `/api/v1/care/people/${id}/reports?limit=60${kind ? `&kind=${kind}` : ''}`).then((o) => o.reports); }
   generateReport(id: string, kind: string, date: string) { return this.req<Report>('POST', `/api/v1/care/people/${id}/reports/generate`, { kind, date }); }
   search(id: string, q: string) { return this.req<SearchResponse>('GET', `/api/v1/care/people/${id}/history/search?q=${encodeURIComponent(q)}&limit=100`); }
+  activity(id: string, days = 7, weeks = 4) { return this.req<ActivitySummary>('GET', `/api/v1/care/people/${id}/activity?days=${days}&weeks=${weeks}`); }
   capabilities() { return this.req<{ capabilities: Capability[] }>('GET', '/api/v1/care/capabilities').then((o) => o.capabilities); }
   overview() { return this.req<Overview>('GET', '/api/v1/care/overview'); }
   profileAccessNotes(id: string) { return this.req<{ allowed: boolean; access_notes: string; home_address: string; emergency_summary: string }>('GET', `/api/v1/care/people/${id}/access-notes`); }
   opsStatus() { return this.req<OpsStatus>('GET', '/api/v1/care/ops/status'); }
   permissions() { return this.req<Permissions>('GET', '/api/v1/care/me/permissions'); }
+  /** Research mode (D-086): recorded or simulated signals only; nothing is stored. */
+  researchSamples() { return this.req<{ notice: string; samples: ResearchSample[] }>('GET', '/api/v1/care/research/heart/samples'); }
+  runResearch(body: { sample: string } | { recording: unknown }) { return this.req<ResearchResult>('POST', '/api/v1/care/research/heart/run', body); }
   searchAll(q: string) { return this.req<{ query: string; results: SearchHit[] }>('GET', `/api/v1/care/search?q=${encodeURIComponent(q)}`).then((o) => o.results); }
   caseload() { return this.req<Caseload>('GET', '/api/v1/care/caseload'); }
   visitPlan() { return this.req<{ visits: PlannedVisit[] }>('GET', '/api/v1/care/visits').then((o) => o.visits); }

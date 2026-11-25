@@ -46,7 +46,8 @@ enum class SyncResult { Done, NothingToSend, Offline, Unauthorised }
 /**
  * Drains the outbox first (Help, falls, answers: each with its idempotency key,
  * removed only once the server has answered), then the reading queue into
- * `/devices/me/report`, batch by batch.
+ * `/devices/me/report`, batch by batch, then (only under the person's
+ * activity-sharing consent) the hourly activity summaries.
  */
 class Syncer(private val deps: CareDependencies) {
     /** The carer may have changed the fall settings, the heart-rate range or the upload interval. */
@@ -58,6 +59,7 @@ class Syncer(private val deps: CareDependencies) {
                 deps.profile = me.value.profile
                 deps.speaker.setRate(me.value.profile.speechRate)
                 deps.applyServerSos(me.value.sos)
+                deps.activitySharing?.setSharing(me.value.activity.sharing)
             }
             else -> {}   // keep the last known settings; the defaults until the first answer
         }
@@ -101,13 +103,17 @@ class Syncer(private val deps: CareDependencies) {
             if (batch.isEmpty() && !sentAnything) {
                 // Nothing queued: still tell the server the watch is alive and its state.
                 return when (deps.api.report(DeviceReport(emptyList(), state.battery, state.onWrist, state.permission, state.appVersion))) {
-                    is ApiOutcome.Ok -> SyncResult.NothingToSend
+                    is ApiOutcome.Ok -> { deps.activitySharing?.sync(deps.clock.nowMillis()); SyncResult.NothingToSend }
                     is ApiOutcome.Offline -> SyncResult.Offline
                     is ApiOutcome.Unauthorised -> { deps.onUnauthorised(); SyncResult.Unauthorised }
                     is ApiOutcome.Failed -> SyncResult.Offline
                 }
             }
-            if (batch.isEmpty()) return SyncResult.Done
+            if (batch.isEmpty()) {
+                // Last, and only under consent: the hourly activity summaries (ActivitySharing).
+                deps.activitySharing?.sync(deps.clock.nowMillis())
+                return SyncResult.Done
+            }
             when (deps.api.report(DeviceReport(batch, state.battery, state.onWrist, state.permission, state.appVersion))) {
                 is ApiOutcome.Ok -> { deps.queue.drop(batch.size); sentAnything = true }
                 is ApiOutcome.Offline -> return SyncResult.Offline

@@ -28,6 +28,7 @@ invalid one, :class:`LearnedHeartTracker` answers with the classical estimator a
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import math
@@ -223,17 +224,27 @@ class TreeEnsemble:
         return 1.0 / (1.0 + np.exp(-self.raw_score(X)))
 
 
-def load_model(path: Union[str, Path] = DEFAULT_MODEL_PATH) -> TreeEnsemble:
-    """Read and check a model file. Raises :class:`ModelError` (or OSError) when it is not valid."""
+def read_model(path: Union[str, Path] = DEFAULT_MODEL_PATH) -> tuple[TreeEnsemble, str, int]:
+    """Read and check a model file once: the ensemble, the SHA-256 of the exact bytes read and
+    their length (the provenance a result can carry). Raises :class:`ModelError` (or OSError)
+    when it is not valid."""
     p = Path(path)
     size = p.stat().st_size
     if size > MAX_MODEL_BYTES:
         raise ModelError(f"model file is {size} bytes, over the {MAX_MODEL_BYTES} limit")
+    raw = p.read_bytes()
+    if len(raw) > MAX_MODEL_BYTES:
+        raise ModelError(f"model file is {len(raw)} bytes, over the {MAX_MODEL_BYTES} limit")
     try:
-        d = json.loads(p.read_bytes().decode("utf-8"))
+        d = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as e:
         raise ModelError(f"not JSON ({e})") from None
-    return TreeEnsemble.from_dict(d)
+    return TreeEnsemble.from_dict(d), hashlib.sha256(raw).hexdigest(), len(raw)
+
+
+def load_model(path: Union[str, Path] = DEFAULT_MODEL_PATH) -> TreeEnsemble:
+    """Read and check a model file. Raises :class:`ModelError` (or OSError) when it is not valid."""
+    return read_model(path)[0]
 
 
 def try_load_model(path: Union[str, Path] = DEFAULT_MODEL_PATH) -> Optional[TreeEnsemble]:

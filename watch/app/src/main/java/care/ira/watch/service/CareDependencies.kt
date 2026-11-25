@@ -65,6 +65,8 @@ data class WatchStatus(
     val talking: Boolean = false,
     /** The open question is a reminder of this kind: the screen shows its buttons (ReminderButtons). */
     val reminderKind: String? = null,
+    /** The wearer's own activity line (ActivityWearerText), or null when there is nothing to say. */
+    val activityLine: String? = null,
 )
 
 /**
@@ -96,13 +98,28 @@ class CareDependencies private constructor(context: Context) {
     val accelerometer: AccelerometerSource = AndroidAccelerometerSource(context)
     val gyroscope: care.ira.watch.sensors.GyroscopeSource = care.ira.watch.sensors.AndroidGyroscopeSource(context)
     /**
-     * IRA Care Activity (WISDM, CC BY 4.0): what the wrist is doing, kept on the watch and never
-     * sent. Null when the model asset is missing or malformed: then there is no estimate at all.
+     * IRA Care Activity (WISDM, CC BY 4.0): what the wrist is doing. Each 10 s window stays on the
+     * watch; only hourly summaries leave it, through [activitySharing], and only under the person's
+     * activity-sharing consent. Null when the model asset is missing or malformed: then there is no
+     * estimate at all.
      */
-    val activity: care.ira.watch.activity.ActivityMonitor? = runCatching {
-        val text = context.assets.open(care.ira.watch.activity.ActivityModel.ASSET).bufferedReader().use { it.readText() }
-        care.ira.watch.activity.ActivityMonitor(care.ira.watch.activity.ActivityModel.parse(text))
+    private val activityModelText: String? = runCatching {
+        context.assets.open(care.ira.watch.activity.ActivityModel.ASSET).bufferedReader().use { it.readText() }
     }.getOrNull()
+    val activity: care.ira.watch.activity.ActivityMonitor? = activityModelText?.let { text ->
+        runCatching { care.ira.watch.activity.ActivityMonitor(care.ira.watch.activity.ActivityModel.parse(text)) }.getOrNull()
+    }
+    private val activityFiles = WearerFiles(context.filesDir, "activity") { pairing.personId }
+    val activitySharing: care.ira.watch.activity.ActivitySharing? = activity?.let {
+        care.ira.watch.activity.ActivitySharing(
+            care.ira.watch.activity.ActivitySummariser(
+                care.ira.watch.activity.ActivityModelId.of(activityModelText!!),
+                if (BuildConfig.SIMULATED_SENSORS) care.ira.watch.activity.ActivitySummariser.SOURCE_SIMULATED
+                else care.ira.watch.activity.ActivitySummariser.SOURCE_DEVICE),
+            care.ira.watch.activity.ActivityQueue({ activityFiles.current() }, sealer = sealer),
+            send = { periods -> api.activity(periods) },
+        )
+    }
     /** The trained fall model and its normalisation, when the build carries them; null means rules only. */
     val fallModel: Pair<care.ira.watch.sensors.Inference, care.ira.watch.sensors.FallModelSpec>? =
         care.ira.watch.sensors.TfLiteInference.load(context)
