@@ -153,11 +153,12 @@ data class FallStart(@SerialName("peak_g") val peakG: Double, @SerialName("still
 /** What went wrong talking to the backend, in a way the caller can act on. */
 sealed class ApiOutcome<out T> {
     data class Ok<T>(val value: T) : ApiOutcome<T>()
-    /** No network, timeout: keep the data and try later. */
+    /** No network, a timeout, or a server that cannot answer now (5xx, 408, 425, 429): keep the data and try later. */
     data class Offline(val reason: String) : ApiOutcome<Nothing>()
     /** The token is no longer accepted: the watch must be paired again. */
     object Unauthorised : ApiOutcome<Nothing>()
-    /** The server answered with something other than success or 401. */
+    /** A definite answer other than success or 401 (a 4xx refusal). 5xx, 408, 425 and 429 are
+     *  [Offline] instead: the request is kept and retried. */
     data class Failed(val status: Int, val body: String) : ApiOutcome<Nothing>()
 }
 
@@ -314,6 +315,11 @@ class CareApi(
                 when {
                     response.isSuccessful -> ApiOutcome.Ok(text)
                     response.code == 401 -> ApiOutcome.Unauthorised
+                    // The server could not deal with it NOW (it is down, restarting, behind a
+                    // proxy that cannot reach it, or asking us to slow down): keep it and try
+                    // again. Treating these as a definite answer threw an unsent Help request
+                    // away during any server outage.
+                    isRetryable(response.code) -> ApiOutcome.Offline("server answered ${response.code}")
                     else -> ApiOutcome.Failed(response.code, text.take(300))
                 }
             }
@@ -323,6 +329,9 @@ class CareApi(
     }
 
     companion object {
+        /** Answers that mean "not now", never "no": 5xx, 408 (timeout), 425 (too early), 429 (slow down). */
+        fun isRetryable(code: Int): Boolean = code >= 500 || code == 408 || code == 425 || code == 429
+
         const val TOKEN_HEADER = "X-Device-Token"
         const val IDEMPOTENCY_HEADER = "X-Idempotency-Key"
         const val PATH_HELP = "/api/v1/care/devices/me/help"
