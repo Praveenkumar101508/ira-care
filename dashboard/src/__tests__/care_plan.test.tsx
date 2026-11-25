@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import { CarePlanSection } from '@/components/CarePlan';
 import { draftFrom, draftProblems, may, reviewWords } from '@/lib/carePlan';
@@ -73,6 +73,7 @@ test('a failed save keeps what was typed', async () => {
   fireEvent.change(screen.getByLabelText('Why the plan is changing'), { target: { value: 'Mine' } });
   fireEvent.click(screen.getByText('Save as a new version'));
   await vi.waitFor(() => expect(onSave).toHaveBeenCalled());
+  await act(async () => { await new Promise((r) => setTimeout(r, 20)); });  // let the failure settle
   expect(screen.getByTestId('plan-form')).toBeInTheDocument();
   expect(screen.getByLabelText('Why the plan is changing')).toHaveValue('Mine');
 });

@@ -105,7 +105,7 @@ weights stated in that script. No device has been used, so no row is device test
 | D1 | Watch app: check-ins, voice and touch, reminders, routines, visits, heart rate, falls, wrist, battery, Help, GPS, offline, outbox, delivery and responder status | pre-existing, partly re-tested | `STATUS.md` rounds 1–4; Help path and storage hardened in #48. **needs external**: physical watch |
 | D1b | AOSP application flavour | pre-existing | CI builds both flavours |
 | D2 | Phone app, wearer / family / carer experiences, personalisation | pre-existing | Round 4 one-app work. iOS build: **needs external** (macOS, signing). Play and App Store: **needs external** (developer accounts) |
-| D3 | Care dashboard: overview, record, visits, alerts, reports, audit, search | pre-existing; live record improved | #45. Care plans as a separate object, staff role screens: **not started** |
+| D3 | Care dashboard: overview, record, visits, alerts, reports, audit, search | pre-existing; live record improved; care plans and staff roles in progress | #45. Care plans as a separate versioned object (migration 116) and staff roles (`/care/me/permissions`, role-aware dashboard actions): branch `fix/care-plans-staff-roles` · REMEDIATION F5 (D-078), integration-tested on PostgreSQL, not merged. Separate staff screens (rota, caseload per carer): **not started** |
 | D4 | Product promises reconciled (food-intake check, camera, SpO2, ECG, HRV, sleep, blood pressure, hearing access) | unit tested | #57 · REMEDIATION F1: one capability list; not-available measurements are refused and never shown with a value. New sensors: **needs external** (hardware, validation) |
 
 ## E. IRA CARE OS (AOSP)

@@ -1275,3 +1275,28 @@ model trained on commercially licensed wrist data is being prepared (register F4
 The copy of the model previously published on Kaggle under Apache 2.0 by
 `scripts/training/run_kaggle.py` is an owner action: only the account holder can withdraw it.
 
+
+## D-078 A care plan is a versioned record written by care managers; staff roles are the three workspace roles, named (remediation F5, 25 November 2026)
+
+A care plan says what a person's care is for and how it is given: goals, the support needed, the
+daily routine with who does each part (a carer, family or the person), the risks to watch for,
+what to do in an emergency, and when the plan is next reviewed. It is kept as one row per
+version in `care_plans` (migration 116), never rewritten: a change is a new version with the
+reason for it, so the plan's history is always there to show. Only a care manager (a workspace
+administrator) writes a plan. Anyone who may see the person (D-076) reads it, and each read is in
+the access log. Two managers saving at once cannot overwrite each other: a save that started
+from an older version is refused.
+
+Staff roles are not a fourth permission system. The three workspace roles are named as a care
+organisation names its staff:
+- `workspace_admin` is the care manager;
+- `member` is a carer, who sees only the people in their circles (D-076);
+- `viewer` is a viewer.
+
+`care/authz.py` lists each action with the routes that enforce it and the level they check
+(`ACTIONS`), and a test fails if a route's check and that list disagree. `/care/me/permissions`
+returns the list for the caller. The dashboard shows only what it says. Until it answers, the
+dashboard shows nothing that changes the record. Hiding a button is a courtesy; the server
+checks every request.
+
+Not decided here: a rota, a caseload view per carer, or roles finer than these three.
