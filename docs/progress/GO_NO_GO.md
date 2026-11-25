@@ -13,7 +13,7 @@ round 5 checkpoint in `FINAL_REPORT.md` area by area. There are three uses:
 | Care backend (API, worker, escalation, delivery) | GO | NO-GO | NO-GO | `docs/progress/VERIFICATION.md`; `supracloud-jarvis/ira/tests/tenancy/test_care_journey_db.py` | Live SMS and call delivery untested (G3.e); CSO sign-off (I.j) |
 | Data isolation and security | GO | NO-GO | NO-GO | `docs/security/REVIEW.md`, `docs/security/THREAT_MODEL.md` | Independent penetration test (C-22.d); no script-src policy on the dashboard |
 | Dashboard | GO | NO-GO | NO-GO | `dashboard/src/__tests__/`; the Playwright journey | Accessibility pass on real assistive technology |
-| Family phone app | GO | NO-GO | NO-GO | `mobile/src/__tests__/` (the CI native Android build is in an open change) | Signed store builds, iOS build (D2.h), device runs (D2.i) |
+| Family phone app | GO | NO-GO | NO-GO | `mobile/src/__tests__/`; CI's native Android release build of the family app (`mobile-android` job) | Signed store builds, iOS build (D2.h), device runs (D2.i) |
 | Watch app | GO (browser watch or emulator-free demo) | NO-GO | NO-GO | CI's "Watch app (Wear OS and AOSP)" job in `.github/workflows/test.yml` (builds and JVM tests on every change) | A physical watch (D1.j); release signing key (D1b.c) |
 | Fall detection (model v3) | GO | NO-GO | NO-GO | `docs/ai/fall/MODEL_CARD_V3.md` | Device and older-adult evidence (F4.g); owner and clinical approval (D-080) |
 | Heart rate | GO | NO-GO | NO-GO | `docs/ai/heart/MODEL_CARD.md` | Accuracy on the IRA watch against ECG (F3.e) |
