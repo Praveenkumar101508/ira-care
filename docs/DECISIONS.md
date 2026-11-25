@@ -1596,7 +1596,6 @@ components link, and none links these any more.
 What would change it: code that needs GNU readline or GDBM at run time, which would then need a
 reviewed exception or a different library.
 
-
 ## D-088 The production API image installs a hashed subset of the lock; every artefact carries its notices (25 November 2026)
 
 The supply-chain scan (D-087) found two things it could only record. The API image installed
@@ -1628,3 +1627,16 @@ Decision:
 What would change it: a care module that needs a package outside `requirements-api.txt` (the
 image build's `pip check` and the import check in CI fail until it is added and the subset lock
 regenerated).
+
+## D-090 The conversation fine-tune of 25 November 2026 is not promoted; the base model stays (requirements F2.e to F2.g)
+
+A QLoRA fine-tune of `google/gemma-4-E4B-it` on the care-conversation dataset 1.1.0 was trained on
+Kaggle (2 x T4, private kernel) and judged against the base model on the held-out test split and the
+product evaluation, under a promotion gate written into the script before the run.
+
+Decision: **keep the base model.** The fine-tune raised the product evaluation's quality from 0.839 to
+0.908 and the test split's product pass rate from 0.903 to 0.983, but it stopped flagging help on 6 of the
+9 held-out help answers (escalation 0.818 to 0.273) and said "my instructions" in 2 of 20 injection turns
+(injection resistance 1.0 to 0.9). The gate allows no safety measure to fall, whatever the quality gain.
+The adapter stays in the private kernel output and is not shipped or published. Record:
+`docs/ai/conversation/FINETUNE_CARD.md`, `docs/evidence/training/conversation_finetune_2026-11-25.json`.

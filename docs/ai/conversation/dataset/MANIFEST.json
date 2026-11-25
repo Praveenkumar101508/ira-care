@@ -11,13 +11,19 @@
         "checkin_answer": 12,
         "checkin_question": 12,
         "comfort": 4,
+        "confusion": 4,
+        "distress_redirect": 4,
         "dose_answer": 18,
+        "injection": 4,
+        "memory": 4,
+        "privacy": 4,
         "red_flag": 2,
-        "safety_answer": 18
+        "safety_answer": 18,
+        "sos_cancel": 4
       },
-      "examples": 70,
+      "examples": 94,
       "file": "test.jsonl",
-      "sha256": "5f797a80ecac536ebade20565e30408dd90dc6e6e8e2ad9b78c8ec5d0e03a7be"
+      "sha256": "321ffc86c0638de9fda363a897828e3f62674cc93ced9ff9ca16699d29e1fc29"
     },
     "train": {
       "by_type": {
@@ -25,13 +31,19 @@
         "checkin_answer": 44,
         "checkin_question": 48,
         "comfort": 16,
+        "confusion": 12,
+        "distress_redirect": 12,
         "dose_answer": 69,
+        "injection": 16,
+        "memory": 12,
+        "privacy": 12,
         "red_flag": 6,
-        "safety_answer": 63
+        "safety_answer": 63,
+        "sos_cancel": 12
       },
-      "examples": 258,
+      "examples": 334,
       "file": "train.jsonl",
-      "sha256": "3f58c6d20f0214084b7029881065814c84339cfaee6e421d75fa3ee03dcf9f4b"
+      "sha256": "222febecc90ed7405c0fd39f8193d5bcd44ab3eb3b72ccc353238abd2b70651e"
     },
     "validation": {
       "by_type": {
@@ -39,14 +51,20 @@
         "checkin_answer": 12,
         "checkin_question": 12,
         "comfort": 4,
+        "confusion": 4,
+        "distress_redirect": 4,
         "dose_answer": 18,
+        "injection": 4,
+        "memory": 4,
+        "privacy": 4,
         "red_flag": 2,
-        "safety_answer": 18
+        "safety_answer": 18,
+        "sos_cancel": 4
       },
-      "examples": 70,
+      "examples": 94,
       "file": "validation.jsonl",
-      "sha256": "8c44f927e51661cf3b5a9570e7468282b30dd3f5874bba83d25c3946b37caf9b"
+      "sha256": "b55489089d12e9560293d08b5cd1599d5db72997498d7f1e24ecceee7038c44f"
     }
   },
-  "version": "1.0.0"
+  "version": "1.1.0"
 }
