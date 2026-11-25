@@ -1,4 +1,4 @@
--- Rollback of 121_device_admin_instructions.sql. Refuses while any administrator grant or
+-- Rollback of 122_device_admin_instructions.sql. Refuses while any administrator grant or
 -- instruction exists: the record of who could reach a watch's restrictions, and who did, is
 -- part of the fleet's history.
 BEGIN;

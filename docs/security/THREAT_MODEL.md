@@ -86,7 +86,7 @@ off-site bucket.
 | --- | --- | --- | --- | --- | --- | --- |
 | T27 | T | A watch is offered an older, vulnerable image | Not on `main` yet: the OTA server (E4.d) is in an open pull request | — | — | **not controlled** on `main` |
 
-## Device administration (deployment administrators, D-082)
+## Device administration (deployment administrators, D-085)
 
 | # | STRIDE | Threat | Control | Code | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- |

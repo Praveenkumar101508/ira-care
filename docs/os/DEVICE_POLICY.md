@@ -6,12 +6,12 @@ is provisioning (E4.f) and needs an image; until then no component on a watch ca
 
 The watch keeps developer options, factory reset and safe-mode boot locked
 (`os/device/ira/ira_watch_cf/SETTINGS_POLICY.md`). For maintenance a **deployment administrator**
-(D-082) can send one watch one signed instruction. This page is the whole workflow.
+(D-085) can send one watch one signed instruction. This page is the whole workflow.
 
 ## Who is a deployment administrator
 
 An ordinary signed-in account whose user id holds a live grant in `deployment_administrators`
-(migration 121). Nothing else confers it: not a care workspace role (care manager, coordinator,
+(migration 122). Nothing else confers it: not a care workspace role (care manager, coordinator,
 carer, viewer), not a tenant role, not the deployment-owner flag.
 
 The operator grants and revokes it with the migrator's credentials, as OS releases are published:

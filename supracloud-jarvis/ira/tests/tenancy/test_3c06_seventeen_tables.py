@@ -88,7 +88,7 @@ WORKSPACE_SCOPED = (
     "care_plans",
     # 117: SELECT, INSERT and DELETE granted; no UPDATE, which the UPDATE probe accepts.
     "care_staff_designations",
-    # 121: instructions are SELECT, INSERT, UPDATE (no DELETE); the audit trail SELECT and INSERT
+    # 122: instructions are SELECT, INSERT, UPDATE (no DELETE); the audit trail SELECT and INSERT
     # only. The UPDATE and DELETE probes accept the refusal.
     "care_device_admin_instructions",
     "care_device_admin_events",
@@ -287,7 +287,7 @@ async def _insert(conn, table: str, run: str, actor, *, handle=None, extra=None)
         if value == "__later__":
             vals.append("now() + interval '1 hour'")
             continue
-        if value == "__soon__":  # inside a bounded window (121: at most 15 minutes)
+        if value == "__soon__":  # inside a bounded window (122: at most 15 minutes)
             vals.append("now() + interval '10 minutes'")
             continue
         params.append(value)

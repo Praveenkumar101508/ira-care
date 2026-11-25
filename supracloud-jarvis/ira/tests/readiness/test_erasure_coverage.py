@@ -159,12 +159,12 @@ EXEMPT: dict[str, str] = {
         "the person, not to an account; a member's or creator's user link is ON DELETE SET NULL. Removed by the "
         "care package's per-person erasure and, when the TENANT is deleted, by ON DELETE CASCADE.",
     "care_device_admin_instructions":
-        "IRA CARE OS (121): a deployment administrator's signed instruction to one WATCH, with what became of "
+        "IRA CARE OS (122): a deployment administrator's signed instruction to one WATCH, with what became of "
         "it. Belongs to the watch, not to an account: issued_by and revoked_by are account ids kept without a "
         "foreign key so the record of who acted outlives the account. Removed with the watch (ON DELETE CASCADE "
         "from care_devices, so by the care package's per-person erasure) and, with the TENANT, by ON DELETE CASCADE.",
     "care_device_admin_events":
-        "IRA CARE OS (121): the audit trail of a deployment administrator's instructions to one WATCH (issued, "
+        "IRA CARE OS (122): the audit trail of a deployment administrator's instructions to one WATCH (issued, "
         "delivered, revoked, applied, refused, restored). Removed with its instruction, the watch and, with the "
         "TENANT, by ON DELETE CASCADE.",
     "care_staff_designations":

@@ -1,5 +1,5 @@
-"""Deployment administrators and signed device instructions against a real database (E2.o, D-082,
-migration 121, care/deviceadmin.py, care/devicepolicy.py).
+"""Deployment administrators and signed device instructions against a real database (E2.o, D-085,
+migration 122, care/deviceadmin.py, care/devicepolicy.py).
 
 Who: only an account with a live row in `deployment_administrators`, which only the operator
 writes. A care manager, coordinator, carer, viewer, the person themself, a tenant owner and a

@@ -533,7 +533,7 @@ async def device_admin_instruction_outcome(instruction_id: uuid.UUID, body: sche
         raise HTTPException(status_code=409, detail=str(exc))
 
 
-# ── Deployment administrators (D-082): never a care workspace role ──────────────
+# ── Deployment administrators (D-085): never a care workspace role ──────────────
 
 
 async def _deployment_admin(p: Principal = Depends(require_tenant_principal)) -> uuid.UUID:

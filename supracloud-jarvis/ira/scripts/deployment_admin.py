@@ -1,7 +1,7 @@
-"""Grant, revoke and list deployment administrators; make the device-policy key (D-082, E2.o).
+"""Grant, revoke and list deployment administrators; make the device-policy key (D-085, E2.o).
 
 An operator tool, run with the migrator's credentials, like scripts/os_release.py: the runtime
-role can read `deployment_administrators` (migration 121) and write nothing there, so no request
+role can read `deployment_administrators` (migration 122) and write nothing there, so no request
 to the API, whatever its care role, can make anybody a deployment administrator.
 
     python -m scripts.deployment_admin keygen

@@ -1369,7 +1369,7 @@ literally (LIKE wildcards escaped, passed as a parameter), searches are rationed
 address, and each search is written to the access log once per person it returned, with the kinds of
 record found and never the words typed.
 
-## D-082 Deployment administrators are a grant the operator writes, never a care role; they send a watch one signed instruction from a closed list (requirements E2.m, E2.o, 25 November 2026)
+## D-085 Deployment administrators are a grant the operator writes, never a care role; they send a watch one signed instruction from a closed list (requirements E2.m, E2.o, 25 November 2026)
 
 The watch's device policy (E2.m) keeps developer options, factory reset and safe-mode boot locked
 and accepts only server-signed instructions to open them. #88 built both ends and left the middle
@@ -1378,7 +1378,7 @@ runs a care organisation; opening the operating system of a watch on somebody's 
 maintenance, and the people who do it work for whoever operates the deployment.
 
 Decision: a **deployment administrator** is an ordinary signed-in account whose user id holds a live
-row in `deployment_administrators` (migration 121). Nothing else confers it.
+row in `deployment_administrators` (migration 122). Nothing else confers it.
 
 - **Identified by the existing sign-in.** No second login, token or key: the account authenticates
   exactly as everyone else does and is resolved to a Principal by `require_tenant_principal`. The

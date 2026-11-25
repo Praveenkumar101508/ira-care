@@ -2350,9 +2350,9 @@
         "required": false,
         "specification": "not required: a signed instruction is not a secret (it is useless to any other watch and after its expiry); no key material, no biometric data"
       },
-      "justification": "E2.o, D-082. The audit trail of deployment-administrator instructions (121): one row per event (issued, delivered, revoked, applied, refused, restored), the actor (a deployment administrator's account id or the watch's device id), a bounded detail and the time. Insert-only for the runtime.",
+      "justification": "E2.o, D-085. The audit trail of deployment-administrator instructions (122): one row per event (issued, delivered, revoked, applied, refused, restored), the actor (a deployment administrator's account id or the watch's device id), a bounded detail and the time. Insert-only for the runtime.",
       "migration": {
-        "done_by": "121_device_admin_instructions.sql",
+        "done_by": "122_device_admin_instructions.sql",
         "requires_migration": false,
         "requires_tenant_id": false,
         "requires_user_ownership_conversion": false,
@@ -2421,9 +2421,9 @@
         "required": false,
         "specification": "not required: a signed instruction is not a secret (it is useless to any other watch and after its expiry); no key material, no biometric data"
       },
-      "justification": "E2.o, D-082. One deployment-administrator instruction for one watch (121): an action from a closed list (MAINTENANCE_WINDOW, RESTORE_RESTRICTIONS, FACTORY_RESET), its single-use nonce, issue and expiry at most 15 minutes apart, the signed payload and signature, who issued it and why, and whether it was delivered, revoked, applied, refused or restored. Workspace-scoped so a watch collects only its own workspace's rows; the signed columns cannot be changed (trigger) and a revocation cannot be undone.",
+      "justification": "E2.o, D-085. One deployment-administrator instruction for one watch (122): an action from a closed list (MAINTENANCE_WINDOW, RESTORE_RESTRICTIONS, FACTORY_RESET), its single-use nonce, issue and expiry at most 15 minutes apart, the signed payload and signature, who issued it and why, and whether it was delivered, revoked, applied, refused or restored. Workspace-scoped so a watch collects only its own workspace's rows; the signed columns cannot be changed (trigger) and a revocation cannot be undone.",
       "migration": {
-        "done_by": "121_device_admin_instructions.sql",
+        "done_by": "122_device_admin_instructions.sql",
         "requires_migration": false,
         "requires_tenant_id": false,
         "requires_user_ownership_conversion": false,
@@ -5798,9 +5798,9 @@
         "required": false,
         "specification": "not required: an account id, an operator's label and two times; no secret, biometric or customer material"
       },
-      "justification": "E2.o, D-082. Who may issue device-policy instructions to watches: an account id with a live grant, an operator's label, when it was granted and revoked (121). Deployment-wide because a deployment administrator looks after the fleet, not one care organisation; no care workspace role, tenant role or the deployment-owner flag implies a row. Granted and revoked only by the operator with the migrator's credentials (scripts/deployment_admin.py).",
+      "justification": "E2.o, D-085. Who may issue device-policy instructions to watches: an account id with a live grant, an operator's label, when it was granted and revoked (122). Deployment-wide because a deployment administrator looks after the fleet, not one care organisation; no care workspace role, tenant role or the deployment-owner flag implies a row. Granted and revoked only by the operator with the migrator's credentials (scripts/deployment_admin.py).",
       "migration": {
-        "done_by": "121_device_admin_instructions.sql",
+        "done_by": "122_device_admin_instructions.sql",
         "requires_migration": false,
         "requires_tenant_id": false,
         "requires_user_ownership_conversion": false,

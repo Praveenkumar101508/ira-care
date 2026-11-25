@@ -1,6 +1,6 @@
 -- =============================================================================
--- 121_device_admin_instructions.sql — IRA CARE OS: deployment administrators and
--- the signed instructions they issue to one watch (E2.m, E2.o, D-082)
+-- 122_device_admin_instructions.sql — IRA CARE OS: deployment administrators and
+-- the signed instructions they issue to one watch (E2.m, E2.o, D-085)
 --
 --   deployment_administrators
 --     Who may issue device-policy instructions to a watch: an account (users.id),
@@ -34,7 +34,7 @@
 --   Both care tables go with the watch (ON DELETE CASCADE from care_devices, which
 --   goes with the person cared for) and with the tenant.
 --
--- Rollback: rollback/121_device_admin_instructions_down.sql
+-- Rollback: rollback/122_device_admin_instructions_down.sql
 -- =============================================================================
 
 BEGIN;
@@ -111,7 +111,7 @@ CREATE INDEX idx_care_device_admin_instructions_device
 -- What was signed cannot be rewritten, and a revocation cannot be undone. Raised
 -- as insufficient_privilege, the same refusal a missing grant gives.
 CREATE FUNCTION care_device_admin_instructions_guard() RETURNS trigger
-LANGUAGE plpgsql AS $$
+LANGUAGE plpgsql SET search_path = pg_catalog, public AS $$
 BEGIN
     IF (NEW.tenant_id, NEW.workspace_id, NEW.device_id, NEW.action, NEW.nonce, NEW.issued_at,
         NEW.expires_at, NEW.issued_by, NEW.reason, NEW.payload, NEW.signature, NEW.key_id)

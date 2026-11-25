@@ -8,9 +8,9 @@
 component registers it: becoming device owner is provisioning (E4.f), which needs an image.
 The server signs administrator instructions with `supracloud-jarvis/ira/care/devicepolicy.py`
 (ECDSA P-256, one device, at most 15 minutes, single-use); a cross-language fixture proves the
-watch accepts exactly what the server signs. A deployment administrator (D-082, never a care
+watch accepts exactly what the server signs. A deployment administrator (D-085, never a care
 workspace role) issues, revokes and audits them through `/api/v1/care/deployment-admin/...`
-(`care/deviceadmin.py`, migration 121); the whole workflow is in `docs/os/DEVICE_POLICY.md`.
+(`care/deviceadmin.py`, migration 122); the whole workflow is in `docs/os/DEVICE_POLICY.md`.
 
 The person wearing the watch should never land somewhere that can break it: developer
 options, factory reset, safe-mode boot, or a settings page with no way back. A carer or an

@@ -12,7 +12,7 @@ import java.util.Base64
  * DevicePolicyManager calls.
  *
  * What the person wearing the watch can never reach: developer options, factory reset, safe-mode
- * boot. The lock screen stays off. A deployment administrator (D-082) can open a short
+ * boot. The lock screen stays off. A deployment administrator (D-085) can open a short
  * maintenance window (developer options only), close it early, or factory-reset the watch, and
  * only with an instruction the IRA server signed for THIS device, that has not expired, that has
  * not been used or revoked, and whose window is at most [MAX_WINDOW_MS]. Nothing else can be

@@ -1,8 +1,8 @@
-"""Deployment administrators and the instructions they send to one watch (E2.o, D-082).
+"""Deployment administrators and the instructions they send to one watch (E2.o, D-085).
 
 Who: an authenticated account (the ordinary sign-in, resolved to a Principal by
 `require_tenant_principal`) whose user id holds a LIVE row in `deployment_administrators`
-(migration 121). That table is written only by the operator, with the migrator's
+(migration 122). That table is written only by the operator, with the migrator's
 credentials (scripts/deployment_admin.py), the same authority that publishes OS releases
 (scripts/os_release.py). Nothing else confers it: not a care workspace role (care manager,
 coordinator, carer, viewer), not a tenant role (owner, admin), not `Principal.is_owner`. A
@@ -169,7 +169,7 @@ async def history(*, tenant_id: uuid.UUID, workspace_id: uuid.UUID, device_id: u
 # ── The watch's side (device token; care/routes.py) ──────────────────────────
 
 # An issuer's grant revoked at or after the instruction was issued. The watch's connection can
-# see revoked grants and no live ones (migration 121), and this needs only the former: a later
+# see revoked grants and no live ones (migration 122), and this needs only the former: a later
 # re-grant is a new row, so what was issued before the revocation stays withdrawn.
 _ISSUER_REVOKED = ("EXISTS (SELECT 1 FROM deployment_administrators a"
                    " WHERE a.user_id = i.issued_by AND a.revoked_at >= i.issued_at)")

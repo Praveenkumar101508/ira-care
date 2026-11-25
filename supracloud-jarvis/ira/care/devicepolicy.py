@@ -2,7 +2,7 @@
 
 On IRA CARE OS the watch keeps developer options, factory reset and safe-mode boot locked
 (watch/app/src/main/java/care/ira/watch/devicepolicy/DevicePolicy.kt). A deployment
-administrator (D-082; care/deviceadmin.py decides who that is) can send one watch one
+administrator (D-085; care/deviceadmin.py decides who that is) can send one watch one
 instruction from a closed list:
 
     MAINTENANCE_WINDOW      lift the developer-options restriction until the instruction
