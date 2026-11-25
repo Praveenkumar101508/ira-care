@@ -2428,7 +2428,7 @@
   {
    "id": "F4.d",
    "parent": "F4",
-   "title": "SisFall-trained model kept out of every release build and the OS image (D-077)",
+   "title": "SisFall-trained model kept out of every build, debug included, and the OS image (D-077, D-082)",
    "area": "ai",
    "hardware_independent": true,
    "state": "accepted",
