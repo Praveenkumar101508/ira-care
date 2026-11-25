@@ -21,7 +21,7 @@ export default function WatchPage() {
   }, []);
   const visit = w.sos && typeof (w.sos as unknown as { visit?: { state: string; carer_name: string; planned_start: string } }).visit === 'object'
     ? (w.sos as unknown as { visit: { state: string; carer_name: string; planned_start: string } }).visit : null;
-  const { words, second: visitWords } = faceWords({ fallCountdown: w.fallCountdown, sos: w.sos, sosPending: w.sosPending, question: w.question?.question_text ?? null, visit });
+  const { words, second: visitWords } = faceWords({ fallCountdown: w.fallCountdown, sos: w.sos, sosPending: w.sosPending, question: w.question?.question_text ?? null, visit, online: w.online });
 
   return (
     <main className="watch-page" data-testid="watch-page">

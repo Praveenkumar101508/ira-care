@@ -2707,8 +2707,25 @@
    "title": "'All well' never shown when monitoring is paused, alert messages are not getting out, the page is stale or the watch is offline (F4)",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_delivery_db.py::test_ops_says_when_alert_messages_are_not_getting_out"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/view.test.ts"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/person_live.test.tsx"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/ui/FaceTextTest.kt"
+    }
+   ]
   },
   {
    "id": "G3.a",
@@ -3184,8 +3201,17 @@
    "title": "Demo, presenter and simulator pages refused in production builds (B6)",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/demo_pages.test.ts"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#67"
+    }
+   ]
   },
   {
    "id": "K.a",

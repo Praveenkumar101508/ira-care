@@ -186,9 +186,14 @@ export function wristState(device: { on_wrist?: boolean | null; last_sync_at?: s
   return device.on_wrist ? { state: 'on', words: 'on the wrist' } : { state: 'off', words: 'off the wrist' };
 }
 
+/** What the record knows about the system around the person: whether the monitoring jobs run,
+ *  whether alert messages are getting out, and whether this page's own data is current. */
+export interface SystemHealth { monitoringPaused?: boolean; deliveryProblem?: boolean; dataStale?: boolean }
+
 /** The headline of a person's record: one line a coordinator reads first. "All well" only when
- *  nothing is open, nothing is being asked, and the watch is recently synced and known to be worn. */
-export function headline(status: { open_alerts: { severity: string; status: string }[]; devices: { last_sync_at: string | null; on_wrist: boolean | null }[]; last_checkin: { status: string; scheduled_at: string } | null }, nextVisit?: { carer_name: string; planned_start: string; status: string } | null, now = new Date()): string {
+ *  nothing is open, nothing is being asked, the watch is recently synced and known to be worn, AND
+ *  the system can vouch for it: monitoring running, messages getting out, this page up to date. */
+export function headline(status: { open_alerts: { severity: string; status: string }[]; devices: { last_sync_at: string | null; on_wrist: boolean | null }[]; last_checkin: { status: string; scheduled_at: string } | null }, nextVisit?: { carer_name: string; planned_start: string; status: string } | null, now = new Date(), health: SystemHealth = {}): string {
   const open = status.open_alerts.filter((a) => a.status === 'open' || a.status === 'escalating');
   if (open.length) return `${open.length} alert${open.length > 1 ? 's' : ''} waiting for someone`;
   if (status.open_alerts.some((a) => a.status === 'asking')) return 'IRA is asking whether they are OK: no answer yet';
@@ -203,7 +208,13 @@ export function headline(status: { open_alerts: { severity: string; status: stri
   else if (d.on_wrist !== true) concerns.push('not known whether the watch is worn');
   if (status.last_checkin) parts.push(`last check-in ${status.last_checkin.status} ${timeAgo(status.last_checkin.scheduled_at, now)}`);
   if (nextVisit) parts.push(nextVisit.status === 'arrived' ? `${nextVisit.carer_name || 'a carer'} is there now` : `${nextVisit.carer_name || 'a carer'} due at ${nextVisit.planned_start.slice(11, 16)}`);
-  if (concerns.length) return 'Needs a look: ' + [...concerns, ...parts].join(', ');
+  // Nothing about the person is wrong, but the system cannot vouch for it: never "All well" then.
+  const cannot: string[] = [];
+  if (health.dataStale) cannot.push('this page could not be refreshed');
+  if (health.monitoringPaused) cannot.push('monitoring is paused');
+  if (health.deliveryProblem) cannot.push('alert messages are not getting out');
+  if (concerns.length) return 'Needs a look: ' + [...concerns, ...cannot, ...parts].join(', ');
+  if (cannot.length) return 'Cannot confirm all is well: ' + [...cannot, ...parts].join(', ');
   return parts.length ? 'All well: ' + parts.join(', ') : 'All well';
 }
 

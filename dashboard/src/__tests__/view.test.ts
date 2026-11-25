@@ -121,3 +121,18 @@ test('the headline reads the alerts first, then the watch, the last check-in and
   expect(headline({ ...base, devices: [{ last_sync_at: '2026-11-24T07:00:00Z', on_wrist: true }] }, null, now)).toContain('watch last synced 3 h ago');
   expect(headline({ ...base, devices: [] }, null, now)).toContain('no watch paired');
 });
+
+test('the headline never says All well when the system cannot vouch for it', () => {
+  const now = new Date('2026-11-24T10:00:00Z');
+  const base = { open_alerts: [], devices: [{ last_sync_at: '2026-11-24T09:55:00Z', on_wrist: true }], last_checkin: { status: 'answered', scheduled_at: '2026-11-24T09:30:00Z' } };
+  expect(headline(base, null, now, {})).toMatch(/^All well/);
+  for (const [flag, words] of [['dataStale', 'could not be refreshed'], ['monitoringPaused', 'monitoring is paused'], ['deliveryProblem', 'not getting out']] as const) {
+    const h = headline(base, null, now, { [flag]: true });
+    expect(h).not.toMatch(/^All well/);
+    expect(h).toMatch(/^Cannot confirm all is well/);
+    expect(h).toContain(words);
+  }
+  // A problem the person already has is still said first, with the system problem after it.
+  const h = headline({ ...base, devices: [] }, null, now, { deliveryProblem: true });
+  expect(h).toContain('no watch paired'); expect(h).toContain('not getting out');
+});
