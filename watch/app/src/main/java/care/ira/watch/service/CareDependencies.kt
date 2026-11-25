@@ -8,6 +8,8 @@ import care.ira.watch.api.CareApi
 import care.ira.watch.core.Clock
 import care.ira.watch.pairing.PairingStore
 import care.ira.watch.queue.OfflineQueue
+import care.ira.watch.storage.KeystoreKey
+import care.ira.watch.storage.WearerFiles
 import care.ira.watch.api.FallSettingsDto
 import care.ira.watch.api.ProfileDto
 import care.ira.watch.api.ReadingSettingsDto
@@ -37,7 +39,6 @@ import care.ira.watch.voice.AndroidListener
 import care.ira.watch.voice.AndroidSpeaker
 import care.ira.watch.voice.Listener
 import care.ira.watch.voice.Speaker
-import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -70,10 +71,15 @@ data class WatchStatus(
  */
 class CareDependencies private constructor(context: Context) {
     val clock: Clock = Clock.SYSTEM
-    val pairing = PairingStore(context)
-    val queue = OfflineQueue(File(context.filesDir, "readings.jsonl"))
+    /** Sealing for everything the watch keeps (Keystore key); see care/ira/watch/storage. */
+    private val sealer = KeystoreKey.sealer()
+    val pairing = PairingStore(context, sealer)
+    /** Each wearer's readings and urgent events in that wearer's own files: never sent in another's name. */
+    private val readingFiles = WearerFiles(context.filesDir, "readings") { pairing.personId }
+    private val outboxFiles = WearerFiles(context.filesDir, "outbox") { pairing.personId }
+    val queue = OfflineQueue({ readingFiles.current() }, sealer = sealer)
     /** Help, falls and answers, on disk until the server has answered. */
-    val outbox = Outbox(File(context.filesDir, "outbox.jsonl"), clock)
+    val outbox = Outbox({ outboxFiles.current() }, clock, sealer = sealer)
     val api = CareApi(BuildConfig.CARE_API_BASE_URL, { pairing.token })
     /** The platform's readings, or the scripted driver when the build asks for it (phase 8). */
     val sensors: SensorSource = if (BuildConfig.SIMULATED_SENSORS) SimulatedSensorSource(clock) else PlatformDrivers.sensors(context, clock)

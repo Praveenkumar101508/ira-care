@@ -1,6 +1,10 @@
 package care.ira.watch.outbox
 
 import care.ira.watch.core.Clock
+import care.ira.watch.storage.AtomicFiles
+import care.ira.watch.storage.LineCodec
+import care.ira.watch.storage.Sealer
+import care.ira.watch.storage.quarantine
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -18,11 +22,27 @@ import java.util.UUID
  * Retries back off (5 s, 10 s, 20 s ... up to [maxBackoffMs]) and the outbox
  * is always drained before ordinary readings go up (see [Syncer]).
  *
- * One JSON object per line, append-only between compactions, like the reading
- * queue. Pure Kotlin: tested without a watch.
+ * One event per line, appended and synced to disk; a rewrite replaces the whole file at once
+ * (care/ira/watch/storage: written to a temporary file, synced, renamed), so a crash in the
+ * middle of a rewrite can never lose the events already waiting. Each line is sealed with the
+ * watch's Keystore key when one is given. A line that cannot be read is moved aside, never
+ * dropped. `fileFor` gives the current wearer's own file (WearerFiles), so an event can only
+ * ever be sent in the name of the person it was raised for. Pure Kotlin: tested without a watch.
  */
-class Outbox(private val file: File, private val clock: Clock = Clock.SYSTEM, private val maxBackoffMs: Long = 5 * 60_000L) {
+class Outbox(
+    private val fileFor: () -> File,
+    private val clock: Clock = Clock.SYSTEM,
+    private val maxBackoffMs: Long = 5 * 60_000L,
+    private val sealer: Sealer? = null,
+) {
+    constructor(file: File, clock: Clock = Clock.SYSTEM, maxBackoffMs: Long = 5 * 60_000L, sealer: Sealer? = null) :
+        this({ file }, clock, maxBackoffMs, sealer)
+
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+
+    /** Lines moved aside because they could not be read, since this outbox was opened. */
+    var unreadable: Int = 0
+        private set
 
     /** What is waiting, oldest first. Reads the file every time: the file is the truth. */
     @Synchronized
@@ -35,8 +55,7 @@ class Outbox(private val file: File, private val clock: Clock = Clock.SYSTEM, pr
     @Synchronized
     fun enqueue(kind: String, path: String, body: String, idempotencyKey: String = UUID.randomUUID().toString()): UrgentEvent {
         val event = UrgentEvent(idempotencyKey, kind, path, body, createdAt = clock.nowMillis())
-        file.parentFile?.mkdirs()
-        file.appendText(json.encodeToString(event) + "\n")
+        AtomicFiles.appendLine(fileFor(), LineCodec.encode(sealer, json.encodeToString(event)))
         return event
     }
 
@@ -67,16 +86,25 @@ class Outbox(private val file: File, private val clock: Clock = Clock.SYSTEM, pr
     }
 
     private fun readAll(): List<UrgentEvent> {
+        val file = fileFor()
         if (!file.exists()) return emptyList()
-        return file.readLines().filter { it.isNotBlank() }.mapNotNull { line ->
-            runCatching { json.decodeFromString<UrgentEvent>(line) }.getOrNull()
-        }.sortedBy { it.createdAt }
+        val bad = mutableListOf<String>()
+        val events = file.readLines().filter { it.isNotBlank() }.mapNotNull { line ->
+            val event = LineCodec.decode(sealer, line)?.let { runCatching { json.decodeFromString<UrgentEvent>(it) }.getOrNull() }
+            if (event == null) bad += line
+            event
+        }
+        if (bad.isNotEmpty()) {
+            // Never silently: moved to `<file>.unreadable`, counted, and the readable rest kept.
+            quarantine(file, bad)
+            unreadable += bad.size
+            writeAll(events)
+        }
+        return events.sortedBy { it.createdAt }
     }
 
     private fun writeAll(events: List<UrgentEvent>) {
-        if (events.isEmpty()) { if (file.exists()) file.writeText(""); return }
-        file.parentFile?.mkdirs()
-        file.writeText(events.joinToString("") { json.encodeToString(it) + "\n" })
+        AtomicFiles.write(fileFor(), events.joinToString("") { LineCodec.encode(sealer, json.encodeToString(it)) + "\n" })
     }
 
     companion object {
