@@ -42,6 +42,10 @@ async def _person(client, fam) -> dict:
     await client.post(f"{C}/people/{p['id']}/circle", json={"display_name": "Daughter", "role": "family",
                                                           "relationship": "daughter", "user_id": str(fam["member"])})
     await add_wearer(client, fam, p["id"])
+    s = (await client.get(f"{C}/people/{p['id']}/settings")).json()
+    body = {k: v for k, v in s.items() if k not in ("person_id", "tenant_id", "workspace_id", "set_by", "updated_at")}
+    body["quiet_start"], body["quiet_end"] = "00:00", "00:00"   # no quiet hours: the wall clock does not decide these tests
+    assert (await client.put(f"{C}/people/{p['id']}/settings", json=body)).status_code == 200
     p["jp"] = cycle.job_principal(fam["tenant_id"], fam["workspace_id"])
     return p
 
