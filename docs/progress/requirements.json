@@ -1,5 +1,5 @@
 {
- "version": "1.2.0",
+ "version": "1.3.0",
  "methodology": "A fixed, versioned list of atomic requirements for the owner's master directive. Each item is one measurable deliverable with one state. States: not_started; implemented (code or document merged); accepted (functional evidence: unit_test, db_test, build, browser, emulator, model_eval or device; docs_only and config_check never count); verified (integration-level evidence: db_test, browser, emulator, model_eval or device); device_validated (device evidence); blocked_external (cannot progress without something outside the software; blocked_by says what). Every file ref must exist and a PR ref must be #44 or later; acceptance and verification need a qualifying evidence item that names a file, not only a PR. Items are never removed to raise a percentage: blocked and not-started items stay in every denominator. A requirement that changes scope gets a new id and the version is raised. scripts/completion_summary.py enforces these rules and computes the seven measures.",
  "requirements": [
   {
@@ -2154,6 +2154,24 @@
    "state": "blocked_external",
    "evidence": [],
    "blocked_by": "recordings from the IRA watch with an ECG reference"
+  },
+  {
+   "id": "F3.f",
+   "parent": "F3",
+   "title": "Learned heart-rate selector exported as plain JSON trees with a validated loader and a numpy-only evaluator that matches the trained model (not yet used by any product path)",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/heart/results.json"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_heart_learned.py"
+    }
+   ]
   },
   {
    "id": "F4.a",
