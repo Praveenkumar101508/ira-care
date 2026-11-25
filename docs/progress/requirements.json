@@ -1,5 +1,5 @@
 {
- "version": "1.0.0",
+ "version": "1.1.0",
  "methodology": "A fixed, versioned list of atomic requirements for the owner's master directive. Each item is one measurable deliverable with one state. States: not_started; implemented (code or document merged); accepted (functional evidence: unit_test, db_test, build, browser, emulator, model_eval or device; docs_only and config_check never count); verified (integration-level evidence: db_test, browser, emulator, model_eval or device); device_validated (device evidence); blocked_external (cannot progress without something outside the software; blocked_by says what). Every file ref must exist and a PR ref must be #44 or later; acceptance and verification need a qualifying evidence item that names a file, not only a PR. Items are never removed to raise a percentage: blocked and not-started items stay in every denominator. A requirement that changes scope gets a new id and the version is raised. scripts/completion_summary.py enforces these rules and computes the seven measures.",
  "requirements": [
   {
@@ -669,6 +669,24 @@
    "state": "blocked_external",
    "evidence": [],
    "blocked_by": "a physical watch with a TEE / StrongBox"
+  },
+  {
+   "id": "C-19.c",
+   "parent": "C-19",
+   "title": "Watch storage never falls back to plain text for sensitive data when sealing fails; Help is still queued, minimised (D9)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/storage/DegradedStorageTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#68"
+    }
+   ]
   },
   {
    "id": "C-20.a",
@@ -2649,6 +2667,15 @@
    "evidence": []
   },
   {
+   "id": "G2.i",
+   "parent": "G2",
+   "title": "'All well' never shown when monitoring is paused, alert messages are not getting out, the page is stale or the watch is offline (F4)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
    "id": "G3.a",
    "parent": "G3",
    "title": "SMS and call provider adapter (Twilio) with delivery states",
@@ -3111,6 +3138,15 @@
    "id": "J.g",
    "parent": "J",
    "title": "Narrated film re-recorded on the remediated stack",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "J.h",
+   "parent": "J",
+   "title": "Demo, presenter and simulator pages refused in production builds (B6)",
    "area": "software",
    "hardware_independent": true,
    "state": "not_started",
