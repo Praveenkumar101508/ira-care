@@ -11,7 +11,8 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 PERSON_STATUSES = ("active", "paused", "archived")
 CIRCLE_ROLES = ("family", "carer", "clinician", "care_organisation")
 ACK_KINDS = ("on_my_way", "arrived", "checked_in_person", "spoke_to_person", "false_alarm", "handed_over")
-VITAL_KINDS = ("heart_rate", "steps", "movement", "on_wrist", "battery", "skin_temperature")
+# What the watch actually sends (care/capabilities.py); a measurement IRA cannot make is refused.
+VITAL_KINDS = ("heart_rate", "steps", "movement", "on_wrist", "battery")
 ROUTINE_KINDS = ("meal", "medication", "activity", "sleep", "social", "other")
 MED_EVENT_STATUSES = ("due", "taken", "missed", "skipped", "unknown")
 CONSENT_KINDS = ("transcripts_family", "transcripts_carer", "transcripts_organisation",

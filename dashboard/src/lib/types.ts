@@ -106,3 +106,9 @@ export interface PlanSummary {
 }
 export interface InvitationOut { invitation_id: string; member_id: string; email: string; role: string; expires_at: string; link: string; consents_recorded: string[]; mail: { delivered: boolean; transport: string } }
 export interface InvitationRow { member_id: string; display_name: string; role: string; invited_email: string; accepted: boolean; expires_at: string | null; accepted_at: string | null; revoked_at: string | null }
+
+/** What IRA CARE measures and what it does not (GET /api/v1/care/capabilities). */
+export interface Capability {
+  key: string; label: string; status: 'available' | 'not_available';
+  reading?: string; how?: string; reason?: string;
+}

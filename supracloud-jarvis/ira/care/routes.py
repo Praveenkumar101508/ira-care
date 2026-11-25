@@ -89,6 +89,13 @@ async def require_device(
     return found
 
 
+@router.get("/capabilities")
+async def list_capabilities(p: Principal = Depends(require_workspace_principal)):  # noqa: ARG001
+    """What IRA CARE measures and what it does not, with the reason (care/capabilities.py)."""
+    from . import capabilities
+    return capabilities.public()
+
+
 # ── People ───────────────────────────────────────────────────────────────────
 
 def _refused(exc: onboarding.OnboardingRefused) -> HTTPException:

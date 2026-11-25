@@ -76,7 +76,7 @@ Nothing is marked done because code or a document exists.
 | D1b | AOSP application flavour | pre-existing | CI builds both flavours |
 | D2 | Phone app, wearer / family / carer experiences, personalisation | pre-existing | Round 4 one-app work. iOS build: **needs external** (macOS, signing). Play and App Store: **needs external** (developer accounts) |
 | D3 | Care dashboard: overview, record, visits, alerts, reports, audit, search | pre-existing; live record improved | #45. Care plans as a separate object, staff role screens: **not started** |
-| D4 | Product promises reconciled (food-intake check, camera, SpO2, ECG, HRV, sleep, blood pressure, hearing access) | not started | Hardware-dependent ones will get interfaces and an explicit "not available", never fake readings |
+| D4 | Product promises reconciled (food-intake check, camera, SpO2, ECG, HRV, sleep, blood pressure, hearing access) | unit tested | `fix/product-capabilities` · REMEDIATION F1: one capability list; not-available measurements are refused and never shown with a value. New sensors: **needs external** (hardware, validation) |
 
 ## E. IRA CARE OS (AOSP)
 
