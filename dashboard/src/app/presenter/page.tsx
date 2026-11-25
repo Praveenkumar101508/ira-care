@@ -43,7 +43,7 @@ export default function PresenterPage() {
       <div className="card" data-testid="log">
         <strong>What the watch said and heard</strong>
         {w.log.length === 0 ? <p className="muted">Nothing yet. Pair, then wait for a question or ask the dashboard to check in now.</p> : null}
-        {w.log.map((l, i) => <p key={i} style={{ margin: '4px 0', color: l.who === 'note' ? 'var(--muted)' : l.who === 'you' ? 'var(--notice)' : 'var(--text)' }}>{l.who === 'ira' ? 'IRA: ' : l.who === 'you' ? 'You: ' : ''}{l.text}</p>)}
+        {w.log.map((l, i) => <p key={i} style={{ margin: '4px 0', color: l.who === 'note' ? 'var(--muted)' : l.who === 'you' ? 'var(--notice-text)' : 'var(--text)' }}>{l.who === 'ira' ? 'IRA: ' : l.who === 'you' ? 'You: ' : ''}{l.text}</p>)}
       </div>
     </div>
   );
