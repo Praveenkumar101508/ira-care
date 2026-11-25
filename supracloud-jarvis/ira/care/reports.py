@@ -37,7 +37,7 @@ ALERT_WORDS = {
     "missed_checkins": "several check-ins missed in a row", "off_wrist": "watch off the wrist", "low_battery": "watch battery low",
     "sensor_permission_off": "sensor permission switched off", "no_sync": "watch not synced", "manual": "raised by a carer",
     "off_wrist_night": "watch off the wrist overnight", "suspected_fall": "suspected fall", "concerning_phrase": "said something that needed a check",
-    "visit_late": "a planned visit was late", "visit_missed": "a planned visit did not happen",
+    "visit_late": "a planned visit was late", "visit_missed": "a planned visit did not happen", "watch_unpaired": "watch unpaired from the wrist",
 }
 VISIT_OUTCOME_WORDS = {"all_well": "all well", "concern_noted": "a concern was noted", "needed_help": "needed help",
                        "not_at_home": "not at home", "declined": "declined the visit", "other": "other"}

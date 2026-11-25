@@ -54,19 +54,19 @@ Nothing is marked done because code or a document exists.
 | C-9 | Dispatch concurrency and retries | integration tested | #46 · A2-1, A2-2 |
 | C-10 | Live patient-record refresh | unit tested | #45 · B1 (component tests; not browser tested) |
 | C-11 | Unknown and stale wrist status | unit tested | #45 · B2 |
-| C-12 | Mobile conversation streaming | unit tested | `fix/mobile-talk-streaming` · C1 (`expo/fetch`, incremental NDJSON). On-device check: **needs external**, a device build |
+| C-12 | Mobile conversation streaming | unit tested | #56 · C1 (`expo/fetch`, incremental NDJSON). On-device check: **needs external**, a device build |
 | C-13 | Native mobile voice | not started | needs native speech modules; **needs external**: device testing |
 | C-14 | Complete logout isolation | unit tested | #47 · C3 |
 | C-15 | Push-token unregister on sign-out | unit tested | #47 · C3 |
-| C-16 | Secure automatic session renewal | unit tested | #47 · C4 (phone); `fix/dashboard-session-renewal` · C4b (dashboard) |
+| C-16 | Secure automatic session renewal | unit tested | #47 · C4 (phone); #52 · C4b (dashboard) |
 | C-17 | Watch speech-recognition threads and lifecycle | unit tested | #48 · D1 (JVM tests; CI Wear OS and AOSP builds) |
 | C-18 | Watch text-to-speech lifecycle and time limits | unit tested | #48 · D2 |
 | C-19 | Encrypted watch storage | unit tested | #48 · D5 (Keystore hardware backing: **needs external**, device) |
 | C-20 | Atomic offline-queue and outbox writes | unit tested | #48 · D5 |
-| C-21 | Secure unpairing and re-pairing | unit tested | #48 · D5 (kept per wearer). Explicit unpair flow with warning: **not started** |
-| C-22 | Backend and person-level authorisation review | in progress | `fix/care-authz-and-outages` · REMEDIATION E1 (D-076) |
-| C-23 | Accessibility and interface consistency | unit tested | Automated accessibility checks from round 4; `fix/dashboard-dark-mode` · C5 (dark-mode and high-contrast colour review, measured). A screen-reader pass on real devices: **needs external** |
-| C-24 | Full-system outage and recovery tests | in progress | `fix/care-authz-and-outages` · REMEDIATION E2–E5 |
+| C-21 | Secure unpairing and re-pairing | integration tested | #48 · D5 (kept per wearer); `fix/watch-explicit-unpair` · D7 (explicit unpair with warning, migration 114). On-device UI check: **needs external**, a watch |
+| C-22 | Backend and person-level authorisation review | integration tested | #51 · REMEDIATION E1 (D-076) |
+| C-23 | Accessibility and interface consistency | unit tested | Automated accessibility checks from round 4; #54 · C5 (dark-mode and high-contrast colour review, measured). A screen-reader pass on real devices: **needs external** |
+| C-24 | Full-system outage and recovery tests | integration tested | #51 · REMEDIATION E2–E5 |
 
 ## D. The software platform
 

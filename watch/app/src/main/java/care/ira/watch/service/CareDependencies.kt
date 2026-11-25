@@ -116,6 +116,10 @@ class CareDependencies private constructor(context: Context) {
         return DeviceState(battery, lastOnWrist, sensors.backgroundPermissionGranted(), BuildConfig.VERSION_NAME)
     }
 
+    /** The wearer confirmed unpairing (see pairing/Unpairing): the server first, then the watch. */
+    fun unpairWatch(): care.ira.watch.pairing.Unpairing.Result =
+        care.ira.watch.pairing.Unpairer({ api.unpair() }) { onUnauthorised() }.unpair()
+
     fun onUnauthorised() {
         pairing.clear()
         status.value = status.value.copy(paired = false)
