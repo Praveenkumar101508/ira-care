@@ -530,8 +530,13 @@
    "title": "DPIA updated to cover the platform speech recognisers",
    "area": "external",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/compliance/DPIA.md"
+    }
+   ]
   },
   {
    "id": "C-14.a",
@@ -819,12 +824,8 @@
    "title": "System-wide security review of the integrated stack (threat model, secrets, dependencies, transport)",
    "area": "software",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
-    {
-     "kind": "docs_only",
-     "ref": "docs/security/REVIEW.md"
-    },
     {
      "kind": "unit_test",
      "ref": "supracloud-jarvis/ira/tests/care/test_care_public_rate_limits.py"
@@ -832,6 +833,18 @@
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/security_headers.test.ts"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_threat_model_traceability.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/security/REVIEW.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/security/THREAT_MODEL.md"
     }
    ]
   },
@@ -3048,8 +3061,17 @@
    "title": "Hosting proposal and cost model",
    "area": "external",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/ops/HOSTING_PROPOSAL.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_hosting_cost.py"
+    }
+   ]
   },
   {
    "id": "G4.c",
@@ -3117,8 +3139,13 @@
    "title": "Sensor evaluation plan (bench method, reference instruments, pass criteria)",
    "area": "hardware",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/hardware/SENSOR_EVALUATION_PLAN.md"
+    }
+   ]
   },
   {
    "id": "H1–H4.d",
@@ -3126,8 +3153,13 @@
    "title": "Qualcomm engagement document",
    "area": "external",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/hardware/QUALCOMM_ENGAGEMENT.md"
+    }
+   ]
   },
   {
    "id": "H1–H4.e",
@@ -3135,8 +3167,13 @@
    "title": "ODM specification",
    "area": "hardware",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/hardware/ODM_SPECIFICATION.md"
+    }
+   ]
   },
   {
    "id": "H1–H4.f",
@@ -3144,8 +3181,12 @@
    "title": "EVT / DVT / PVT roadmap with exit criteria",
    "area": "hardware",
    "hardware_independent": true,
-   "state": "not_started",
+   "state": "implemented",
    "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/hardware/EVT_DVT_PVT_ROADMAP.md"
+    },
     {
      "kind": "docs_only",
      "ref": "docs/hardware/BLUEPRINT.md"
@@ -3266,8 +3307,17 @@
    "title": "Pilot protocol",
    "area": "external",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/compliance/PILOT_PROTOCOL.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_document_references.py"
+    }
+   ]
   },
   {
    "id": "I.f",
@@ -3321,8 +3371,18 @@
    "title": "Compliance documents updated against current MHRA and ICO guidance",
    "area": "external",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/compliance/INTENDED_PURPOSE.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/compliance/MHRA_ADVISER_QUESTIONS.md"
+    }
+   ],
+   "blocked_by": "the ICO's guidance pages (ico.org.uk, refused by the build environment's network) read by the operator's data protection officer; the MHRA half is done (read on gov.uk on 2026-11-25)"
   },
   {
    "id": "I.j",
@@ -3593,8 +3653,13 @@
    "title": "Endorsement evidence pack assembled, every claim linked to its evidence",
    "area": "external",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/ENDORSEMENT_PACK.md"
+    }
+   ]
   },
   {
    "id": "L.b",
@@ -3602,8 +3667,13 @@
    "title": "GO / NO-GO decision recorded per area with its evidence",
    "area": "external",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/progress/GO_NO_GO.md"
+    }
+   ]
   },
   {
    "id": "L.c",

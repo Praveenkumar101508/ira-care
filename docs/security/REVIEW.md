@@ -5,6 +5,9 @@ Scope: the care backend (`supracloud-jarvis/ira`: `care`, `core`, `api`, `auth`,
 an engineering review, not a penetration test or an external audit: those still need a
 qualified third party (register C-22).
 
+The threat model that completes this review's scope, STRIDE per component with every control
+tied to its code and test, is `THREAT_MODEL.md` (25 November 2026).
+
 ## What was run
 
 | Check | Tool | Result |

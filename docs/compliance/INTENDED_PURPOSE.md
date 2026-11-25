@@ -58,6 +58,57 @@ device definition or bring it within it (see `MHRA_ADVISER_QUESTIONS.md`).
 
 ## Where the behaviour is specified and tested
 
-`docs/PRODUCT_SPEC.md` (the specification), `docs/DECISIONS.md` (every decision, D-001 to
-D-047), `docs/progress/STATUS.md` (what was measured), and the test suites named in the
+`docs/PRODUCT_SPEC.md` (the specification), `docs/DECISIONS.md` (every decision, D-001
+onwards), `docs/progress/STATUS.md` (what was measured), and the test suites named in the
 hazard log (`CLINICAL_SAFETY_CASE.md`).
+
+## Checked against current MHRA guidance (read 25 November 2026)
+
+Read at their source on gov.uk on 25 November 2026, through the GOV.UK content API:
+
+- "Crafting an intended purpose in the context of Software as a Medical Device (SaMD)",
+  MHRA, published 22 March 2023 (no later update);
+- "Medical devices: software and artificial intelligence (AI)", MHRA, updated 3 February 2025;
+- "Regulating medical devices in the UK", MHRA, updated 20 February 2026;
+- "Medical devices: software applications (apps)", MHRA, updated 1 July 2023 (the PDF guidance
+  itself was listed, not read in full).
+
+What they change for this statement:
+
+1. **The four elements.** The MHRA guidance breaks an intended purpose into the structure and
+   function of the device (inputs, outputs, the user's actions, and its place in the care
+   workflow), the intended population, the intended user and the use environment. The statement
+   above covers function, users and environment. It did not name the population precisely or
+   say who it is **not** for; the guidance says that without contraindicated populations "the
+   widest application will be assumed". Added below.
+2. **Software in a device, not only software.** The guidance is written for standalone software
+   (SaMD) and says it "has not been specifically drafted for products with hardware components";
+   its principles may still help. IRA CARE today runs on consumer watches (software), but the
+   IRA watch in `docs/hardware/` would make it software in a device. The adviser question on this
+   is added to `MHRA_ADVISER_QUESTIONS.md`.
+3. **Machine learning in the alerting path.** Since D-080 (fall model v3) a trained model decides
+   which impacts become a "did you fall?" question on release builds. The MHRA page on software and
+   AI points to the joint MHRA, FDA and Health Canada guiding principles for good machine learning
+   practice, for predetermined change control plans and for transparency. If the product is a
+   device, these apply to the fall model; `docs/ai/fall/MODEL_CARD_V3.md` is the starting record.
+4. **Post-market surveillance.** "Regulating medical devices in the UK" states that strengthened
+   post-market surveillance requirements for devices in Great Britain came into force on
+   16 June 2025, and that every device must be registered with the MHRA before it is placed on
+   the market. If the adviser finds the product is a device, `INCIDENT_PROCESS.md` must be
+   reviewed against those requirements and the SaMD vigilance guidance (not read here).
+
+### Intended population, and who it is not for
+
+- **For:** adults living alone or spending long periods alone, able to wear a watch and to
+  answer a short spoken or on-screen question, whose family or carers have agreed to receive
+  alerts.
+- **Not for, and the product must say so:**
+  - anyone for whom a missed or late alert would be dangerous without another safeguard in place:
+    the service can miss falls and can be down;
+  - people who need continuous clinical monitoring of heart rhythm or any vital sign: it
+    measures no ECG, oxygen or blood pressure (`care/capabilities.py`);
+  - people who cannot consent and have no one with authority to consent for them;
+  - use as the only means of summoning emergency help: it never dials emergency services.
+
+Nothing in this section is a regulatory conclusion. Whether IRA CARE is a medical device stays a
+question for a qualified adviser.
