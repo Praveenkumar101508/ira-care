@@ -257,6 +257,17 @@ async def circle_role_of(conn, person_id: uuid.UUID, user_id: uuid.UUID) -> Opti
         "ORDER BY tier, priority LIMIT 1", person_id, user_id)
 
 
+async def is_wearer(conn, person_id: uuid.UUID, user_id: Optional[uuid.UUID]) -> bool:
+    """True only for an ACTIVE member of this person's own circle whose
+    relationship is 'self'. Never inferred from a workspace role or the app's
+    wearer experience."""
+    if user_id is None:
+        return False
+    return bool(await conn.fetchval(
+        "SELECT 1 FROM care_circle_members WHERE person_id = $1 AND user_id = $2 AND active "
+        "AND lower(btrim(relationship)) = 'self' LIMIT 1", person_id, user_id))
+
+
 # ── Safety settings ──────────────────────────────────────────────────────────
 
 async def get_settings(principal: Principal, person_id: uuid.UUID) -> Optional[dict]:
@@ -723,21 +734,77 @@ async def delete_medication(principal: Principal, medication_id: uuid.UUID) -> b
         return (await conn.execute("DELETE FROM care_medications WHERE id = $1", medication_id)).endswith(" 1")
 
 
+#: A dose already written down as one of these is never replaced by a later,
+#: different record without a correction history (which needs its own
+#: migration, see docs/progress/REMEDIATION.md, A3). Until then a different
+#: record for the same dose is refused, never silently written over.
+SETTLED_DOSE_STATUSES = ("taken", "skipped")
+
+
+class DoseConflict(Exception):
+    """A different record already exists for this dose."""
+
+    def __init__(self, existing: dict):
+        super().__init__("A different record already exists for this dose.")
+        self.existing = existing
+
+
+async def write_medication_event(conn, *, medication_id, person_id, due_at, status: str, via: str,
+                                 checkin_id=None) -> dict:
+    """The one place a dose is written. Inserts, or fills in a dose that is
+    still open (due, unknown, missed). A dose already settled as taken or
+    skipped is left alone: the same record again is a no-op, a different one
+    raises DoseConflict. Row-locked, so two confirmations at once cannot both win."""
+    row = await conn.fetchrow(
+        """
+        INSERT INTO care_medication_events (medication_id, person_id, checkin_id, due_at, status, confirmed_via)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT (medication_id, due_at) DO NOTHING
+        RETURNING *
+        """, medication_id, person_id, checkin_id, due_at, status, via)
+    if row is not None:
+        return dict(row)
+    existing = dict(await conn.fetchrow(
+        "SELECT * FROM care_medication_events WHERE medication_id = $1 AND due_at = $2 FOR UPDATE",
+        medication_id, due_at))
+    if existing["status"] == status and existing["confirmed_via"] == via:
+        return existing
+    if existing["status"] in SETTLED_DOSE_STATUSES:
+        raise DoseConflict(existing)
+    return dict(await conn.fetchrow(
+        "UPDATE care_medication_events SET status = $2, confirmed_via = $3, checkin_id = COALESCE($4, checkin_id), "
+        "recorded_at = NOW() WHERE id = $1 RETURNING *", existing["id"], status, via, checkin_id))
+
+
+async def provenance_of(conn, principal: Principal, person_id: uuid.UUID) -> str:
+    """Who is recording a dose, from the VERIFIED caller, never from the request:
+    the person themself ('checkin': a self-report), family, or a carer. A
+    workspace admin or owner outside the circle records as 'carer'. 'device'
+    (observed by a device) is never available to a person's account."""
+    rows = await conn.fetch(
+        "SELECT role, relationship FROM care_circle_members WHERE person_id = $1 AND user_id = $2 AND active",
+        person_id, principal.user_id)
+    if any(str(r["relationship"]).strip().lower() == "self" for r in rows):
+        return "checkin"
+    if any(r["role"] == "family" for r in rows):
+        return "family"
+    return "carer"
+
+
 async def record_medication_event(principal: Principal, person_id: uuid.UUID, body: dict) -> Optional[dict]:
+    """A dose recorded by a signed-in member. `confirmed_via` is derived from the
+    caller; whatever the request said is ignored. Raises DoseConflict when a
+    different record already settles that dose."""
     async with workspace_connection(principal) as conn:
-        if not await conn.fetchval(
-                "SELECT 1 FROM care_medications WHERE id = $1 AND person_id = $2",
-                body["medication_id"], person_id):
-            return None
-        return _d(await conn.fetchrow(
-            """
-            INSERT INTO care_medication_events (medication_id, person_id, due_at, status, confirmed_via)
-            VALUES ($1, $2, $3, $4, $5)
-            ON CONFLICT (medication_id, due_at) DO UPDATE
-               SET status = EXCLUDED.status, confirmed_via = EXCLUDED.confirmed_via, recorded_at = NOW()
-            RETURNING *
-            """, body["medication_id"], person_id, body["due_at"], body["status"],
-            body.get("confirmed_via", "carer")))
+        async with conn.transaction():
+            if not await conn.fetchval(
+                    "SELECT 1 FROM care_medications WHERE id = $1 AND person_id = $2",
+                    body["medication_id"], person_id):
+                return None
+            via = await provenance_of(conn, principal, person_id)
+            return _d(await write_medication_event(
+                conn, medication_id=body["medication_id"], person_id=person_id, due_at=body["due_at"],
+                status=body["status"], via=via))
 
 
 async def list_medication_events(conn, person_id: uuid.UUID, *, limit: int) -> list[dict]:

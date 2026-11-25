@@ -6,7 +6,7 @@ import { ApiError, CareClient } from './api/client';
 import type { Alert, CircleMember, ConsentList, Person, PersonStatus, Reminder, Visit, Workspace } from './api/types';
 import { ThemeProvider } from './appearance/ThemeContext';
 import { DEFAULT_APPEARANCE, normaliseAppearance, type Appearance } from './appearance/theme';
-import { alertBadge, pickPerson, type Experience, type Membership, type Tab } from './model/experience';
+import { alertBadge, isWearerOf, pickPerson, type Experience, type Membership, type Tab } from './model/experience';
 import { registerForPush } from './push';
 import { AlertsScreen } from './screens/AlertsScreen';
 import { JoinScreen } from './screens/JoinScreen';
@@ -151,7 +151,7 @@ export default function App() {
       [{ text: 'Not now', style: 'cancel' }, { text: 'Yes, get help', style: 'destructive', onPress: () => { void act(() => c.phoneHelp(person.id)); setTab('alerts'); } }]);
   };
 
-  const body = overlay?.name === 'talk' && person ? (
+  const body = overlay?.name === 'talk' && person && isWearerOf(memberships, person.id) ? (
     <TalkScreen person={person} onSend={(t) => c.talk(person.id, t)} onBack={() => setOverlay(null)} />
   ) : overlay?.name === 'pair' && person ? (
     <PairWatchScreen client={c} person={person} onBack={() => { setOverlay(null); void refreshPerson(); }} />
@@ -165,7 +165,7 @@ export default function App() {
   ) : tab === 'care' ? (
     person ? (
       <PersonScreen key={person.id} client={c} person={person} canManage={canManage} onBack={() => setTab('home')}
-        onTalk={() => setOverlay({ name: 'talk' })} onPair={canManage ? () => setOverlay({ name: 'pair' }) : undefined} />
+        onTalk={isWearerOf(memberships, person.id) ? () => setOverlay({ name: 'talk' }) : undefined} onPair={canManage ? () => setOverlay({ name: 'pair' }) : undefined} />
     ) : <HomeTab d={{ experience, memberships, people, alerts, visits: [], reminders: [], cardOrder: [], error: 'No one is set up yet. A carer adds people from the dashboard.' }}
       a={{ onHelp: () => {}, onTalk: () => {}, onAlerts: () => setTab('alerts'), onCare: () => {}, onSettings: () => setTab('settings'), onSwitchPerson: switchPerson, onOnMyWay: () => {}, onArrive: () => {}, onDepart: () => {}, onReminder: () => {} }} />
   ) : tab === 'alerts' ? (

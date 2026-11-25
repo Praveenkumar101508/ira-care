@@ -5,8 +5,11 @@ suspected fall, no movement after the usual wake time), IRA does not go
 straight to the SOS chain. The watch vibrates and asks "Are you OK?" with big
 "I'm OK" and "Help" buttons and speech:
 
-  * "I'm OK" (button or words): the alert is resolved as answered OK, and the
-    daily report lists it under safety checks;
+  * "I'm OK" (the button, or an unambiguous spoken OK with no sign of
+    trouble): the alert is resolved as answered OK, and the daily report lists
+    it under safety checks;
+  * an unclear answer ("maybe", "I don't know", silence, empty speech
+    recognition): nothing is resolved; the original deadline still stands;
   * "Help" (button or words): the alert opens at once and the chain runs;
   * no answer within `ask_first_wait_s` (60 by default): the alert opens and
     the chain runs.
@@ -65,9 +68,14 @@ async def start(conn, person: dict, settings: dict, obs: Observation, now: dt.da
     return out
 
 
-async def answered(conn, checkin: dict, *, ok: bool, now: dt.datetime, words: str = "") -> Optional[dict]:
-    """The safety question was answered. OK resolves the asking alert; help
-    opens it now. Returns the alert, or None if the check-in was not a safety one."""
+async def answered(conn, checkin: dict, *, outcome: str, now: dt.datetime, words: str = "") -> Optional[dict]:
+    """The safety question was answered. `outcome` is ok | help | unclear
+    (care/checkin_cycle._safety_outcome). OK resolves the asking alert; help
+    opens it now; unclear changes nothing that matters: the alert stays
+    `asking` with its ORIGINAL deadline (never restarted), and opens when that
+    passes. Returns the alert, or None if the check-in was not a safety one."""
+    if outcome not in ("ok", "help", "unclear"):
+        raise ValueError("outcome must be ok, help or unclear")
     alert = await conn.fetchrow(
         "SELECT * FROM care_alerts WHERE checkin_id = $1 AND status = 'asking'", checkin["id"])
     if alert is None:
@@ -75,7 +83,13 @@ async def answered(conn, checkin: dict, *, ok: bool, now: dt.datetime, words: st
     details = alert["details"]
     if isinstance(details, str):
         details = json.loads(details)
-    if ok:
+    if outcome == "unclear":
+        details["last_answer"] = "unclear"
+        row = await conn.fetchrow(
+            "UPDATE care_alerts SET details = $2::jsonb WHERE id = $1 AND status = 'asking' RETURNING *",
+            alert["id"], json.dumps(details))
+        return dict(row) if row else None
+    if outcome == "ok":
         details["outcome"] = "answered_ok"
         row = await conn.fetchrow(
             "UPDATE care_alerts SET status = 'resolved', resolved_at = $2, next_action_at = NULL, "

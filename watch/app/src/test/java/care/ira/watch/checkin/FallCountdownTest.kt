@@ -65,4 +65,29 @@ class FallCountdownVoiceTest {
         assertTrue(c.heard(null).isEmpty())
         assertEquals(30, c.secondsLeft)
     }
+
+    @Test
+    fun `a negative, a doubt or trouble never ends the countdown as OK`() {
+        for (words in listOf("I'm not OK", "I\u2019m not ok", "not fine", "I'm not okay at all", "I don't know",
+                             "maybe", "I can't remember", "I'm dizzy", "ok but my hip is sore", "no")) {
+            c.suspectedFall(3.0, 20, 30)
+            assertTrue(words, c.heard(words).isEmpty())
+            assertEquals(words, FallCountdown.State.Counting::class, c.state::class)
+            c.helpPressed()
+        }
+    }
+
+    @Test
+    fun `trouble with a yes in it asks for help`() {
+        c.suspectedFall(3.0, 20, 30)
+        assertEquals(listOf(FallCountdown.Action.RequestHelp), c.heard("Yes, but I can't get up"))
+    }
+
+    @Test
+    fun `a clear positive still ends it`() {
+        for (words in listOf("I'm OK", "yes I'm fine", "I'm all right", "okay", "yes", "no problem")) {
+            c.suspectedFall(3.0, 20, 30)
+            assertEquals(words, listOf(FallCountdown.Action.ReportFallOk), c.heard(words))
+        }
+    }
 }

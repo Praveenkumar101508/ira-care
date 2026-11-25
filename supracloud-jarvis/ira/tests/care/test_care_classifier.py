@@ -49,11 +49,12 @@ def test_the_classifier_can_add_a_help_signal_but_never_remove_one():
     assert kept.reading.asked_for_help
 
 
-def test_the_classifier_can_say_poor_or_no_but_not_turn_a_no_into_a_yes():
+def test_the_classifier_can_say_poor_or_no_but_never_turn_a_dose_answer_into_a_yes():
     kw = rules.summarise_answer("medication", "mm", subject="the tablets")
     assert kw.said == "unclear"
     r = conv.merge(kw, None, "mm", "medication", clf().read("I'm fine"))      # classifier reads "yes"
-    assert r.reading.said == "yes"
+    # Remediation A2: an unclear dose answer stays unclear whatever the classifier says.
+    assert r.reading.said == "unclear" and r.structured.medication_taken == "unknown"
     kw_no = rules.summarise_answer("medication", "not yet", subject="the tablets")
     r = conv.merge(kw_no, None, "not yet", "medication", clf().read("I'm fine"))
     assert r.reading.said == "no", "a clear no from the rules is never overturned"

@@ -26,6 +26,13 @@ export type Tab = (typeof TABS)[number];
 export const TAB_WORDS: Record<Tab, string> = { home: 'Home', care: 'Care', alerts: 'Alerts', settings: 'Settings' };
 
 /** The person this account starts on: the remembered one if still there, else the first they belong to. */
+/** True only when the signed-in account is this person themself (relationship 'self'
+ *  in their own circle). Only they may talk to IRA as the person; the server refuses
+ *  everybody else, so nobody else is offered the button. */
+export function isWearerOf(memberships: Membership[], personId: string | undefined): boolean {
+  return !!personId && memberships.some((m) => m.person_id === personId && m.relationship.trim().toLowerCase() === 'self');
+}
+
 export function pickPerson(people: Person[], memberships: Membership[], remembered: string | null | undefined): Person | undefined {
   const mine = new Set(memberships.map((m) => m.person_id));
   const candidates = people.filter((p) => mine.size === 0 || mine.has(p.id));

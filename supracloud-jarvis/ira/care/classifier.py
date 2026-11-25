@@ -125,7 +125,7 @@ def configured() -> Optional[Classifier]:
         _instance = Classifier(OnnxEncoder(directory), Heads.load())
         logger.info("care classifier on: %s from %s", _instance.heads.encoder, directory)
     except Exception as exc:  # noqa: BLE001 - the rules and the model still run
-        logger.warning("care classifier unavailable (%s): the keyword rules and the model carry on", exc)
+        logger.warning("care classifier unavailable (%s): the keyword rules and the model carry on", type(exc).__name__)
         _instance = None
     return _instance
 

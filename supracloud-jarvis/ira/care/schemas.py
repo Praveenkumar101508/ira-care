@@ -539,6 +539,8 @@ class MedicationEventRecord(BaseModel):
     medication_id: uuid.UUID
     due_at: dt.datetime
     status: str
+    #: Accepted for compatibility and IGNORED: who recorded a dose is derived from the
+    #: signed-in caller (care/repository.provenance_of), never from the request.
     confirmed_via: str = Field("carer", pattern=r"^(checkin|family|carer|device|none)$")
 
     @field_validator("status")

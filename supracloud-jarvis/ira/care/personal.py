@@ -228,14 +228,18 @@ async def act_on_reminder(principal: Principal, reminder_id: uuid.UUID, action: 
             return None
         if row["status"] in ("confirmed", "skipped", "cancelled", "missed"):
             return _public(row)
+        # Who confirmed is read from the verified caller, never assumed: the
+        # person themself, family, or a carer (care/repository.provenance_of).
+        from . import repository as repo
+        via = await repo.provenance_of(conn, principal, row["person_id"])
         if action == "confirm":
-            row = await _finish(conn, dict(row), "confirmed", now, via="family")
+            row = await _finish(conn, dict(row), "confirmed", now, via=via)
         elif action == "snooze":
             row = await conn.fetchrow(
                 "UPDATE care_reminders SET status = 'snoozed', snoozed_until = $2, updated_at = NOW() WHERE id = $1 RETURNING *",
                 reminder_id, now + dt.timedelta(minutes=max(1, min(minutes, 240))))
         elif action == "skip":
-            row = await _finish(conn, dict(row), "skipped", now, via="family")
+            row = await _finish(conn, dict(row), "skipped", now, via=via)
         elif action == "cancel":
             row = await conn.fetchrow(
                 "UPDATE care_reminders SET status = 'cancelled', done_at = $2, updated_at = NOW() WHERE id = $1 RETURNING *",
@@ -250,15 +254,17 @@ async def _finish(conn, reminder: dict, status: str, now: dt.datetime, *, via: s
         "UPDATE care_reminders SET status = $2, done_at = $3, updated_at = NOW() WHERE id = $1 RETURNING *",
         reminder["id"], status, now)
     if reminder["kind"] == "medication" and reminder.get("medication_id") and status in ("confirmed", "skipped"):
-        await conn.execute(
-            """
-            INSERT INTO care_medication_events (medication_id, person_id, checkin_id, due_at, status, confirmed_via)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            ON CONFLICT (medication_id, due_at) DO UPDATE
-               SET status = EXCLUDED.status, confirmed_via = EXCLUDED.confirmed_via, checkin_id = EXCLUDED.checkin_id,
-                   recorded_at = NOW()
-            """, reminder["medication_id"], reminder["person_id"], checkin_id, reminder["due_at"],
-            "taken" if status == "confirmed" else "skipped", via)
+        # The dose is the reminder's own medication and due time: bound when the
+        # reminder was made, never guessed from words or the nearest schedule.
+        from . import repository as repo
+        try:
+            await repo.write_medication_event(
+                conn, medication_id=reminder["medication_id"], person_id=reminder["person_id"],
+                due_at=reminder["due_at"], status="taken" if status == "confirmed" else "skipped",
+                via=via, checkin_id=checkin_id)
+        except repo.DoseConflict:
+            # Already settled differently by someone else: left as it is, never overwritten.
+            logger.warning("care reminder %s: dose already recorded differently; not overwritten", reminder["id"])
     return dict(row)
 
 
@@ -328,8 +334,17 @@ _SKIP = re.compile(r"\b(not today|skip( it)?|no thank|don'?t need|won'?t|leave i
 _YES = re.compile(r"\b(yes|yeah|yep|yes please|i have|i did|i will|taken|took|done|all done|just now|ok|okay|tick it|that'?s right|correct|right)\b", re.I)
 
 
-def read_reminder_answer(text: str) -> str:
-    """yes | later | skip | unclear, from the person's words."""
+def read_reminder_answer(text: str, kind: str = "medication", *, subject: Optional[str] = None,
+                         other_medications: tuple = ()) -> str:
+    """yes | later | skip | unclear, from the person's words.
+
+    A medication reminder is read by the one conservative dose reader
+    (`checkins.read_dose_answer`): "okay", "I will", "I think so" are never a
+    dose. Other reminders ("ring Sravani", a drink of water) keep the plainer
+    reading, where "okay" or "I will" is a fair answer. The default is the
+    medication reading, so a caller that forgets the kind is safe, not lax."""
+    if kind == "medication":
+        return rules.read_dose_answer(text, subject=subject, other_medications=other_medications)
     t = (text or "").strip().lower()
     if not t:
         return "unclear"
@@ -350,7 +365,12 @@ async def apply_answer(conn, checkin: dict, text: str, now: dt.datetime) -> Opti
     if reminder is None:
         return None
     reminder = dict(reminder)
-    said = read_reminder_answer(text)
+    subject, others = None, ()
+    if reminder["kind"] == "medication":
+        meds = await conn.fetch("SELECT id, name FROM care_medications WHERE person_id = $1 AND active", reminder["person_id"])
+        subject = next((m["name"] for m in meds if reminder.get("medication_id") and m["id"] == reminder["medication_id"]), None)
+        others = tuple(m["name"] for m in meds)
+    said = read_reminder_answer(text, reminder["kind"], subject=subject or reminder.get("text"), other_medications=others)
     if reminder["status"] in ("confirmed", "skipped", "cancelled", "missed"):
         return {"reminder": _public(reminder), "said": said, "next": "nothing"}
     nxt = "nothing"

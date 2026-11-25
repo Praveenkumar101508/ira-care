@@ -423,7 +423,7 @@ async def deliver(conn, principal: Principal, report: dict, *, push_provider=Non
         else:
             channels = ["app"]   # readable in the app and on the dashboard; nobody had a phone registered
     except Exception as exc:  # noqa: BLE001
-        logger.warning("care report delivery failed: %s", exc)
+        logger.warning("care report delivery failed: %s", type(exc).__name__)
         channels = ["failed"]
     await conn.execute("UPDATE care_reports SET delivered_channels = $2 WHERE id = $1", report["id"], channels)
     return channels

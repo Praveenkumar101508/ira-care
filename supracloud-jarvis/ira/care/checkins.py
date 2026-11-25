@@ -237,6 +237,150 @@ _GOOD = re.compile(r"\b(good|fine|well|great|ok|okay|lovely|happy|better|not bad
 _HELP = re.compile(r"\b(help|emergency|ambulance|can'?t get up|cant get up)\b")
 
 
+# ── Reading an answer about a dose: conservative by design ───────────────────
+#
+# One reader for every path that can write a dose down (the scheduled
+# check-in, a reminder's two-step confirmation). It returns
+#
+#     yes      an unambiguous confirmation that THIS dose was taken
+#     later    not taken yet: negated, forgotten, or an intention to take it
+#     skip     the person is not taking it today
+#     unclear  anything else: doubt, another time, another medicine, a bare
+#              "okay", a contradiction, silence
+#
+# Only "yes" may ever become a taken dose. Doubt always wins over confidence,
+# and nothing a language model or a classifier says can turn an answer this
+# reader did not call "yes" into one (care/conversation.merge).
+
+DOSE_ANSWERS = ("yes", "later", "skip", "unclear")
+
+_APOSTROPHES = str.maketrans({"\u2019": "'", "\u2018": "'", "\u02bc": "'", "`": "'", "\u00b4": "'"})
+_CONTRACTIONS = (
+    (r"\bhaven'?t\b", "have not"), (r"\bhasn'?t\b", "has not"), (r"\bhadn'?t\b", "had not"),
+    (r"\bdidn'?t\b", "did not"), (r"\bdon'?t\b", "do not"), (r"\bdoesn'?t\b", "does not"),
+    (r"\bwon'?t\b", "will not"), (r"\bcan'?t\b", "cannot"), (r"\bcan not\b", "cannot"),
+    (r"\bwasn'?t\b", "was not"), (r"\bisn'?t\b", "is not"), (r"\baren'?t\b", "are not"),
+    (r"\bshouldn'?t\b", "should not"), (r"\bcouldn'?t\b", "could not"), (r"\bwouldn'?t\b", "would not"),
+    (r"\bi'll\b", "i will"), (r"\bi'?ve\b", "i have"), (r"\bi'?m\b", "i am"), (r"\bi'd\b", "i would"),
+    (r"\bit'?s\b", "it is"), (r"\bthat'?s\b", "that is"), (r"\bthey'?re\b", "they are"),
+    (r"\bgonna\b", "going to"), (r"\bgotta\b", "got to"),
+)
+
+
+def normalise_answer(text: str) -> str:
+    """Lower case, plain apostrophes, contractions spelled out, punctuation gone."""
+    t = (text or "").translate(_APOSTROPHES).lower()
+    for pattern, repl in _CONTRACTIONS:
+        t = re.sub(pattern, repl, t)
+    t = re.sub(r"[^a-z0-9' ]+", " ", t)
+    t = t.replace("'", "")
+    return re.sub(r"\s+", " ", t).strip()
+
+
+_DOSE_UNSURE = re.compile(
+    r"\b(think|thought|maybe|probably|might|may have|could have|perhaps|possibly|not sure|unsure|"
+    r"cannot remember|do not remember|did not remember|can not recall|cannot recall|do not recall|"
+    r"no idea|do not know|dont know|i guess|i suppose|i believe|reckon|not certain|confused|"
+    r"supposed to|should have|meant to)\b")
+_DOSE_SKIP = re.compile(
+    r"\b(not today|skip|skipping|skipped|no thanks?|no thank you|do not need|do not want|"
+    r"will not|not taking|not going to take|refuse|leave it|forget it|not having)\b")
+_DOSE_LATER = re.compile(
+    r"\b(not yet|have not|has not|had not|did not|not taken|not took|never took|forgot|forgotten|"
+    r"will|going to|about to|later|not now|in a (bit|minute|while|moment|second)|soon|"
+    r"after (my |the )?(lunch|breakfast|dinner|tea|supper|meal|food)|ask me again|remind me|snooze|"
+    r"in (five|ten|twenty|5|10|20) minutes|when i|once i|yet to|still need|need to take)\b")
+_DOSE_OTHER = re.compile(
+    r"\b(yesterday|last night|last week|the day before|other day|tomorrow|earlier this week|"
+    r"different|another|other|wrong|someone elses|instead|extra|double|twice|two|three|four|two lots)\b")
+_DOSE_NEG = re.compile(r"\b(no|not|never|nope|nah)\b")
+_DOSE_BARE_NO = re.compile(r"^(no|nope|nah|no no|no no no|no sorry|sorry no|no i am afraid)$")
+_DOSE_YES = re.compile(
+    r"\b(yes|yeah|yep|yup|aye|i have|i did|i took|took (it|them|that|those|mine|my)|taken|have had|"
+    r"had (it|them|mine|my)|already|all done|done that|just now|that is right|that is correct|correct)\b")
+
+
+def read_dose_answer(text: str, *, subject: Optional[str] = None,
+                     other_medications: Sequence[str] = ()) -> str:
+    """yes | later | skip | unclear for "Have you taken your X?". Conservative:
+    when in doubt the answer is never "yes"."""
+    t = normalise_answer(text)
+    if not t:
+        return "unclear"
+    if _DOSE_UNSURE.search(t):
+        return "unclear"
+    if _DOSE_SKIP.search(t):
+        return "skip"
+    if _DOSE_LATER.search(t):
+        return "later"
+    if _DOSE_OTHER.search(t):
+        return "unclear"
+    own = normalise_answer(subject or "")
+    for name in other_medications:
+        other = normalise_answer(name)
+        if other and other != own and other not in own and re.search(rf"\b{re.escape(other)}\b", t):
+            return "unclear"  # the answer names a different medicine
+    if _DOSE_BARE_NO.match(t):
+        return "skip"
+    if _DOSE_NEG.search(t):
+        return "unclear"  # a negative we cannot place: never a confirmation
+    if _DOSE_YES.search(t):
+        return "yes"
+    return "unclear"
+
+
+def dose_said(dose: str) -> str:
+    """The yes/no/unclear a summary uses, from a dose answer."""
+    return {"yes": "yes", "later": "no", "skip": "no"}.get(dose, "unclear")
+
+
+# ── The safety question: "Are you OK?" ───────────────────────────────────────
+#
+# Three outcomes, never two: "ok" only for an unambiguous positive with no
+# sign of trouble; "help" for any request, distress or negative; "unclear" for
+# everything else, which keeps the safety deadline running. The absence of a
+# request for help is NOT an answer that the person is safe.
+
+SAFETY_ANSWERS = ("ok", "help", "unclear")
+
+_SAFE_DISTRESS = re.compile(
+    r"\b(help|emergency|ambulance|hurt|hurts|hurting|pain|ache|aching|sore|dizzy|faint|fainted|fell|fall|fallen|"
+    r"floor|ground|cannot|can not|unable|stuck|bleeding|breathe|breathing|chest|sick|unwell|poorly|ill|"
+    r"wobbly|shaky|confused|scared|frightened|weak|numb|bad|awful|terrible|wrong)\b")
+_SAFE_DOUBT = re.compile(r"\b(maybe|think|not sure|do not know|dont know|i guess|perhaps|probably|kind of|sort of|"
+                         r"a bit|bit|little|but|except|although|apart from|remember)\b")
+_SAFE_NEG = re.compile(r"\b(no|not|never|nope|nah)\b")
+_SAFE_OK = re.compile(
+    r"^(yes |yeah |yep )?(i am |im |i am all |am )?(ok|okay|fine|alright|all right|good|well|grand)"
+    r"( thanks| thank you| thank you ira| ira| really| now| honestly)*$"
+    r"|^(yes|yeah|yep)( i am| im)?( ok| okay| fine| alright| all right)?( thanks| thank you)?$"
+    r"|^(i am |im )?(perfectly |absolutely |quite )?(ok|okay|fine|alright|all right)( thanks| thank you)?$"
+    r"|^(no )?(i do not need|do not need) (any )?help( thanks| thank you)?$")
+
+
+def read_safety_answer(text: str) -> str:
+    """ok | help | unclear for a spoken answer to "are you OK?". Only a short,
+    unambiguous positive is "ok"; "yes, but I cannot get up" is help."""
+    t = normalise_answer(text)
+    if not t:
+        return "unclear"
+    if re.fullmatch(r"(no )?(i do not need|do not need) (any )?help( thanks| thank you)?", t):
+        return "ok"
+    if re.search(r"\b(cannot|do not|can not) (remember|recall)\b", t):
+        t = re.sub(r"\b(cannot|do not|can not) (remember|recall)\b", "remember", t)
+    if _SAFE_DISTRESS.search(t):
+        return "help"
+    if _SAFE_DOUBT.search(t):
+        return "unclear"
+    if _SAFE_NEG.search(t):
+        # "I'm not OK", "not fine", "no": never reassurance. A plain negative
+        # to "are you OK?" is treated as a call for help.
+        return "help"
+    if _SAFE_OK.fullmatch(t):
+        return "ok"
+    return "unclear"
+
+
 @dataclass(frozen=True)
 class AnswerReading:
     summary: str
@@ -246,9 +390,12 @@ class AnswerReading:
     signals: tuple[str, ...] = field(default_factory=tuple)
     #: The person asked for help in words
     asked_for_help: bool = False
+    #: For a medication question: yes | later | skip | unclear (read_dose_answer)
+    dose: str = ""
 
 
-def summarise_answer(kind: str, text: str, *, subject: Optional[str] = None) -> AnswerReading:
+def summarise_answer(kind: str, text: str, *, subject: Optional[str] = None,
+                     other_medications: Sequence[str] = ()) -> AnswerReading:
     raw = (text or "").strip()
     lowered = raw.lower()
     signals: list[str] = []
@@ -259,18 +406,18 @@ def summarise_answer(kind: str, text: str, *, subject: Optional[str] = None) -> 
     if _HELP.search(lowered):
         signals.append("asked for help")
     said = ""
-    if kind in ("meal", "medication"):
+    dose = ""
+    if kind == "meal":
         yes, no = bool(_YES.search(lowered)), bool(_NO.search(lowered))
         said = "yes" if yes and not no else "no" if no and not yes else "unclear"
+    elif kind == "medication":
+        dose = read_dose_answer(raw, subject=subject, other_medications=other_medications)
+        said = dose_said(dose)
     if not raw:
-        return AnswerReading(summary="No answer.", said=said or "", signals=tuple(signals))
+        return AnswerReading(summary="No answer.", said=said or "", signals=tuple(signals), dose=dose)
     what = subject or ("a meal" if kind == "meal" else "medication")
-    if kind == "medication":
-        base = {"yes": f"Said they had taken {what}.", "no": f"Said they had not taken {what} yet.",
-                "unclear": f"Answer about {what} was unclear."}[said]
-    elif kind == "meal":
-        base = {"yes": "Said they had eaten.", "no": "Said they had not eaten yet.",
-                "unclear": "Answer about eating was unclear."}[said]
+    if kind in ("medication", "meal"):
+        base = yes_no_summary(kind, said, subject, dose=dose)
     elif _GOOD.search(lowered) and not signals:
         base = "Said they were doing well."
     else:
@@ -281,7 +428,18 @@ def summarise_answer(kind: str, text: str, *, subject: Optional[str] = None) -> 
                 }.get(kind, "Gave an answer.")
     summary = base if not signals else f"{base} ({'; '.join(signals)})"
     return AnswerReading(summary=summary[:400], said=said, signals=tuple(signals),
-                         asked_for_help=bool(_HELP.search(lowered)))
+                         asked_for_help=bool(_HELP.search(lowered)), dose=dose)
+
+
+def yes_no_summary(kind: str, said: str, subject: Optional[str] = None, *, dose: str = "") -> str:
+    """The one-line summary of a meal or dose answer, from the reading that decided it."""
+    if kind == "medication":
+        what = subject or "medication"
+        if said == "no" and dose == "skip":
+            return f"Said they were not taking {what} today."
+        return {"yes": f"Said they had taken {what}.", "no": f"Said they had not taken {what} yet.",
+                }.get(said, f"Answer about {what} was unclear.")
+    return {"yes": "Said they had eaten.", "no": "Said they had not eaten yet."}.get(said, "Answer about eating was unclear.")
 
 
 def missed_in_a_row(recent: Iterable[Mapping]) -> int:

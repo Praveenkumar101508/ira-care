@@ -27,6 +27,7 @@ from __future__ import annotations
 import datetime as dt
 import logging
 import random
+import re
 import uuid
 from dataclasses import dataclass, replace
 from typing import Optional
@@ -112,7 +113,7 @@ async def _heartbeat(job: str, outcome) -> None:
         async with get_pool().acquire() as conn:
             await ops.heartbeat(conn, job, outcome.__dict__ if hasattr(outcome, "__dict__") else None)
     except Exception as exc:  # noqa: BLE001
-        logger.warning("care %s: heartbeat not recorded (%s)", job, exc)
+        logger.warning("care %s: heartbeat not recorded (%s)", job, type(exc).__name__)
 
 
 async def run_workspace(principal: Principal, now: dt.datetime, outcome: Optional[CycleOutcome] = None,
@@ -143,7 +144,7 @@ async def _advance_person(conn, person, settings, now, outcome: CycleOutcome, rn
     try:
         outcome.reminders_asked += await personal.due_to_checkins(conn, dict(person), dict(settings), now)
     except Exception as exc:  # noqa: BLE001 - the ordinary schedule must still run
-        logger.exception("care reminders: could not turn due reminders into check-ins (%s)", exc)
+        logger.exception("care reminders: could not turn due reminders into check-ins (%s)", type(exc).__name__)
     open_rows = await conn.fetch(
         "SELECT * FROM care_checkins WHERE person_id = $1 AND status IN ('scheduled', 'asked', 'repeated') "
         "ORDER BY scheduled_at", person["id"])
@@ -371,7 +372,7 @@ async def _compose(conn, person: dict, choice: rules.QuestionChoice, template: s
         ctx = await talk.build_context(conn, person, now)
         return await conversation.compose_checkin(ctx, choice.kind, template, subject=choice.subject)
     except Exception as exc:  # noqa: BLE001 - the template is always there
-        logger.info("care check-ins: composing with the model failed (%s); template used", exc)
+        logger.info("care check-ins: composing with the model failed (%s); template used", type(exc).__name__)
         return template, "template"
 
 
@@ -401,16 +402,30 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
             return None
         subject = None
         med = None
+        others: tuple = ()
         if row["question_kind"] == "medication":
-            med = await _medication_asked_about(conn, person_id, row["question_text"])
+            meds = [dict(m) for m in await conn.fetch(
+                "SELECT * FROM care_medications WHERE person_id = $1 AND active", person_id)]
+            med = _medication_asked_about(meds, row["question_text"])
             subject = med["name"] if med else None
+            others = tuple(m["name"] for m in meds)
         from . import conversation
         merged = await conversation.read_answer(row["question_kind"], row["question_text"] or "", text, subject=subject,
                                                 language=(await conn.fetchval(
-                                                    "SELECT language FROM care_people WHERE id = $1", person_id)) or "en-GB")
+                                                    "SELECT language FROM care_people WHERE id = $1", person_id)) or "en-GB",
+                                                other_medications=others)
         reading = merged.reading
-        if row["question_kind"] == "safety" and not (text or "").strip():
-            reading = rules.AnswerReading(summary="Pressed I'm OK.", said="yes", signals=(), asked_for_help=False)
+        safety_outcome = None
+        if row["question_kind"] == "safety":
+            safety_outcome = _safety_outcome(text, via, merged)
+            summary = {"ok": "Pressed I'm OK." if via == "button" and not (text or "").strip() else "Said they were OK.",
+                       "help": "Asked for help, or said something that needs a check.",
+                       "unclear": "Answer to the safety check was unclear; the check stays open."}[safety_outcome]
+            if reading.signals:
+                summary = f"{summary} ({'; '.join(reading.signals)})"
+            reading = rules.AnswerReading(summary=summary[:400], said={"ok": "yes", "help": "no"}.get(safety_outcome, "unclear"),
+                                          signals=reading.signals,
+                                          asked_for_help=safety_outcome == "help" or reading.asked_for_help)
         reminder_result = None
         if row["reminder_id"] is not None:
             from . import personal
@@ -434,23 +449,30 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
                 person_id, checkin_id, text[:8000])
         # A reminder's check-in records its dose through the two-step confirmation in
         # `personal.apply_answer`, never through the schedule: one "yes" is not yet a dose.
-        if med is not None and reminder_result is None and reading.said in ("yes", "no"):
-            due = _nearest_due(now, med, rules.local_now(now, (await conn.fetchrow(
-                "SELECT timezone FROM care_people WHERE id = $1", person_id))["timezone"]).tzinfo)
+        # Only a clear "yes" (taken) or "not today" (skipped) is written, and only
+        # for a dose that is unambiguous: one medicine named by the question, one
+        # scheduled time near when it was asked, answered while still current.
+        # "Later", "I forgot" or anything unclear writes nothing: the dose stays
+        # open and is asked about again.
+        if med is not None and reminder_result is None and reading.dose in ("yes", "skip") \
+                and reading.said == dose_said_for(reading.dose):
+            tz = rules.local_now(now, await conn.fetchval(
+                "SELECT timezone FROM care_people WHERE id = $1", person_id) or "UTC").tzinfo
+            due = _bound_due(row.get("asked_at") or row["scheduled_at"], now, med, tz)
             if due is not None:
-                await conn.execute(
-                    """
-                    INSERT INTO care_medication_events (medication_id, person_id, checkin_id, due_at, status, confirmed_via)
-                    VALUES ($1, $2, $3, $4, $5, 'checkin')
-                    ON CONFLICT (medication_id, due_at) DO UPDATE
-                       SET status = EXCLUDED.status, confirmed_via = 'checkin', checkin_id = EXCLUDED.checkin_id,
-                           recorded_at = NOW()
-                    """, med["id"], person_id, checkin_id, due,
-                    "taken" if reading.said == "yes" else "missed")
+                from . import repository as repo
+                try:
+                    await repo.write_medication_event(
+                        conn, medication_id=med["id"], person_id=person_id, due_at=due,
+                        status="taken" if reading.dose == "yes" else "skipped", via="checkin", checkin_id=checkin_id)
+                except repo.DoseConflict:
+                    logger.warning("care check-in %s: dose already recorded differently; not overwritten", checkin_id)
     if row["question_kind"] == "safety":
         from . import askfirst
         async with workspace_connection(principal) as conn:
-            await askfirst.answered(conn, dict(row), ok=not reading.asked_for_help, now=now, words=text or "")
+            # Three outcomes, never two: the absence of a request for help is
+            # NOT an answer that the person is safe (see _safety_outcome).
+            await askfirst.answered(conn, dict(row), outcome=safety_outcome, now=now, words=text or "")
     elif merged.red_flag:
         # "I fell", "I can't breathe", "chest pain": ask first, then the chain (D-034).
         from . import talk
@@ -466,7 +488,7 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
             await talk.remember(conn, person_id, rules.local_now(now, tz).date(),
                                 [f"Check-in ({row['question_kind']}): {reading.summary}"])
     except Exception as exc:  # noqa: BLE001
-        logger.debug("care check-ins: conversation memory skipped (%s)", exc)
+        logger.debug("care check-ins: conversation memory skipped (%s)", type(exc).__name__)
     out = _public_checkin(dict(row))
     out.update({"answer_summary": reading.summary, "said": reading.said, "signals": list(reading.signals),
                 "asked_for_help": reading.asked_for_help, "structured": merged.structured.model_dump(),
@@ -484,28 +506,76 @@ async def _preferred_name(principal: Principal, person_id) -> str:
         return await conn.fetchval("SELECT coalesce(nullif(preferred_name, ''), display_name) FROM care_people WHERE id = $1", person_id) or "there"
 
 
-async def _medication_asked_about(conn, person_id, question_text: str):
-    meds = await conn.fetch("SELECT * FROM care_medications WHERE person_id = $1 AND active", person_id)
-    lowered = (question_text or "").lower()
-    for m in meds:
-        if m["name"].lower() in lowered:
-            return m
-    return meds[0] if len(meds) == 1 else None
+def dose_said_for(dose: str) -> str:
+    return rules.dose_said(dose)
 
 
-def _nearest_due(now: dt.datetime, med, tz) -> Optional[dt.datetime]:
-    local = now.astimezone(tz)
-    best, best_gap = None, None
-    for t in med["times"] or ():
-        candidate = local.replace(hour=t.hour, minute=t.minute, second=0, microsecond=0)
-        for shift in (-1, 0, 1):
-            c = candidate + dt.timedelta(days=shift)
-            gap = abs((c - local).total_seconds())
-            if best_gap is None or gap < best_gap:
-                best, best_gap = c, gap
-    if best is None or best_gap > 6 * 3600:
+#: A dose answer counts only while it is about the question just asked.
+ANSWER_WINDOW = dt.timedelta(hours=2)
+
+
+def _safety_outcome(text: str, via: str, merged) -> str:
+    """ok | help | unclear for an answer to "are you OK?".
+
+    ok      the I'm OK button on the paired watch (via=button, no words), or a
+            short unambiguous spoken positive with no sign of trouble anywhere
+    help    any request for help, red flag, pain, distress or negative, from the
+            rules, the model or the classifier (none of them can be outvoted)
+    unclear everything else, including silence and empty speech recognition:
+            the alert keeps its deadline and opens when it passes
+    """
+    words = (text or "").strip()
+    if merged.red_flag or merged.reading.asked_for_help or merged.structured.needs_help:
+        return "help"
+    if not words:
+        return "ok" if via == "button" else "unclear"
+    spoken = rules.read_safety_answer(words)
+    if spoken == "help":
+        return "help"
+    if spoken == "ok" and not merged.reading.signals and merged.structured.wellbeing != "poor":
+        return "ok"
+    if any("pain" in sig or "help" in sig for sig in merged.reading.signals):
+        return "help"
+    return "unclear"
+
+
+def _medication_asked_about(meds: list, question_text: str):
+    """The one medicine the question named, or None when that is not certain.
+    With a single active medicine the question can only be about it. Names that
+    overlap ("Aspirin" and "Aspirin 75mg") or a question naming none of several
+    medicines give None: no dose is written from a guess."""
+    lowered = rules.normalise_answer(question_text or "")
+    named = [m for m in meds
+             if rules.normalise_answer(m["name"]) and
+             re.search(rf"\b{re.escape(rules.normalise_answer(m['name']))}\b", lowered)]
+    if len(named) == 1:
+        return named[0]
+    if not named and len(meds) == 1:
+        return meds[0]
+    return None
+
+
+def _bound_due(asked_at: dt.datetime, now: dt.datetime, med, tz) -> Optional[dt.datetime]:
+    """The one scheduled dose this question was about: a time on the medicine's
+    schedule within NEAR_MINUTES of when it was ASKED (not when it was answered),
+    in the person's own time zone. None when the answer came too late, or when
+    no time, or more than one, fits (two doses close together, a schedule changed
+    since): nothing is written then."""
+    if asked_at is None or now - asked_at > ANSWER_WINDOW or now < asked_at - dt.timedelta(minutes=5):
         return None
-    return best.astimezone(dt.timezone.utc)
+    local = asked_at.astimezone(tz)
+    found = set()
+    for t in med["times"] or ():
+        for shift in (-1, 0, 1):
+            day = local.date() + dt.timedelta(days=shift)
+            candidate = dt.datetime.combine(day, t.replace(second=0, microsecond=0, tzinfo=None)).replace(tzinfo=tz)
+            # Round-trip through UTC so a time inside a DST gap or overlap is normalised.
+            candidate = candidate.astimezone(dt.timezone.utc)
+            if abs((candidate - asked_at).total_seconds()) <= rules.NEAR_MINUTES * 60:
+                found.add(candidate)
+    if len(found) != 1:
+        return None
+    return found.pop()
 
 
 async def _remember(principal: Principal, row, reading: rules.AnswerReading) -> None:
@@ -516,7 +586,7 @@ async def _remember(principal: Principal, row, reading: rules.AnswerReading) -> 
         note = f"Check-in ({row['question_kind']}): {reading.summary}"
         await remember(principal, note, kind="care_checkin")
     except Exception as exc:  # noqa: BLE001
-        logger.debug("care check-ins: memory write skipped (%s)", exc)
+        logger.debug("care check-ins: memory write skipped (%s)", type(exc).__name__)
 
 
 async def mark_missed(principal: Principal, device: dict, checkin_id: uuid.UUID,
