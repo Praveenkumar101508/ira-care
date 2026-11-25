@@ -37,6 +37,17 @@ true.
 | A2-7 | — | migration 113 | — | Additive. `care_alert_attempts` stays insert-only (an existing test pins this), and states are new rows in the insert-only `care_alert_attempt_events`. The outbox `care_alert_dispatch` can update only tries, lease and finished time. Forward, rollback and re-apply were run on a scratch database. Classified in the tenancy manifest, the isolation matrix and the erasure registry. | registry suites | fixed |
 | A2-8 | — | responder follow-up | The brief asked that an acknowledgement start the follow-up deadline, that non-arrival restart the escalation, and that only a recorded outcome resolve the alert. | Already in place before this work: `care/followup.py`, round 3. Not changed here. | existing `test_care_follow_up_db` | already in place |
 
+## Group B: dashboard live patient record
+
+| ID | Severity | Where | Finding | Fix | Tests | Status |
+|----|----------|-------|---------|-----|-------|--------|
+| B1 | High | `dashboard/src/app/people/[id]/page.tsx` | The record loaded once and never refreshed. A carer looking at it saw a frozen picture with nothing saying so. | The record refreshes every 30 s, and at once when the page comes back into view. A banner says "Live: updated N s ago", or "Connection lost: reconnecting … may be out of date" after a failure or after 90 s with no update. Loads never overlap. | `person_live.test.tsx`: refreshes after 30 s and says when it last updated; `live.test.ts`: the wording never claims "live" when the record is not | fixed |
+| B1b | High | same | A late answer for the previous person could land on the next person's record, and nothing was cleared when switching. | `LiveGate`: every person switch starts a new generation; an answer from an older one is dropped; all state is cleared on switch. | `live.test.ts`: overlap refused; out-of-order answers show only the newest person | fixed |
+| B1c | Medium | same | All 11 requests ran as one `Promise.all`, so one failing optional section blanked the whole record. | Status and alerts load first, on their own. The other sections load side by side with `allSettled`; a failed section is named on the banner and the rest still shows. | `person_live.test.tsx`: a failed consents section is named and the record still shows | fixed |
+| B1d | — | same | The brief said editing a form must not stop the alert updates, and live data must stay separate from form drafts. | Each form keeps its own draft state, set once, so a refresh cannot overwrite what is being typed, and refreshing never pauses. | (by construction; noted) | fixed |
+| B2 | High | dashboard header (line 95), `headline()`; phone `deviceSummary` | An unknown wrist state (`null`) showed as "on the wrist". The headline said "All well" with the wrist unknown, and also while IRA was still asking whether the person was OK. | `wristState()` has four states: on, off, unknown, and stale ("last known …"). The headline says "All well" only when the watch is known to be worn and synced recently and nothing is open or being asked. Otherwise it says "Needs a look: …" or "IRA is asking whether they are OK". The phone app says "wrist unknown" and "on the wrist" explicitly. | `live.test.ts`, `person_live.test.tsx`, mobile `model.test.ts` | fixed |
+| B3 | — | dashboard | Not done in this branch: progressive loading beyond essential-first, the review of empty, error, offline and permission states on every tab, mobile-width layout, and real-time push for urgent changes (polling only). | — | — | open |
+
 ## Negative control
 
 Migration 112: of the 5 new database tests, run against the code from before 112 on the migrated
@@ -47,6 +58,9 @@ Group A2: the 21 new tests were run against the code from before A2 (the old `es
 and `providers.py`): 12 fail and 9 pass. The 9 that pass are the pure signature, token and
 rank rules, which do not depend on the old sending code. The two-worker test failed on real
 duplicates: 8 messages for 4 recipients.
+
+Group B: the three page tests in `person_live.test.tsx` all fail against the original page and
+`view.ts`: unknown wrist shown as worn, no refresh, and a failed section blanking the record.
 
 Skipped tests: `main` gives 193 skipped. This branch gives 194 without `psycopg2` installed
 (one new database module) and 544 with it, because four database modules that
@@ -63,7 +77,9 @@ the right dose; "I forgot" and an empty answer never wrote a taken dose). With t
 The watch: the new `FallCountdownVoiceTest` case "a negative, a doubt or trouble never ends the
 countdown as OK" fails against the original `FallCountdown.kt` and passes with the fix.
 
-## Not in this branch
+## Still open
 
-Groups B (dashboard), C (phone), D (watch), E (system review),
-F (journey testing) and G (documents) are separate branches, not started here.
+Rows marked `open` above, and the groups not started yet: D (watch speech, text-to-speech,
+encrypted storage, durable queues, unpairing), E (system security and integration review),
+F (full care-journey and accessibility testing) and G (final documents and release evidence).
+Each is a separate branch and pull request.
