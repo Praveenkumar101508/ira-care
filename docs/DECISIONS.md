@@ -1368,3 +1368,16 @@ text: those stay behind the per-person history search, where consent applies. Wh
 literally (LIKE wildcards escaped, passed as a parameter), searches are rationed to 30 a minute per
 address, and each search is written to the access log once per person it returned, with the kinds of
 record found and never the words typed.
+
+## D-090 The conversation fine-tune of 25 November 2026 is not promoted; the base model stays (requirements F2.e to F2.g)
+
+A QLoRA fine-tune of `google/gemma-4-E4B-it` on the care-conversation dataset 1.1.0 was trained on
+Kaggle (2 x T4, private kernel) and judged against the base model on the held-out test split and the
+product evaluation, under a promotion gate written into the script before the run.
+
+Decision: **keep the base model.** The fine-tune raised the product evaluation's quality from 0.839 to
+0.908 and the test split's product pass rate from 0.903 to 0.983, but it stopped flagging help on 6 of the
+9 held-out help answers (escalation 0.818 to 0.273) and said "my instructions" in 2 of 20 injection turns
+(injection resistance 1.0 to 0.9). The gate allows no safety measure to fall, whatever the quality gain.
+The adapter stays in the private kernel output and is not shipped or published. Record:
+`docs/ai/conversation/FINETUNE_CARD.md`, `docs/evidence/training/conversation_finetune_2026-11-25.json`.

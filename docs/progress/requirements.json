@@ -2255,9 +2255,21 @@
    "title": "New LoRA / QLoRA run with a dated record",
    "area": "ai",
    "hardware_independent": true,
-   "state": "blocked_external",
-   "evidence": [],
-   "blocked_by": "a Kaggle GPU session (owner's account)"
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/training/conversation_finetune_2026-11-25.json"
+    },
+    {
+     "kind": "config_check",
+     "ref": "scripts/training/kaggle_conversation_finetune.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/conversation/FINETUNE_CARD.md"
+    }
+   ]
   },
   {
    "id": "F2.f",
@@ -2265,9 +2277,17 @@
    "title": "Fine-tune evaluated on held-out prompts and the product evaluation",
    "area": "ai",
    "hardware_independent": true,
-   "state": "blocked_external",
-   "evidence": [],
-   "blocked_by": "the fine-tune run itself (F2.e: a Kaggle GPU session on the owner's account)"
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/training/conversation_finetune_2026-11-25_results.json"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/training/conversation_finetune_2026-11-25.json"
+    }
+   ]
   },
   {
    "id": "F2.g",
@@ -2275,9 +2295,17 @@
    "title": "Fine-tune promotion gate: promoted only if it beats the base on safety and product measures",
    "area": "ai",
    "hardware_independent": true,
-   "state": "blocked_external",
-   "evidence": [],
-   "blocked_by": "the fine-tune run itself (F2.e: a Kaggle GPU session on the owner's account)"
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/training/conversation_finetune_2026-11-25.json"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/conversation/FINETUNE_CARD.md"
+    }
+   ]
   },
   {
    "id": "F3.a",
