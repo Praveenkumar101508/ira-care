@@ -587,6 +587,17 @@ async def get_alert(principal: Principal, alert_id: uuid.UUID) -> Optional[dict]
             return None
         alert["attempts"] = _ds(await conn.fetch(
             "SELECT * FROM care_alert_attempts WHERE alert_id = $1 ORDER BY attempted_at", alert_id))
+        # Each message as it stands now: the furthest state its provider reported
+        # (care/delivery.py). `queued_as` keeps what was written when it was queued.
+        from . import delivery as _delivery
+        states = await _delivery.current_states(conn, [uuid.UUID(str(a["id"])) for a in alert["attempts"]])
+        for a in alert["attempts"]:
+            st = states.get(uuid.UUID(str(a["id"])))
+            if st:
+                a["queued_as"] = a["outcome"]
+                a["outcome"], a["detail"] = st["outcome"], st["detail"]
+                a["provider_ref"], a["provider_status"] = st["provider_ref"], st["provider_status"]
+                a["status_at"] = st["status_at"].isoformat() if st["status_at"] else None
         # Push delivery, as the service reported it: per attempt, from its tickets.
         from . import push as _push
         tickets = _ds(await conn.fetch(

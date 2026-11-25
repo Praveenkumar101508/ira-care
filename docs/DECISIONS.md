@@ -1194,3 +1194,29 @@ within that band. On the GPU every candidate meets every time target with room t
 first words come from the rules at once in either case), so time no longer separates them and
 the reading of check-in answers does: it is what the care record and the alerts are built on.
 
+
+## D-075 An alert message is queued, then sent; its state is what the provider said (remediation A2, 25 November 2026)
+
+The escalation chain no longer sends inside the transaction that decides who is told. It writes
+each message as a `queued` row of `care_alert_attempts` plus an outbox row
+(`care_alert_dispatch`), commits, and `care/delivery.py` sends after. Due alerts are claimed with
+`FOR UPDATE SKIP LOCKED` and outbox rows with a two-minute lease, so two workers never tell the
+same tier twice (before: three workers at once sent every text and call twice); each send has
+its own 20-second limit and at most 8 run at once, so one slow provider cannot hold up another
+person's alert; a failed send is retried three times with a growing wait, then recorded failed.
+Delivery is at least once: a worker that dies between the send and the record may send again.
+
+`care_alert_attempts` stays insert-only (`test_readings_and_attempts_cannot_be_rewritten`). What
+a provider reports is a new row of `care_alert_attempt_events`, also insert-only; a message's
+state is its furthest event. A Twilio 2xx is `accepted`, not delivered. Twilio's status
+callback (`POST /care/providers/twilio/status/{tenant}/{workspace}/{attempt}`) is believed only
+when both our HMAC token in the URL and Twilio's signature over the full URL and form verify;
+the URL names the tenant and workspace, so the row is found under that tenant's own row-level
+security, with no unscoped lookup table. A repeated or late callback is recorded and moves
+nothing backwards. None of these states is a person having read the message: only "I'm on my
+way" in the app is.
+
+Two new settings turn the callbacks on, alongside the three in D-016:
+`IRA_CARE_PUBLIC_BASE_URL` (the deployment's public `https://` address) and
+`IRA_CARE_CALLBACK_SECRET` (a random secret for the URL token). Without either, no callback URL
+is given to Twilio and a message stays `accepted`, shown as "delivery not confirmed".

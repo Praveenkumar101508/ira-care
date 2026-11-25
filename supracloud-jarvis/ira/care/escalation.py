@@ -8,7 +8,11 @@
             and 2 are repeated and the family app shows "call 999 now"
             -> and again, until somebody acknowledges or resolves
 
-Every attempt is a `care_alert_attempts` row, whatever the outcome. An
+Every attempt is a `care_alert_attempts` row, whatever the outcome. The chain
+writes each message as a `queued` row in the same transaction that moves the
+alert on; `care/delivery.py` sends them after that transaction has committed,
+so a crash or a slow provider can neither lose a message nor hold up anyone
+else's alert, and two workers cannot send the same tier twice. An
 acknowledgement ("I'm on my way") sets `next_action_at` to NULL and the chain
 stops. A `notice` tells the tier-1 circle once and does not escalate.
 
@@ -45,6 +49,7 @@ class EscalationOutcome:
     re_escalated: int = 0
     visits_late: int = 0
     visits_missed: int = 0
+    dispatched: int = 0
     errors: int = 0
     opened: list = field(default_factory=list)
 
@@ -90,6 +95,16 @@ async def _attempt(conn, alert_id, tier, member_id, channel, delivery: providers
         alert_id, tier, member_id, channel, delivery.outcome, delivery.detail[:1000], delivery.provider_ref[:200])
 
 
+async def _queue(conn, alert_id, tier, member_id, channel, wording_tier: int, now: dt.datetime):
+    """A message to send, written down before anything is sent (care/delivery.py sends it)."""
+    attempt_id = await conn.fetchval(
+        "INSERT INTO care_alert_attempts (alert_id, tier, member_id, channel, outcome, detail, wording_tier, "
+        "attempted_at) VALUES ($1, $2, $3, $4, 'queued', 'waiting to be sent', $5, $6) RETURNING id",
+        alert_id, tier, member_id, channel, wording_tier, now)
+    await conn.execute("INSERT INTO care_alert_dispatch (attempt_id, next_try_at) VALUES ($1, $2)", attempt_id, now)
+    return attempt_id
+
+
 def alert_text(person: dict, alert: dict, tier: int) -> tuple[str, str]:
     """Title and body for every channel: what was observed, who, what to do."""
     name = person["display_name"]
@@ -122,33 +137,35 @@ def alert_text(person: dict, alert: dict, tier: int) -> tuple[str, str]:
 async def _tell_tier(conn, principal: Principal, person: dict, alert: dict, tier: int,
                      provider: providers.MessageProvider, outcome: EscalationOutcome,
                      *, wording_tier: Optional[int] = None,
-                     push_provider: Optional[push.PushProvider] = None) -> int:
+                     push_provider: Optional[push.PushProvider] = None,
+                     now: Optional[dt.datetime] = None) -> int:
     """Reach every active member of circle `tier`. `wording_tier` is the tier
     the alert has REACHED (tier 3 wording adds 'call 999 now' when tiers 1 and
     2 are being repeated)."""
     members = await _members(conn, person["id"], tier)
-    title, body = alert_text(person, alert, wording_tier or tier)
+    now = now or _now()
+    words = wording_tier or tier
     attempts = 0
     for m in members:
         if m["push_enabled"]:
-            delivery, tickets = await _push(conn, title, body, alert, m, push_provider)
-            attempt_id = await _attempt(conn, alert["id"], tier, m["id"], "push", delivery)
-            await push.record_tickets(conn, alert["id"], attempt_id, tickets)
+            await _queue(conn, alert["id"], tier, m["id"], "push", words, now)
             attempts += 1
         if m["sms_enabled"] and m["phone"]:
-            try:
-                delivery = await provider.send_sms(m["phone"], f"{title}. {body}")
-            except providers.EmergencyNumberRefused as exc:
-                delivery = providers.Delivery("skipped", str(exc)[:200])
-            await _attempt(conn, alert["id"], tier, m["id"], "sms", delivery)
+            await _queue(conn, alert["id"], tier, m["id"], "sms", words, now)
             attempts += 1
         if m["call_enabled"] and m["phone"] and alert["severity"] != monitoring.NOTICE:
-            try:
-                delivery = await provider.call(m["phone"], f"{title}. {body}")
-            except providers.EmergencyNumberRefused as exc:
-                delivery = providers.Delivery("skipped", str(exc)[:200])
-            await _attempt(conn, alert["id"], tier, m["id"], "call", delivery)
+            await _queue(conn, alert["id"], tier, m["id"], "call", words, now)
             attempts += 1
+    if not members and alert["severity"] != monitoring.NOTICE:
+        # Nobody in this tier: said plainly on the record, never silently passed over.
+        await _attempt(conn, alert["id"], tier, None, "dashboard",
+                       providers.Delivery("skipped", f"nobody is set up in tier {tier} of the circle to tell"))
+        attempts += 1
+    elif members and attempts == 0:
+        await _attempt(conn, alert["id"], tier, None, "dashboard",
+                       providers.Delivery("skipped", f"nobody in tier {tier} can be reached: no push, text or call "
+                                                     f"is turned on for them"))
+        attempts += 1
     if tier == 2 and members:
         await _attempt(conn, alert["id"], tier, None, "dashboard",
                        providers.Delivery("logged", "shown as a banner on the care organisation dashboard"))
@@ -182,6 +199,8 @@ async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
     # Receipts for pushes sent earlier: delivered, failed, or a dead token revoked.
     try:
         await push.fetch_receipts(conn, push_provider, now=now)
+        from . import delivery
+        await delivery.settle_push_attempts(conn, now)
     except Exception:  # noqa: BLE001
         logger.exception("care push receipts failed")
     # "I'm on my way" deadlines: ask the responder, then restart the chain (care/followup.py).
@@ -198,9 +217,12 @@ async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
     # the server, whatever the watch did (care/askfirst.py).
     from . import askfirst
     outcome.promoted = getattr(outcome, "promoted", 0) + await askfirst.promote_overdue(conn, now)
+    # FOR UPDATE SKIP LOCKED: an alert another worker is already moving on is
+    # left to it, never told twice. The lock lasts this transaction, in which
+    # the alert's next_action_at moves forward, so it is not picked up again.
     due = await conn.fetch(
         "SELECT * FROM care_alerts WHERE status IN ('open', 'escalating') AND next_action_at IS NOT NULL "
-        "AND next_action_at <= $1 ORDER BY opened_at", now)
+        "AND next_action_at <= $1 ORDER BY opened_at FOR UPDATE SKIP LOCKED", now)
     for row in due:
         alert = dict(row)
         if isinstance(alert.get("details"), str):
@@ -212,14 +234,14 @@ async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
         person = dict(person)
         wait = dt.timedelta(minutes=int(settings["ack_wait_minutes"]) if settings else 5)
         if alert["severity"] == monitoring.NOTICE:
-            await _tell_tier(conn, principal, person, alert, 1, provider, outcome, push_provider=push_provider)
+            await _tell_tier(conn, principal, person, alert, 1, provider, outcome, push_provider=push_provider, now=now)
             await conn.execute("UPDATE care_alerts SET current_tier = 1, next_action_at = NULL WHERE id = $1",
                                alert["id"])
             outcome.notices += 1
             continue
         tier = int(alert["current_tier"]) + 1
         if tier == 1 or tier == 2:
-            await _tell_tier(conn, principal, person, alert, tier, provider, outcome, push_provider=push_provider)
+            await _tell_tier(conn, principal, person, alert, tier, provider, outcome, push_provider=push_provider, now=now)
             await conn.execute(
                 "UPDATE care_alerts SET status = 'escalating', current_tier = $2, next_action_at = $3 WHERE id = $1",
                 alert["id"], tier, now + wait)
@@ -238,7 +260,7 @@ async def run_due_escalations(conn, principal: Principal, now: dt.datetime, *,
                 details[CALL_999_FLAG] = True
                 for repeat_tier in (1, 2):
                     await _tell_tier(conn, principal, person, alert, repeat_tier, provider, outcome,
-                                     wording_tier=3, push_provider=push_provider)
+                                     wording_tier=3, push_provider=push_provider, now=now)
                 outcome.repeated_tier3 += 1
             await conn.execute(
                 "UPDATE care_alerts SET status = 'escalating', current_tier = 3, next_action_at = $2, "
@@ -313,6 +335,15 @@ async def run_workspace(principal: Principal, now: Optional[dt.datetime] = None,
                 outcome.errors += 1
         await run_due_escalations(conn, principal, now, provider=provider, centre=centre, outcome=outcome,
                                   push_provider=push_provider)
+    # The chain's decisions are committed: now send what it queued, outside that
+    # transaction (care/delivery.py). Anything not sent now is sent next pass.
+    from . import delivery
+    try:
+        sent = await delivery.dispatch(principal, now, provider=provider, push_provider=push_provider)
+        outcome.dispatched = sent.claimed
+    except Exception:  # noqa: BLE001 - queued rows stay queued and are sent next pass
+        logger.exception("care delivery: dispatch failed; queued messages stay queued")
+        outcome.errors += 1
     return outcome
 
 

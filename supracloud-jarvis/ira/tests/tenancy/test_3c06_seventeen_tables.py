@@ -82,7 +82,7 @@ WORKSPACE_SCOPED = (
     "care_medication_events", "care_transcripts", "care_consents", "care_access_log",
     "care_reports", "care_conversation_memory", "care_device_events", "care_push_tokens", "care_push_tickets",
     "care_visits", "care_visit_tasks", "care_communication_profiles", "care_reminders", "care_user_preferences",
-    "care_medication_event_corrections",
+    "care_medication_event_corrections", "care_alert_dispatch", "care_alert_attempt_events",
 )
 
 
@@ -191,6 +191,10 @@ SPECS: dict[str, Spec] = {
                  "previous_confirmed_via": "literal:family", "new_status": "literal:skipped",
                  "new_source": "literal:carer_report", "reason": "text"},
         parents=(("care_medication_events", "event_id"), ("care_people", "person_id"))),
+    "care_alert_dispatch": Spec(parents=(("care_alert_attempts", "attempt_id"),)),
+    "care_alert_attempt_events": Spec(columns={"outcome": "literal:accepted", "status_rank": "int",
+                                               "source": "literal:dispatcher"},
+                                      parents=(("care_alert_attempts", "attempt_id"),)),
 }
 
 
