@@ -52,7 +52,9 @@ person talks to). The proposal:
    by itself at expiry and at every start), `RESTORE_RESTRICTIONS`, and nothing else.
 4. A factory reset by a deployment administrator goes through the same signed instruction
    (`FACTORY_RESET`, `DevicePolicyManager.wipeData`), and is recorded in the audit trail
-   (`care_device_admin_events`).
+   (`care_device_admin_events`). The server signs it only after a second, different deployment
+   administrator has approved the request within 30 minutes (D-089, `docs/os/DEVICE_POLICY.md`);
+   the watch's checks are unchanged.
 
 The logic, the wrapper and the server workflow exist (above); the separate device-owner app shell,
 the timer and boot receiver that call the policy, and its provisioning do not. Recorded in `docs/progress/COMPLETION_REGISTER.md` (rows E2, E4).

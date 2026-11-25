@@ -106,6 +106,20 @@ release build are what guard them.
   `IRA_CARE_ALLOWED_ORIGINS`, empty by default.
 - Demo, presenter and simulator pages are off in production builds (REMEDIATION B6, PR #67).
 
+### S15 status: factory reset by one deployment administrator, partly fixed 25 November 2026
+
+S15 is recorded in the round 7 review (threat T43): one deployment administrator with an
+ordinary session could have a watch factory-reset. A factory reset now needs two people (D-089,
+migration 123): it is stored unsigned as a request and signed only when a different deployment
+administrator with a live grant approves it within 30 minutes. Self-approval, a lapsed or
+withdrawn request, and a request whose requester has since been revoked are refused and audited;
+revoking either administrator withdraws a signed reset from the watch; a reset signed on one
+person's say-so before 123 is withheld; and the table refuses all of this on its own (trigger and
+CHECK constraints). `tests/tenancy/test_device_admin_db.py`: seven new tests (eight cases with
+the parametrised pair), all failing against `main`. Still open: step-up authentication. The
+session token carries no authentication time, so the server cannot ask for a recent sign-in or a
+second factor before a reset is requested or approved; two stolen sessions can still do it.
+
 ## Residual risk, not fixed here
 
 - **Family app build tooling.** Cleared by S6 (overrides and three patched lines), not by an

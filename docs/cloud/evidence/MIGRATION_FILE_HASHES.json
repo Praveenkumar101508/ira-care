@@ -625,6 +625,11 @@
    "migration_number": 122,
    "sha256": "cca6443ef08bdd8e4326f0a6fb9c8809de468f2bd7fa593e3721bd5cfc203be6",
    "status": "applied"
+  },
+  "123_device_admin_factory_reset_approval.sql": {
+   "migration_number": 123,
+   "sha256": "fa9a3f784b74ea7a13e6965ea12827868afa29daa7a22efe8f7ab2f4990a9756",
+   "status": "applied"
   }
  }
 }

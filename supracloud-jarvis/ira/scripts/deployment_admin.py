@@ -12,6 +12,9 @@ to the API, whatever its care role, can make anybody a deployment administrator.
 A deployment administrator may then issue signed instructions from the closed list
 (care/devicepolicy.py) to one watch at a time through
 POST /api/v1/care/deployment-admin/device-instructions.
+A FACTORY_RESET is only a request until a second, different deployment administrator approves
+it within 30 minutes (POST .../device-instructions/{id}/approve, D-089), so a deployment that
+wants to be able to reset a watch remotely needs at least two live grants.
 
 Revoking a grant takes effect on the next request: the account can issue nothing more, the
 watches stop receiving anything it issued that they have not collected, and what it issued
