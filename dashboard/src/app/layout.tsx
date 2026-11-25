@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import './globals.css';
+import { SiteFooter } from '@/components/SiteFooter';
 import { TopBar } from '@/components/TopBar';
 
 export const metadata: Metadata = { title: 'IRA CARE dashboard', description: 'Carer dashboard for IRA CARE' };
@@ -18,6 +19,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main" className="skip-link">Skip to content</a>
         <TopBar />
         <main id="main">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );

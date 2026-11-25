@@ -1600,6 +1600,38 @@ components link, and none links these any more.
 What would change it: code that needs GNU readline or GDBM at run time, which would then need a
 reviewed exception or a different library.
 
+## D-088 The production API image installs a hashed subset of the lock; every artefact carries its notices (25 November 2026)
+
+The supply-chain scan (D-087) found two things it could only record. The API image installed
+`requirements-test.txt`, so pytest, moto and moto's dependencies (Werkzeug, responses, xmltodict)
+shipped in production and every unpinned package floated to whatever PyPI served on the day of
+the build; and the notices files stayed in the repository rather than travelling with the
+artefacts they describe.
+
+Decision:
+
+- `deploy/Dockerfile.api` installs `requirements-api.lock` and then `requirements-nodeps.txt`,
+  both with `--no-deps --require-hashes`, and the build runs `pip check` (only faster-whisper's
+  PyAV may be missing, D-083). `requirements-api.lock` is a strict subset of `requirements.lock`
+  (same versions, same hashes), derived by `scripts/api_image_lock.py` from
+  `requirements-api.txt`, which names what the care server and worker load. The full lock is not
+  installed whole: it is the whole server's tree, with torch-dependent packages
+  (sentence-transformers, speechbrain) and browser automation the care image never loads.
+- boto3 stays in the image: `IRA_KEK_PROVIDER=aws-kms` is an implemented production key
+  provider (`core/crypto/aws_kms.py`). moto, its test double, goes.
+- onnxruntime and tokenizers move from the image-only pins 1.20.1 and 0.21.0 to the lock's 1.31.0
+  and 0.22.2, the versions `requirements.txt` already named and CI's tests already ran. The
+  red-flag classifier was run inside the new image with them.
+- The image scan treats a difference between the API image's Python packages and its locks (or
+  the committed snapshot) as a failure, not a note.
+- Each image copies its notices file to `/usr/share/doc/ira-care/THIRD_PARTY_NOTICES.txt`; the
+  dashboard shows its own at `/licences`, the family app under Settings, and each watch build
+  under About. TypeScript is left out of the dashboard's standalone output.
+
+What would change it: a care module that needs a package outside `requirements-api.txt` (the
+image build's `pip check` and the import check in CI fail until it is added and the subset lock
+regenerated).
+
 ## D-089 A factory reset needs two deployment administrators (security review S15, threat T43, 25 November 2026)
 
 The round 7 security review (S15) found that one deployment administrator with an ordinary
