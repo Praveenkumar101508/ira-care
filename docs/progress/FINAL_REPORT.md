@@ -1,5 +1,96 @@
 # IRA CARE: final report
 
+## Round 6: the final report (the master directive, 25 November 2026)
+
+This is the final report the owner asked for: every requirement that software alone can finish
+is now accepted or verified, or is recorded as blocked by something outside the software, with
+that blocker named. One requirement is neither: the 24-hour wall-clock soak (G2.e), which needs a
+machine that stays up for a day; this build container restarts, and a simulated day is recorded
+instead (`docs/evidence/soak/SOAK.md`).
+
+Fourteen pull requests, #81 to #94 (plus this one), each one branch squash-merged into `main`
+with every required CI check green. The integrated run is in [`VERIFICATION.md`](VERIFICATION.md).
+
+### GO / NO-GO
+
+| Use | Decision | Why |
+|---|---|---|
+| Engineering demonstration with fictional people, test notification providers and a clearly labelled virtual or browser watch | **GO** | The 22-step care journey passes end to end against the real API and PostgreSQL, deterministically and with the real model chain (8 of 8 runs); the stack runs as containers with outage recovery, encrypted off-site backups and restore drills; the film was re-recorded on this stack. |
+| Supervised pilot with real people | **NO-GO** | No Clinical Safety Officer has reviewed the hazard log (I.j); MHRA qualification is unconfirmed (I.k); nothing has run on a physical watch or phone; fall, heart, activity and speech accuracy are unmeasured on older adults and on the IRA watch; live SMS, call and email delivery is untested; no monitoring-centre contract. |
+| Commercial release to real users | **NO-GO** | Everything the pilot needs, plus: signed store builds and store accounts, an iOS build, a hosting agreement on a rented server, an independent penetration test, the IRA CARE OS image built and booted, and an Expo SDK upgrade to clear the build-tool advisories. |
+
+Area by area: [`GO_NO_GO.md`](GO_NO_GO.md). The owner's constraints held throughout: no real
+patient data was collected, no real emergency message was sent, nothing was deployed to real
+users, no money was spent, and no uncertain dataset licence was accepted (SisFall stays out of
+release builds, D-077).
+
+### Completion (requirements 1.4.0)
+
+Snapshot "main after #94", `b78e6b5`; the denominators are unchanged since round 5.
+
+| Measure | main after #80 | main after #94 | Change |
+|---|---|---|---|
+| Hardware-independent software implementation | 74.3 % | 87.4 % (160 / 183) | +13.1 points |
+| Hardware-independent software acceptance | 63.4 % | 76.0 % (139 / 183) | +12.6 points |
+| Software verification | 26.9 % | 32.5 % (64 / 197) | +5.6 points |
+| AI development | 53.8 % | 64.1 % (25 / 39) | +10.3 points |
+| OS development | 7.4 % | 14.8 % (4 / 27) | +7.4 points |
+| Hardware integration | 0.0 % | 0.0 % (0 / 14) | 0 |
+| External and commercial readiness | 0.0 % | 2.9 % (1 / 34) | +2.9 points |
+
+140 of 245 requirements are accepted or better; 105 remain:
+- **60** are blocked by something outside the software, each with its blocker named;
+- **44** are implemented as documents, plans or configuration, and acceptance needs a reviewer, a build host or a device (for example the clinical safety case, the DPIA and the OS makefiles);
+- **1**, the 24-hour soak, is not started.
+
+None is device validated.
+
+### Round 6: the merges
+
+| PR | Branch | What it delivers |
+| --- | --- | --- |
+| 81 | `docs/final-verification` | Round 5 checkpoint: verification on `main`, a completion snapshot, requirement states reconciled with the merged code |
+| 82 | `fix/android-build-evidence` | Native Android builds: the watch app built and tested here; the family app's release build added to CI as its own job (D2.g) |
+| 83 | `fix/models-in-product` | The activity model running on the watch (F7.d); the learned heart selector recorded as blocked, because no product path carries raw PPG (F3.d) |
+| 84 | `fix/ai-fall-v3` | Fall model v3 on licensed data passes its gate and ships in release builds, in recover mode beside the rule detector (D-080) |
+| 85 | `fix/search-and-coordinator` | Workspace search; the care coordinator designation (migration 117, D-081); caseload and visit-plan screens |
+| 86 | `fix/infra-adapters-backups` | Email (SMTP) and monitoring-centre (webhook) adapters, encrypted off-site backups, a simulated soak day, operations runbooks |
+| 87 | `fix/speech-harness-evidence-index` | A speech accuracy harness (WER 4.24 % on LibriSpeech test-clean); the older-speaker evaluation recorded as blocked; an evidence index built in CI |
+| 88 | `fix/os-testable-pieces` | IRA CARE OS pieces testable without an image: OTA release server (migration 120), device policy, boot animation, launcher override, simulated sensors |
+| 89 | `docs/remaining-documents` | Threat model, pilot protocol, MHRA guidance check, hosting model with no prices, hardware plans, endorsement pack, GO/NO-GO by area |
+| 90 | `fix/demo-real-model` | The 22-step care journey with the real model chain (`gemma4:e4b`, `gemma4:e2b`): 8 of 8 runs, every safety assertion held |
+| 91 | `fix/conversation-dataset` | A versioned, synthetic care-conversation dataset (398 examples) validated against the product's own readers (F2.d) |
+| 92 | `fix/watch-reminders` | Reminders answered on the wrist: Done, Later and Not today; a medicine counts as taken only after a second Done (D1.h) |
+| 93 | `fix/film-rerecord` | The narrated film re-recorded live on the remediated stack (J.g) |
+| 94 | `fix/licence-check` | An automated licence check of shipped Python, dashboard and phone-app dependencies, run in CI (K.d); one open finding for the owner (below) |
+
+### AI models, honestly
+
+| Model | Data (licence) | Result | Status |
+|---|---|---|---|
+| Fall v3 | BITS-2 (CC BY 4.0) + UCI HAR (CC BY 4.0) | with the rule detector, on the same 316 held-out falls and 2.233 hours of daily activity: 246 falls caught (sensitivity 0.7785) against 195 (0.6171) for the rule alone; at most 10.30 alarms per hour against 52.84 | ships in release builds (D-080) |
+| Fall v1 | SisFall (licence unconfirmed) | evaluated earlier | debug builds only (D-077) |
+| Heart | PPG-DaLiA (CC BY 4.0) | classical 13.28 ± 5.01 bpm, learned selector 7.75 ± 3.23 bpm | classical in use; learned selector blocked on raw PPG (F3.d) |
+| Activity | WISDM (CC BY 4.0) | macro-F1 0.790 across 51 people, subject-grouped | on the watch; no alert depends on it |
+| Speech recognition | faster-whisper `small` (MIT); LibriSpeech test-clean (CC BY 4.0, evaluation only) | WER 4.24 % on read adult speech | in use; older-speaker accuracy unmeasured (F8.c, F8.d) |
+| Conversation | `gemma4:e4b`, `gemma4:e2b` (Apache 2.0) behind IRA's rules | 22-step journey 8 of 8 with the real models | in use; the fine-tune awaits a GPU session (F2.e) |
+
+None is validated on older adults or on the IRA watch, and none is a medical device.
+
+### What remains, and who it needs
+
+Not started, and achievable with a machine that stays up: the 24-hour wall-clock soak (G2.e).
+
+Everything else that remains is blocked by something only the owner or a third party can provide;
+`completion_summary.py` names the blocker for each one. Grouped:
+
+- **Owner decisions and accounts:** release signing-key custody (D1b.c); a Kaggle GPU session for the conversation fine-tune (F2.e to F2.g); a Mozilla Data Collective account whose terms the owner accepts, for older-speaker evaluation (F8.c); Google Play and Apple developer accounts (D2.j, D2.k); approval to rent a server (G1.e, G2.f, G4.d); provider credentials for live SMS, calls and email (G3.e).
+- **Third parties:** a monitoring-centre contract (G3.f); a qualified penetration tester (C-22.d); a Clinical Safety Officer (I.j); an MHRA regulatory adviser (I.k); the operator's data protection officer to read the ICO guidance (I.i); dataset authors for KFall, FallAllD and UMAFall (F1.g, F4.f).
+- **Machines and devices:** a Mac with Apple signing (D2.h); a host with KVM for emulator runs (D1.i, K.g); an AOSP build host, about 400 GB of disk and 64 GB of RAM (E2.h onwards); physical watches and phones (C-5.b, D1.j, D2.i, J.f, K.h, and the other device rows); the IRA watch hardware, an ODM and funding (H1–H4.h to H1–H4.j).
+- **A licensing decision:** PyAV (`av`), pulled in by the speech recogniser, declares BSD-3-Clause but bundles FFmpeg built with libx264 and libx265, which are GPL-2.0-or-later. It matters if container images are ever given to an operator rather than run by IRA itself. The options are to replace the audio decoding, use an FFmpeg build without them, or take legal advice (`docs/security/LICENCES.md`).
+- **Owner actions already drafted:** send the dataset permission requests in `docs/legal/dataset_permission_requests/`; withdraw the Kaggle copy of the SisFall-trained model published under Apache 2.0.
+
+
 ## Round 5 checkpoint (the master directive, 25 November 2026)
 
 A checkpoint, not the final report: the owner asked for the final report only after every

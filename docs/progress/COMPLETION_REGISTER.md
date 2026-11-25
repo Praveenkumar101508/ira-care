@@ -41,36 +41,36 @@ dated record to `docs/progress/completion_history.json`, which is append-only.
 The numbers below are quoted from one dated snapshot, so they stay true when later pull requests
 change the requirements; run the script for the current figures.
 
-At snapshot **main after #80**, `eec19a0` (recorded 2026-11-25, requirements 1.4.0):
+At snapshot **main after #94**, `b78e6b5` (recorded 2026-11-25, requirements 1.4.0):
 
 | Measure | Done / total | % |
 |---|---|---|
-| Hardware-independent software implementation | 136 / 183 | 74.3 % |
-| Hardware-independent software acceptance | 116 / 183 | 63.4 % |
-| Software verification | 53 / 197 | 26.9 % |
-| AI development (accepted, area ai) | 21 / 39 | 53.8 % |
-| OS development (accepted, area os, hardware-independent) | 2 / 27 | 7.4 % |
+| Hardware-independent software implementation | 160 / 183 | 87.4 % |
+| Hardware-independent software acceptance | 139 / 183 | 76.0 % |
+| Software verification | 64 / 197 | 32.5 % |
+| AI development (accepted, area ai) | 25 / 39 | 64.1 % |
+| OS development (accepted, area os, hardware-independent) | 4 / 27 | 14.8 % |
 | Hardware integration (accepted, area hardware) | 0 / 14 | 0.0 % |
-| External and commercial readiness (accepted, area external) | 0 / 34 | 0.0 % |
+| External and commercial readiness (accepted, area external) | 1 / 34 | 2.9 % |
 
-116 of 245 requirements are accepted or better; 129 remain, 46 of them blocked by something
-outside the software. None is device validated: no physical device has been used.
+140 of 245 requirements are accepted or better; 105 remain. 60 of them are blocked by something
+outside the software, each with its blocker named by `completion_summary.py`. 44 are implemented
+as documents, plans or configuration whose acceptance needs a reviewer, a build host or a device.
+One is not started: the 24-hour wall-clock soak (G2.e), which needs a machine that stays up for a
+day. None is device validated: no physical device has been used.
 
-Change since the previous snapshot, **main after #66** (`08766d2`, requirements 1.0.0).
-Six requirements were added between the two (239 to 245 items), so the denominators differ.
-Three were added already met (C-19.c degraded watch storage, D3.k staff roles as built, F3.f the
-portable heart selector) and three were added unmet (F4.h a fall model that passes its shipping
-gate, J.h and G2.i, both met since). No requirement was removed and none was reworded.
+Change since the previous snapshot, **main after #80** (`eec19a0`). No requirement was added,
+removed or reworded between the two, so the denominators are the same.
 
-| Measure | main after #66 | main after #80 | Change |
+| Measure | main after #80 | main after #94 | Change |
 |---|---|---|---|
-| Hardware-independent software implementation | 68.4 % | 74.3 % | +5.9 points |
-| Hardware-independent software acceptance | 58.8 % | 63.4 % | +4.6 points |
-| Software verification | 23.6 % | 26.9 % | +3.3 points |
-| AI development (accepted, area ai) | 45.9 % | 53.8 % | +7.9 points |
-| OS development (accepted, area os, hardware-independent) | 7.4 % | 7.4 % | +0.0 points |
+| Hardware-independent software implementation | 74.3 % | 87.4 % | +13.1 points |
+| Hardware-independent software acceptance | 63.4 % | 76.0 % | +12.6 points |
+| Software verification | 26.9 % | 32.5 % | +5.6 points |
+| AI development (accepted, area ai) | 53.8 % | 64.1 % | +10.3 points |
+| OS development (accepted, area os, hardware-independent) | 7.4 % | 14.8 % | +7.4 points |
 | Hardware integration (accepted, area hardware) | 0.0 % | 0.0 % | +0.0 points |
-| External and commercial readiness (accepted, area external) | 0.0 % | 0.0 % | +0.0 points |
+| External and commercial readiness (accepted, area external) | 0.0 % | 2.9 % | +2.9 points |
 
 The history's first entry recomputes the audit baseline (`1f41c5d`, before #44) as a lower bound,
 crediting only evidence present there verbatim (for example, software acceptance 32 / 177).
@@ -100,6 +100,9 @@ edited since are not credited.
 | [#60](https://github.com/Praveenkumar101508/ira-care/pull/60) | `fix/watch-home-screen` | D8: watch app as the OS home screen | merged, CI green |
 | [#61](https://github.com/Praveenkumar101508/ira-care/pull/61) | `fix/mobile-voice` | C2: phone voice in and out | merged, CI green |
 
+Pull requests #63 to #94, rounds 5 and 6, are listed with what each delivers in
+[`FINAL_REPORT.md`](FINAL_REPORT.md); every one was merged with CI green.
+
 ## C. Software safety remediation (the 24 items)
 
 | # | Requirement | Status | Evidence / blocker |
@@ -125,7 +128,7 @@ edited since are not credited.
 | C-19 | Encrypted watch storage | unit tested | #48 · D5 (Keystore hardware backing: **needs external**, device); #68 · D9 (no plain-text fallback for sensitive data; Help still queued, minimised) |
 | C-20 | Atomic offline-queue and outbox writes | unit tested | #48 · D5 |
 | C-21 | Secure unpairing and re-pairing | integration tested | #48 · D5 (kept per wearer); #53 · D7 (explicit unpair with warning, migration 114). On-device UI check: **needs external**, a watch |
-| C-22 | Backend and person-level authorisation review | integration tested | #51 · REMEDIATION E1 (D-076) |
+| C-22 | Backend and person-level authorisation review; system security review | integration tested | #51 · REMEDIATION E1 (D-076). #72 · security review (`docs/security/REVIEW.md`): rate limits on the open routes, dashboard headers, patched dependencies, each with a test. #89 · STRIDE threat model (`docs/security/THREAT_MODEL.md`), every named control checked by `test_threat_model_traceability.py`. Independent penetration test: **needs external** (a contracted tester) |
 | C-23 | Accessibility and interface consistency | unit tested | Automated accessibility checks from round 4; #54 · C5 (dark-mode and high-contrast colour review, measured). A screen-reader pass on real devices: **needs external** |
 | C-24 | Full-system outage and recovery tests | integration tested | #51 · REMEDIATION E2–E5 |
 
@@ -167,24 +170,24 @@ edited since are not credited.
 | # | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
 | G1 | Containers, CPU / GPU profiles, Postgres, Redis, workers, proxy, HTTPS | integration tested (containers) | #78 · the stack run as containers (`docs/evidence/staging/CONTAINERS.md`); the API, dashboard and backup images built and checked in CI. A rented server: **needs external** |
-| G2 | Observability, outage recovery, encrypted backups, restore | integration tested | #78 · outage drills on containers; CI restore round trip; `fix/infra-adapters-backups` · encrypted off-site copies with a restore drill (`docs/evidence/staging/OFFSITE.md`, against a local S3 stand-in). 24-hour soak: a simulated day recorded (`docs/evidence/soak/SOAK.md`); 24 wall-clock hours: **not started**. Capacity on a representative server: **needs external** |
-| G3 | Push, SMS, call, email, monitoring-centre adapters | integration tested | #46 · SMS / call / push delivery states; `fix/infra-adapters-backups` · email (SMTP) and a signed monitoring-centre webhook with signed acknowledgements, both off unless configured, tested against stand-ins. Live delivery: **needs external** (provider credentials, a decision to pay). A contracted centre: **needs external** |
-| G4 | Hosting proposal, cost model, runbooks | pre-existing (partial); runbooks written | `docs/ops/RUNBOOKS.md` (incident, worker, database, restore, key rotation; every path and service checked by a test). Hosting proposal and cost model: **not started**. Renting a server: **needs external** (owner's approval to spend) |
+| G2 | Observability, outage recovery, encrypted backups, restore | integration tested | #78 · outage drills on containers; CI restore round trip; backups that cannot fail silently (G4 defect fixed). #86 · encrypted off-site copies with a restore drill (`docs/evidence/staging/OFFSITE.md`, against a local S3 stand-in; G5 defect fixed). 24-hour wall-clock soak: not run (a simulated day is recorded in `docs/evidence/soak/SOAK.md`). Capacity on a representative server: **needs external** |
+| G3 | Push, SMS, call, email, monitoring-centre adapters | integration tested | #46 · SMS, call and push delivery states. #86 · email (SMTP) and a signed monitoring-centre webhook with signed acknowledgements, both off unless configured, tested against stand-ins. Live delivery: **needs external** (provider credentials); a monitoring centre: **needs external** (contract) |
+| G4 | Hosting proposal, cost model, runbooks | implemented | #86 · `docs/ops/RUNBOOKS.md` (every path and service checked by a test). #89 · `docs/ops/HOSTING_PROPOSAL.md` sized from the measured container stack, with `scripts/hosting_cost.py`; no price page was reachable from the build machine, so the total is withheld until prices are entered. Renting a server: **needs external** (owner's approval to spend) |
 
 ## H, I. Hardware and compliance preparation
 
 | # | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
-| H1–H4 | Sensor evaluation plan, Qualcomm engagement document, ODM specification, EVT / DVT / PVT roadmap | pre-existing (partial) | `docs/hardware/`. Updates: **not started**. All physical work: **needs external** |
-| I | Intended purpose, claims register, hazard log, DPIA, pilot protocol | pre-existing drafts | `docs/compliance/`. Updating against current MHRA / ICO guidance: **not started**. Approval: **needs external** (qualified review) |
+| H1–H4 | Sensor evaluation plan, Qualcomm engagement document, ODM specification, EVT / DVT / PVT roadmap | implemented | #89 · `docs/hardware/SENSOR_EVALUATION_PLAN.md`, `QUALCOMM_ENGAGEMENT.md`, `ODM_SPECIFICATION.md`, `EVT_DVT_PVT_ROADMAP.md`, every path they cite checked by `test_document_references.py`. All physical work: **needs external** (hardware, an ODM, supplier access) |
+| I | Intended purpose, claims register, hazard log, DPIA, pilot protocol | implemented | `docs/compliance/`. #73 · hazard log H14 to H20 and a claims register, both checked by tests. #89 · pilot protocol; intended purpose, DPIA (speech recognisers) and MHRA questions updated against MHRA guidance read at gov.uk on 25 November 2026. ICO guidance: **needs external** (ico.org.uk was unreachable from the build machine). Approval: **needs external** (a Clinical Safety Officer, an MHRA adviser) |
 
 ## J, K, L. Demonstration, final verification, evidence
 
 | # | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
 | J | Integrated live demonstration, the 22-step care journey (D-079), presenter guide | integration tested | #79 · the 22 steps against the real API and PostgreSQL (`docs/demo/CARE_JOURNEY_22.md`); #64 · `docs/demo/RERUN.md`: scripted scenarios and the browser demo re-run on the remediated stack (fake model, log-only providers); two defects found and fixed (REMEDIATION B4, B5). The narrated film re-recorded on the remediated stack at `c6e31dd`, scenes recorded live in a browser, Piper voice-over (`docs/film/RECORDING.md`); devices: **needs external**; the 22 steps with the real model chain (gemma4:e4b then gemma4:e2b on CPU), 8 of 8 runs passed, the safety rules held (`docs/evidence/demo/REAL_MODEL_RUN.md`) |
-| K | Full verification on integrated `main` (every suite, builds, load, outage, backup, licence scan) | integration tested | `docs/progress/VERIFICATION.md`: backend unit and database suites, dashboard, phone, watch builds, outage, backup and restore, secret scan, licences. Load (24 h soak): not run. Device, emulator and OS image runs: **needs external** |
-| L | Endorsement evidence pack, GO / NO-GO decisions | not started | |
+| K | Full verification on integrated `main` (every suite, builds, load, outage, backup, licence scan) | integration tested | `docs/progress/VERIFICATION.md`: backend unit and database suites on a fresh database, dashboard, phone, watch and family-app native builds, container images, outage, backup and restore, off-site restore, the 22-step journey deterministic and with the real models, dependency audits; the licence check of shipped dependencies runs in CI (`scripts/licence_check.py`, K.d). 24 h wall-clock soak: not run (G2.e). Emulator, device and OS image runs: **needs external** |
+| L | Endorsement evidence pack, GO / NO-GO decisions | implemented | #89 · `docs/evidence/ENDORSEMENT_PACK.md` (every claim linked to its evidence) and `docs/progress/GO_NO_GO.md` (per area). #87 · the requirement index is generated by `scripts/evidence_index.py` in CI on every run |
 
 ## External blockers (owner actions)
 
