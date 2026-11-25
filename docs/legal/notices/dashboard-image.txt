@@ -111,10 +111,6 @@ tslib 2.9.1
   Licence: 0BSD
   Copyright (c) Microsoft Corporation.
 
-typescript 5.9.3
-  Licence: Apache-2.0
-  Author (package.json): Microsoft Corp.
-
 alpine-baselayout-data 3.7.2-r1
   Licence: GPL-2.0-only
   Where: base image

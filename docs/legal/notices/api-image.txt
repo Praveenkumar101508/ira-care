@@ -46,7 +46,7 @@ CPython (base image, built from source) base image
   Licence: PSF-2.0
   Where: /usr/local (python:3.12-slim); its licence is /usr/local/lib/python3.12/LICENSE.txt in the image
 
-annotated-doc 0.0.7
+annotated-doc 0.0.5
   Licence: MIT
   Copyright (c) 2025 Sebastián Ramírez
 
@@ -54,7 +54,7 @@ annotated-types 0.8.0
   Licence: MIT
   Copyright (c) 2022 the contributors
 
-anyio 4.16.0
+anyio 4.14.2
   Licence: MIT
   Copyright (c) 2018 Alex Grönholm
 
@@ -62,7 +62,7 @@ apscheduler 3.10.4
   Licence: MIT
   Copyright (c) Alex Grönholm
 
-asgiref 3.13.0
+asgiref 3.12.1
   Licence: BSD-3-Clause
   Copyright (c) Django Software Foundation and individual contributors.
 
@@ -79,13 +79,13 @@ boto3 1.43.67
   Licence: Apache-2.0
   Copyright 2013-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
-botocore 1.43.127
+botocore 1.43.70
   Licence: Apache-2.0
   Copyright 2012-2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
   Copyright 2013 Kenneth Reitz
   Copyright 2008-2011 Andrey Petrov and contributors (see CONTRIBUTORS.txt),
 
-certifi 2026.11.20
+certifi 2026.10.19
   Licence: MPL-2.0
   Author (package metadata): Kenneth Reitz
 
@@ -93,23 +93,19 @@ cffi 2.1.1
   Licence: MIT-0
   Author (package metadata): Armin Rigo, Maciej Fijalkowski
 
-chardet 7.7.0
+chardet 7.5.1
   Licence: 0BSD
   Copyright (c) 2026 Dan Blanchard
 
-charset-normalizer 3.5.3
+charset-normalizer 3.5.0
   Licence: MIT
   Copyright (c) 2025 TAHRI Ahmed R.
 
-click 8.5.1
+click 8.4.2
   Licence: BSD-3-Clause
   Copyright 2014 Pallets
 
-coloredlogs 15.0.1
-  Licence: MIT
-  Copyright (c) 2020 Peter Odding
-
-cryptography 50.0.2
+cryptography 50.0.0
   Licence: Apache-2.0 OR BSD-3-Clause
   Copyright (c) Individual contributors.
 
@@ -117,7 +113,7 @@ ctranslate2 4.8.3
   Licence: MIT
   Author (package metadata): OpenNMT
 
-deprecated 3.0.1
+deprecated 1.3.1
   Licence: MIT
   Copyright (c) 2017 Laurent LAPORTE
 
@@ -131,7 +127,7 @@ dnspython 2.9.2
   Copyright (C) 2001-2017 Nominum, Inc.
   Copyright (C) Google Inc.
 
-email-validator 2.4.0
+email-validator 2.3.0
   Licence: Unlicense
   Author (package metadata): Joshua Tauberer
 
@@ -149,7 +145,7 @@ faster-whisper 1.2.1
   Licence: MIT
   Copyright (c) 2023 SYSTRAN
 
-filelock 4.3.1
+filelock 4.2.4
   Licence: MIT
   Copyright (c) 2025 Bernát Gábor and contributors
 
@@ -157,11 +153,11 @@ flatbuffers 25.12.19
   Licence: Apache-2.0
   Author (package metadata): Derek Bailey
 
-fsspec 2026.9.0
+fsspec 2026.7.0
   Licence: BSD-3-Clause
   Copyright (c) 2018, Martin Durant
 
-googleapis-common-protos 1.76.0
+googleapis-common-protos 1.75.1
   Licence: Apache-2.0
   Author (package metadata): Google LLC
 
@@ -169,43 +165,27 @@ h11 0.16.0
   Licence: MIT
   Author (package metadata): Nathaniel J. Smith
 
-hf-xet 1.8.0
+hf-xet 1.6.0
   Licence: Apache-2.0
   Author (package metadata): Rajat Arya, Jared Sulzdorf, Di Xiao, Assaf Vayner, Hoyt Koepke
-
-httpcore2 2.16.2
-  Licence: BSD-3-Clause
-  Copyright © 2026 to present Pydantic Services Inc. and individual contributors.
 
 httpcore 1.0.9
   Licence: BSD-3-Clause
   Author (package metadata): Tom Christie
 
-httpx2 2.16.2
-  Licence: BSD-3-Clause
-  Copyright © 2026 to present Pydantic Services Inc. and individual contributors.
-
 httpx 0.27.2
   Licence: BSD-3-Clause
   Author (package metadata): Tom Christie
 
-huggingface-hub 0.36.2
-  Licence: Apache
+huggingface-hub 1.27.0
+  Licence: Apache-2.0
   Author (package metadata): Hugging Face, Inc.
 
-humanfriendly 10.0
-  Licence: MIT
-  Copyright (c) 2021 Peter Odding
-
-idna 3.20
+idna 3.18
   Licence: BSD-3-Clause
   Copyright (c) 2013-2026, Kim Davies and contributors.
 
-iniconfig 2.3.1
-  Licence: MIT
-  Copyright (c) 2010 - 2023 Holger Krekel and others
-
-jiter 0.19.0
+jiter 0.16.0
   Licence: MIT
   Copyright (c) 2022 to present Samuel Colvin
 
@@ -213,11 +193,11 @@ jmespath 1.1.0
   Licence: MIT
   Copyright (c) 2013 Amazon.com, Inc. or its affiliates. All Rights Reserved
 
-jsonpatch 1.48
+jsonpatch 1.33
   Licence: BSD-3-Clause
   Author (package metadata): Stefan Kögl
 
-jsonpointer 3.12
+jsonpointer 3.1.1
   Licence: BSD-3-Clause
   Author (package metadata): Stefan Kögl
 
@@ -225,7 +205,7 @@ langchain-core 1.5.4
   Licence: MIT
   Copyright (c) LangChain, Inc.
 
-langchain-protocol 0.0.22
+langchain-protocol 0.0.18
   Licence: MIT
   Copyright (c) 2026 LangChain, Inc.
 
@@ -233,15 +213,15 @@ langgraph-checkpoint-postgres 3.1.3
   Licence: MIT
   Copyright (c) 2024 LangChain, Inc.
 
-langgraph-checkpoint 4.3.2
+langgraph-checkpoint 4.3.0
   Licence: MIT
   Copyright (c) 2024 LangChain, Inc.
 
-langgraph-prebuilt 1.1.3
+langgraph-prebuilt 1.1.0
   Licence: MIT
   Copyright (c) 2024 LangChain, Inc.
 
-langgraph-sdk 0.4.14
+langgraph-sdk 0.4.7
   Licence: MIT
   Copyright (c) 2024 LangChain, Inc.
 
@@ -249,33 +229,17 @@ langgraph 1.2.11
   Licence: MIT
   Copyright (c) 2024 LangChain, Inc.
 
-langsmith 0.16.2
+langsmith 0.10.18
   Licence: MIT
-  Copyright 2026 langChain
+  Author (package metadata): LangChain
 
 limits 5.8.0
   Licence: MIT
   Copyright (c) 2023 Ali-Akber Saifee
 
-lxml 6.1.3
+lxml 6.1.1
   Licence: BSD-3-Clause
   Copyright (c) 2004 Infrae. All rights reserved.
-  Copyright (C) 1998-2012 Daniel Veillard. All Rights Reserved.
-  Copyright (C) The Libxml2 Contributors.
-  Copyright (C) 2001-2002 Daniel Veillard. All Rights Reserved.
-  Copyright (C) 2001-2002 Thomas Broyer, Charlie Bozeman and Daniel Veillard.
-
-markupsafe 3.0.4
-  Licence: BSD-3-Clause
-  Copyright 2010 Pallets
-
-moto 5.2.2
-  Licence: Apache-2.0
-  Copyright 2012 Steve Pulec
-
-mpmath 1.3.0
-  Licence: BSD
-  Copyright (c) 2005-2021 Fredrik Johansson and mpmath contributors
 
 numpy 1.26.4
   Licence: BSD
@@ -286,7 +250,7 @@ numpy 1.26.4
   Copyright (c) 2006-2013 The University of Colorado Denver. All rights
   Copyright (C) 2002-2017 Free Software Foundation, Inc.
 
-onnxruntime 1.20.1
+onnxruntime 1.31.0
   Licence: MIT
   Author (package metadata): Microsoft Corporation
 
@@ -346,15 +310,15 @@ opentelemetry-util-http 0.66b2
   Licence: Apache-2.0
   Author (package metadata): OpenTelemetry Authors
 
-orjson 3.13.0
+orjson 3.11.9
   Licence: MPL-2.0 AND (Apache-2.0 OR MIT)
 
-ormsgpack 1.13.1
+ormsgpack 1.12.2
   Licence: Apache-2.0 OR MIT
   Author (package metadata): Aviram Hassan, Emanuele Giaquinta
 
-packaging 26.4
-  Licence: Apache-2.0 OR BSD-2-Clause
+packaging 24.2
+  Licence: Apache-2.0 AND BSD
   Copyright (c) Donald Stufft and individual contributors.
 
 passlib 1.7.4
@@ -375,11 +339,7 @@ pip 25.0.1
   Licence: MIT
   Copyright (c) 2008-present The pip developers (see AUTHORS.txt file)
 
-pluggy 1.7.0
-  Licence: MIT
-  Copyright (c) 2015 holger krekel (rather uses bitbucket/hpk42)
-
-protobuf 7.36.2
+protobuf 7.35.1
   Licence: BSD-3-Clause
   Copyright 2008 Google Inc. All rights reserved.
 
@@ -391,7 +351,7 @@ psycopg-binary 3.2.3
   Licence: LGPL-3.0
   Author (package metadata): Daniele Varrazzo
 
-psycopg-pool 3.3.3
+psycopg-pool 3.3.1
   Licence: LGPL-3.0-only
   Author (package metadata): Daniele Varrazzo
 
@@ -399,9 +359,9 @@ psycopg 3.2.3
   Licence: LGPL-3.0
   Author (package metadata): Daniele Varrazzo
 
-pycparser 3.12
+pycparser 3.0
   Licence: BSD-3-Clause
-  Copyright (c) 2008-2027, Eli Bendersky
+  Copyright (c) 2008-2022, Eli Bendersky
 
 pydantic-core 2.23.4
   Licence: MIT
@@ -427,14 +387,6 @@ pypdf 6.21.4
   Licence: BSD-3-Clause
   Copyright (c) 2006-2008, Mathieu Fenniak
 
-pytest-asyncio 0.24.0
-  Licence: Apache-2.0
-  Author (package metadata): Tin Tvrtković <tinchester@gmail.com>
-
-pytest 8.3.3
-  Licence: MIT
-  Copyright (c) 2004 Holger Krekel and others
-
 python-dateutil 2.9.0
   Licence: Apache-2.0 AND BSD
   Copyright 2017- dateutil contributors (see AUTHORS file)
@@ -456,7 +408,7 @@ python-pptx 1.0.2
   Licence: MIT
   Copyright (c) 2013 Steve Canny, https://github.com/scanny
 
-pytz 2026.6
+pytz 2026.3.post1
   Licence: MIT
   Author (package metadata): Stuart Bishop
 
@@ -481,11 +433,7 @@ requests 2.34.2
   Licence: Apache-2.0
   Copyright 2019 Kenneth Reitz
 
-responses 0.26.3
-  Licence: Apache-2.0
-  Copyright 2015 David Cramer
-
-s3transfer 0.19.3
+s3transfer 0.19.2
   Licence: Apache-2.0
   Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
@@ -505,43 +453,31 @@ sse-starlette 2.1.3
   Licence: BSD-3-Clause
   Author (package metadata): sysid
 
-starlette 1.10.0
+starlette 1.6.0
   Licence: BSD-3-Clause
   Author (package metadata): Tom Christie
-
-sympy 1.14.0
-  Licence: BSD
-  Copyright (c) 2006-2023 SymPy Development Team
-  Copyright (c) 2006-2018 SymPy Development Team,
-  Copyright (c) 2014 Matthew Rocklin
-  Copyright (c) 2009-2023, PyDy Authors
-  Copyright 2016, latex2sympy
 
 tenacity 9.0.0
   Licence: Apache-2.0
   Author (package metadata): Julien Danjou
 
-tokenizers 0.21.0
+tokenizers 0.22.2
   Licence: Apache-2.0
-  Author (package metadata): Anthony MOI <m.anthony.moi@gmail.com>
+  Author (package metadata): Nicolas Patry, Anthony Moi
 
-tqdm 4.70.1
+tqdm 4.70.0
   Licence: MPL-2.0 AND MIT
   Copyright (c) 2013 noamraph
-
-truststore 0.10.5
-  Licence: MIT
-  Copyright (c) 2022 Seth Michael Larson
 
 typing-extensions 4.16.0
   Licence: PSF-2.0
   Copyright (c) 1991 - 1995, Stichting Mathematisch Centrum Amsterdam,
 
-typing-inspection 0.4.5
+typing-inspection 0.4.4
   Licence: MIT
   Copyright (c) Pydantic Services Inc. 2025 to present
 
-tzlocal 5.4.5
+tzlocal 5.4.4
   Licence: MIT
   Copyright 2011-2017 Lennart Regebro
 
@@ -549,35 +485,27 @@ urllib3 2.8.0
   Licence: MIT
   Copyright (c) 2008-2020 Andrey Petrov and contributors.
 
-uuid-utils 0.19.0
+uuid-utils 0.17.0
   Licence: BSD-3-Clause
   Copyright © 2023, Amin Alaee.
 
-uvicorn 0.54.0
+uvicorn 0.32.1
   Licence: BSD-3-Clause
-  Author (package metadata): Tom Christie
+  Author (package metadata): Tom Christie, Marcelo Trylesinski
 
-websockets 17.4
+websockets 15.0.1
   Licence: BSD-3-Clause
   Copyright (c) Aymeric Augustin and contributors
 
-werkzeug 3.1.9
-  Licence: BSD-3-Clause
-  Copyright 2007 Pallets
-
-wrapt 2.5.2
+wrapt 2.3.0
   Licence: BSD-2-Clause
   Copyright (c) 2013-2026, Graham Dumpleton
 
-xlsxwriter 3.3.4
+xlsxwriter 3.2.9
   Licence: BSD-2-Clause
   Author (package metadata): John McNamara
 
-xmltodict 1.0.4
-  Licence: MIT
-  Copyright (C) 2012 Martin Blech and individual contributors.
-
-xxhash 4.1.0
+xxhash 4.0.0
   Licence: BSD-2-Clause
   Copyright (c) 2014-2026, Yue Du
 

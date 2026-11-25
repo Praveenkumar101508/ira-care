@@ -4,9 +4,10 @@ import type { CircleMember, ConsentList, Device, Person } from '../api/types';
 import { BUILT_IN_IMAGES, WALLPAPER_COLOURS, moveCard, orderCards, type Appearance } from '../appearance/theme';
 import { HOME_CARDS, type Experience } from '../model/experience';
 import { deviceSummary, timeAgo } from '../model/format';
+import { LicencesView } from '../screens/LicencesScreen';
 import { BigButton, Body, Card, Muted, Screen, useColors } from '../ui';
 
-export type SettingsSection = 'appearance' | 'accessibility' | 'notifications' | 'contacts' | 'privacy' | 'watch' | 'account';
+export type SettingsSection = 'appearance' | 'accessibility' | 'notifications' | 'contacts' | 'privacy' | 'watch' | 'account' | 'licences';
 const SECTIONS: { key: SettingsSection; title: string; words: string }[] = [
   { key: 'appearance', title: 'Appearance', words: 'Wallpaper, light or dark, the order of your home cards' },
   { key: 'accessibility', title: 'Accessibility', words: 'Text size, contrast, less motion' },
@@ -15,6 +16,7 @@ const SECTIONS: { key: SettingsSection; title: string; words: string }[] = [
   { key: 'privacy', title: 'Privacy', words: 'What is shared, with whose consent, and what IRA remembers' },
   { key: 'watch', title: 'The watch', words: 'Pairing, battery, sync; guided set-up' },
   { key: 'account', title: 'Account', words: 'Who you are signed in as, and signing out' },
+  { key: 'licences', title: 'Open-source licences', words: 'The software inside this app and the licences it comes under' },
 ];
 
 export interface SettingsProps {
@@ -45,6 +47,11 @@ export function SettingsTab(p: SettingsProps) {
         </ScrollView>
       </Screen>
     );
+  }
+
+  // The notices are long: their own scrolling list, not inside the section's ScrollView.
+  if (section === 'licences') {
+    return <Screen title="Open-source licences"><LicencesView onBack={() => setSection(null)} /></Screen>;
   }
 
   const back = <BigButton label="Back to settings" color={c.muted} testID="settings-back" onPress={() => setSection(null)} />;

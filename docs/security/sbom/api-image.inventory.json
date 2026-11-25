@@ -511,29 +511,28 @@
         "asyncpg@0.30.0",
         "bcrypt@4.0.1",
         "cffi@2.1.1",
-        "chardet@7.7.0",
-        "charset-normalizer@3.5.3",
-        "cryptography@50.0.2",
+        "chardet@7.5.1",
+        "charset-normalizer@3.5.0",
+        "cryptography@50.0.0",
         "ctranslate2@4.8.3",
-        "hf-xet@1.8.0",
-        "jiter@0.19.0",
-        "lxml@6.1.3",
-        "markupsafe@3.0.4",
+        "hf-xet@1.6.0",
+        "jiter@0.16.0",
+        "lxml@6.1.1",
         "numpy@1.26.4",
-        "onnxruntime@1.20.1",
-        "orjson@3.13.0",
-        "ormsgpack@1.13.1",
+        "onnxruntime@1.31.0",
+        "orjson@3.11.9",
+        "ormsgpack@1.12.2",
         "pillow@13.0.0",
-        "protobuf@7.36.2",
+        "protobuf@7.35.1",
         "psutil@6.1.0",
         "psycopg-binary@3.2.3",
         "pydantic-core@2.23.4",
         "pyyaml@6.0.2",
-        "tokenizers@0.21.0",
-        "uuid-utils@0.19.0",
-        "websockets@17.4",
-        "wrapt@2.5.2",
-        "xxhash@4.1.0",
+        "tokenizers@0.22.2",
+        "uuid-utils@0.17.0",
+        "websockets@15.0.1",
+        "wrapt@2.3.0",
+        "xxhash@4.0.0",
         "zstandard@0.25.0"
       ],
       "name": "libc6",
@@ -570,17 +569,17 @@
       "licence": "GPL-3.0-or-later WITH GCC-exception-3.1",
       "linked_by": [
         "bcrypt@4.0.1",
-        "cryptography@50.0.2",
+        "cryptography@50.0.0",
         "ctranslate2@4.8.3",
-        "hf-xet@1.8.0",
-        "jiter@0.19.0",
+        "hf-xet@1.6.0",
+        "jiter@0.16.0",
         "numpy@1.26.4",
-        "onnxruntime@1.20.1",
-        "ormsgpack@1.13.1",
+        "onnxruntime@1.31.0",
+        "ormsgpack@1.12.2",
         "pillow@13.0.0",
         "pydantic-core@2.23.4",
-        "tokenizers@0.21.0",
-        "uuid-utils@0.19.0"
+        "tokenizers@0.22.2",
+        "uuid-utils@0.17.0"
       ],
       "name": "libgcc-s1",
       "source": "GCC runtime library: GPL-3.0-or-later with the GCC Runtime Library Exception 3.1 (upstream licence)",
@@ -636,10 +635,10 @@
       "licence": "GPL-3.0-or-later WITH GCC-exception-3.1",
       "linked_by": [
         "ctranslate2@4.8.3",
-        "onnxruntime@1.20.1",
+        "onnxruntime@1.31.0",
         "pillow@13.0.0",
-        "protobuf@7.36.2",
-        "tokenizers@0.21.0"
+        "protobuf@7.35.1",
+        "tokenizers@0.22.2"
       ],
       "name": "libstdc++6",
       "source": "GCC runtime library: GPL-3.0-or-later with the GCC Runtime Library Exception 3.1 (upstream licence)",
@@ -725,22 +724,22 @@
       "size": 1245151
     },
     "/usr/local/lib/python3.12/site-packages/onnxruntime/datasets/logreg_iris.onnx": {
-      "owner": "onnxruntime@1.20.1",
+      "owner": "onnxruntime@1.31.0",
       "sha256": "8224784c98d73412d9fd99abcd57a38568bd590980d0fbe5916464531c52e8fc",
       "size": 670
     },
     "/usr/local/lib/python3.12/site-packages/onnxruntime/datasets/mul_1.onnx": {
-      "owner": "onnxruntime@1.20.1",
+      "owner": "onnxruntime@1.31.0",
       "sha256": "71f431c4e9321ec6fbeb158d02ed240459a7dcc98673fa79a4f439ce42efaf10",
       "size": 130
     },
     "/usr/local/lib/python3.12/site-packages/onnxruntime/datasets/sigmoid.onnx": {
-      "owner": "onnxruntime@1.20.1",
+      "owner": "onnxruntime@1.31.0",
       "sha256": "5340aba67a7e3475162ad794378af55f1718f55f9a5d74b4af60ecc7f7a624b6",
       "size": 103
     }
   },
-  "note": "Snapshot of a sandbox build (scripts/staging/sandbox_build.sh, 25 November 2026): the OS package step could not run there, so curl, postgresql-client and their Debian dependencies are absent and a Python stand-in for curl is present. Everything else is the Dockerfile's. CI scans the real image on every build.",
+  "note": "Snapshot of a sandbox build (scripts/staging/sandbox_build.sh, 25 November 2026): the OS package step could not run there, so curl, postgresql-client and their Debian dependencies are absent and a Python stand-in for curl is present. Everything else is the Dockerfile's, including its Python packages, which come only from requirements-api.lock and requirements-nodeps.txt. CI scans the real image on every build.",
   "npm": {},
   "operating_system": "debian 13",
   "os_packages": {
@@ -1382,29 +1381,28 @@
         "asyncpg@0.30.0",
         "bcrypt@4.0.1",
         "cffi@2.1.1",
-        "chardet@7.7.0",
-        "charset-normalizer@3.5.3",
-        "cryptography@50.0.2",
+        "chardet@7.5.1",
+        "charset-normalizer@3.5.0",
+        "cryptography@50.0.0",
         "ctranslate2@4.8.3",
-        "hf-xet@1.8.0",
-        "jiter@0.19.0",
-        "lxml@6.1.3",
-        "markupsafe@3.0.4",
+        "hf-xet@1.6.0",
+        "jiter@0.16.0",
+        "lxml@6.1.1",
         "numpy@1.26.4",
-        "onnxruntime@1.20.1",
-        "orjson@3.13.0",
-        "ormsgpack@1.13.1",
+        "onnxruntime@1.31.0",
+        "orjson@3.11.9",
+        "ormsgpack@1.12.2",
         "pillow@13.0.0",
-        "protobuf@7.36.2",
+        "protobuf@7.35.1",
         "psutil@6.1.0",
         "psycopg-binary@3.2.3",
         "pydantic-core@2.23.4",
         "pyyaml@6.0.2",
-        "tokenizers@0.21.0",
-        "uuid-utils@0.19.0",
-        "websockets@17.4",
-        "wrapt@2.5.2",
-        "xxhash@4.1.0",
+        "tokenizers@0.22.2",
+        "uuid-utils@0.17.0",
+        "websockets@15.0.1",
+        "wrapt@2.3.0",
+        "xxhash@4.0.0",
         "zstandard@0.25.0"
       ],
       "origin": "base image",
@@ -1539,17 +1537,17 @@
       "licences": [],
       "linked_by": [
         "bcrypt@4.0.1",
-        "cryptography@50.0.2",
+        "cryptography@50.0.0",
         "ctranslate2@4.8.3",
-        "hf-xet@1.8.0",
-        "jiter@0.19.0",
+        "hf-xet@1.6.0",
+        "jiter@0.16.0",
         "numpy@1.26.4",
-        "onnxruntime@1.20.1",
-        "ormsgpack@1.13.1",
+        "onnxruntime@1.31.0",
+        "ormsgpack@1.12.2",
         "pillow@13.0.0",
         "pydantic-core@2.23.4",
-        "tokenizers@0.21.0",
-        "uuid-utils@0.19.0"
+        "tokenizers@0.22.2",
+        "uuid-utils@0.17.0"
       ],
       "origin": "base image",
       "version": "14.2.0-19"
@@ -2092,10 +2090,10 @@
       "licences": [],
       "linked_by": [
         "ctranslate2@4.8.3",
-        "onnxruntime@1.20.1",
+        "onnxruntime@1.31.0",
         "pillow@13.0.0",
-        "protobuf@7.36.2",
-        "tokenizers@0.21.0"
+        "protobuf@7.35.1",
+        "tokenizers@0.22.2"
       ],
       "origin": "base image",
       "version": "14.2.0-19"
@@ -2665,7 +2663,7 @@
     "CPython (base image, built from source)"
   ],
   "python": {
-    "annotated-doc@0.0.7": {
+    "annotated-doc@0.0.5": {
       "copyright": [
         "Copyright (c) 2025 Sebasti\u00e1n Ram\u00edrez"
       ],
@@ -2673,9 +2671,10 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "annotated-doc",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "0.0.7"
+      "version": "0.0.5"
     },
     "annotated-types@0.8.0": {
       "copyright": [
@@ -2685,11 +2684,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "annotated-types",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "0.8.0"
     },
-    "anyio@4.16.0": {
+    "anyio@4.14.2": {
       "copyright": [
         "Copyright (c) 2018 Alex Gr\u00f6nholm"
       ],
@@ -2697,9 +2697,10 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "anyio",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "4.16.0"
+      "version": "4.14.2"
     },
     "apscheduler@3.10.4": {
       "copyright": [
@@ -2709,11 +2710,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "apscheduler",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "3.10.4"
     },
-    "asgiref@3.13.0": {
+    "asgiref@3.12.1": {
       "copyright": [
         "Copyright (c) Django Software Foundation and individual contributors."
       ],
@@ -2721,9 +2723,10 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "asgiref",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "3.13.0"
+      "version": "3.12.1"
     },
     "asyncpg@0.30.0": {
       "copyright": [
@@ -2734,6 +2737,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "asyncpg",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "0.30.0"
@@ -2746,6 +2750,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "bcrypt",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "4.0.1"
@@ -2758,11 +2763,12 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "boto3",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "1.43.67"
     },
-    "botocore@1.43.127": {
+    "botocore@1.43.70": {
       "copyright": [
         "Copyright 2012-2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.",
         "Copyright 2013 Kenneth Reitz",
@@ -2772,11 +2778,12 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "botocore",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "1.43.127"
+      "version": "1.43.70"
     },
-    "certifi@2026.11.20": {
+    "certifi@2026.10.19": {
       "copyright": [
         "Author (package metadata): Kenneth Reitz"
       ],
@@ -2784,9 +2791,10 @@
       "licence": "MPL-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "certifi",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "2026.11.20"
+      "version": "2026.10.19"
     },
     "cffi@2.1.1": {
       "copyright": [
@@ -2796,11 +2804,12 @@
       "licence": "MIT-0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "cffi",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "2.1.1"
     },
-    "chardet@7.7.0": {
+    "chardet@7.5.1": {
       "copyright": [
         "Copyright (c) 2026 Dan Blanchard"
       ],
@@ -2808,11 +2817,12 @@
       "licence": "0BSD",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "chardet",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "7.7.0"
+      "version": "7.5.1"
     },
-    "charset-normalizer@3.5.3": {
+    "charset-normalizer@3.5.0": {
       "copyright": [
         "Copyright (c) 2025 TAHRI Ahmed R."
       ],
@@ -2820,11 +2830,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "charset-normalizer",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "3.5.3"
+      "version": "3.5.0"
     },
-    "click@8.5.1": {
+    "click@8.4.2": {
       "copyright": [
         "Copyright 2014 Pallets"
       ],
@@ -2832,23 +2843,12 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "click",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "8.5.1"
+      "version": "8.4.2"
     },
-    "coloredlogs@15.0.1": {
-      "copyright": [
-        "Copyright (c) 2020 Peter Odding"
-      ],
-      "declared": "MIT",
-      "licence": "MIT",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "coloredlogs",
-      "source": "License",
-      "status": "allowed",
-      "version": "15.0.1"
-    },
-    "cryptography@50.0.2": {
+    "cryptography@50.0.0": {
       "copyright": [
         "Copyright (c) Individual contributors."
       ],
@@ -2856,9 +2856,10 @@
       "licence": "Apache-2.0 OR BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "cryptography",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "50.0.2"
+      "version": "50.0.0"
     },
     "ctranslate2@4.8.3": {
       "copyright": [
@@ -2868,11 +2869,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "ctranslate2",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "4.8.3"
     },
-    "deprecated@3.0.1": {
+    "deprecated@1.3.1": {
       "copyright": [
         "Copyright (c) 2017 Laurent LAPORTE"
       ],
@@ -2880,9 +2882,10 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "deprecated",
-      "source": "License-Expression",
+      "origin": "added by the Dockerfile",
+      "source": "License",
       "status": "allowed",
-      "version": "3.0.1"
+      "version": "1.3.1"
     },
     "distro@1.9.0": {
       "copyright": [
@@ -2892,6 +2895,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "distro",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "1.9.0"
@@ -2906,11 +2910,12 @@
       "licence": "ISC",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "dnspython",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "2.9.2"
     },
-    "email-validator@2.4.0": {
+    "email-validator@2.3.0": {
       "copyright": [
         "Author (package metadata): Joshua Tauberer"
       ],
@@ -2918,9 +2923,10 @@
       "licence": "Unlicense",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "email-validator",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "2.4.0"
+      "version": "2.3.0"
     },
     "et-xmlfile@2.0.0": {
       "copyright": [
@@ -2932,6 +2938,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "et-xmlfile",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "2.0.0"
@@ -2944,6 +2951,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "fastapi",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "0.141.1"
@@ -2956,11 +2964,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "faster-whisper",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "1.2.1"
     },
-    "filelock@4.3.1": {
+    "filelock@4.2.4": {
       "copyright": [
         "Copyright (c) 2025 Bern\u00e1t G\u00e1bor and contributors"
       ],
@@ -2968,9 +2977,10 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "filelock",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "4.3.1"
+      "version": "4.2.4"
     },
     "flatbuffers@25.12.19": {
       "copyright": [
@@ -2980,11 +2990,12 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "flatbuffers",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "25.12.19"
     },
-    "fsspec@2026.9.0": {
+    "fsspec@2026.7.0": {
       "copyright": [
         "Copyright (c) 2018, Martin Durant"
       ],
@@ -2992,21 +3003,23 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "fsspec",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "2026.9.0"
+      "version": "2026.7.0"
     },
-    "googleapis-common-protos@1.76.0": {
+    "googleapis-common-protos@1.75.1": {
       "copyright": [
         "Author (package metadata): Google LLC"
       ],
-      "declared": "Apache-2.0",
+      "declared": "Apache 2.0",
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "googleapis-common-protos",
-      "source": "License-Expression",
+      "origin": "added by the Dockerfile",
+      "source": "License",
       "status": "allowed",
-      "version": "1.76.0"
+      "version": "1.75.1"
     },
     "h11@0.16.0": {
       "copyright": [
@@ -3016,11 +3029,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "h11",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "0.16.0"
     },
-    "hf-xet@1.8.0": {
+    "hf-xet@1.6.0": {
       "copyright": [
         "Author (package metadata): Rajat Arya, Jared Sulzdorf, Di Xiao, Assaf Vayner, Hoyt Koepke"
       ],
@@ -3028,21 +3042,10 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "hf-xet",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "1.8.0"
-    },
-    "httpcore2@2.16.2": {
-      "copyright": [
-        "Copyright \u00a9 2026 to present Pydantic Services Inc. and individual contributors."
-      ],
-      "declared": "BSD-3-Clause",
-      "licence": "BSD-3-Clause",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "httpcore2",
-      "source": "License-Expression",
-      "status": "allowed",
-      "version": "2.16.2"
+      "version": "1.6.0"
     },
     "httpcore@1.0.9": {
       "copyright": [
@@ -3052,21 +3055,10 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "httpcore",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "1.0.9"
-    },
-    "httpx2@2.16.2": {
-      "copyright": [
-        "Copyright \u00a9 2026 to present Pydantic Services Inc. and individual contributors."
-      ],
-      "declared": "BSD-3-Clause",
-      "licence": "BSD-3-Clause",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "httpx2",
-      "source": "License-Expression",
-      "status": "allowed",
-      "version": "2.16.2"
     },
     "httpx@0.27.2": {
       "copyright": [
@@ -3076,36 +3068,25 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "httpx",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "0.27.2"
     },
-    "huggingface-hub@0.36.2": {
+    "huggingface-hub@1.27.0": {
       "copyright": [
         "Author (package metadata): Hugging Face, Inc."
       ],
-      "declared": "Apache",
-      "licence": "Apache",
+      "declared": "Apache-2.0",
+      "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "huggingface-hub",
-      "reason": "Apache: not on the allowed list",
-      "source": "License",
-      "status": "excepted",
-      "version": "0.36.2"
-    },
-    "humanfriendly@10.0": {
-      "copyright": [
-        "Copyright (c) 2021 Peter Odding"
-      ],
-      "declared": "MIT",
-      "licence": "MIT",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "humanfriendly",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "10.0"
+      "version": "1.27.0"
     },
-    "idna@3.20": {
+    "idna@3.18": {
       "copyright": [
         "Copyright (c) 2013-2026, Kim Davies and contributors."
       ],
@@ -3113,23 +3094,12 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "idna",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "3.20"
+      "version": "3.18"
     },
-    "iniconfig@2.3.1": {
-      "copyright": [
-        "Copyright (c) 2010 - 2023 Holger Krekel and others"
-      ],
-      "declared": "MIT",
-      "licence": "MIT",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "iniconfig",
-      "source": "License-Expression",
-      "status": "allowed",
-      "version": "2.3.1"
-    },
-    "jiter@0.19.0": {
+    "jiter@0.16.0": {
       "copyright": [
         "Copyright (c) 2022 to present Samuel Colvin"
       ],
@@ -3137,9 +3107,10 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "jiter",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "0.19.0"
+      "version": "0.16.0"
     },
     "jmespath@1.1.0": {
       "copyright": [
@@ -3149,33 +3120,36 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "jmespath",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "1.1.0"
     },
-    "jsonpatch@1.48": {
+    "jsonpatch@1.33": {
       "copyright": [
         "Author (package metadata): Stefan K\u00f6gl"
       ],
-      "declared": "BSD-3-Clause",
+      "declared": "Modified BSD License",
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "jsonpatch",
-      "source": "License-Expression",
+      "origin": "added by the Dockerfile",
+      "source": "License",
       "status": "allowed",
-      "version": "1.48"
+      "version": "1.33"
     },
-    "jsonpointer@3.12": {
+    "jsonpointer@3.1.1": {
       "copyright": [
         "Author (package metadata): Stefan K\u00f6gl"
       ],
-      "declared": "BSD-3-Clause",
+      "declared": "Modified BSD License",
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "jsonpointer",
-      "source": "License-Expression",
+      "origin": "added by the Dockerfile",
+      "source": "License",
       "status": "allowed",
-      "version": "3.12"
+      "version": "3.1.1"
     },
     "langchain-core@1.5.4": {
       "copyright": [
@@ -3185,11 +3159,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "langchain-core",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "1.5.4"
     },
-    "langchain-protocol@0.0.22": {
+    "langchain-protocol@0.0.18": {
       "copyright": [
         "Copyright (c) 2026 LangChain, Inc."
       ],
@@ -3197,9 +3172,10 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "langchain-protocol",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "0.0.22"
+      "version": "0.0.18"
     },
     "langgraph-checkpoint-postgres@3.1.3": {
       "copyright": [
@@ -3209,11 +3185,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "langgraph-checkpoint-postgres",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "3.1.3"
     },
-    "langgraph-checkpoint@4.3.2": {
+    "langgraph-checkpoint@4.3.0": {
       "copyright": [
         "Copyright (c) 2024 LangChain, Inc."
       ],
@@ -3221,11 +3198,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "langgraph-checkpoint",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "4.3.2"
+      "version": "4.3.0"
     },
-    "langgraph-prebuilt@1.1.3": {
+    "langgraph-prebuilt@1.1.0": {
       "copyright": [
         "Copyright (c) 2024 LangChain, Inc."
       ],
@@ -3233,11 +3211,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "langgraph-prebuilt",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "1.1.3"
+      "version": "1.1.0"
     },
-    "langgraph-sdk@0.4.14": {
+    "langgraph-sdk@0.4.7": {
       "copyright": [
         "Copyright (c) 2024 LangChain, Inc."
       ],
@@ -3245,9 +3224,10 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "langgraph-sdk",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "0.4.14"
+      "version": "0.4.7"
     },
     "langgraph@1.2.11": {
       "copyright": [
@@ -3257,21 +3237,23 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "langgraph",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "1.2.11"
     },
-    "langsmith@0.16.2": {
+    "langsmith@0.10.18": {
       "copyright": [
-        "Copyright 2026 langChain"
+        "Author (package metadata): LangChain"
       ],
       "declared": "MIT",
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "langsmith",
-      "source": "License-Expression",
+      "origin": "added by the Dockerfile",
+      "source": "License",
       "status": "allowed",
-      "version": "0.16.2"
+      "version": "0.10.18"
     },
     "limits@5.8.0": {
       "copyright": [
@@ -3281,61 +3263,23 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "limits",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "5.8.0"
     },
-    "lxml@6.1.3": {
+    "lxml@6.1.1": {
       "copyright": [
-        "Copyright (c) 2004 Infrae. All rights reserved.",
-        "Copyright (C) 1998-2012 Daniel Veillard. All Rights Reserved.",
-        "Copyright (C) The Libxml2 Contributors.",
-        "Copyright (C) 2001-2002 Daniel Veillard. All Rights Reserved.",
-        "Copyright (C) 2001-2002 Thomas Broyer, Charlie Bozeman and Daniel Veillard."
+        "Copyright (c) 2004 Infrae. All rights reserved."
       ],
       "declared": "BSD-3-Clause",
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "lxml",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "6.1.3"
-    },
-    "markupsafe@3.0.4": {
-      "copyright": [
-        "Copyright 2010 Pallets"
-      ],
-      "declared": "BSD-3-Clause",
-      "licence": "BSD-3-Clause",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "markupsafe",
-      "source": "License-Expression",
-      "status": "allowed",
-      "version": "3.0.4"
-    },
-    "moto@5.2.2": {
-      "copyright": [
-        "Copyright 2012 Steve Pulec"
-      ],
-      "declared": "Apache-2.0",
-      "licence": "Apache-2.0",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "moto",
-      "source": "License",
-      "status": "allowed",
-      "version": "5.2.2"
-    },
-    "mpmath@1.3.0": {
-      "copyright": [
-        "Copyright (c) 2005-2021 Fredrik Johansson and mpmath contributors"
-      ],
-      "declared": "BSD",
-      "licence": "BSD",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "mpmath",
-      "source": "License",
-      "status": "allowed",
-      "version": "1.3.0"
+      "version": "6.1.1"
     },
     "numpy@1.26.4": {
       "copyright": [
@@ -3350,11 +3294,12 @@
       "licence": "BSD",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "numpy",
+      "origin": "added by the Dockerfile",
       "source": "Classifier",
       "status": "allowed",
       "version": "1.26.4"
     },
-    "onnxruntime@1.20.1": {
+    "onnxruntime@1.31.0": {
       "copyright": [
         "Author (package metadata): Microsoft Corporation"
       ],
@@ -3362,9 +3307,10 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "onnxruntime",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "1.20.1"
+      "version": "1.31.0"
     },
     "openai@1.58.1": {
       "copyright": [
@@ -3374,6 +3320,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "openai",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "1.58.1"
@@ -3386,6 +3333,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "openpyxl",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "3.1.5"
@@ -3398,6 +3346,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "opentelemetry-api",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "1.45.2"
@@ -3410,6 +3359,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "opentelemetry-exporter-http-transport",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "0.66b2"
@@ -3422,6 +3372,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "opentelemetry-exporter-otlp-common",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "0.66b2"
@@ -3434,6 +3385,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "opentelemetry-exporter-otlp-proto-common",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "1.45.2"
@@ -3446,6 +3398,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "opentelemetry-exporter-otlp-proto-http",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "1.45.2"
@@ -3458,6 +3411,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "opentelemetry-instrumentation-asgi",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "0.66b2"
@@ -3470,6 +3424,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "opentelemetry-instrumentation-fastapi",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "0.66b2"
@@ -3482,6 +3437,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "opentelemetry-instrumentation",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "0.66b2"
@@ -3494,6 +3450,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "opentelemetry-proto",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "1.45.2"
@@ -3506,6 +3463,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "opentelemetry-sdk",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "1.45.2"
@@ -3518,6 +3476,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "opentelemetry-semantic-conventions",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "0.66b2"
@@ -3530,21 +3489,23 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "opentelemetry-util-http",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "0.66b2"
     },
-    "orjson@3.13.0": {
+    "orjson@3.11.9": {
       "copyright": [],
       "declared": "MPL-2.0 AND (Apache-2.0 OR MIT)",
       "licence": "MPL-2.0 AND (Apache-2.0 OR MIT)",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "orjson",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "3.13.0"
+      "version": "3.11.9"
     },
-    "ormsgpack@1.13.1": {
+    "ormsgpack@1.12.2": {
       "copyright": [
         "Author (package metadata): Aviram Hassan, Emanuele Giaquinta"
       ],
@@ -3552,21 +3513,23 @@
       "licence": "Apache-2.0 OR MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "ormsgpack",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "1.13.1"
+      "version": "1.12.2"
     },
-    "packaging@26.4": {
+    "packaging@24.2": {
       "copyright": [
         "Copyright (c) Donald Stufft and individual contributors."
       ],
-      "declared": "Apache-2.0 OR BSD-2-Clause",
-      "licence": "Apache-2.0 OR BSD-2-Clause",
+      "declared": "Apache-2.0 AND BSD",
+      "licence": "Apache-2.0 AND BSD",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "packaging",
-      "source": "License-Expression",
+      "origin": "added by the Dockerfile",
+      "source": "Classifier",
       "status": "allowed",
-      "version": "26.4"
+      "version": "24.2"
     },
     "passlib@1.7.4": {
       "copyright": [
@@ -3577,6 +3540,7 @@
       "licence": "BSD",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "passlib",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "1.7.4"
@@ -3594,6 +3558,7 @@
       "licence": "MIT-CMU",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "pillow",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "13.0.0"
@@ -3606,23 +3571,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "pip",
+      "origin": "base image",
       "source": "License",
       "status": "allowed",
       "version": "25.0.1"
     },
-    "pluggy@1.7.0": {
-      "copyright": [
-        "Copyright (c) 2015 holger krekel (rather uses bitbucket/hpk42)"
-      ],
-      "declared": "MIT",
-      "licence": "MIT",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "pluggy",
-      "source": "License",
-      "status": "allowed",
-      "version": "1.7.0"
-    },
-    "protobuf@7.36.2": {
+    "protobuf@7.35.1": {
       "copyright": [
         "Copyright 2008 Google Inc. All rights reserved."
       ],
@@ -3630,9 +3584,10 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "protobuf",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "7.36.2"
+      "version": "7.35.1"
     },
     "psutil@6.1.0": {
       "copyright": [
@@ -3642,6 +3597,7 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "psutil",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "6.1.0"
@@ -3654,12 +3610,13 @@
       "licence": "LGPL-3.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "psycopg-binary",
+      "origin": "added by the Dockerfile",
       "reason": "LGPL-3.0: weak copyleft (LGPL): needs a reviewed exception",
       "source": "License",
       "status": "excepted",
       "version": "3.2.3"
     },
-    "psycopg-pool@3.3.3": {
+    "psycopg-pool@3.3.1": {
       "copyright": [
         "Author (package metadata): Daniele Varrazzo"
       ],
@@ -3667,10 +3624,11 @@
       "licence": "LGPL-3.0-only",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "psycopg-pool",
+      "origin": "added by the Dockerfile",
       "reason": "LGPL-3.0-only: weak copyleft (LGPL): needs a reviewed exception",
       "source": "License-Expression",
       "status": "excepted",
-      "version": "3.3.3"
+      "version": "3.3.1"
     },
     "psycopg@3.2.3": {
       "copyright": [
@@ -3680,22 +3638,24 @@
       "licence": "LGPL-3.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "psycopg",
+      "origin": "added by the Dockerfile",
       "reason": "LGPL-3.0: weak copyleft (LGPL): needs a reviewed exception",
       "source": "License",
       "status": "excepted",
       "version": "3.2.3"
     },
-    "pycparser@3.12": {
+    "pycparser@3.0": {
       "copyright": [
-        "Copyright (c) 2008-2027, Eli Bendersky"
+        "Copyright (c) 2008-2022, Eli Bendersky"
       ],
       "declared": "BSD-3-Clause",
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "pycparser",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "3.12"
+      "version": "3.0"
     },
     "pydantic-core@2.23.4": {
       "copyright": [
@@ -3705,6 +3665,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "pydantic-core",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "2.23.4"
@@ -3717,6 +3678,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "pydantic-settings",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "2.6.1"
@@ -3729,6 +3691,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "pydantic",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "2.9.2"
@@ -3741,6 +3704,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "pyjwt",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "2.15.0"
@@ -3753,6 +3717,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "pyotp",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "2.9.0"
@@ -3765,33 +3730,10 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "pypdf",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "6.21.4"
-    },
-    "pytest-asyncio@0.24.0": {
-      "copyright": [
-        "Author (package metadata): Tin Tvrtkovi\u0107 <tinchester@gmail.com>"
-      ],
-      "declared": "Apache 2.0",
-      "licence": "Apache-2.0",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "pytest-asyncio",
-      "source": "License",
-      "status": "allowed",
-      "version": "0.24.0"
-    },
-    "pytest@8.3.3": {
-      "copyright": [
-        "Copyright (c) 2004 Holger Krekel and others"
-      ],
-      "declared": "MIT",
-      "licence": "MIT",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "pytest",
-      "source": "License",
-      "status": "allowed",
-      "version": "8.3.3"
     },
     "python-dateutil@2.9.0": {
       "copyright": [
@@ -3802,6 +3744,7 @@
       "licence": "Apache-2.0 AND BSD",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "python-dateutil",
+      "origin": "added by the Dockerfile",
       "source": "Classifier",
       "status": "allowed",
       "version": "2.9.0"
@@ -3814,6 +3757,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "python-docx",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "1.1.2"
@@ -3826,6 +3770,7 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "python-dotenv",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "1.2.4"
@@ -3838,6 +3783,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "python-multipart",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "0.0.31"
@@ -3850,11 +3796,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "python-pptx",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "1.0.2"
     },
-    "pytz@2026.6": {
+    "pytz@2026.3.post1": {
       "copyright": [
         "Author (package metadata): Stuart Bishop"
       ],
@@ -3862,9 +3809,10 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "pytz",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "2026.6"
+      "version": "2026.3.post1"
     },
     "pyyaml@6.0.2": {
       "copyright": [
@@ -3875,6 +3823,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "pyyaml",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "6.0.2"
@@ -3887,6 +3836,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "redis",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "5.2.0"
@@ -3899,6 +3849,7 @@
       "licence": "BSD",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "reportlab",
+      "origin": "added by the Dockerfile",
       "source": "Classifier",
       "status": "allowed",
       "version": "4.2.5"
@@ -3911,6 +3862,7 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "requests-toolbelt",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "1.0.0"
@@ -3923,23 +3875,12 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "requests",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "2.34.2"
     },
-    "responses@0.26.3": {
-      "copyright": [
-        "Copyright 2015 David Cramer"
-      ],
-      "declared": "Apache-2.0",
-      "licence": "Apache-2.0",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "responses",
-      "source": "License",
-      "status": "allowed",
-      "version": "0.26.3"
-    },
-    "s3transfer@0.19.3": {
+    "s3transfer@0.19.2": {
       "copyright": [
         "Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved."
       ],
@@ -3947,9 +3888,10 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "s3transfer",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "0.19.3"
+      "version": "0.19.2"
     },
     "six@1.17.0": {
       "copyright": [
@@ -3959,6 +3901,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "six",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "1.17.0"
@@ -3971,6 +3914,7 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "slowapi",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "0.1.9"
@@ -3983,6 +3927,7 @@
       "licence": "MIT OR Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "sniffio",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "1.3.1"
@@ -3995,11 +3940,12 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "sse-starlette",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "2.1.3"
     },
-    "starlette@1.10.0": {
+    "starlette@1.6.0": {
       "copyright": [
         "Author (package metadata): Tom Christie"
       ],
@@ -4007,25 +3953,10 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "starlette",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "1.10.0"
-    },
-    "sympy@1.14.0": {
-      "copyright": [
-        "Copyright (c) 2006-2023 SymPy Development Team",
-        "Copyright (c) 2006-2018 SymPy Development Team,",
-        "Copyright (c) 2014 Matthew Rocklin",
-        "Copyright (c) 2009-2023, PyDy Authors",
-        "Copyright 2016, latex2sympy"
-      ],
-      "declared": "BSD",
-      "licence": "BSD",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "sympy",
-      "source": "License",
-      "status": "allowed",
-      "version": "1.14.0"
+      "version": "1.6.0"
     },
     "tenacity@9.0.0": {
       "copyright": [
@@ -4035,23 +3966,25 @@
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "tenacity",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
       "version": "9.0.0"
     },
-    "tokenizers@0.21.0": {
+    "tokenizers@0.22.2": {
       "copyright": [
-        "Author (package metadata): Anthony MOI <m.anthony.moi@gmail.com>"
+        "Author (package metadata): Nicolas Patry, Anthony Moi"
       ],
       "declared": "Apache-2.0",
       "licence": "Apache-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "tokenizers",
+      "origin": "added by the Dockerfile",
       "source": "Classifier",
       "status": "allowed",
-      "version": "0.21.0"
+      "version": "0.22.2"
     },
-    "tqdm@4.70.1": {
+    "tqdm@4.70.0": {
       "copyright": [
         "Copyright (c) 2013 noamraph"
       ],
@@ -4059,21 +3992,10 @@
       "licence": "MPL-2.0 AND MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "tqdm",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "4.70.1"
-    },
-    "truststore@0.10.5": {
-      "copyright": [
-        "Copyright (c) 2022 Seth Michael Larson"
-      ],
-      "declared": "MIT",
-      "licence": "MIT",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "truststore",
-      "source": "License-Expression",
-      "status": "allowed",
-      "version": "0.10.5"
+      "version": "4.70.0"
     },
     "typing-extensions@4.16.0": {
       "copyright": [
@@ -4083,11 +4005,12 @@
       "licence": "PSF-2.0",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "typing-extensions",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "4.16.0"
     },
-    "typing-inspection@0.4.5": {
+    "typing-inspection@0.4.4": {
       "copyright": [
         "Copyright (c) Pydantic Services Inc. 2025 to present"
       ],
@@ -4095,11 +4018,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "typing-inspection",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "0.4.5"
+      "version": "0.4.4"
     },
-    "tzlocal@5.4.5": {
+    "tzlocal@5.4.4": {
       "copyright": [
         "Copyright 2011-2017 Lennart Regebro"
       ],
@@ -4107,9 +4031,10 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "tzlocal",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "5.4.5"
+      "version": "5.4.4"
     },
     "urllib3@2.8.0": {
       "copyright": [
@@ -4119,11 +4044,12 @@
       "licence": "MIT",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "urllib3",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "2.8.0"
     },
-    "uuid-utils@0.19.0": {
+    "uuid-utils@0.17.0": {
       "copyright": [
         "Copyright \u00a9 2023, Amin Alaee."
       ],
@@ -4131,23 +4057,25 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "uuid-utils",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "0.19.0"
+      "version": "0.17.0"
     },
-    "uvicorn@0.54.0": {
+    "uvicorn@0.32.1": {
       "copyright": [
-        "Author (package metadata): Tom Christie"
+        "Author (package metadata): Tom Christie, Marcelo Trylesinski"
       ],
       "declared": "BSD-3-Clause",
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "uvicorn",
-      "source": "License-Expression",
+      "origin": "added by the Dockerfile",
+      "source": "License",
       "status": "allowed",
-      "version": "0.54.0"
+      "version": "0.32.1"
     },
-    "websockets@17.4": {
+    "websockets@15.0.1": {
       "copyright": [
         "Copyright (c) Aymeric Augustin and contributors"
       ],
@@ -4155,23 +4083,12 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "websockets",
-      "source": "License-Expression",
+      "origin": "added by the Dockerfile",
+      "source": "License",
       "status": "allowed",
-      "version": "17.4"
+      "version": "15.0.1"
     },
-    "werkzeug@3.1.9": {
-      "copyright": [
-        "Copyright 2007 Pallets"
-      ],
-      "declared": "BSD-3-Clause",
-      "licence": "BSD-3-Clause",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "werkzeug",
-      "source": "License-Expression",
-      "status": "allowed",
-      "version": "3.1.9"
-    },
-    "wrapt@2.5.2": {
+    "wrapt@2.3.0": {
       "copyright": [
         "Copyright (c) 2013-2026, Graham Dumpleton"
       ],
@@ -4179,11 +4096,12 @@
       "licence": "BSD-2-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "wrapt",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
-      "version": "2.5.2"
+      "version": "2.3.0"
     },
-    "xlsxwriter@3.3.4": {
+    "xlsxwriter@3.2.9": {
       "copyright": [
         "Author (package metadata): John McNamara"
       ],
@@ -4191,23 +4109,12 @@
       "licence": "BSD-2-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "xlsxwriter",
-      "source": "License-Expression",
+      "origin": "added by the Dockerfile",
+      "source": "License",
       "status": "allowed",
-      "version": "3.3.4"
+      "version": "3.2.9"
     },
-    "xmltodict@1.0.4": {
-      "copyright": [
-        "Copyright (C) 2012 Martin Blech and individual contributors."
-      ],
-      "declared": "MIT",
-      "licence": "MIT",
-      "location": "/usr/local/lib/python3.12/site-packages",
-      "name": "xmltodict",
-      "source": "License-Expression",
-      "status": "allowed",
-      "version": "1.0.4"
-    },
-    "xxhash@4.1.0": {
+    "xxhash@4.0.0": {
       "copyright": [
         "Copyright (c) 2014-2026, Yue Du"
       ],
@@ -4215,9 +4122,10 @@
       "licence": "BSD-2-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "xxhash",
+      "origin": "added by the Dockerfile",
       "source": "License",
       "status": "allowed",
-      "version": "4.1.0"
+      "version": "4.0.0"
     },
     "zstandard@0.25.0": {
       "copyright": [
@@ -4227,6 +4135,7 @@
       "licence": "BSD-3-Clause",
       "location": "/usr/local/lib/python3.12/site-packages",
       "name": "zstandard",
+      "origin": "added by the Dockerfile",
       "source": "License-Expression",
       "status": "allowed",
       "version": "0.25.0"

@@ -9,7 +9,7 @@
 #      it is replaced by a minimal `curl -fsS URL` stand-in for the health checks: Python in
 #      the API image, busybox wget in the dashboard image. postgresql-client is not used by
 #      the care server or the care worker's jobs.
-#   2. The steps that download (pip install, the Hugging Face encoder fetch, npm ci) go through
+#   2. The steps that download (the two pip installs, the encoder fetch, npm ci) go through
 #      the sandbox's TLS-intercepting proxy; its CA is mounted as a BuildKit secret for those
 #      steps only, so it is in no layer of either image.
 # Usage: scripts/staging/sandbox_build.sh [api|dashboard|both]   (from the repository root)
@@ -35,11 +35,9 @@ api = api.replace(apt, shim)
 fetch = "RUN python /tmp/fetch_encoder.py"
 assert fetch in api
 api = api.replace(fetch, "RUN --mount=type=secret,id=ca,target=/run/ca.crt SSL_CERT_FILE=/run/ca.crt python /tmp/fetch_encoder.py")
-pip = "RUN pip install -r requirements.txt"
-assert pip in api
-api = api.replace(pip, "RUN --mount=type=secret,id=ca,target=/run/ca.crt PIP_CERT=/run/ca.crt pip install -r requirements.txt")
+# Both installs (requirements-api.lock, then requirements-nodeps.txt) are --no-deps.
 nodeps = "RUN pip install --no-deps"
-assert nodeps in api
+assert api.count(nodeps) == 2
 api = api.replace(nodeps, "RUN --mount=type=secret,id=ca,target=/run/ca.crt PIP_CERT=/run/ca.crt pip install --no-deps")
 (out / "Dockerfile.api").write_text(api)
 dash = pathlib.Path("deploy/Dockerfile.dashboard").read_text()

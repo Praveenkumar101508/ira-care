@@ -39,6 +39,10 @@ button, .tabs a, input, select, textarea { min-height: 40px; }
 @media (prefers-contrast: more) and (prefers-color-scheme: dark) { :root { --muted: #D5DDD9; --border: #8a8a8a; } }
 .pill { font-size: 13px; }
 
+/* Open-source licences (/licences): the notices file as it is, wrapped, in a box that scrolls. */
+pre.notices { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; max-height: 70vh; overflow: auto; }
+footer.site-footer { max-width: 1100px; margin: 0 auto; padding: 8px 20px 24px; font-size: 14px; }
+
 /* Advanced settings a carer rarely needs (the care server's address) stay folded away. */
 details.advanced { margin: 8px 0 14px; } details.advanced summary { cursor: pointer; }
 

@@ -1,0 +1,86 @@
+# What the care server and the care worker need at run time: the input of requirements-api.lock,
+# which the production API image (deploy/Dockerfile.api) installs with
+#
+#   pip install --no-deps --require-hashes -r requirements-api.lock
+#   pip install --no-deps --require-hashes -r requirements-nodeps.txt
+#
+# It is a subset of requirements.txt, at requirements.txt's versions. The full server's model
+# stack (torch, sentence-transformers, speechbrain, playwright and the rest) is not here: the
+# care server does not load it. Nothing that only the tests need is here either (pytest,
+# pytest-asyncio, moto and what they pull in: Werkzeug, responses, xmltodict, iniconfig,
+# pluggy); those stay in requirements-test.txt, which CI installs in its own jobs and the
+# image's `test` stage adds on top of the runtime stage.
+#
+# requirements-api.lock is DERIVED, not resolved afresh: every package in it carries the
+# version and the hashes requirements.lock carries for it. Regenerate after changing this file
+# or requirements.lock:
+#
+#   python scripts/api_image_lock.py --write      # needs PyPI (uv resolves the subset)
+#   python scripts/api_image_lock.py --check      # offline; tests/architecture/test_api_image_lock.py
+#
+# faster-whisper is not here: it goes in with --no-deps from requirements-nodeps.txt (no PyAV,
+# docs/security/LICENCES.md). Its other dependencies are here.
+
+# Web framework and server. uvicorn without [standard]: the image runs plain asyncio and h11.
+fastapi==0.141.1
+uvicorn==0.32.1
+python-multipart==0.0.31
+sse-starlette==2.1.3
+httpx==0.27.2
+
+# Config and validation
+pydantic==2.9.2
+pydantic-settings==2.6.1
+pyyaml==6.0.2
+email-validator>=2.0,<3
+
+# The conversation model client and the agent state the care modules import
+openai==1.58.1
+langgraph==1.2.11
+langchain-core==1.5.4
+langgraph-checkpoint-postgres==3.1.3
+
+# Data layer
+asyncpg==0.30.0
+psycopg[binary]==3.2.3
+redis==5.2.0
+apscheduler==3.10.4
+
+# Signing, sealing and authentication (care.devicepolicy, care.ota, core/connectors, the vault)
+cryptography>=48.0.1,<51
+PyJWT==2.15.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+pyotp==2.9.0
+slowapi==0.1.9
+
+# Key management: IRA_KEK_PROVIDER=aws-kms is an implemented production provider
+# (core/crypto/aws_kms.py), so boto3 ships. moto, its test double, does not.
+boto3==1.43.67
+
+# Numerics, the red-flag classifier (onnxruntime, tokenizers) and local speech-to-text
+numpy==1.26.4
+onnxruntime==1.31.0
+tokenizers==0.22.2
+ctranslate2==4.8.3
+huggingface-hub==1.27.0
+tqdm==4.70.0
+
+# Reports and document export
+pypdf==6.21.4
+reportlab==4.2.5
+python-docx==1.1.2
+python-pptx==1.0.2
+openpyxl==3.1.5
+
+# Observability
+opentelemetry-api==1.45.2
+opentelemetry-sdk==1.45.2
+opentelemetry-exporter-otlp-proto-http==1.45.2
+opentelemetry-instrumentation-fastapi==0.66b2
+
+# Utilities
+psutil==6.1.0
+python-dateutil==2.9.0
+tenacity==9.0.0
+requests==2.34.2

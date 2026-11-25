@@ -58,7 +58,11 @@ WATCH = ROOT / "watch"
 #: inventory ecosystem whose reviewed exceptions apply to the language packages inside.
 IMAGES = {
     "api": {"dockerfile": "deploy/Dockerfile.api", "base": "python:3.12-slim",
-            "exceptions_from": {"python": "python", "npm": "npm-dashboard"}},
+            "exceptions_from": {"python": "python", "npm": "npm-dashboard"},
+            # Installed with --no-deps --require-hashes: the image's own Python packages are
+            # exactly these, so any difference from them (or from the snapshot) is a failure.
+            "python_locks": ["supracloud-jarvis/ira/requirements-api.lock",
+                             "supracloud-jarvis/ira/requirements-nodeps.txt"]},
     "dashboard": {"dockerfile": "deploy/Dockerfile.dashboard", "base": "node:22-alpine",
                   "exceptions_from": {"python": "python", "npm": "npm-dashboard"}},
     "backup": {"dockerfile": "deploy/Dockerfile.backup", "base": "postgres:16-alpine",
@@ -409,6 +413,12 @@ def image_inventory(artefact: str, facts: dict, base_facts: dict | None,
         p["origin"] = ("base image" if name in base_pkgs else "added by the Dockerfile") \
             if base_facts is not None else "not compared with the base image"
 
+    base_python: set[str] = set()
+    if base_facts is not None:
+        for d in base_facts["dists"].values():
+            if "metadata" in d:
+                meta = email.message_from_string(d["metadata"])
+                base_python.add(f"{lc.canonical(meta['Name'] or '')}@{meta['Version'] or ''}")
     python: dict[str, dict] = {}
     py_files: dict[str, str] = {}
     for (site, _dist), d in sorted(facts["dists"].items()):
@@ -421,6 +431,9 @@ def image_inventory(artefact: str, facts: dict, base_facts: dict | None,
                          source, exceptions)
         e["location"] = site
         e["copyright"] = _holders(d["licence_files"]) or _author(meta)
+        e["origin"] = ("base image" if f"{name}@{version}" in base_python
+                       else "added by the Dockerfile") if base_facts is not None \
+            else "not compared with the base image"
         python[f"{name}@{version}"] = e
         for p in _dist_files(site, d.get("record", "")):
             py_files[p] = f"{name}@{version}"
@@ -641,8 +654,38 @@ WATCH_ASSETS = {
     "assets/fall_model.json": "IRA fall model v3 metadata",
     "assets/activity_model.json": "IRA Care Activity model (WISDM, CC BY 4.0)",
     "assets/NOTICE-activity-model.txt": "attribution for the activity model's training data",
+    "assets/THIRD_PARTY_NOTICES.txt": "the third-party notices of this build (About, "
+                                      "Open-source licences)",
 }
 RELEASE_FALL_MODEL_SHA256 = "2cab7c9bcbf60de51d7c42f5690ad549bcbf4f13eb6266c35bf5d0a59b063278"
+
+
+def locked_python(artefact: str) -> dict[str, str]:
+    """``{name@version: lock file}`` for every package an image installs from its hashed locks."""
+    out = {}
+    for rel in IMAGES[artefact].get("python_locks", []):
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        for name, version in re.findall(r"(?m)^([A-Za-z0-9][A-Za-z0-9._-]*)==(\S+) \\$", text):
+            out[f"{lc.canonical(name)}@{version}"] = rel
+    return out
+
+
+def python_lock_problems(inv: dict, locked: dict[str, str]) -> list[str]:
+    """The image's own Python packages are exactly its locks: nothing added (a test tool, a
+    package that floated in), nothing missing, no other version. Packages of the base image
+    (its pip) are the base image's."""
+    art = inv["artefact"]
+    if not locked:
+        return []
+    ours = {k for k, e in inv["python"].items() if e.get("origin") != "base image"}
+    out = [f"{art}: Python package {k} is in the image but not in its locks"
+           for k in sorted(ours - set(locked))]
+    out += [f"{art}: {k} from {locked[k]} is not installed in the image"
+            for k in sorted(set(locked) - set(inv["python"]))]
+    if any(e.get("origin") == "not compared with the base image" for e in inv["python"].values()):
+        out.append(f"{art}: scanned without --base, so the base image's packages cannot be told "
+                   "from the Dockerfile's")
+    return out
 
 
 def watch_apks() -> dict[str, Path]:
@@ -1182,19 +1225,46 @@ def needed_licence_texts(comps: list[dict]) -> set[str]:
     return out
 
 
+#: Where each image carries its notices file (each Dockerfile copies it there).
+IMAGE_NOTICES_PATH = "/usr/share/doc/ira-care/THIRD_PARTY_NOTICES.txt"
+
+#: The copy of a notices file each app bundles and shows on its licences screen. Written by
+#: `render --write` and checked by `render --check` like the notices themselves.
+APP_COPIES = {
+    "dashboard-image": ROOT / "dashboard" / "src" / "legal" / "THIRD_PARTY_NOTICES.txt",
+    "phone-app": ROOT / "mobile" / "assets" / "legal" / "THIRD_PARTY_NOTICES.json",
+    "watch-wearos": WATCH / "app" / "src" / "wearos" / "assets" / "THIRD_PARTY_NOTICES.txt",
+    "watch-aosp": WATCH / "app" / "src" / "aosp" / "assets" / "THIRD_PARTY_NOTICES.txt",
+}
+
+
+def app_copy_text(artefact: str, notices: str) -> str:
+    """What the app's bundled copy holds: the notices file itself, or (for the phone app, whose
+    bundler takes JSON as a module) the same text in a JSON object."""
+    if APP_COPIES[artefact].suffix == ".json":
+        return dumps({"artefact": artefact, "source": f"docs/legal/notices/{artefact}.txt",
+                      "text": notices})
+    return notices
+
+
 CARRY = {
-    "watch-wearos": "In the app: an open-source licences screen or a bundled text file showing "
-                    "this file (not built yet). In the store listing: a link to it.",
-    "watch-aosp": "As for the Wear OS build: on the device, and wherever the build is handed over.",
-    "phone-app": "In the app (an open-source licences screen, not built yet) and beside each "
-                 "store build.",
-    "dashboard-image": "Inside the image (for example /app/THIRD_PARTY_NOTICES.txt, not added "
-                       "yet) and beside any copy of the image handed to someone else.",
-    "api-image": "Inside the image (for example /app/THIRD_PARTY_NOTICES.txt, not added yet) "
-                 "and beside any copy of the image handed to someone else. Debian packages "
-                 "already carry their own notices in /usr/share/doc.",
-    "backup-image": "Inside the image and beside any copy handed to someone else. Alpine "
-                    "packages carry no licence texts of their own, so this file is the notice.",
+    "watch-wearos": "In the APK (assets/THIRD_PARTY_NOTICES.txt, from watch/app/src/wearos/"
+                    "assets/), shown on the watch under About, Open-source licences. In the store "
+                    "listing: a link to it.",
+    "watch-aosp": "In the APK (assets/THIRD_PARTY_NOTICES.txt, from watch/app/src/aosp/assets/), "
+                  "shown on the watch under About, Open-source licences, and beside the build "
+                  "wherever it is handed over.",
+    "phone-app": "Bundled in the app (mobile/assets/legal/THIRD_PARTY_NOTICES.json) and shown "
+                 "under Settings, Open-source licences; beside each store build.",
+    "dashboard-image": f"Inside the image ({IMAGE_NOTICES_PATH}), shown by the dashboard at "
+                       "/licences (from dashboard/src/legal/), and beside any copy of the image "
+                       "handed to someone else.",
+    "api-image": f"Inside the image ({IMAGE_NOTICES_PATH}) and beside any copy of the image "
+                 "handed to someone else. Debian packages also carry their own notices in "
+                 "/usr/share/doc.",
+    "backup-image": f"Inside the image ({IMAGE_NOTICES_PATH}) and beside any copy handed to "
+                    "someone else. Alpine packages carry no licence texts of their own, so this "
+                    "file is the notice.",
 }
 
 
@@ -1258,8 +1328,9 @@ def render(write: bool) -> list[str]:
     if problems:
         return problems
     files = {SBOM_DIR / f"{a}.cdx.json": dumps(cyclonedx(a, comps)) for a, comps in per.items()}
-    files.update({NOTICES_DIR / f"{a}.txt": notices_text(a, comps, datasets)
-                  for a, comps in per.items()})
+    notices = {a: notices_text(a, comps, datasets) for a, comps in per.items()}
+    files.update({NOTICES_DIR / f"{a}.txt": text for a, text in notices.items()})
+    files.update({APP_COPIES[a]: app_copy_text(a, notices[a]) for a in APP_COPIES})
     files[NOTICES_INDEX] = index_markdown(per, datasets)
     missing = sorted({t for comps in per.values() for t in needed_licence_texts(comps)
                       if not (LICENCE_TEXTS / f"{t}.txt").exists()})
@@ -1357,6 +1428,7 @@ def main(argv: list[str] | None = None) -> int:
         inv = image_inventory(a.artefact, facts, base, exceptions, native, os_linked, a.note)
         print("\n".join(_summary(inv)))
         problems += image_problems(inv)
+        problems += python_lock_problems(inv, locked_python(a.artefact))
         if a.out:
             Path(a.out).write_text(dumps(inv), encoding="utf-8")
         if a.write:
@@ -1367,10 +1439,17 @@ def main(argv: list[str] | None = None) -> int:
             committed = load_json(image_inventory_path(a.artefact))
             for sec in ("python", "npm"):
                 new, old = set(inv[sec]), set(committed[sec])
-                if new != old:
-                    print(f"note: {sec} packages differ from the committed snapshot (added "
-                          f"{sorted(new - old)[:8]}, removed {sorted(old - new)[:8]}); the "
-                          "snapshot is refreshed with --write")
+                if new == old:
+                    continue
+                msg = (f"{sec} packages differ from the committed snapshot (added "
+                       f"{sorted(new - old)[:8]}, removed {sorted(old - new)[:8]}); the "
+                       "snapshot is refreshed with --write")
+                # Where the packages come from a hashed lock, drift means the image is not the
+                # one the lock and the notices describe: a failure, not a note.
+                if sec == "python" and IMAGES[a.artefact].get("python_locks"):
+                    problems.append(f"{a.artefact}: {msg}")
+                else:
+                    print(f"note: {msg}")
     elif a.cmd == "apk":
         contents, problems = apk_contents(lc.load_inventory())
         if a.write and not problems:

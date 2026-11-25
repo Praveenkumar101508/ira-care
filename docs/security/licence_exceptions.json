@@ -2,12 +2,6 @@
   "_about": "Reviewed exceptions to the licence policy in docs/security/LICENCES.md. Each entry names the ecosystem, the package and the licence exactly as LICENCES.json records it, and says why it is acceptable. A change of licence upstream stops the entry matching, so the package is reviewed again. scripts/licence_check.py fails on an entry that no longer matches a package.",
   "exceptions": [
     {
-      "ecosystem": "image-api",
-      "licence": "Apache",
-      "package": "huggingface-hub",
-      "reason": "The package's License field says only \"Apache\" and its classifier \"Apache Software License\", with no version. The LICENSE file in the installed wheel (read in the API image) is the Apache License 2.0 text. Installed in the image through requirements-test.txt (the lock pins a different version)."
-    },
-    {
       "ecosystem": "image-dashboard",
       "licence": "Apache-2.0 AND LGPL-3.0-or-later AND MIT",
       "package": "@img/sharp-wasm32",
