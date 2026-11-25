@@ -14,7 +14,7 @@ qualified third party (register C-22).
 | Dashboard dependencies | `npm audit --omit=dev` | before: 1 high (PostCSS 8.4.31, bundled with Next.js), 1 moderate; **after: 0** |
 | Family app dependencies | `npm audit --omit=dev` | before: 23 (1 critical, 5 high); after: 20 (1 critical, 3 high). See residual risk |
 | Secrets in history | gitleaks (in CI on every PR) | passing |
-| Unauthenticated routes | AST walk over `care/routes.py` | three, listed below |
+| Unauthenticated routes | AST walk over `care/routes.py` | three at the review; four since G3.d added the signed monitoring-centre callback (listed below) |
 
 ## Findings and what was done
 
@@ -28,7 +28,7 @@ qualified third party (register C-22).
 
 ## Reviewed and sound
 
-- The three unauthenticated care routes are sign-up, pairing, and the Twilio status callback.
+- The unauthenticated care routes are sign-up, pairing, and two provider callbacks: Twilio's status callback and, since G3.d, the monitoring centre's acknowledgement (`/care/providers/arc/status/...`), refused unless our token in its address and the centre's timestamped HMAC signature over the body both verify.
   The callback is refused unless both the per-deployment token in its URL and Twilio's
   signature over the full URL check out (REMEDIATION A2).
 - Workspace isolation is PostgreSQL row-level security with FORCE on every care table, plus

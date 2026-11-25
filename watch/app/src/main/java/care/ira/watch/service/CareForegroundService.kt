@@ -164,6 +164,9 @@ class CareForegroundService : LifecycleService() {
     /** The trained model behind the detector interface when the build carries it; the rules alone otherwise. */
     private fun newFallDetector(settings: FallSettings): FallDetecting {
         val model = deps.fallModel ?: return RuleOnly(FallDetector(settings))
+        if (model.second.mode == care.ira.watch.sensors.FallModelSpec.MODE_RECOVER) {
+            return Recovering(care.ira.watch.sensors.RecoveringFallDetector(settings, model.second, model.first))
+        }
         return ModelBacked(care.ira.watch.sensors.ModelFallDetector(settings, model.second, model.first))
     }
 
@@ -173,6 +176,10 @@ class CareForegroundService : LifecycleService() {
         override fun feed(sample: care.ira.watch.sensors.AccelSample) = d.feed(sample)
     }
     private class ModelBacked(private val d: care.ira.watch.sensors.ModelFallDetector) : FallDetecting {
+        override var onWrist: Boolean? get() = d.onWrist; set(v) { d.onWrist = v }
+        override fun feed(sample: care.ira.watch.sensors.AccelSample) = d.feed(sample)
+    }
+    private class Recovering(private val d: care.ira.watch.sensors.RecoveringFallDetector) : FallDetecting {
         override var onWrist: Boolean? get() = d.onWrist; set(v) { d.onWrist = v }
         override fun feed(sample: care.ira.watch.sensors.AccelSample) = d.feed(sample)
     }

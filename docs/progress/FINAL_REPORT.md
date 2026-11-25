@@ -1,5 +1,85 @@
 # IRA CARE: final report
 
+## Round 5 checkpoint (the master directive, 25 November 2026)
+
+A checkpoint, not the final report: the owner asked for the final report only after every
+achievable software requirement is done. Work continues on the requirements that are neither
+accepted nor blocked by something outside the software.
+
+Eighteen pull requests, #63 to #80, each one branch squash-merged into `main` with every required
+CI check green. Final verification ran on `main` at `eec19a0`; its numbers are in
+[`VERIFICATION.md`](VERIFICATION.md). Completion is measured by the fixed requirements framework
+of #71 (`requirements.json`, seven separate measures), not by the earlier weighted block.
+
+### GO / NO-GO at this checkpoint
+
+| Use | Decision | Why |
+|---|---|---|
+| Engineering demonstration with fictional people, test notification providers and a clearly labelled virtual or browser watch | **GO** | The 22-step care journey (D-079) passes end to end against the real API and PostgreSQL; the stack runs as containers with health checks, outage recovery and backups proved; every merged change passed CI. |
+| Supervised pilot with real people | **NO-GO** | No Clinical Safety Officer has reviewed the hazard log (I.j); MHRA classification is unconfirmed (I.k); nothing has run on a physical watch or phone; heart, fall and activity accuracy are unmeasured on older adults and on the IRA watch; live SMS and call delivery is untested. |
+| Commercial release to real users | **NO-GO** | Everything the pilot needs, plus: store accounts and signed builds, a hosting agreement, a monitoring-centre contract, an independent penetration test, and an Expo SDK upgrade to clear the build-tool advisories. |
+
+The owner's own constraints stand: no real patient data was collected, no real emergency message
+was sent, nothing was deployed to real users, and no uncertain dataset licence was accepted.
+
+### Completion (requirements 1.4.0, snapshot "main after #80", `eec19a0`)
+
+| Measure | main after #66 | main after #80 | Change |
+|---|---|---|---|
+| Hardware-independent software implementation | 68.4 % | 74.3 % (136 / 183) | +5.9 points |
+| Hardware-independent software acceptance | 58.8 % | 63.4 % (116 / 183) | +4.6 points |
+| Software verification | 23.6 % | 26.9 % (53 / 197) | +3.3 points |
+| AI development | 45.9 % | 53.8 % (21 / 39) | +7.9 points |
+| OS development | 7.4 % | 7.4 % (2 / 27) | 0 |
+| Hardware integration | 0.0 % | 0.0 % (0 / 14) | 0 |
+| External and commercial readiness | 0.0 % | 0.0 % (0 / 34) | 0 |
+
+116 of 245 requirements are accepted or better and 129 remain; 46 of those are blocked by something
+outside the software, each named by `completion_summary.py`. None is device validated. Six
+requirements were added during the round and none removed (`COMPLETION_REGISTER.md`).
+
+### Round 5: the merges
+
+| PR | Branch | What it delivers |
+| --- | --- | --- |
+| 63 | `fix/care-memory-promises` | Check-in answers no longer written to the general memory store; old ones purged (migration 115) |
+| 64 | `fix/demo-rerun` | Demo re-run on the remediated stack; two defects found and fixed |
+| 65 | `fix/dataset-licence-register` | Dataset and model-weight licence register re-verified; SisFall's Zenodo copy found to be a third-party re-upload |
+| 66 | `fix/fall-model-research-only` | The SisFall-trained fall model kept out of every release build (owner decision, D-077) |
+| 67 | `fix/demo-pages-production-off` | Demo, presenter and simulator pages answer 404 in production builds |
+| 68 | `fix/watch-degraded-storage` | The watch never writes sensitive data unencrypted when its key fails, and never loses a Help request |
+| 69 | `fix/register-block-sync` | The old weighted block regenerated (superseded by #71) |
+| 70 | `fix/no-false-all-well` | "All well" never shown when monitoring is paused, messages are failing, the page is stale or the watch is offline |
+| 71 | `fix/completion-framework` | Fixed, versioned atomic requirements; seven measures; append-only, hash-chained history |
+| 72 | `fix/security-review` | Security review: rate limits on the open care routes, dashboard security headers, patched build dependencies |
+| 73 | `fix/compliance-traceability` | Hazard log H14 to H20 and a claims register, both checked by tests |
+| 74 | `fix/care-plans-staff-roles` | Care plans as versioned, insert-only records; staff roles served to the dashboard (D-078); the table in the tenancy manifest and the adversarial suite |
+| 75 | `fix/ai-fall-v2` | Fall model v2 on licensed data only (BITS-2): evaluated, fails its shipping gate by 5 of 316 falls, not shipped |
+| 76 | `fix/ai-heart-learned` | Heart figures 13.28 and 7.75 bpm reproduced exactly; the learned selector as checked JSON trees, not yet used by any product path |
+| 77 | `fix/ai-activity-wisdm` | Wrist activity model on WISDM: macro-F1 0.790 across 51 people; not yet used by any product path |
+| 78 | `fix/staging-containers` | The stack run as containers; two critical image defects fixed; backups that cannot fail silently; images built in CI |
+| 79 | `fix/care-journey-22` | The 22-step care journey as one end-to-end test |
+| 80 | `fix/requirements-sync` | Requirement states recorded for the merged security, image and claims work |
+
+### Round 5: AI models, honestly
+
+| Model | Data (licence) | Result | Status |
+|---|---|---|---|
+| Fall v1 | SisFall, Zenodo re-upload (unconfirmed) | evaluated earlier | debug builds only (D-077) |
+| Fall v2 | BITS-2 (CC BY 4.0) + UCI HAR (CC BY 4.0) | with the rule detector: sensitivity 0.601 against 0.617 for the rule alone, alarms per hour of activity 10.75 against 52.84 | not shipped: loses 5 of 316 falls; a decision for the owner and a clinical reviewer |
+| Heart | PPG-DaLiA (CC BY 4.0) | classical 13.28 ± 5.01 bpm, learned 7.75 ± 3.23 bpm, both reproduced exactly | classical in use; learned selector portable and tested, not yet wired in |
+| Activity | WISDM (CC BY 4.0) | macro-F1 0.790, accuracy 0.866, subject-grouped | in the backend, not yet wired in or on the watch |
+
+None is validated on older adults or on the IRA watch, and none is a medical device.
+
+### Round 5: needs the owner
+
+- **Fall model v2:** ship it (fewer false alarms, five more missed falls in 316) or keep the rules alone. A decision for the owner and a clinical reviewer.
+- **Withdraw the Kaggle copy** of the SisFall-trained model published under Apache 2.0.
+- **Send the dataset permission requests** drafted in `docs/legal/dataset_permission_requests/` (SisFall, KFall, FallAllD).
+- **External items, each blocking a named requirement:** a Clinical Safety Officer (I.j), an MHRA adviser (I.k), physical watches and phones, an AOSP build host, signing-key custody, store accounts, SMS and call provider credentials, a server, a monitoring-centre contract, and a penetration tester.
+
+
 ## Round 4 (the polish, 24 November 2026)
 
 Four phases, each one branch and one pull request squash-merged into `main` with CI green,

@@ -64,6 +64,31 @@ Round 3 is merged to `main` (pull requests 20 to 36). Round 4 (the polish, pull 
 | R4-4 | polish-final | `docs/polish-final` | Merged (pull request 40) |
 | R4-5 | gpu-profile (asked for after the round) | `feat/gpu-profile` | Pull request 41; merges on green CI |
 
+Round 5 (the master directive, pull requests 63 to 80; the remediation programme's earlier pull requests, 42 to 62, are in `COMPLETION_REGISTER.md`):
+
+| # | Phase | Branch | State |
+| --- | --- | --- | --- |
+| R5-1 | care-memory-promises | `fix/care-memory-promises` | Merged (pull request 63) |
+| R5-2 | demo-rerun | `fix/demo-rerun` | Merged (pull request 64) |
+| R5-3 | dataset-licence-register | `fix/dataset-licence-register` | Merged (pull request 65) |
+| R5-4 | fall-model-research-only | `fix/fall-model-research-only` | Merged (pull request 66) |
+| R5-5 | demo-pages-production-off | `fix/demo-pages-production-off` | Merged (pull request 67) |
+| R5-6 | watch-degraded-storage | `fix/watch-degraded-storage` | Merged (pull request 68) |
+| R5-7 | register-block-sync | `fix/register-block-sync` | Merged (pull request 69) |
+| R5-8 | no-false-all-well | `fix/no-false-all-well` | Merged (pull request 70) |
+| R5-9 | completion-framework | `fix/completion-framework` | Merged (pull request 71) |
+| R5-10 | security-review | `fix/security-review` | Merged (pull request 72) |
+| R5-11 | compliance-traceability | `fix/compliance-traceability` | Merged (pull request 73) |
+| R5-12 | care-plans-staff-roles | `fix/care-plans-staff-roles` | Merged (pull request 74) |
+| R5-13 | ai-fall-v2 | `fix/ai-fall-v2` | Merged (pull request 75) |
+| R5-14 | ai-heart-learned | `fix/ai-heart-learned` | Merged (pull request 76) |
+| R5-15 | ai-activity-wisdm | `fix/ai-activity-wisdm` | Merged (pull request 77) |
+| R5-16 | staging-containers | `fix/staging-containers` | Merged (pull request 78) |
+| R5-17 | care-journey-22 | `fix/care-journey-22` | Merged (pull request 79) |
+| R5-18 | requirements-sync | `fix/requirements-sync` | Merged (pull request 80) |
+
+Round 5 is merged to `main` (`eec19a0`). Verification: `VERIFICATION.md`; the GO / NO-GO decision: `FINAL_REPORT.md`.
+
 ## Round 4, phases 2 to 4 (24 November 2026)
 
 - **Phase 2 (pull request 38).** One look (graphite case `#2B2E33`, coral Help button
