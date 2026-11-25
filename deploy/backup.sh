@@ -4,6 +4,9 @@
 # Needs: pg_dump (PG* variables or a DSN in $BACKUP_DSN), openssl, $BACKUP_PASSPHRASE.
 # Keeps $BACKUP_KEEP_DAYS days (14). Prints the file written; never prints the passphrase.
 set -eu
+# Refuse at once without openssl: a backup that cannot be encrypted must fail loudly, never write
+# nothing and look like it ran (deploy/Dockerfile.backup installs it at build time).
+command -v openssl >/dev/null 2>&1 || { echo "backup: openssl not found; nothing written" >&2; exit 1; }
 : "${BACKUP_PASSPHRASE:?set BACKUP_PASSPHRASE}"
 BACKUP_DIR="${BACKUP_DIR:-/backups}"
 KEEP="${BACKUP_KEEP_DAYS:-14}"
