@@ -48,6 +48,12 @@ def watch_settings(settings: dict) -> dict:
 
 def summary(peak_g: Optional[float], still_seconds: Optional[int]) -> str:
     peak = f" ({peak_g:.1f} g)" if peak_g is not None else ""
+    if still_seconds is not None and int(still_seconds) == 0:
+        # The watch's fall model (v3, see the watch's RecoveringFallDetector) raises a suspected fall
+        # from the impact and the movement around it, without the rule's stillness wait; the rule
+        # always sends at least 5 seconds, so 0 means the model. Describe the signal, not a diagnosis.
+        return (f"The watch detected a hard impact{peak} and a movement pattern its model flags; "
+                f"it did not wait for stillness. The person is being asked if they are OK.")
     still = f" {int(still_seconds)} seconds" if still_seconds is not None else ""
     return (f"The watch detected a hard impact{peak} followed by{still} without movement. "
             f"The person is being asked if they are OK.")

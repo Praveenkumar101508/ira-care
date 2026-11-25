@@ -1312,3 +1312,26 @@ API and PostgreSQL in `supracloud-jarvis/ira/tests/tenancy/test_care_journey_db.
 `docs/demo/CARE_JOURNEY_22.md` says what each step shows and which assertion proves it. The earlier
 scripted scenarios and the twelve-step browser demo (`docs/demo/RERUN.md`) remain as they are.
 Requirement J.d records the journey; nothing is counted for a 32-step list.
+
+## D-080 Fall model v3, trained only on licensed data, ships in release builds in "recover" mode (25 November 2026)
+
+D-077 kept the SisFall-trained model out of release builds until "a replacement trained only on
+commercially licensed data passes evaluation". The owner then set the gate: no sensitivity lost
+against the rule detector, and the gate is not to be weakened to release a model.
+
+v3 (`docs/ai/fall/MODEL_CARD_V3.md`) is trained only on BITS-2 and UCI HAR (both CC BY 4.0). On
+held-out subjects, against the rule detector on the same 316 simulated falls and the same
+daily-activity recordings, the shipped pipeline (the model's path plus the unchanged rules) caught
+246 falls against the rule's 195 (sensitivity 0.7785 against 0.6171) with at most 10.30 alarms per
+hour of daily activity against 52.84. The design and the threshold rule were fixed before any
+held-out result was seen, and every threshold was chosen inside the training folds.
+
+Decision: v3 goes into `watch/app/src/main/assets`, so every release build and the IRA CARE OS
+image carry it; `RecoveringFallDetector` runs it. The rules keep raising every fall they raise
+today. A suspected fall from either path starts the same 30-second countdown that asks first.
+Debug builds keep the v1 research model for the comparison. `FallModelReleaseTest` pins the one
+file that may ship, by provenance, mode and SHA-256.
+
+What this does not decide: real use. The measurement is on young volunteers simulating falls with
+a research band. Before anyone relies on it, the owner and a clinical reviewer must approve it,
+and it must be measured on the IRA watch (requirement F4.g, needs a physical watch).
