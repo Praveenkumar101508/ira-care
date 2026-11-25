@@ -516,7 +516,6 @@ async def record_answer(principal: Principal, device: dict, checkin_id: uuid.UUI
             person = dict(await conn.fetchrow("SELECT * FROM care_people WHERE id = $1", person_id))
             settings = dict(await conn.fetchrow("SELECT * FROM care_safety_settings WHERE person_id = $1", person_id) or {})
             await talk.concern(conn, person, settings, "checkin", now)
-    await _remember(principal, row, reading)
     try:
         from . import talk
         async with workspace_connection(principal) as conn:
@@ -612,17 +611,6 @@ def _bound_due(asked_at: dt.datetime, now: dt.datetime, med, tz) -> Optional[dt.
     if len(found) != 1:
         return None
     return found.pop()
-
-
-async def _remember(principal: Principal, row, reading: rules.AnswerReading) -> None:
-    """Best effort: a short note into the memory store, so later questions can
-    refer back. Failure (no embedder, no model) is logged, never raised."""
-    try:
-        from memory.store import remember
-        note = f"Check-in ({row['question_kind']}): {reading.summary}"
-        await remember(principal, note, kind="care_checkin")
-    except Exception as exc:  # noqa: BLE001
-        logger.debug("care check-ins: memory write skipped (%s)", type(exc).__name__)
 
 
 async def mark_missed(principal: Principal, device: dict, checkin_id: uuid.UUID,
