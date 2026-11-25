@@ -41,36 +41,36 @@ dated record to `docs/progress/completion_history.json`, which is append-only.
 The numbers below are quoted from one dated snapshot, so they stay true when later pull requests
 change the requirements; run the script for the current figures.
 
-At snapshot **main after #80**, `eec19a0` (recorded 2026-11-25, requirements 1.4.0):
+At snapshot **main after #94**, `b78e6b5` (recorded 2026-11-25, requirements 1.4.0):
 
 | Measure | Done / total | % |
 |---|---|---|
-| Hardware-independent software implementation | 136 / 183 | 74.3 % |
-| Hardware-independent software acceptance | 116 / 183 | 63.4 % |
-| Software verification | 53 / 197 | 26.9 % |
-| AI development (accepted, area ai) | 21 / 39 | 53.8 % |
-| OS development (accepted, area os, hardware-independent) | 2 / 27 | 7.4 % |
+| Hardware-independent software implementation | 160 / 183 | 87.4 % |
+| Hardware-independent software acceptance | 139 / 183 | 76.0 % |
+| Software verification | 64 / 197 | 32.5 % |
+| AI development (accepted, area ai) | 25 / 39 | 64.1 % |
+| OS development (accepted, area os, hardware-independent) | 4 / 27 | 14.8 % |
 | Hardware integration (accepted, area hardware) | 0 / 14 | 0.0 % |
-| External and commercial readiness (accepted, area external) | 0 / 34 | 0.0 % |
+| External and commercial readiness (accepted, area external) | 1 / 34 | 2.9 % |
 
-116 of 245 requirements are accepted or better; 129 remain, 46 of them blocked by something
-outside the software. None is device validated: no physical device has been used.
+140 of 245 requirements are accepted or better; 105 remain. 60 of them are blocked by something
+outside the software, each with its blocker named by `completion_summary.py`. 44 are implemented
+as documents, plans or configuration whose acceptance needs a reviewer, a build host or a device.
+One is not started: the 24-hour wall-clock soak (G2.e), which needs a machine that stays up for a
+day. None is device validated: no physical device has been used.
 
-Change since the previous snapshot, **main after #66** (`08766d2`, requirements 1.0.0).
-Six requirements were added between the two (239 to 245 items), so the denominators differ.
-Three were added already met (C-19.c degraded watch storage, D3.k staff roles as built, F3.f the
-portable heart selector) and three were added unmet (F4.h a fall model that passes its shipping
-gate, J.h and G2.i, both met since). No requirement was removed and none was reworded.
+Change since the previous snapshot, **main after #80** (`eec19a0`). No requirement was added,
+removed or reworded between the two, so the denominators are the same.
 
-| Measure | main after #66 | main after #80 | Change |
+| Measure | main after #80 | main after #94 | Change |
 |---|---|---|---|
-| Hardware-independent software implementation | 68.4 % | 74.3 % | +5.9 points |
-| Hardware-independent software acceptance | 58.8 % | 63.4 % | +4.6 points |
-| Software verification | 23.6 % | 26.9 % | +3.3 points |
-| AI development (accepted, area ai) | 45.9 % | 53.8 % | +7.9 points |
-| OS development (accepted, area os, hardware-independent) | 7.4 % | 7.4 % | +0.0 points |
+| Hardware-independent software implementation | 74.3 % | 87.4 % | +13.1 points |
+| Hardware-independent software acceptance | 63.4 % | 76.0 % | +12.6 points |
+| Software verification | 26.9 % | 32.5 % | +5.6 points |
+| AI development (accepted, area ai) | 53.8 % | 64.1 % | +10.3 points |
+| OS development (accepted, area os, hardware-independent) | 7.4 % | 14.8 % | +7.4 points |
 | Hardware integration (accepted, area hardware) | 0.0 % | 0.0 % | +0.0 points |
-| External and commercial readiness (accepted, area external) | 0.0 % | 0.0 % | +0.0 points |
+| External and commercial readiness (accepted, area external) | 0.0 % | 2.9 % | +2.9 points |
 
 The history's first entry recomputes the audit baseline (`1f41c5d`, before #44) as a lower bound,
 crediting only evidence present there verbatim (for example, software acceptance 32 / 177).
@@ -99,6 +99,9 @@ edited since are not credited.
 | [#59](https://github.com/Praveenkumar101508/ira-care/pull/59) | `fix/os-product-layer` | E1/E2/E6: OS product layer and docs | merged, CI green |
 | [#60](https://github.com/Praveenkumar101508/ira-care/pull/60) | `fix/watch-home-screen` | D8: watch app as the OS home screen | merged, CI green |
 | [#61](https://github.com/Praveenkumar101508/ira-care/pull/61) | `fix/mobile-voice` | C2: phone voice in and out | merged, CI green |
+
+Pull requests #63 to #94, rounds 5 and 6, are listed with what each delivers in
+[`FINAL_REPORT.md`](FINAL_REPORT.md); every one was merged with CI green.
 
 ## C. Software safety remediation (the 24 items)
 

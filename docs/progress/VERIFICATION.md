@@ -3,8 +3,8 @@
 Run on 25 November 2026 on `main` at `04451d7` (PRs #63 to #88 merged), against a database created
 empty for the run and migrated as `ira_migrator`. Every number below comes from a run whose output
 was read; nothing is estimated. Earlier runs (after #61 at `eed43f1`, after #80 at `eec19a0`) are in
-this file's history. PRs merged after `04451d7` each passed every CI job before merging; their CI
-runs are their verification.
+this file's history. PRs merged after `04451d7`, #89 to #94, each passed every CI job before merging; their CI
+runs are their verification. #94 adds a licence check of shipped dependencies to CI (below).
 
 ## Passed, failed and skipped
 
@@ -24,6 +24,7 @@ runs are their verification.
 | Off-site encrypted backup and restore drill | #86, `docs/evidence/staging/OFFSITE.md` | identical counts after restore | | 0 |
 | Python dependencies (`pip-audit` over `requirements.lock`) | this container | no known vulnerabilities | | |
 | Dashboard production dependencies (`npm audit --omit=dev`) | this container | 0 vulnerabilities | | |
+| Licences of shipped dependencies (`scripts/licence_check.py --check`, K.d) | CI on #94 and this container | 1003 packages (Python 167, dashboard 24, phone 812): none forbidden; 8 reviewed exceptions; one open finding inside the PyAV wheel (GPL x264 and x265), for the owner (`docs/security/LICENCES.md`) | | |
 | Phone app production dependencies | this container | 20 findings (1 critical, 3 high, 16 moderate), all in Expo's CLI and Metro build tooling, none in the app bundle; residual risk in `docs/security/REVIEW.md` until an Expo SDK upgrade | | |
 
 ## Not passed here, and why
