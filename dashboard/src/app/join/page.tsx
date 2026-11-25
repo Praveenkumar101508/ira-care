@@ -29,7 +29,7 @@ function Join() {
       const r = await fetch(`${url}/api/v1/care/invitations/accept`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens.access_token}` }, body: JSON.stringify({ token }) });
       if (!r.ok) { setError((await r.json().catch(() => ({ detail: 'This invitation link is not valid.' }))).detail ?? 'This invitation link is not valid.'); return; }
       const joined = await r.json() as { workspace_id: string | null };
-      if (joined.workspace_id) saveSession({ baseUrl: url, accessToken: tokens.access_token, workspaceId: joined.workspace_id, role: 'member', workspaceName: 'Care team', username: email });
+      if (joined.workspace_id) saveSession({ baseUrl: url, accessToken: tokens.access_token, refreshToken: tokens.refresh_token, workspaceId: joined.workspace_id, role: 'member', workspaceName: 'Care team', username: email });
       setMessage('You have joined the care circle. The family app and this dashboard now show the person you were invited for.');
     } catch (err) { setError(err instanceof ApiError ? err.message : 'Something went wrong.'); }
   };

@@ -226,6 +226,20 @@ def install_error_handlers(app) -> None:
         details = {"limit_s": exc.limit_s} if exc.limit_s else {}
         return _json(MODEL_TIMEOUT.status, error_response(MODEL_TIMEOUT, **details), request)
 
+    async def _database_unreachable(request: Request, exc: Exception):  # noqa: ARG001
+        # The database cannot be reached right now (down, restarting, refusing new
+        # connections, or every pooled connection busy). That is "try again shortly", not
+        # a bug: a 503 with retryable true, so clients keep what they were sending and
+        # retry. A generic 500 here made the watch throw an unsent Help request away.
+        logger.error("database unreachable: %s", type(exc).__name__,
+                     extra={"error_code": DEPENDENCY_UNAVAILABLE.code})
+        response = _json(DEPENDENCY_UNAVAILABLE.status, error_response(DEPENDENCY_UNAVAILABLE), request)
+        response.headers["Retry-After"] = "5"
+        return response
+
+    for _cls in _database_unreachable_errors():
+        app.add_exception_handler(_cls, _database_unreachable)
+
     @app.exception_handler(Exception)
     async def _unhandled(request: Request, exc: Exception):  # noqa: ARG001
         # Full traceback to the internal log, where the redaction filter runs.
@@ -235,6 +249,23 @@ def install_error_handlers(app) -> None:
 
     # Keep FastAPI's HTTPException import used, and make the mapping explicit.
     _ = HTTPException
+
+
+def _database_unreachable_errors() -> tuple[type, ...]:
+    """Exceptions that mean the database cannot be reached now, never that a query is wrong."""
+    errors: list[type] = [ConnectionError]  # refused, reset, aborted
+    try:
+        from utils.db import PoolSaturated
+        errors.append(PoolSaturated)
+    except Exception:  # noqa: BLE001 - the handler still covers the rest
+        pass
+    try:
+        import asyncpg
+        errors += [asyncpg.exceptions.CannotConnectNowError, asyncpg.exceptions.TooManyConnectionsError,
+                   asyncpg.exceptions.ConnectionDoesNotExistError, asyncpg.exceptions.ConnectionFailureError]
+    except Exception:  # noqa: BLE001
+        pass
+    return tuple(errors)
 
 
 _CODE_BY_STATUS: dict[int, ErrorCode] = {

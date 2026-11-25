@@ -37,7 +37,7 @@ export default function SignupPage() {
       const r = await fetch(`${url}/api/v1/care/organisations`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens.access_token}` }, body: JSON.stringify({ name: org, plan_id: plan }) });
       if (!r.ok) { setError((await r.json().catch(() => ({ detail: 'Could not create the organisation.' }))).detail ?? 'Could not create the organisation.'); return; }
       const made = await r.json() as { workspace_id: string; name: string };
-      saveSession({ baseUrl: url, accessToken: tokens.access_token, workspaceId: made.workspace_id, role: 'workspace_admin', workspaceName: made.name, username: email });
+      saveSession({ baseUrl: url, accessToken: tokens.access_token, refreshToken: tokens.refresh_token, workspaceId: made.workspace_id, role: 'workspace_admin', workspaceName: made.name, username: email });
       setStep(3);
     } catch (err) { setError(err instanceof ApiError ? err.message : 'Something went wrong.'); }
   };

@@ -127,9 +127,9 @@ async def test_access_notes_open_for_tier_1_while_the_alert_is_open_and_every_vi
     assert r.status_code == 200, r.text
     assert r.json()["access_notes"].startswith("Key safe") and "Biscuit" in r.json()["access_notes"]
     assert r.json()["emergency_summary"] == HOME["emergency_summary"]
-    # A viewer who is not in the circle may not.
+    # A viewer who is not in the circle may not: since D-076 the alert is not even found.
     client.act_as(fam, "viewer", "viewer")
-    assert (await client.get(f"{C}/alerts/{alert_id}/access-notes")).status_code == 403
+    assert (await client.get(f"{C}/alerts/{alert_id}/access-notes")).status_code == 404
     # The organisation's manager may (tier 2 by role).
     client.act_as(fam, "admin", "workspace_admin")
     assert (await client.get(f"{C}/alerts/{alert_id}/access-notes")).status_code == 200

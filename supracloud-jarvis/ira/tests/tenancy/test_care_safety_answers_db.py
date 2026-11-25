@@ -271,11 +271,12 @@ async def test_only_the_wearer_may_talk_as_the_person(client, families):
     # The person themself may; but not as somebody else in the same workspace.
     client.act_as(fam, "wearer", "member")
     assert (await client.post(f"{C}/people/{p['id']}/talk", json={"text": "hello"})).status_code == 200
-    assert (await client.post(f"{C}/people/{other['id']}/talk", json={"text": "hello"})).status_code == 403
-    # A revoked membership stops at once.
+    # Another wearer's person: not in this account's circle, so not found (D-076).
+    assert (await client.post(f"{C}/people/{other['id']}/talk", json={"text": "hello"})).status_code == 404
+    # A revoked membership stops at once: out of the circle, the person is not even found (D-076).
     async with workspace_connection(p["jp"]) as conn:
         await conn.execute("UPDATE care_circle_members SET active = FALSE WHERE person_id = $1 AND user_id = $2", pid, fam["wearer"])
-    assert (await client.post(f"{C}/people/{p['id']}/talk", json={"text": "hello"})).status_code == 403
+    assert (await client.post(f"{C}/people/{p['id']}/talk", json={"text": "hello"})).status_code == 404
 
 
 # ── A3d/A3e (migration 112): bound when asked, attributed, corrected in the open ──

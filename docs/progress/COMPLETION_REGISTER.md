@@ -58,15 +58,15 @@ Nothing is marked done because code or a document exists.
 | C-13 | Native mobile voice | not started | needs native speech modules; **needs external**: device testing |
 | C-14 | Complete logout isolation | unit tested | #47 · C3 |
 | C-15 | Push-token unregister on sign-out | unit tested | #47 · C3 |
-| C-16 | Secure automatic session renewal | unit tested | #47 · C4. Dashboard session renewal: **not started** |
+| C-16 | Secure automatic session renewal | unit tested | #47 · C4 (phone); `fix/dashboard-session-renewal` · C4b (dashboard) |
 | C-17 | Watch speech-recognition threads and lifecycle | unit tested | #48 · D1 (JVM tests; CI Wear OS and AOSP builds) |
 | C-18 | Watch text-to-speech lifecycle and time limits | unit tested | #48 · D2 |
 | C-19 | Encrypted watch storage | unit tested | #48 · D5 (Keystore hardware backing: **needs external**, device) |
 | C-20 | Atomic offline-queue and outbox writes | unit tested | #48 · D5 |
 | C-21 | Secure unpairing and re-pairing | unit tested | #48 · D5 (kept per wearer). Explicit unpair flow with warning: **not started** |
-| C-22 | Backend and person-level authorisation review | not started | Only the routes touched so far were reviewed (A6, A3c) |
+| C-22 | Backend and person-level authorisation review | in progress | `fix/care-authz-and-outages` · REMEDIATION E1 (D-076) |
 | C-23 | Accessibility and interface consistency | pre-existing | Automated accessibility checks from round 4. Dark-mode colour review (C5): **not started** |
-| C-24 | Full-system outage and recovery tests | not started | |
+| C-24 | Full-system outage and recovery tests | in progress | `fix/care-authz-and-outages` · REMEDIATION E2–E5 |
 
 ## D. The software platform
 
