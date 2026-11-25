@@ -101,3 +101,9 @@ Each protection was removed from the product code for one run, then restored wit
   after the missed-visit alert is resolved, because the visit itself stays `missed`. That is
   the record of what happened, not a fault, but a coordinator may expect a resolved one to
   drop off the list.
+
+## With the real model
+
+`IRA_JOURNEY_MODEL=real` runs the same 22 steps against the product's real model chain (Ollama,
+`gemma4:e4b` then `gemma4:e2b`). `scripts/demo/real_model_journey.py` repeats it and writes the
+evidence; the result is in `docs/evidence/demo/REAL_MODEL_RUN.md` (8 of 8 runs passed).

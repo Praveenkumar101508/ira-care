@@ -100,15 +100,75 @@ async def _alerts(client, person_id, open_only=False) -> list[dict]:
     return r.json()["alerts"]
 
 
+class RecordingModel:
+    """The product's real model chain (Ollama, gemma4:e4b then gemma4:e2b), with every call
+    and its duration recorded. Used only when IRA_JOURNEY_MODEL=real (scripts/demo/
+    real_model_journey.sh); CI always runs the deterministic test model."""
+
+    def __init__(self, inner):
+        self.inner, self.name = inner, f"recording:{getattr(inner, 'name', '?')}"
+        self.calls: list[list[dict]] = []
+        self.timings: list[dict] = []
+        self.sources: list[str] = []
+
+    def _kind(self, messages) -> str:
+        user = messages[-1].get("content", "") if messages else ""
+        if "Talk:" in user:
+            return "talk"
+        if "Answer:" in user:
+            return "answer_reading"
+        if "Summar" in user or "summar" in user:
+            return "summary"
+        return "checkin_question"
+
+    async def stream(self, messages, *, max_tokens, temperature):
+        import time
+        self.calls.append(messages)
+        started, first, text = time.monotonic(), None, []
+        try:
+            async for piece in self.inner.stream(messages, max_tokens=max_tokens, temperature=temperature):
+                if first is None:
+                    first = time.monotonic() - started
+                text.append(piece)
+                yield piece
+        finally:
+            self.timings.append({"kind": self._kind(messages), "call": "stream", "first_token_s": first,
+                                 "total_s": round(time.monotonic() - started, 3), "chars": len("".join(text)),
+                                 "text": "".join(text).strip()[:400]})
+
+    async def complete_json(self, messages, *, max_tokens):
+        import time
+        self.calls.append(messages)
+        started = time.monotonic()
+        out = None
+        try:
+            out = await self.inner.complete_json(messages, max_tokens=max_tokens)
+            return out
+        finally:
+            self.timings.append({"kind": self._kind(messages), "call": "json", "first_token_s": None,
+                                 "total_s": round(time.monotonic() - started, 3), "chars": len(out or ""),
+                                 "text": (out or "")[:400]})
+
+
 async def test_the_complete_care_journey_in_twenty_two_steps(client, org):
     from api.middleware.auth import require_auth
 
-    model = conv.FakeModel()
+    real = os.getenv("IRA_JOURNEY_MODEL", "fake").strip().lower() == "real"
+    if real:
+        warmed = await conv.warm_configured_model()
+        model = RecordingModel(conv.chain_from_env())
+    else:
+        model = conv.FakeModel()
     conv.use_model(model)
     try:
         await _journey(client, org, model, require_auth)
     finally:
         conv.use_model(None)
+        out = os.getenv("IRA_JOURNEY_EVIDENCE")
+        if real and out:
+            import json
+            with open(out, "w") as f:
+                json.dump({"warm_s": warmed, "step5_question_source": model.sources, "calls": model.timings}, f, indent=1)
 
 
 async def _journey(client, org, model, require_auth):  # noqa: C901 - one story, told in order
@@ -214,7 +274,13 @@ async def _steps_4_to_22(client, watch, net, fam, pid, h, device, jp, daughter, 
     assert out is not None
     due = await cycle.due_checkin(jp, device, now + dt.timedelta(minutes=25))
     assert due is not None and "Edith" in due["question_text"] and due["question_text"].count("?") == 1, f"step 5: IRA asks Edith by name: {due}"
-    assert due["question_source"] == "model", "step 5: composed by IRA's model (the deterministic test model)"
+    if isinstance(model, RecordingModel):
+        # A real model may write a question the guard refuses (two questions, too long): the product
+        # then asks the template question, by design. Either is correct; which one is recorded.
+        assert due["question_source"] in ("model", "template"), f"step 5: {due['question_source']}"
+        model.sources.append(due["question_source"])
+    else:
+        assert due["question_source"] == "model", "step 5: composed by IRA's model (the deterministic test model)"
     answered = await cycle.record_answer(jp, device, due["id"], "I am fine thanks, a quiet morning", via="voice", now=now + dt.timedelta(minutes=26))
     assert answered is not None
     client.act_as(fam, "daughter", "member")

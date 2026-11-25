@@ -3491,8 +3491,21 @@
    "title": "The care-journey demo run with a real language model (not the fake model)",
    "area": "software",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/demo/real_model_run.json"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_journey_db.py::RecordingModel"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/demo/REAL_MODEL_RUN.md"
+    }
+   ]
   },
   {
    "id": "J.f",
