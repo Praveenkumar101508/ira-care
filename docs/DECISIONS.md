@@ -1249,3 +1249,29 @@ database test calls every such route for a person outside the caller's circle an
 
 Consequence: a care-organisation staff member who is not a workspace administrator must be
 added to a person's circle to see them. The circle is the assignment.
+
+## D-077 The SisFall-trained fall model is research-only; release builds use the fall rules (owner decision, 25 November 2026)
+
+The watch fall model was trained on SisFall from Zenodo record 22212281. That record is labelled
+CC BY 4.0 but is not the authors' own release (creator "None", published 2026-08-31), so the
+dataset's commercial terms are unconfirmed (PR #65, `docs/DATASETS.md`). The owner does not
+accept uncertain dataset licensing risk.
+
+Decision: the model is excluded from every commercial configuration until its rights are
+confirmed in writing by the SisFall authors or a replacement trained only on commercially
+licensed data passes evaluation.
+
+How: the model files moved from `watch/app/src/main/assets` to `watch/app/src/debug/assets`.
+Release builds, and so the IRA CARE OS image (which takes the `aospRelease` APK), carry no model;
+`TfLiteInference.load` returns null and the rule detector runs alone, as it already did whenever
+no model was present. Debug builds keep the model for engineering demonstrations, labelled as
+research-only. `FallModelReleaseTest` fails if the model reappears where a release build would
+take it.
+
+Cost: the rule detector is noisier on the same evaluation windows (344 false alarms a day against
+the model's 3.8, `docs/MODEL_CHOICE.md`); its sensitivity was 0.906 against 0.990. A replacement
+model trained on commercially licensed wrist data is being prepared (register F4).
+
+The copy of the model previously published on Kaggle under Apache 2.0 by
+`scripts/training/run_kaggle.py` is an owner action: only the account holder can withdraw it.
+

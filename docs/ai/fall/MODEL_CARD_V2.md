@@ -1,9 +1,10 @@
 # IRA Care Fall v2: model card
 
 A wrist fall classifier trained only on data whose original licence permits commercial use.
-It is a candidate to replace the shipped fall model (`watch/app/src/main/assets/fall_model.tflite`),
-which was trained on a SisFall copy (Zenodo 22212281) that is a third-party re-upload with
-unconfirmed terms. The owner has excluded that model from commercial use.
+It is a candidate to replace the v1 fall model, which was trained on a SisFall copy (Zenodo
+22212281) that is a third-party re-upload with unconfirmed terms. The owner has excluded v1 from
+commercial use, so since D-077 (#66) it is only in debug builds
+(`watch/app/src/debug/assets/fall_model.tflite`) and release builds run the fall rules alone.
 
 Register item F4. Status: **evaluated on a public dataset only, NOT shipped**. The candidate
 does not pass the shipping gate (see "Verdict"). Nothing here has been run on the IRA watch.
@@ -298,7 +299,9 @@ The model is not switched in this change. Option 1 needs no Kotlin change:
    - copy `docs/ai/fall/fall_model_v2.tflite` to `watch/app/src/main/assets/fall_model.tflite`;
    - copy `docs/ai/fall/fall_model_v2.json` to `watch/app/src/main/assets/fall_model.json`.
 
-   `TfLiteInference.load` reads exactly these two names.
+   `TfLiteInference.load` reads exactly these two names. `FallModelReleaseTest` fails while a
+   model is in `src/main/assets`, on purpose: switching means changing that test in the same
+   change, with the owner's and a clinical reviewer's decision recorded in `docs/DECISIONS.md`.
 2. Alternatively, keep both pairs in the assets (`fall_model_v2.tflite` and
    `fall_model_v2.json`) and change `MODEL_ASSET` and `SPEC_ASSET` in `TfLiteInference.kt`.
    This is a two-constant Kotlin change.

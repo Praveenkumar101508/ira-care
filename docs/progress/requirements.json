@@ -1,0 +1,3307 @@
+{
+ "version": "1.2.0",
+ "methodology": "A fixed, versioned list of atomic requirements for the owner's master directive. Each item is one measurable deliverable with one state. States: not_started; implemented (code or document merged); accepted (functional evidence: unit_test, db_test, build, browser, emulator, model_eval or device; docs_only and config_check never count); verified (integration-level evidence: db_test, browser, emulator, model_eval or device); device_validated (device evidence); blocked_external (cannot progress without something outside the software; blocked_by says what). Every file ref must exist and a PR ref must be #44 or later; acceptance and verification need a qualifying evidence item that names a file, not only a PR. Items are never removed to raise a percentage: blocked and not-started items stay in every denominator. A requirement that changes scope gets a new id and the version is raised. scripts/completion_summary.py enforces these rules and computes the seven measures.",
+ "requirements": [
+  {
+   "id": "C-1.a",
+   "parent": "C-1",
+   "title": "One conservative dose-answer reader (yes / later / skip / unclear) used by both check-ins and reminders",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_safety_answers.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_safety_answers_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#44"
+    }
+   ]
+  },
+  {
+   "id": "C-1.b",
+   "parent": "C-1",
+   "title": "The 18 mandatory ambiguous answers (doubt, other time, other medicine, bare 'okay') are never read as taken",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_safety_answers.py"
+    }
+   ]
+  },
+  {
+   "id": "C-1.c",
+   "parent": "C-1",
+   "title": "For a dose the rules decide; the model and classifier can only make the answer more cautious, and said/dose/summary agree",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_classifier.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_safety_answers_db.py"
+    }
+   ]
+  },
+  {
+   "id": "C-2.a",
+   "parent": "C-2",
+   "title": "Check-in cycle writes a dose only to an unambiguous, bound medicine (REMEDIATION A3a)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_safety_answers_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#44"
+    }
+   ]
+  },
+  {
+   "id": "C-2.b",
+   "parent": "C-2",
+   "title": "A settled dose is not overwritten by a later 'not today' or a carer's different record (A3b)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_safety_answers_db.py"
+    }
+   ]
+  },
+  {
+   "id": "C-2.c",
+   "parent": "C-2",
+   "title": "The medication-event route takes the source from the caller's role, never from the request (A3c)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_safety_answers_db.py"
+    }
+   ]
+  },
+  {
+   "id": "C-3.a",
+   "parent": "C-3",
+   "title": "A check-in is bound to the dose it asked about (migration 112, A3e)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_safety_answers_db.py"
+    },
+    {
+     "kind": "config_check",
+     "ref": "supracloud-jarvis/postgres/112_care_medication_provenance.sql"
+    }
+   ]
+  },
+  {
+   "id": "C-3.b",
+   "parent": "C-3",
+   "title": "Dose provenance (source, recorded_by) recorded and not claimable by a family member (A3d)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_safety_answers_db.py"
+    }
+   ]
+  },
+  {
+   "id": "C-3.c",
+   "parent": "C-3",
+   "title": "Dose corrections need a reason and keep the old values; UPDATE and DELETE refused to the app role (A3d)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_safety_answers_db.py"
+    }
+   ]
+  },
+  {
+   "id": "C-4.a",
+   "parent": "C-4",
+   "title": "A doubtful or negative spoken answer never confirms a safety check; deadline unchanged (A4)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_checkin_rules.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_checkins_db.py"
+    }
+   ]
+  },
+  {
+   "id": "C-5.a",
+   "parent": "C-5",
+   "title": "A negative, a doubt or trouble never ends the watch fall countdown as OK (A4b)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/checkin/FallCountdownTest.kt"
+    },
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml"
+    }
+   ]
+  },
+  {
+   "id": "C-5.b",
+   "parent": "C-5",
+   "title": "Fall-countdown voice handling checked on a physical watch",
+   "area": "software",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a physical watch or phone, and a device build"
+  },
+  {
+   "id": "C-6.a",
+   "parent": "C-6",
+   "title": "Care provider and care exception logs carry no name, address or reading (A5)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_safety_answers.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#44"
+    }
+   ]
+  },
+  {
+   "id": "C-6.b",
+   "parent": "C-6",
+   "title": "Exception text kept out of logs across the whole backend, with a static checker (A5b)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/runtime/test_log_exception_text.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#55"
+    }
+   ]
+  },
+  {
+   "id": "C-7.a",
+   "parent": "C-7",
+   "title": "Only the wearer may talk as the person; family, carers, admins and other tenants are refused (A6)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_safety_answers_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#44"
+    }
+   ]
+  },
+  {
+   "id": "C-7.b",
+   "parent": "C-7",
+   "title": "The phone app offers Talk only to the wearer (isWearerOf)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/experience.test.ts"
+    }
+   ]
+  },
+  {
+   "id": "C-8.a",
+   "parent": "C-8",
+   "title": "Delivery states move forward only and say 'accepted', never 'delivered', until the provider reports it",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_delivery_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#46"
+    }
+   ]
+  },
+  {
+   "id": "C-8.b",
+   "parent": "C-8",
+   "title": "Provider callbacks are accepted only with a valid Twilio signature; forged or other-message callbacks change nothing",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_delivery_rules.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_delivery_db.py"
+    }
+   ]
+  },
+  {
+   "id": "C-8.c",
+   "parent": "C-8",
+   "title": "Every delivery report is kept and an attempt is never rewritten",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_delivery_db.py"
+    }
+   ]
+  },
+  {
+   "id": "C-9.a",
+   "parent": "C-9",
+   "title": "Concurrent dispatch workers send each message exactly once",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_delivery_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#46"
+    }
+   ]
+  },
+  {
+   "id": "C-9.b",
+   "parent": "C-9",
+   "title": "A queued message survives a crash; failures retry and are then recorded as failed; a slow provider holds up no one",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_delivery_db.py"
+    }
+   ]
+  },
+  {
+   "id": "C-10.a",
+   "parent": "C-10",
+   "title": "Person record refreshes every 30 s and says when it last updated (B1)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/person_live.test.tsx"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#45"
+    }
+   ]
+  },
+  {
+   "id": "C-10.b",
+   "parent": "C-10",
+   "title": "Overlapping and out-of-order refreshes show only the newest person (B1b)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/live.test.ts"
+    }
+   ]
+  },
+  {
+   "id": "C-10.c",
+   "parent": "C-10",
+   "title": "A failed section is named and the rest of the record still shows (B1c)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/person_live.test.tsx"
+    }
+   ]
+  },
+  {
+   "id": "C-10.d",
+   "parent": "C-10",
+   "title": "Live refresh of the person record exercised in a real browser",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "C-11.a",
+   "parent": "C-11",
+   "title": "Dashboard shows unknown and stale wrist status as unknown, never as worn (B2)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/live.test.ts"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/person_live.test.tsx"
+    }
+   ]
+  },
+  {
+   "id": "C-11.b",
+   "parent": "C-11",
+   "title": "Phone app shows unknown and stale wrist status as unknown (B2)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/model.test.ts"
+    }
+   ]
+  },
+  {
+   "id": "C-12.a",
+   "parent": "C-12",
+   "title": "Phone Talk client reads the NDJSON stream incrementally (expo/fetch)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/talk_stream.test.ts"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#56"
+    }
+   ]
+  },
+  {
+   "id": "C-12.b",
+   "parent": "C-12",
+   "title": "Talk screen shows IRA's answer as it arrives",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/talk_screen.test.tsx"
+    }
+   ]
+  },
+  {
+   "id": "C-12.c",
+   "parent": "C-12",
+   "title": "Streaming checked on a real phone",
+   "area": "software",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a physical watch or phone, and a device build"
+  },
+  {
+   "id": "C-13.a",
+   "parent": "C-13",
+   "title": "Phone speaks IRA's answer (speech out)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/voice.test.ts"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#61"
+    }
+   ]
+  },
+  {
+   "id": "C-13.b",
+   "parent": "C-13",
+   "title": "Phone listens for one utterance and keeps no recording (speech in)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/talk_voice.test.tsx"
+    }
+   ]
+  },
+  {
+   "id": "C-13.c",
+   "parent": "C-13",
+   "title": "Phone speech in and out checked on a real phone",
+   "area": "software",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a physical watch or phone, and a device build"
+  },
+  {
+   "id": "C-13.d",
+   "parent": "C-13",
+   "title": "DPIA updated to cover the platform speech recognisers",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "C-14.a",
+   "parent": "C-14",
+   "title": "Sign-out clears every account's state; a late reply for account A never reaches account B (C3)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/app_signout.test.tsx"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#47"
+    }
+   ]
+  },
+  {
+   "id": "C-15.a",
+   "parent": "C-15",
+   "title": "Push token is unregistered on sign-out, and being offline does not block sign-out",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/push_signout.test.ts"
+    }
+   ]
+  },
+  {
+   "id": "C-16.a",
+   "parent": "C-16",
+   "title": "Phone renews an expired session with the refresh token instead of signing out (C4)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/session.test.ts"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#47"
+    }
+   ]
+  },
+  {
+   "id": "C-16.b",
+   "parent": "C-16",
+   "title": "Dashboard renews an expired session instead of signing the carer out (C4b)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/session_renewal.test.ts"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#52"
+    }
+   ]
+  },
+  {
+   "id": "C-17.a",
+   "parent": "C-17",
+   "title": "Watch speech recognition: one listener at a time, destroyed on every path, crash recovery (D1)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/voice/SpeechCoreTest.kt"
+    },
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#48"
+    }
+   ]
+  },
+  {
+   "id": "C-17.b",
+   "parent": "C-17",
+   "title": "Watch speech recognition lifecycle checked on a physical watch",
+   "area": "software",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a physical watch or phone, and a device build"
+  },
+  {
+   "id": "C-18.a",
+   "parent": "C-18",
+   "title": "Watch text-to-speech: time limit, volume restored, one at a time (D2)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/voice/SpeechCoreTest.kt"
+    },
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml"
+    }
+   ]
+  },
+  {
+   "id": "C-19.a",
+   "parent": "C-19",
+   "title": "Watch storage encrypted per wearer with a Keystore key (D5)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/storage/SecureStorageTest.kt"
+    },
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml"
+    }
+   ]
+  },
+  {
+   "id": "C-19.b",
+   "parent": "C-19",
+   "title": "Keystore key confirmed hardware-backed on the target watch",
+   "area": "hardware",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a physical watch with a TEE / StrongBox"
+  },
+  {
+   "id": "C-19.c",
+   "parent": "C-19",
+   "title": "Watch storage never falls back to plain text for sensitive data when sealing fails; Help is still queued, minimised (D9)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/storage/DegradedStorageTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#68"
+    }
+   ]
+  },
+  {
+   "id": "C-20.a",
+   "parent": "C-20",
+   "title": "Offline queue writes are atomic and survive a crash; unreadable lines are reported (D5)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/queue/OfflineQueueTest.kt"
+    }
+   ]
+  },
+  {
+   "id": "C-20.b",
+   "parent": "C-20",
+   "title": "Outbox events are on disk before sending, keep their key and back off on failure",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/outbox/OutboxTest.kt"
+    }
+   ]
+  },
+  {
+   "id": "C-21.a",
+   "parent": "C-21",
+   "title": "Pairing data kept per wearer; re-pairing another wearer does not read the previous one's data",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/storage/SecureStorageTest.kt"
+    }
+   ]
+  },
+  {
+   "id": "C-21.b",
+   "parent": "C-21",
+   "title": "Explicit unpair on the watch, with a warning and refusal while Help is pending (D7)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/pairing/UnpairingTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#53"
+    }
+   ]
+  },
+  {
+   "id": "C-21.c",
+   "parent": "C-21",
+   "title": "Server kills the device token at unpair on every route and tells the circle once (migration 114)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_watch_unpair_db.py"
+    }
+   ]
+  },
+  {
+   "id": "C-21.d",
+   "parent": "C-21",
+   "title": "Unpair UI checked on a physical watch",
+   "area": "software",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a physical watch or phone, and a device build"
+  },
+  {
+   "id": "C-22.a",
+   "parent": "C-22",
+   "title": "Every person-scoped route is guarded (static check, D-076)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_person_guard.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#51"
+    }
+   ]
+  },
+  {
+   "id": "C-22.b",
+   "parent": "C-22",
+   "title": "All 62 person routes answer 404 for a person outside the caller's circle; lists show own people only",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_person_access_db.py"
+    }
+   ]
+  },
+  {
+   "id": "C-22.c",
+   "parent": "C-22",
+   "title": "System-wide security review of the integrated stack (threat model, secrets, dependencies, transport)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "C-22.d",
+   "parent": "C-22",
+   "title": "Independent penetration test by a qualified tester",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a contracted, qualified tester and the owner's approval to spend"
+  },
+  {
+   "id": "C-23.a",
+   "parent": "C-23",
+   "title": "Automated accessibility checks on the dashboard",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/accessibility.test.tsx"
+    }
+   ]
+  },
+  {
+   "id": "C-23.b",
+   "parent": "C-23",
+   "title": "Automated accessibility checks on the phone app",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/accessibility.test.tsx"
+    }
+   ]
+  },
+  {
+   "id": "C-23.c",
+   "parent": "C-23",
+   "title": "Automated accessibility checks on the watch app",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/ui/AccessibilityTest.kt"
+    }
+   ]
+  },
+  {
+   "id": "C-23.d",
+   "parent": "C-23",
+   "title": "Dark-mode and high-contrast colour pairs measured against contrast thresholds (C5)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/theme_contrast.test.ts"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#54"
+    }
+   ]
+  },
+  {
+   "id": "C-23.e",
+   "parent": "C-23",
+   "title": "Screen-reader pass (TalkBack, VoiceOver) on real devices",
+   "area": "software",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a physical watch or phone, and a device build"
+  },
+  {
+   "id": "C-24.a",
+   "parent": "C-24",
+   "title": "Watch keeps retryable server failures (5xx, 425, 429) and drops only permanent refusals (E2)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/api/CareApiTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#51"
+    }
+   ]
+  },
+  {
+   "id": "C-24.b",
+   "parent": "C-24",
+   "title": "Database outage: jobs survive, nothing is sent while down, alerts escalate once afterwards (E3, E4)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_outages_db.py"
+    }
+   ]
+  },
+  {
+   "id": "C-24.c",
+   "parent": "C-24",
+   "title": "Redis and database outages exercised end to end in a browser on staging",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "browser",
+     "ref": "e2e/outages.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/staging/outages.json"
+    }
+   ]
+  },
+  {
+   "id": "D1.a",
+   "parent": "D1",
+   "title": "Watch check-ins by voice and touch",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/checkin/CheckinControllerTest.kt"
+    },
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml"
+    }
+   ]
+  },
+  {
+   "id": "D1.b",
+   "parent": "D1",
+   "title": "Watch scheduled-visit state (arrival pauses check-ins)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/outbox/VisitStateTest.kt"
+    }
+   ]
+  },
+  {
+   "id": "D1.c",
+   "parent": "D1",
+   "title": "Watch heart-rate and wrist readings batched and sent",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/sensors/ReadingBatcherTest.kt"
+    }
+   ]
+  },
+  {
+   "id": "D1.d",
+   "parent": "D1",
+   "title": "Watch fall detection (rules) feeding the countdown",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/sensors/FallDetectorTest.kt"
+    }
+   ]
+  },
+  {
+   "id": "D1.e",
+   "parent": "D1",
+   "title": "Watch Help / SOS state, with delivery and responder status shown",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/outbox/SosStateTest.kt"
+    }
+   ]
+  },
+  {
+   "id": "D1.f",
+   "parent": "D1",
+   "title": "Watch sends location with an SOS (GPS)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "watch/app/src/main/java/care/ira/watch/sensors/LocationSource.kt"
+    }
+   ]
+  },
+  {
+   "id": "D1.g",
+   "parent": "D1",
+   "title": "Watch reports battery and sensor-permission state",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "watch/app/src/main/java/care/ira/watch/service/SyncWorker.kt"
+    }
+   ]
+  },
+  {
+   "id": "D1.h",
+   "parent": "D1",
+   "title": "Watch reminders and routines shown and answered on the wrist",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "D1.i",
+   "parent": "D1",
+   "title": "Watch app run on a Wear OS emulator through the care journey",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "D1.j",
+   "parent": "D1",
+   "title": "Watch app run on a physical watch",
+   "area": "software",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a physical watch"
+  },
+  {
+   "id": "D1b.a",
+   "parent": "D1b",
+   "title": "AOSP flavour builds and unit-tests with no Google service dependency",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml"
+    },
+    {
+     "kind": "build",
+     "ref": "scripts/ci/check_watch_aosp_deps.sh"
+    }
+   ]
+  },
+  {
+   "id": "D1b.b",
+   "parent": "D1b",
+   "title": "Platform layer behind interfaces (one app for Wear OS and AOSP)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/platform/PlatformLayerTest.kt"
+    }
+   ]
+  },
+  {
+   "id": "D1b.c",
+   "parent": "D1b",
+   "title": "Signed aospRelease APK produced",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "IRA's release signing key (owner's key-custody decision)"
+  },
+  {
+   "id": "D2.a",
+   "parent": "D2",
+   "title": "Phone app: wearer, family and carer experiences from one app",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/experience.test.ts"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/shell.test.tsx"
+    }
+   ]
+  },
+  {
+   "id": "D2.b",
+   "parent": "D2",
+   "title": "Phone app: the person's own appearance on every device",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/appearance.test.ts"
+    }
+   ]
+  },
+  {
+   "id": "D2.c",
+   "parent": "D2",
+   "title": "Phone app: reminders",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/reminders.test.ts"
+    }
+   ]
+  },
+  {
+   "id": "D2.d",
+   "parent": "D2",
+   "title": "Phone app: scheduled visits",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/visits.test.ts"
+    }
+   ]
+  },
+  {
+   "id": "D2.e",
+   "parent": "D2",
+   "title": "Family app: alerts and 'I'm on my way', driven in a browser",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "browser",
+     "ref": "docs/demo/12-family-on-my-way.png"
+    },
+    {
+     "kind": "browser",
+     "ref": "scripts/demo/record_demo.mjs"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/model.test.ts"
+    }
+   ]
+  },
+  {
+   "id": "D2.f",
+   "parent": "D2",
+   "title": "Phone app typecheck and tests in CI",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml"
+    }
+   ]
+  },
+  {
+   "id": "D2.g",
+   "parent": "D2",
+   "title": "Android native build of the phone app (APK / AAB)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "D2.h",
+   "parent": "D2",
+   "title": "iOS build of the phone app",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "macOS with Apple signing"
+  },
+  {
+   "id": "D2.i",
+   "parent": "D2",
+   "title": "Phone app run on a physical Android phone and iPhone",
+   "area": "software",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "physical phones and device builds"
+  },
+  {
+   "id": "D2.j",
+   "parent": "D2",
+   "title": "Google Play listing submitted",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/store/FAMILY_APP_LISTING.md"
+    }
+   ],
+   "blocked_by": "a Google Play developer account"
+  },
+  {
+   "id": "D2.k",
+   "parent": "D2",
+   "title": "App Store listing submitted",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "an Apple developer account"
+  },
+  {
+   "id": "D3.a",
+   "parent": "D3",
+   "title": "Dashboard overview of people, driven in a browser",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "browser",
+     "ref": "docs/demo/01-dashboard-people.png"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/view.test.ts"
+    }
+   ]
+  },
+  {
+   "id": "D3.b",
+   "parent": "D3",
+   "title": "Dashboard person record read in a coordinator's order, driven in a browser",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "browser",
+     "ref": "docs/demo/02-dashboard-home-record.png"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/journey.spec.ts"
+    }
+   ]
+  },
+  {
+   "id": "D3.c",
+   "parent": "D3",
+   "title": "Dashboard alerts list and alert card",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "browser",
+     "ref": "docs/demo/09-dashboard-alerts.png"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/alertcard.test.tsx"
+    }
+   ]
+  },
+  {
+   "id": "D3.d",
+   "parent": "D3",
+   "title": "Scheduled visits: late and missed detection, visit record",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_visits_db.py"
+    }
+   ]
+  },
+  {
+   "id": "D3.e",
+   "parent": "D3",
+   "title": "Daily carer report",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_reports_db.py"
+    }
+   ]
+  },
+  {
+   "id": "D3.f",
+   "parent": "D3",
+   "title": "Audit trail of care actions",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_audit_coverage.py"
+    }
+   ]
+  },
+  {
+   "id": "D3.g",
+   "parent": "D3",
+   "title": "Search across people and records in the dashboard",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "D3.h",
+   "parent": "D3",
+   "title": "Care plans as a separate, versioned object in the dashboard",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "D3.i",
+   "parent": "D3",
+   "title": "Staff roles (coordinator, carer, manager) with role-specific screens",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "D3.j",
+   "parent": "D3",
+   "title": "Dashboard typecheck, tests and production build in CI",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml"
+    }
+   ]
+  },
+  {
+   "id": "D4.a",
+   "parent": "D4",
+   "title": "One capability list held by backend, watch and dashboard",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_capabilities.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#57"
+    }
+   ]
+  },
+  {
+   "id": "D4.b",
+   "parent": "D4",
+   "title": "Not-available measurements are refused and never shown with a value",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/not_measured.test.tsx"
+    }
+   ]
+  },
+  {
+   "id": "D4.c",
+   "parent": "D4",
+   "title": "New sensors (SpO2, ECG, blood pressure) selected and validated",
+   "area": "hardware",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "hardware and clinical validation"
+  },
+  {
+   "id": "E1.a",
+   "parent": "E1",
+   "title": "Five-layer architecture (app, launcher, system image, firmware, production OS) written down with what exists",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/os/ARCHITECTURE.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "#59"
+    }
+   ]
+  },
+  {
+   "id": "E2.a",
+   "parent": "E2",
+   "title": "Cuttlefish product makefile and product registration",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "os/device/ira/ira_watch_cf/ira_watch_cf.mk"
+    },
+    {
+     "kind": "config_check",
+     "ref": "os/device/ira/ira_watch_cf/AndroidProducts.mk"
+    },
+    {
+     "kind": "config_check",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py"
+    }
+   ]
+  },
+  {
+   "id": "E2.b",
+   "parent": "E2",
+   "title": "Privileged prebuilt watch app with a privapp allowlist that matches the manifest",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "os/device/ira/ira_watch_cf/Android.bp"
+    },
+    {
+     "kind": "config_check",
+     "ref": "os/device/ira/ira_watch_cf/permissions/privapp-permissions-care.ira.watch.xml"
+    },
+    {
+     "kind": "config_check",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py"
+    }
+   ]
+  },
+  {
+   "id": "E2.c",
+   "parent": "E2",
+   "title": "First-boot permission grants (proposal)",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "os/device/ira/ira_watch_cf/permissions/default-permissions-care.ira.watch.xml"
+    }
+   ]
+  },
+  {
+   "id": "E2.d",
+   "parent": "E2",
+   "title": "Framework overlay",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "os/device/ira/ira_watch_cf/overlays/IraFrameworkOverlay/res/values/config.xml"
+    }
+   ]
+  },
+  {
+   "id": "E2.e",
+   "parent": "E2",
+   "title": "Boot animation specification",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "os/device/ira/ira_watch_cf/bootanimation/README.md"
+    },
+    {
+     "kind": "config_check",
+     "ref": "os/device/ira/ira_watch_cf/bootanimation/desc.txt"
+    }
+   ]
+  },
+  {
+   "id": "E2.f",
+   "parent": "E2",
+   "title": "Boot animation frames produced and shown at boot",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "E2.g",
+   "parent": "E2",
+   "title": "Cuttlefish build script refuses on low resources and never downloads without the opt-in",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py"
+    },
+    {
+     "kind": "config_check",
+     "ref": "os/scripts/build_cuttlefish.sh"
+    }
+   ]
+  },
+  {
+   "id": "E2.h",
+   "parent": "E2",
+   "title": "Cuttlefish image built",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/os/BUILD.md"
+    }
+   ],
+   "blocked_by": "an AOSP build host (about 400 GB disk, 64 GB RAM)"
+  },
+  {
+   "id": "E2.i",
+   "parent": "E2",
+   "title": "Cuttlefish image boots with the IRA app preinstalled (record of the boot)",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "an AOSP build host"
+  },
+  {
+   "id": "E2.j",
+   "parent": "E2",
+   "title": "Launcher: watch app is the HOME activity in the aosp flavour, with lock-screen attributes",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/ui/HomeScreenTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#60"
+    }
+   ]
+  },
+  {
+   "id": "E2.k",
+   "parent": "E2",
+   "title": "Launcher: stock AOSP launcher removed from the image (overrides)",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "os/device/ira/ira_watch_cf/HOME_LAUNCHER.md"
+    }
+   ]
+  },
+  {
+   "id": "E2.l",
+   "parent": "E2",
+   "title": "Launcher: IRA as the home screen confirmed on a Cuttlefish boot",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "an AOSP build host"
+  },
+  {
+   "id": "E2.m",
+   "parent": "E2",
+   "title": "Device-owner policy app: developer options and factory reset behind an administrator",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "os/device/ira/ira_watch_cf/SETTINGS_POLICY.md"
+    }
+   ]
+  },
+  {
+   "id": "E2.n",
+   "parent": "E2",
+   "title": "Emergency UI available from the lock screen on the OS",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "os/device/ira/ira_watch_cf/EMERGENCY_UI.md"
+    }
+   ]
+  },
+  {
+   "id": "E3.a",
+   "parent": "E3",
+   "title": "Sensor HAL contract (types, units, rates, batching, wake)",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/hardware/SENSOR_HAL.md"
+    }
+   ]
+  },
+  {
+   "id": "E3.b",
+   "parent": "E3",
+   "title": "App-level simulated sensor source, readings marked simulated",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/platform/PlatformLayerTest.kt"
+    },
+    {
+     "kind": "config_check",
+     "ref": "watch/app/src/main/java/care/ira/watch/sensors/SimulatedSensorSource.kt"
+    }
+   ]
+  },
+  {
+   "id": "E3.c",
+   "parent": "E3",
+   "title": "Simulated sensors HAL driver: heart rate",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "E3.d",
+   "parent": "E3",
+   "title": "Simulated sensors HAL driver: accelerometer and gyroscope",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "E3.e",
+   "parent": "E3",
+   "title": "Simulated sensors HAL driver: off-body detection",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "E3.f",
+   "parent": "E3",
+   "title": "Real sensors HAL implementation on the target board",
+   "area": "hardware",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "the target board and its BSP"
+  },
+  {
+   "id": "E4.a",
+   "parent": "E4",
+   "title": "Verified boot (AVB 2.0) configured and exercised on Cuttlefish with test keys",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "E4.b",
+   "parent": "E4",
+   "title": "Keystore / KeyMint (software) used by the app on Cuttlefish",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "E4.c",
+   "parent": "E4",
+   "title": "Signed A/B OTA package built and applied on Cuttlefish",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "E4.d",
+   "parent": "E4",
+   "title": "OTA update server side (serving and authorising images)",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "E4.e",
+   "parent": "E4",
+   "title": "Rollback protection indexes configured and an older image refused on Cuttlefish",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "E4.f",
+   "parent": "E4",
+   "title": "Provisioning flow on Cuttlefish: device-owner policy and pairing at first boot",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "E4.g",
+   "parent": "E4",
+   "title": "Release, platform and verified-boot key custody decided",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "the owner's key-custody decision"
+  },
+  {
+   "id": "E4.h",
+   "parent": "E4",
+   "title": "Hardware root of trust: fused key hash and locked bootloader",
+   "area": "hardware",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "the target board and supplier signing process"
+  },
+  {
+   "id": "E4.i",
+   "parent": "E4",
+   "title": "Tamper-evident rollback storage (RPMB) enforced by the bootloader",
+   "area": "hardware",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "the target board"
+  },
+  {
+   "id": "E4.j",
+   "parent": "E4",
+   "title": "Attestation-key provisioning and eSIM profile download",
+   "area": "hardware",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "the target board, suppliers and an eSIM provider"
+  },
+  {
+   "id": "E6.a",
+   "parent": "E6",
+   "title": "OS build instructions, every step marked as not run",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/os/BUILD.md"
+    }
+   ]
+  },
+  {
+   "id": "E6.b",
+   "parent": "E6",
+   "title": "Qualcomm dependency register (14 supplier components)",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/os/QUALCOMM_DEPENDENCIES.md"
+    }
+   ]
+  },
+  {
+   "id": "E6.c",
+   "parent": "E6",
+   "title": "Build steps run on a build host and every name marked uncertain resolved",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "an AOSP build host"
+  },
+  {
+   "id": "E6.d",
+   "parent": "E6",
+   "title": "Supplier access to the board support package",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "Qualcomm supplier access (NDA)"
+  },
+  {
+   "id": "F1.a",
+   "parent": "F1",
+   "title": "Dataset licence register re-verified row by row against the original source",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/DATASETS.md"
+    },
+    {
+     "kind": "config_check",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_dataset_register.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "#65"
+    }
+   ]
+  },
+  {
+   "id": "F1.b",
+   "parent": "F1",
+   "title": "Model-weight licence register for every shipped or downloaded model",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/MODEL_WEIGHTS.md"
+    },
+    {
+     "kind": "config_check",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_dataset_register.py"
+    }
+   ]
+  },
+  {
+   "id": "F1.c",
+   "parent": "F1",
+   "title": "Permission requests drafted for KFall, FallAllD, SisFall and UMAFall",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/legal/dataset_permission_requests/README.md"
+    }
+   ]
+  },
+  {
+   "id": "F1.d",
+   "parent": "F1",
+   "title": "KFall permission granted",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/legal/dataset_permission_requests/KFALL.md"
+    }
+   ],
+   "blocked_by": "the KFall authors"
+  },
+  {
+   "id": "F1.e",
+   "parent": "F1",
+   "title": "FallAllD permission granted",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/legal/dataset_permission_requests/FALLALLD.md"
+    }
+   ],
+   "blocked_by": "the FallAllD authors"
+  },
+  {
+   "id": "F1.f",
+   "parent": "F1",
+   "title": "SisFall terms confirmed by the authors (or the owner accepts the risk)",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/legal/dataset_permission_requests/SISFALL.md"
+    }
+   ],
+   "blocked_by": "the SisFall authors, or the owner's risk decision"
+  },
+  {
+   "id": "F1.g",
+   "parent": "F1",
+   "title": "UMAFall terms reconciled (CC BY 4.0 against a CC BY-NC record)",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/legal/dataset_permission_requests/UMAFALL.md"
+    }
+   ],
+   "blocked_by": "the UMAFall authors"
+  },
+  {
+   "id": "F2.a",
+   "parent": "F2",
+   "title": "Care conversation model chosen by measurement (open models, local chain)",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/eval/gpu/chain-12b-e4b-pass3.json"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/MODEL_CHOICE.md"
+    }
+   ]
+  },
+  {
+   "id": "F2.b",
+   "parent": "F2",
+   "title": "Product conversation evaluation runner",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_eval_runner.py"
+    }
+   ]
+  },
+  {
+   "id": "F2.c",
+   "parent": "F2",
+   "title": "Previous QLoRA fine-tune evaluated against the base model (not adopted)",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/training/conversation.json"
+    },
+    {
+     "kind": "config_check",
+     "ref": "scripts/training/kaggle_conversation_qlora.py"
+    }
+   ]
+  },
+  {
+   "id": "F2.d",
+   "parent": "F2",
+   "title": "New versioned care-conversation dataset",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F2.e",
+   "parent": "F2",
+   "title": "New LoRA / QLoRA run with a dated record",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a Kaggle GPU session (owner's account)"
+  },
+  {
+   "id": "F2.f",
+   "parent": "F2",
+   "title": "Fine-tune evaluated on held-out prompts and the product evaluation",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F2.g",
+   "parent": "F2",
+   "title": "Fine-tune promotion gate: promoted only if it beats the base on safety and product measures",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F3.a",
+   "parent": "F3",
+   "title": "Classical heart-rate estimator with accelerometer suppression shipped in the backend",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_heart_estimate.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#58"
+    }
+   ]
+  },
+  {
+   "id": "F3.b",
+   "parent": "F3",
+   "title": "Leave-one-subject-out evaluation on all 15 PPG-DaLiA subjects",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/heart/results.json"
+    },
+    {
+     "kind": "config_check",
+     "ref": "scripts/training/heart_ppg_dalia.py"
+    }
+   ]
+  },
+  {
+   "id": "F3.c",
+   "parent": "F3",
+   "title": "Heart model card",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/heart/MODEL_CARD.md"
+    }
+   ]
+  },
+  {
+   "id": "F3.d",
+   "parent": "F3",
+   "title": "Learned candidate selection shipped in the product",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F3.e",
+   "parent": "F3",
+   "title": "Heart-rate accuracy on the IRA watch and on older adults against an ECG reference",
+   "area": "ai",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "recordings from the IRA watch with an ECG reference"
+  },
+  {
+   "id": "F4.a",
+   "parent": "F4",
+   "title": "Rule-based fall detector on the watch",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/sensors/FallDetectorTest.kt"
+    }
+   ]
+  },
+  {
+   "id": "F4.b",
+   "parent": "F4",
+   "title": "Backend fall rules: countdown, SOS with location",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_fall_rules.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_fall_db.py"
+    }
+   ]
+  },
+  {
+   "id": "F4.c",
+   "parent": "F4",
+   "title": "Fall model trained and evaluated subject-independently on SisFall (research only)",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/training/fall.json"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/sensors/ModelFallDetectorTest.kt"
+    }
+   ]
+  },
+  {
+   "id": "F4.d",
+   "parent": "F4",
+   "title": "SisFall-trained model kept out of every release build and the OS image (D-077)",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/sensors/FallModelReleaseTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#66"
+    }
+   ]
+  },
+  {
+   "id": "F4.e",
+   "parent": "F4",
+   "title": "Wrist-specific fall model trained on commercially licensed wrist data",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/fall/results_v2.json"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "scripts/training/fall_model_v2.py"
+    }
+   ]
+  },
+  {
+   "id": "F4.f",
+   "parent": "F4",
+   "title": "Cross-dataset fall evaluation (train on one dataset, test on another)",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F4.g",
+   "parent": "F4",
+   "title": "Fall detection on the IRA watch with simulated falls",
+   "area": "ai",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a physical watch"
+  },
+  {
+   "id": "F4.h",
+   "parent": "F4",
+   "title": "A wrist fall model on licensed data that loses no sensitivity against the rule detector ships in release builds",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F5.a",
+   "parent": "F5",
+   "title": "Deterministic safety rules measured on the conversation evaluation set",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/eval/phase7_rules.json"
+    }
+   ]
+  },
+  {
+   "id": "F5.b",
+   "parent": "F5",
+   "title": "Red-flag classifier heads trained and evaluated, kept off until they meet the bar",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/training/classifier_eval.json"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_classifier.py"
+    }
+   ]
+  },
+  {
+   "id": "F5.c",
+   "parent": "F5",
+   "title": "Ask-first rule: the person is asked before anyone is alerted, and only a clear OK resolves the question",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_monitoring_rules.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_safety_answers_db.py"
+    }
+   ]
+  },
+  {
+   "id": "F6.a",
+   "parent": "F6",
+   "title": "A correction is kept and read back",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_memory_db.py"
+    }
+   ]
+  },
+  {
+   "id": "F6.b",
+   "parent": "F6",
+   "title": "A forgotten day is gone from the model's context",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_memory_db.py"
+    }
+   ]
+  },
+  {
+   "id": "F6.c",
+   "parent": "F6",
+   "title": "Erasure removes the person's memory everywhere",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_erasure_coverage.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_memory_db.py"
+    }
+   ]
+  },
+  {
+   "id": "F6.d",
+   "parent": "F6",
+   "title": "Check-in answers kept out of the general memory store; old ones purged (migration 115)",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_memory_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#63"
+    }
+   ]
+  },
+  {
+   "id": "F6.e",
+   "parent": "F6",
+   "title": "Topic lists need the person's topics consent",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_personal_db.py"
+    }
+   ]
+  },
+  {
+   "id": "F7.a",
+   "parent": "F7",
+   "title": "Wrist IMU activity dataset with a licence that allows commercial use selected",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F7.b",
+   "parent": "F7",
+   "title": "Activity model trained with a dated run",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F7.c",
+   "parent": "F7",
+   "title": "Activity model evaluated subject-independently",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F7.d",
+   "parent": "F7",
+   "title": "Activity inference integrated in the watch app",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F7.e",
+   "parent": "F7",
+   "title": "Activity model card",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F8.a",
+   "parent": "F8",
+   "title": "Speech engine licences reviewed (OmniVoice is CC BY-NC)",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/MODEL_WEIGHTS.md"
+    }
+   ]
+  },
+  {
+   "id": "F8.b",
+   "parent": "F8",
+   "title": "Speech-recognition accuracy harness (word error rate on a held-out set)",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F8.c",
+   "parent": "F8",
+   "title": "Recognition accuracy measured on a public older-adult speech set with a usable licence",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "F8.d",
+   "parent": "F8",
+   "title": "Recognition accuracy on consented recordings of older people",
+   "area": "ai",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "consented recordings"
+  },
+  {
+   "id": "F8.e",
+   "parent": "F8",
+   "title": "Synthesis intelligibility checked with older listeners",
+   "area": "ai",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "consented listening sessions"
+  },
+  {
+   "id": "G1.a",
+   "parent": "G1",
+   "title": "Stack from a clean clone: compose services, migrations, API, worker, dashboard, family app and the browser journey",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/staging/clean_clone_proof.json"
+    },
+    {
+     "kind": "config_check",
+     "ref": "scripts/staging/clean_clone_proof.sh"
+    },
+    {
+     "kind": "config_check",
+     "ref": "deploy/docker-compose.yml"
+    }
+   ]
+  },
+  {
+   "id": "G1.b",
+   "parent": "G1",
+   "title": "API and dashboard Docker images rebuilt and checked in CI",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "deploy/Dockerfile.api"
+    },
+    {
+     "kind": "config_check",
+     "ref": "deploy/Dockerfile.dashboard"
+    }
+   ]
+  },
+  {
+   "id": "G1.c",
+   "parent": "G1",
+   "title": "GPU profile (compose) for the local model chain",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "deploy/compose.gpu.yml"
+    }
+   ]
+  },
+  {
+   "id": "G1.d",
+   "parent": "G1",
+   "title": "HTTPS reverse proxy configuration",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "deploy/Caddyfile"
+    }
+   ]
+  },
+  {
+   "id": "G1.e",
+   "parent": "G1",
+   "title": "Staging environment on a rented server",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "deploy/compose.staging.yml"
+    }
+   ],
+   "blocked_by": "the owner's approval to spend on a server"
+  },
+  {
+   "id": "G2.a",
+   "parent": "G2",
+   "title": "Backup files are private",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/test_backup_files_are_private.py"
+    },
+    {
+     "kind": "config_check",
+     "ref": "deploy/backup.sh"
+    }
+   ]
+  },
+  {
+   "id": "G2.b",
+   "parent": "G2",
+   "title": "Backup and restore round trip keeps the security guarantees",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_backup_restore.py"
+    },
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml"
+    }
+   ]
+  },
+  {
+   "id": "G2.c",
+   "parent": "G2",
+   "title": "Monitoring heartbeat: the dashboard says when monitoring has paused",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/topbar.test.tsx"
+    }
+   ]
+  },
+  {
+   "id": "G2.d",
+   "parent": "G2",
+   "title": "Behaviour under concurrency: ceilings hold, saturated pools shed load",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_behaviour_under_load.py"
+    }
+   ]
+  },
+  {
+   "id": "G2.e",
+   "parent": "G2",
+   "title": "24-hour soak run with recorded numbers",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "scripts/soak_24h.py"
+    }
+   ]
+  },
+  {
+   "id": "G2.f",
+   "parent": "G2",
+   "title": "Capacity load test on a representative deployment",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a representative server (owner's approval to spend)"
+  },
+  {
+   "id": "G2.g",
+   "parent": "G2",
+   "title": "Outage drills on staging after the remediation",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "G2.h",
+   "parent": "G2",
+   "title": "Encrypted off-site backups with a restore drill",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "G2.i",
+   "parent": "G2",
+   "title": "'All well' never shown when monitoring is paused, alert messages are not getting out, the page is stale or the watch is offline (F4)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "G3.a",
+   "parent": "G3",
+   "title": "SMS and call provider adapter (Twilio) with delivery states",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_delivery_rules.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_delivery_db.py"
+    }
+   ]
+  },
+  {
+   "id": "G3.b",
+   "parent": "G3",
+   "title": "Push adapter with receipts",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_push_rules.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_push_db.py"
+    }
+   ]
+  },
+  {
+   "id": "G3.c",
+   "parent": "G3",
+   "title": "Email adapter",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "G3.d",
+   "parent": "G3",
+   "title": "Monitoring-centre adapter",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "G3.e",
+   "parent": "G3",
+   "title": "Live delivery through a real provider",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "provider credentials and a decision to pay"
+  },
+  {
+   "id": "G3.f",
+   "parent": "G3",
+   "title": "Monitoring-centre contract",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a monitoring-centre contract"
+  },
+  {
+   "id": "G4.a",
+   "parent": "G4",
+   "title": "Single-machine deployment guide with backups and updates",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/DEPLOY.md"
+    }
+   ]
+  },
+  {
+   "id": "G4.b",
+   "parent": "G4",
+   "title": "Hosting proposal and cost model",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "G4.c",
+   "parent": "G4",
+   "title": "Operations runbooks (incident, restore, key rotation)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "G4.d",
+   "parent": "G4",
+   "title": "Server rented and hosting agreed",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "the owner's approval to spend"
+  },
+  {
+   "id": "H1–H4.a",
+   "parent": "H1–H4",
+   "title": "Watch blueprint: dimensioned drawings, 3D model, internal stack",
+   "area": "hardware",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/hardware/BLUEPRINT.md"
+    },
+    {
+     "kind": "config_check",
+     "ref": "docs/hardware/ira_watch.glb"
+    }
+   ]
+  },
+  {
+   "id": "H1–H4.b",
+   "parent": "H1–H4",
+   "title": "Candidate components list",
+   "area": "hardware",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/hardware/COMPONENTS.md"
+    }
+   ]
+  },
+  {
+   "id": "H1–H4.c",
+   "parent": "H1–H4",
+   "title": "Sensor evaluation plan (bench method, reference instruments, pass criteria)",
+   "area": "hardware",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "H1–H4.d",
+   "parent": "H1–H4",
+   "title": "Qualcomm engagement document",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "H1–H4.e",
+   "parent": "H1–H4",
+   "title": "ODM specification",
+   "area": "hardware",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "H1–H4.f",
+   "parent": "H1–H4",
+   "title": "EVT / DVT / PVT roadmap with exit criteria",
+   "area": "hardware",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/hardware/BLUEPRINT.md"
+    }
+   ]
+  },
+  {
+   "id": "H1–H4.g",
+   "parent": "H1–H4",
+   "title": "Certification roadmap (UKCA, RED, battery, SAR, IP68, PSTI)",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/hardware/BLUEPRINT.md"
+    }
+   ]
+  },
+  {
+   "id": "H1–H4.h",
+   "parent": "H1–H4",
+   "title": "Physical prototype built",
+   "area": "hardware",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "an ODM and money"
+  },
+  {
+   "id": "H1–H4.i",
+   "parent": "H1–H4",
+   "title": "Sensor bench evaluation on prototype hardware",
+   "area": "hardware",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "prototype hardware"
+  },
+  {
+   "id": "H1–H4.j",
+   "parent": "H1–H4",
+   "title": "EVT build and tests",
+   "area": "hardware",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "an ODM, a board and money"
+  },
+  {
+   "id": "I.a",
+   "parent": "I",
+   "title": "Intended purpose statement",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/compliance/INTENDED_PURPOSE.md"
+    }
+   ]
+  },
+  {
+   "id": "I.b",
+   "parent": "I",
+   "title": "Claims register (every claim in product, store and marketing text, with evidence)",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "I.c",
+   "parent": "I",
+   "title": "Clinical safety case and hazard log (DCB0129 structure)",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/compliance/CLINICAL_SAFETY_CASE.md"
+    }
+   ]
+  },
+  {
+   "id": "I.d",
+   "parent": "I",
+   "title": "Data protection impact assessment",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/compliance/DPIA.md"
+    }
+   ]
+  },
+  {
+   "id": "I.e",
+   "parent": "I",
+   "title": "Pilot protocol",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "I.f",
+   "parent": "I",
+   "title": "DTAC answers",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/compliance/DTAC_ANSWERS.md"
+    }
+   ]
+  },
+  {
+   "id": "I.g",
+   "parent": "I",
+   "title": "Incident and complaints process",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/compliance/INCIDENT_PROCESS.md"
+    }
+   ]
+  },
+  {
+   "id": "I.h",
+   "parent": "I",
+   "title": "Privacy policy and terms of use",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/legal/PRIVACY_POLICY.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/legal/TERMS_OF_USE.md"
+    }
+   ]
+  },
+  {
+   "id": "I.i",
+   "parent": "I",
+   "title": "Compliance documents updated against current MHRA and ICO guidance",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "I.j",
+   "parent": "I",
+   "title": "Clinical safety officer review and sign-off",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a qualified clinical safety officer"
+  },
+  {
+   "id": "I.k",
+   "parent": "I",
+   "title": "MHRA qualification and classification confirmed",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "blocked_external",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/compliance/MHRA_ADVISER_QUESTIONS.md"
+    }
+   ],
+   "blocked_by": "an MHRA regulatory adviser"
+  },
+  {
+   "id": "J.a",
+   "parent": "J",
+   "title": "Scripted night, fall and report scenarios re-run on the remediated stack against a real database",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "scripts/demo/scenarios.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/demo/RERUN.md"
+    }
+   ]
+  },
+  {
+   "id": "J.b",
+   "parent": "J",
+   "title": "Twelve-step browser demo re-run on the remediated stack, defects found and fixed",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "browser",
+     "ref": "scripts/demo/record_demo.mjs"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/demo/demo.mp4"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/browser_watch_fall.test.ts"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "#64"
+    }
+   ]
+  },
+  {
+   "id": "J.c",
+   "parent": "J",
+   "title": "Presenter guide",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/demo/DEMO_SCRIPT.md"
+    }
+   ]
+  },
+  {
+   "id": "J.d",
+   "parent": "J",
+   "title": "The directive's 22-step care-journey demo, scripted end to end",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "J.e",
+   "parent": "J",
+   "title": "The care-journey demo run with a real language model (not the fake model)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "J.f",
+   "parent": "J",
+   "title": "The care-journey demo run on a physical watch and phone",
+   "area": "software",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a physical watch or phone, and a device build"
+  },
+  {
+   "id": "J.g",
+   "parent": "J",
+   "title": "Narrated film re-recorded on the remediated stack",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "J.h",
+   "parent": "J",
+   "title": "Demo, presenter and simulator pages refused in production builds (B6)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "K.a",
+   "parent": "K",
+   "title": "Backend unit suite on integrated main",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "docs/progress/VERIFICATION.md"
+    }
+   ]
+  },
+  {
+   "id": "K.b",
+   "parent": "K",
+   "title": "Backend database suites on integrated main",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "docs/progress/VERIFICATION.md"
+    }
+   ]
+  },
+  {
+   "id": "K.c",
+   "parent": "K",
+   "title": "Dashboard, phone and watch builds on integrated main",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "build",
+     "ref": "docs/progress/VERIFICATION.md"
+    },
+    {
+     "kind": "build",
+     "ref": ".github/workflows/test.yml"
+    }
+   ]
+  },
+  {
+   "id": "K.d",
+   "parent": "K",
+   "title": "Licence check of shipped dependencies",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/progress/VERIFICATION.md"
+    }
+   ]
+  },
+  {
+   "id": "K.e",
+   "parent": "K",
+   "title": "Secret scan in CI",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "implemented",
+   "evidence": [
+    {
+     "kind": "config_check",
+     "ref": "scripts/ci/gitleaks.sh"
+    }
+   ]
+  },
+  {
+   "id": "K.f",
+   "parent": "K",
+   "title": "Playwright journey suite re-run on integrated main",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": [
+    {
+     "kind": "browser",
+     "ref": "e2e/journey.spec.ts"
+    }
+   ]
+  },
+  {
+   "id": "K.g",
+   "parent": "K",
+   "title": "Emulator runs of the watch and phone apps on integrated main",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "K.h",
+   "parent": "K",
+   "title": "Device runs of the watch and phone apps on integrated main",
+   "area": "software",
+   "hardware_independent": false,
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a physical watch or phone, and a device build"
+  },
+  {
+   "id": "L.a",
+   "parent": "L",
+   "title": "Endorsement evidence pack assembled, every claim linked to its evidence",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "L.b",
+   "parent": "L",
+   "title": "GO / NO-GO decision recorded per area with its evidence",
+   "area": "external",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  },
+  {
+   "id": "L.c",
+   "parent": "L",
+   "title": "Final evidence pack index generated from requirements.json",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "not_started",
+   "evidence": []
+  }
+ ]
+}

@@ -12,6 +12,12 @@ import java.nio.channels.FileChannel
  * (`fall_model.tflite`, written by scripts/training/run_kaggle.py fall). Built once;
  * `load` returns null when the asset is missing or the interpreter cannot start,
  * and the caller then runs the rule detector alone.
+ *
+ * D-077: the current model was trained on a SisFall copy whose terms are unconfirmed, so it is
+ * a research asset only. It lives in `src/debug/assets` (engineering and demonstration builds);
+ * release builds, and so every commercial build and the IRA CARE OS image, carry no model and
+ * detect falls with the rules. A replacement trained only on commercially licensed data goes
+ * back into `src/main/assets` once evaluated.
  */
 class TfLiteInference private constructor(private val interpreter: Interpreter, private val windowSamples: Int) : Inference {
     override fun fallProbability(window: Array<FloatArray>): Float? {
