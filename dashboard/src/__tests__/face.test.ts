@@ -1,4 +1,4 @@
-import { faceWords } from '@/lib/face';
+import { NO_CONNECTION, faceWords } from '@/lib/face';
 
 const visit = { state: 'here', carer_name: 'Praveen', planned_start: '2026-11-24T10:00:00+00:00' };
 
@@ -18,4 +18,12 @@ test('a visit that is coming is the second line, never the first', () => {
   const r = faceWords({ fallCountdown: null, sos: null, sosPending: null, question: null, visit: { ...visit, state: 'expected' } });
   expect(r.words).toBe('All well');
   expect(r.second).toBe('Praveen is coming at 10:00.');
+});
+
+test('a watch with no connection never says All well', () => {
+  const quiet = { fallCountdown: null, sos: null, sosPending: null, question: null, visit: null };
+  expect(faceWords({ ...quiet, online: false }).words).toBe(NO_CONNECTION);
+  expect(faceWords({ ...quiet, online: true }).words).toBe('All well');
+  // Help still wins over the connection line: it is saved and will go.
+  expect(faceWords({ ...quiet, online: false, fallCountdown: 9 }).words).toMatch(/Help in 9 s/);
 });

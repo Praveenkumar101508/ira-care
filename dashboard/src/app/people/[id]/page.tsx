@@ -63,6 +63,7 @@ export default function PersonPage() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [live, setLive] = useState<LiveStatus>({ lastOk: null, failures: 0 });
+  const [ops, setOps] = useState<{ monitoring_paused: boolean; delivery?: { delivery_problem: boolean } } | null>(null);
   const [partial, setPartial] = useState<string[]>([]);
   const [clock, setClock] = useState(() => new Date());
   const gate = useRef(new LiveGate());
@@ -85,6 +86,8 @@ export default function PersonPage() {
       const [s, a] = await Promise.all([api.status(id), api.alerts(false, id)]);
       if (!gate.current.current(ticket)) return;
       setStatus(s); setAlerts(a); setError('');
+      // Whether the system can vouch for "all well" (care jobs alive, messages getting out). Unknown counts as not.
+      api.opsStatus().then((o) => { if (gate.current.current(ticket)) setOps(o); }).catch(() => { if (gate.current.current(ticket)) setOps(null); });
       // The rest side by side: one section failing is named, never blanks the record.
       const { values: v, failed } = await settleAll({
         checkins: () => api.checkins(id), vitals: () => api.vitals(id), routines: () => api.routines(id),
@@ -144,7 +147,8 @@ export default function PersonPage() {
       <p data-testid="live" role="status" aria-live="polite" className={liveNow.state === 'live' ? 'muted' : 'error'} style={{ margin: '0 0 6px', fontSize: 13 }}>
         {liveNow.words}{partial.length ? ` Some sections could not be loaded (${partial.join(', ')}); what they show may be missing.` : ''}
       </p>
-      <p data-testid="headline" style={{ fontSize: 18, margin: '0 0 8px' }}>{headline(status, visits.find((v) => v.status === 'arrived') ?? visits.filter((v) => (v.status === 'planned' || v.status === 'late') && new Date(v.planned_end) > new Date()).sort((x, y) => x.planned_start.localeCompare(y.planned_start))[0] ?? null)}</p>
+      <p data-testid="headline" style={{ fontSize: 18, margin: '0 0 8px' }}>{headline(status, visits.find((v) => v.status === 'arrived') ?? visits.filter((v) => (v.status === 'planned' || v.status === 'late') && new Date(v.planned_end) > new Date()).sort((x, y) => x.planned_start.localeCompare(y.planned_start))[0] ?? null, clock,
+        { dataStale: liveNow.state !== 'live', monitoringPaused: ops ? ops.monitoring_paused : true, deliveryProblem: ops ? !!ops.delivery?.delivery_problem : true })}</p>
       <div className="card row">
         <span><strong>Watch:</strong> {device ? `${device.status}, battery ${device.battery_percent ?? '?'} %, ${wristState(device).words}, synced ${timeAgo(device.last_sync_at)}${device.background_sensor_permission === false ? ', sensor permission OFF' : ''}` : 'none paired'}</span>
         <span><strong>Check-ins (last 200):</strong> {counts.answered} answered, {counts.missed} missed, {counts.skippedQuiet} at night</span>

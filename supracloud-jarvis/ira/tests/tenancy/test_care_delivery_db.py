@@ -281,3 +281,51 @@ async def test_the_attempt_itself_is_never_rewritten_and_every_report_is_kept(fa
     assert raw["outcome"] == "queued", "the row written when it was queued is unchanged"
     assert [(e["outcome"], e["source"]) for e in events] == [
         ("accepted", "dispatcher"), ("accepted", "callback"), ("delivered", "callback")], "a repeat is one row"
+
+
+# ── Is delivery healthy? (ops.delivery_health: never "all well" when messages are not getting out)
+
+async def test_ops_says_when_alert_messages_are_not_getting_out(family):
+    from care import ops
+    jp = sim._device_principal(family)
+    alert = await _help(family)
+    now = dt.datetime.now(UTC)
+    # A provider that keeps failing: the messages stay queued, then are recorded failed.
+    p = Recording(fail_first=1000)
+    await escalation.run_workspace(jp, now, provider=p)
+    async with workspace_connection(jp) as conn:
+        fresh = await ops.delivery_health(conn, now)
+        later = await ops.delivery_health(conn, now + dt.timedelta(minutes=6))
+    assert fresh["delivery_problem"] is False, "a message queued a moment ago is not a problem yet"
+    assert later["queued_overdue"] > 0 and later["delivery_problem"] is True
+    for minute in (1, 3, 10):
+        await delivery.dispatch(jp, now + dt.timedelta(minutes=minute), provider=p)
+    async with workspace_connection(jp) as conn:
+        failed = await ops.delivery_health(conn, dt.datetime.now(UTC))
+    assert failed["failed_recent"] > 0 and failed["delivery_problem"] is True
+    # Messages that got through add nothing: a later alert, sent and reported delivered.
+    second = await _help(family)
+    await escalation.run_workspace(jp, dt.datetime.now(UTC), provider=Recording())
+    async with workspace_connection(jp) as conn:
+        for a in [a for a in await _attempts(family, second["id"]) if a["channel"] in ("sms", "call")]:
+            await delivery.record_state(conn, a["id"], "delivered", source="callback")
+        after = await ops.delivery_health(conn, dt.datetime.now(UTC))
+    assert after["failed_recent"] == failed["failed_recent"], "only the messages whose state is failed count"
+
+
+async def test_ops_status_carries_delivery_health_for_the_callers_workspace_only(family, pool):
+    from care import ops
+    jp = sim._device_principal(family)
+    await _help(family)
+    now = dt.datetime.now(UTC)
+    await escalation.run_workspace(jp, now, provider=Recording(fail_first=1000))
+    other = await sim.create_family(ADMIN_DSN, pool, label="dlv2")
+    try:
+        async with workspace_connection(sim._device_principal(other)) as conn:
+            theirs = await ops.delivery_health(conn, now + dt.timedelta(minutes=6))
+        async with workspace_connection(jp) as conn:
+            report = await ops.status(conn, now + dt.timedelta(minutes=6), alert=False)
+    finally:
+        await sim.remove_family(ADMIN_DSN, other)
+    assert report["delivery"]["delivery_problem"] is True
+    assert theirs == {"queued_overdue": 0, "failed_recent": 0, "delivery_problem": False}, "another organisation's queue is not ours"
