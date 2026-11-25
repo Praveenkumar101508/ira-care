@@ -64,6 +64,9 @@ class CareForegroundService : LifecycleService() {
         startForeground(NOTIFICATION_ID, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
         lifecycleScope.launch(Dispatchers.IO) { collectReadings() }
         lifecycleScope.launch(Dispatchers.IO) { watchForFalls() }
+        deps.activity?.let { monitor ->
+            lifecycleScope.launch(Dispatchers.Default) { watchActivity(monitor) }
+        }
         lifecycleScope.launch(Dispatchers.IO) { followSosState() }
         loop = lifecycleScope.launch(Dispatchers.IO) { mainLoop() }
         // Anything still in the outbox from before a restart or a reboot goes first.
@@ -141,6 +144,21 @@ class CareForegroundService : LifecycleService() {
                 else -> {}
             }
         }.collect()
+    }
+
+    /**
+     * IRA Care Activity on the watch's own motion: the accelerometer (shared with the fall
+     * detector's source) and the gyroscope, classified every 10 s. The answer stays on the
+     * watch; nothing is sent and nothing alerts on it.
+     */
+    private suspend fun watchActivity(monitor: care.ira.watch.activity.ActivityMonitor) = kotlinx.coroutines.coroutineScope {
+        launch {
+            deps.accelerometer.samples().onEach { s ->
+                monitor.onWrist = deps.lastOnWrist
+                monitor.feedAccelG(s.atMillis, s.x, s.y, s.z)
+            }.collect()
+        }
+        launch { deps.gyroscope.samples().onEach { s -> monitor.feedGyro(s.atMillis, s.x, s.y, s.z) }.collect() }
     }
 
     /** The trained model behind the detector interface when the build carries it; the rules alone otherwise. */

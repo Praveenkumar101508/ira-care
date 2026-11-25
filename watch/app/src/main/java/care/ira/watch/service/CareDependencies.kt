@@ -92,6 +92,15 @@ class CareDependencies private constructor(context: Context) {
     /** Asked once per SOS; never polled. */
     val location: LocationSource = AndroidLocationSource(context)
     val accelerometer: AccelerometerSource = AndroidAccelerometerSource(context)
+    val gyroscope: care.ira.watch.sensors.GyroscopeSource = care.ira.watch.sensors.AndroidGyroscopeSource(context)
+    /**
+     * IRA Care Activity (WISDM, CC BY 4.0): what the wrist is doing, kept on the watch and never
+     * sent. Null when the model asset is missing or malformed: then there is no estimate at all.
+     */
+    val activity: care.ira.watch.activity.ActivityMonitor? = runCatching {
+        val text = context.assets.open(care.ira.watch.activity.ActivityModel.ASSET).bufferedReader().use { it.readText() }
+        care.ira.watch.activity.ActivityMonitor(care.ira.watch.activity.ActivityModel.parse(text))
+    }.getOrNull()
     /** The trained fall model and its normalisation, when the build carries them; null means rules only. */
     val fallModel: Pair<care.ira.watch.sensors.Inference, care.ira.watch.sensors.FallModelSpec>? =
         care.ira.watch.sensors.TfLiteInference.load(context)

@@ -147,6 +147,7 @@ on the IRA watch.
 - **Runtime:** loading takes about 25 ms. One window takes about 17 ms (features plus 200
   trees), against 0.84 ms for the classical path, measured on a shared 4-CPU machine
   under load. Windows arrive every 2 s.
+- **Not in the product yet, and why (requirement F3.d, blocked):** the watch apps run on Wear OS, which gives an app finished heart-rate values (`Sensor.TYPE_HEART_RATE`), not the raw PPG this estimator reads, so no product path carries a PPG window to it. It becomes usable when a watch exposes raw PPG to the app (the IRA watch's sensor HAL, E3.f).
 - **Which one a caller uses:** both are available; neither is wired to any alert. A caller
   that wants the better trend signal uses `LearnedHeartTracker`; it falls back by itself.
 

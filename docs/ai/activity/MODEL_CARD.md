@@ -39,6 +39,23 @@ has been run on the IRA watch.
 
 Callers must show "no reading" or "not sure" in those cases and must not fill in a guess.
 
+## On the watch
+
+The watch runs the same model, read from the same JSON (`watch/app/src/main/assets/activity_model.json`,
+byte for byte the backend's file, with its CC BY notice beside it):
+
+- `care.ira.watch.activity.ActivityModel` and `ActivityFeatures` port `care/activity_estimate.py`:
+  the same refusals, 20 Hz resampling, 121 features and softmax. `ActivityParityTest` reproduces
+  the Python reference on a fixture it wrote (`scripts/training/activity_watch_fixture.py`):
+  every feature and probability within 1e-6, every answer and refusal reason identical.
+- `ActivityMonitor` takes the accelerometer (the fall detector's source, in g) and the gyroscope
+  (20 Hz), interpolates both onto one 20 Hz grid by timestamp, and classifies every 10 s.
+  Off the wrist, or with a gap of more than 0.5 s in either sensor, there is no estimate.
+- **The estimate stays on the watch.** The backend has no reading kind for it, nothing is sent,
+  and nothing alerts on it (`ActivityMonitorTest.theEstimateStaysOnTheWatch`).
+- Not measured: battery cost of the 20 Hz gyroscope, and accuracy on the IRA watch or with
+  older adults.
+
 ## Data and licence
 
 - **WISDM Smartphone and Smartwatch Activity and Biometrics Dataset**, UCI Machine Learning

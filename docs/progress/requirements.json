@@ -2247,8 +2247,9 @@
    "title": "Learned candidate selection shipped in the product",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "blocked_external",
+   "evidence": [],
+   "blocked_by": "a watch that gives the app raw PPG (the IRA watch's sensor HAL, E3.f): current Wear OS watches give the app finished heart-rate values only, so no product path carries the PPG the learned selector reads"
   },
   {
    "id": "F3.e",
@@ -2594,8 +2595,21 @@
    "title": "Activity inference integrated in the watch app",
    "area": "ai",
    "hardware_independent": true,
-   "state": "not_started",
-   "evidence": []
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/activity/ActivityParityTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/activity/ActivityMonitorTest.kt"
+    },
+    {
+     "kind": "build",
+     "ref": "watch/app/src/main/java/care/ira/watch/activity/ActivityMonitor.kt"
+    }
+   ]
   },
   {
    "id": "F7.e",
