@@ -125,7 +125,9 @@ def test_the_check_notices_an_unclear_shipped_row_without_a_draft():
 def test_permission_drafts_are_drafts_without_contact_details():
     drafts = sorted(p for p in DRAFTS.glob("*.md") if p.name != "README.md")
     names = {p.name for p in drafts}
-    assert {"KFALL.md", "FALLALLD.md"} <= names
+    # Only FallAllD is still a draft: SisFall, KFall, UMAFall and WEDA-FALL were sent on 26 November
+    # 2026, and their records live beside this folder (docs/legal/*_PERMISSION_REQUEST_2026-11-26.md).
+    assert {"FALLALLD.md"} <= names
     for p in drafts:
         text = p.read_text(encoding="utf-8")
         assert "Draft, not sent" in text, p.name
