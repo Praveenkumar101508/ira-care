@@ -678,7 +678,17 @@ RED_FLAGS = re.compile(
     r"can'?t breathe|cannot breathe|chest pains?|pains? in my chest|(my )?chest (hurts|is tight)|"
     r"can'?t get up|cannot get up|i'?m bleeding|bleeding (a lot|badly)|can'?t move|cannot move|"
     r"can'?t feel my|(arm|leg|face|hand) is numb|i'?m stuck|passed out|blacked out|collapsed|"
-    r"heart attack|stroke)\b", re.I)
+    r"heart attack|stroke|"
+    # Round 9: help in an older person's idiom (tests/care/eval/round9_*.jsonl). Each needs the
+    # person, not a thing, as its subject, so "the TV's gone all funny" and "the cat is on the
+    # floor" stay ordinary.
+    r"can'?t stand up|cannot stand up|can'?t get (myself |my ?self )?(up|off the floor)|"
+    r"(taken|took|had|having) a tumble|(the )?room is spinning|knocked myself out|"
+    r"my legs? (have|has) gone|i'?m (lying |laid |down )?on the floor|lying on the floor|"
+    r"(i'?ve |i have |i )?(come|came) over (all )?(funny|faint|dizzy|queer)|i'?ve gone all (funny|faint|dizzy)|"
+    r"can'?t catch my breath|cannot catch my breath|face.{0,12}drooping|went down (like a sack|with a bang)|"
+    r"blood everywhere|words (are )?coming out wrong|my (arm|leg) won'?t work|gone over in the|"
+    r"i'?m still down|fallen out of bed)\b", re.I)
 
 
 def red_flag(text: str) -> bool:

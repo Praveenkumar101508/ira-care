@@ -19,3 +19,13 @@ keyword rules, the model, the guard, the merge) and scores the result.
 
 Names in the set are the demo's fictional people and the two founders. Nothing here is a
 real person's words or health data.
+
+## Round 9 sets
+
+`round9_dev.jsonl` (129 turns) and `round9_holdout.jsonl` (41 turns; its first line is a note:
+never tuned on) are written by `scripts/eval/conversation_round9_scenarios.py` and run with
+`scripts/eval_care_model.py --set <file>`: false reassurance, ambiguous dose answers, interrupted
+speech, the same question five times, help in an older person's idiom, disguised injection and
+privacy requests (`expect.privacy` adds the `no_secrecy_promise` check). What they found and
+changed: `docs/ai/conversation/ROUND9_SCENARIOS.md`; results: `docs/evidence/eval/round9/`.
+
