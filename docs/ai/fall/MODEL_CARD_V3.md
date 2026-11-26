@@ -81,7 +81,7 @@ TFLite agrees with Keras on 200 of 200 windows.
 
 ## Cross-dataset evaluation (F4.f)
 
-Done on 26 November 2026 on **WEDA-FALL** (ODC-By 1.0; a Fitbit Sense on the wrist), with the
+Done on 26 November 2026 on **WEDA-FALL** (ODC-By 1.0 in the clone used, with a provenance caveat of 26 November 2026 in `CROSS_DATASET_WEDA.md`; a Fitbit Sense on the wrist), with the
 shipped file, threshold and rules unchanged and nothing tuned: `CROSS_DATASET_WEDA.md`,
 `cross_dataset_weda.json`.
 

@@ -23,3 +23,10 @@ dd963124f786a778e61fb2ef38ca4dd00767633d:.demo/demo.local.json:generic-api-key:3
 6daf35a2af92e4fd1131d66cb027fd66e41f007b:scripts/demo/api.py:generic-api-key:31
 35fb6e4ffb8c7bc4a713dd6f3ba86bcf0660103f:scripts/simulate_patient.py:generic-api-key:45
 35fb6e4ffb8c7bc4a713dd6f3ba86bcf0660103f:supracloud-jarvis/ira/tests/tenancy/_care_fixtures.py:generic-api-key:24
+#
+# The same two placeholder lines as 35fb6e4 above (the base64 spelling of the simulator and
+# test-suite sealing keys), under the commit id they had on the pull request branch of #11.
+# That branch was squash-merged, so this commit is not in main's history, but GitHub keeps it
+# public as refs/pull/11/head. Listed so a scan of every ref (`--log-opts="--all"`) is clean too.
+c6aea74073828e32569fe624344960d3afd4840f:scripts/simulate_patient.py:generic-api-key:45
+c6aea74073828e32569fe624344960d3afd4840f:supracloud-jarvis/ira/tests/tenancy/_care_fixtures.py:generic-api-key:24
