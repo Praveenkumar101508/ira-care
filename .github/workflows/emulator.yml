@@ -1,4 +1,4 @@
-# Wear OS emulator smoke journey for the watch app. MANUAL ONLY.
+# Wear OS emulator smoke journey for the watch app. Manual, or called by native-checks.yml.
 #
 # This workflow runs only when someone presses "Run workflow" on the Actions
 # tab (workflow_dispatch). It has no push, pull_request or schedule trigger and
@@ -39,6 +39,19 @@ on:
         default: "34"
       instrumented:
         description: "Also run connectedWearosDebugAndroidTest (only if androidTest sources exist)"
+        type: boolean
+        default: false
+  # Also callable from native-checks.yml, which runs it on pull requests that change the watch
+  # app (standard runners are free while the repository is public).
+  workflow_call:
+    inputs:
+      journey:
+        type: string
+        default: care-journey
+      api_level:
+        type: string
+        default: "34"
+      instrumented:
         type: boolean
         default: false
 

@@ -19,6 +19,9 @@ name: ios-simulator (manual)
 
 on:
   workflow_dispatch:
+  # Also callable from native-checks.yml, which runs it on pull requests that change the phone
+  # app (standard runners, including macOS, are free while the repository is public).
+  workflow_call:
 
 permissions:
   contents: read
