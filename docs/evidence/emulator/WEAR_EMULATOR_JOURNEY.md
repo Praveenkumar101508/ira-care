@@ -32,7 +32,7 @@ without KVM, is in [`NO_KVM_ATTEMPT.md`](NO_KVM_ATTEMPT.md).
 The screenshots, UI dumps, logcat and `results.json` are uploaded as the run's artefact
 `wear-emulator-smoke-api34` (kept 14 days).
 
-## Four defects the journey found on the way, all fixed in #119
+## Five defects the journey found on the way, all fixed in #119
 
 | Run | What stopped it | Fix |
 |---|---|---|
@@ -41,9 +41,12 @@ The screenshots, UI dumps, logcat and `results.json` are uploaded as the run's a
 | 45757010887 | The code was typed, but the tap on Pair did nothing (the Wear keyboard was still over the screen, and the tap went to the label) | The keyboard is closed first, the tap goes to the button's clickable node, and it is repeated once if nothing changes |
 | 45758000634 | Pair answered "No connection. Try again.": the debug build's server is `http://10.0.2.2:8000`, and Android refuses cleartext HTTP unless the app allows it, so **the debug build could never reach a development server** | A debug-only network security config permits cleartext to 10.0.2.2, localhost and 127.0.0.1 only; release builds keep Android's default; guard tests (`test_watch_cleartext.py`) |
 
-The last one is a product defect, not a test-harness problem. Without the fix, nobody could pair a
+| 45760714043 | Paired, then the app was killed: `SecurityException: Starting FGS with type health ... requires ... any of [ACTIVITY_RECOGNITION, BODY_SENSORS, HIGH_SAMPLING_RATE_SENSORS]`. Pairing started the care service before the permission screen had been shown. The run above passed only because the permissions were granted a moment sooner | Every start of the service goes through a permission check (`ForegroundPermission`, unit tests); the permission screen starts the service once the grant arrives; a guard test keeps every start behind the check (`test_watch_foreground_start.py`, negative control on the old code) |
+
+The last two are product defects, not test-harness problems. Without the cleartext fix, nobody could pair a
 debug watch build with a local server, on an emulator or a real watch. Release builds were never
-affected: they use HTTPS.
+affected by the cleartext one: they use HTTPS. The crash after pairing affected every build: a
+wearer who paired before allowing the sensors lost the app until it was opened again.
 
 When a step fails, the smoke script now prints what the device shows into the job log: the visible
 text, the packages and focused window, the clickable nodes with their bounds, the keyboard state,
