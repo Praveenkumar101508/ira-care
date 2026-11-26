@@ -13,6 +13,12 @@ every ``IRA_DEBUG_MEMTRACE_INTERVAL`` seconds (default 300):
 
 ``IRA_DEBUG_MEMTRACE_TRACEMALLOC=0`` records the malloc and gc figures without
 starting tracemalloc, so the process's memory is not changed by the tracing.
+Each record is taken after a full ``gc.collect()`` unless
+``IRA_DEBUG_MEMTRACE_COLLECT=0``; then the collector is left alone (a forced
+collection every few minutes changes what is being measured), its generation
+counts and statistics are recorded, and with
+``IRA_DEBUG_MEMTRACE_PROBE_COLLECT_EVERY=k`` every k-th record also forces one
+full collection afterwards and records how much it found and what it gave back.
 
 The baseline is the snapshot taken ``IRA_DEBUG_MEMTRACE_BASELINE`` seconds
 (default 120) after start. tracemalloc slows the process and costs memory, so
@@ -26,6 +32,7 @@ from __future__ import annotations
 import asyncio
 import collections
 import ctypes
+import functools
 import gc
 import json
 import logging
@@ -68,6 +75,7 @@ class _Mallinfo2(ctypes.Structure):
                                                 "fsmblks", "uordblks", "fordblks", "keepcost")]
 
 
+@functools.lru_cache(maxsize=1)
 def _libc():
     try:
         libc = ctypes.CDLL("libc.so.6")
@@ -133,13 +141,40 @@ def _type_counts() -> collections.Counter:
     return collections.Counter(type(o).__qualname__ for o in gc.get_objects())
 
 
+def _origin(o) -> str | None:
+    """Where a frame, coroutine or function in the garbage comes from."""
+    code = getattr(o, "f_code", None) or getattr(o, "cr_code", None) or getattr(o, "gi_code", None) \
+        or getattr(o, "__code__", None)
+    if code is None:
+        return None
+    return f"{code.co_filename}:{code.co_firstlineno}:{code.co_qualname}"
+
+
+def _collect_and_describe(top: int) -> tuple[int, list, list]:
+    """A full collection that keeps what it finds in gc.garbage just long enough
+    to count it by type and by the code it came from, then lets it go."""
+    old = gc.get_debug()
+    gc.set_debug(old | gc.DEBUG_SAVEALL)
+    try:
+        n = gc.collect()
+        kinds = collections.Counter(type(o).__qualname__ for o in gc.garbage)
+        origins = collections.Counter(filter(None, (_origin(o) for o in gc.garbage)))
+    finally:
+        gc.garbage.clear()
+        gc.set_debug(old)
+    gc.collect()
+    return n, kinds.most_common(top), origins.most_common(top)
+
+
 def _site(stat) -> str:
     f = stat.traceback[0]
     return f"{f.filename}:{f.lineno}"
 
 
 class MemTrace:
-    def __init__(self, path: str, *, interval: float, baseline_after: float, frames: int = 1, top: int = 40):
+    def __init__(self, path: str, *, interval: float, baseline_after: float, frames: int = 1, top: int = 40,
+                 collect: bool = True, probe_collect_every: int = 0):
+        self.collect, self.probe_collect_every, self.n = collect, probe_collect_every, 0
         self.path = Path(path)
         self.interval, self.baseline_after, self.top, self.frames = interval, baseline_after, top, frames
         self.t0 = time.time()
@@ -151,11 +186,20 @@ class MemTrace:
             fh.write(json.dumps(rec, sort_keys=True) + "\n")
 
     def take(self, label: str) -> None:
-        gc.collect()
+        self.n += 1
+        if self.collect:
+            gc.collect()
         types = _type_counts()
         rec = {"label": label, "t": round(time.time() - self.t0, 1), "wall": time.time(), "rss_bytes": _rss(),
                "malloc": malloc_stats(), "pymalloc": pymalloc_stats(), "smaps": smaps_rollup(), "threads": threading.active_count(),
-               "gc_objects": sum(types.values()), "types_now": types.most_common(self.top)}
+               "gc_objects": sum(types.values()), "types_now": types.most_common(self.top), "collected_first": self.collect,
+               "gc_count": gc.get_count(), "gc_stats": gc.get_stats(), "gc_gen2_objects": len(gc.get_objects(2))}
+        if not self.collect and self.probe_collect_every and self.n % self.probe_collect_every == 0:
+            # How much was garbage waiting for a full collection, and whether freeing it gives memory back.
+            unreachable, kinds, origins = _collect_and_describe(self.top)
+            rec["forced_collect"] = {"unreachable": unreachable, "rss_after": _rss(), "malloc_after": malloc_stats(),
+                                     "pymalloc_after": pymalloc_stats(), "gc_objects_after": len(gc.get_objects()),
+                                     "garbage_types": kinds, "garbage_origins": origins}
         if not tracemalloc.is_tracing():   # malloc and gc figures only: no tracemalloc overhead
             if not self.base_types:
                 self.base_types = types
@@ -211,6 +255,8 @@ def start_if_asked(env: dict | None = None) -> asyncio.Task | None:
     if (env.get("IRA_DEBUG_MEMTRACE_TRACEMALLOC") or "1") != "0":
         tracemalloc.start(max(1, frames))
     mt = MemTrace(path, interval=float(env.get("IRA_DEBUG_MEMTRACE_INTERVAL") or "300"),
-                  baseline_after=float(env.get("IRA_DEBUG_MEMTRACE_BASELINE") or "120"), frames=frames)
+                  baseline_after=float(env.get("IRA_DEBUG_MEMTRACE_BASELINE") or "120"), frames=frames,
+                  collect=(env.get("IRA_DEBUG_MEMTRACE_COLLECT") or "1") != "0",
+                  probe_collect_every=int(env.get("IRA_DEBUG_MEMTRACE_PROBE_COLLECT_EVERY") or "0"))
     logger.warning("memtrace on (debug only): writing to %s", path)
     return asyncio.get_running_loop().create_task(mt.run())

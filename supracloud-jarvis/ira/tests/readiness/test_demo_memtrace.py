@@ -58,3 +58,25 @@ def test_snapshot_records_heap_and_growth(tmp_path):
     assert base["baseline"] is True and "top_growth" not in base
     assert later["traced_current"] > 0 and later["gc_objects"] > 0
     assert any(d["size_diff"] >= 150_000 for d in later["top_growth"])
+
+
+def test_left_alone_the_collector_is_not_run_and_a_probe_describes_the_garbage(tmp_path):
+    out = tmp_path / "m.jsonl"
+    mt = memtrace.MemTrace(str(out), interval=1, baseline_after=0, collect=False, probe_collect_every=2)
+
+    class Node:
+        pass
+
+    def cycle():
+        n = Node()
+        n.me = n
+
+    mt.take("baseline")
+    for _ in range(50):
+        cycle()
+    mt.take("interval")
+    first, second = [json.loads(line) for line in out.read_text().splitlines()]
+    assert first["collected_first"] is False and "forced_collect" not in first
+    assert second["forced_collect"]["unreachable"] >= 50
+    kinds = {k.rsplit(".", 1)[-1]: v for k, v in second["forced_collect"]["garbage_types"]}
+    assert kinds.get("Node", 0) >= 50

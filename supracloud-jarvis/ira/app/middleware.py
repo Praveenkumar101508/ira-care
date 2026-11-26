@@ -11,8 +11,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response as _Response
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from core.runtime.client_ip import client_ip, rate_limit_key
 
@@ -24,23 +24,40 @@ from core.runtime.client_ip import client_ip, rate_limit_key
 limiter = Limiter(key_func=rate_limit_key)
 
 
-class _IPBlockMiddleware(BaseHTTPMiddleware):
-    # P6.2: IP blocklist middleware — runs before all routes; blocked IPs get 403
-    async def dispatch(self, request: Request, call_next):
+class _IPBlockMiddleware:
+    """P6.2: IP blocklist middleware — runs before all routes; blocked IPs get 403.
+
+    A plain ASGI middleware, not Starlette's BaseHTTPMiddleware: that one runs
+    each request's body through an anyio task group whose cancellation leaves a
+    reference cycle (frames, a CancelledError and its traceback) behind on
+    every request with a body. Those cycles wait for the collector's rare full
+    collection, so the process's memory crept up between them (found by the
+    wall-clock soak). Non-HTTP scopes pass straight through, as before.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
         # P2-03: the same derivation the limiter uses. Two consumers of "the
         # client IP" that disagreed would give two different answers to one
         # question — a blocked address evading the block, or a rate-limit
         # identity nothing else recognises.
-        address = client_ip(request)
+        address = client_ip(Request(scope))
         if address and address != "unknown":
             from utils.playbooks import is_ip_blocked
             if await is_ip_blocked(address):
-                return _Response(
+                response = _Response(
                     content='{"detail":"Access denied"}',
                     status_code=403,
                     media_type="application/json",
                 )
-        return await call_next(request)
+                await response(scope, receive, send)
+                return
+        await self.app(scope, receive, send)
 
 
 def install_middleware(app: FastAPI, cfg) -> None:
