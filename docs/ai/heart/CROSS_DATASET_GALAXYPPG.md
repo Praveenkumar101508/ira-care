@@ -163,9 +163,34 @@ RMSE per session is in the JSON. Jogging and running are rejected entirely by th
   on S1; here they are **29.27 bpm (E4)** and **39.44 bpm (Galaxy Watch)**, against 2.19 and
   1.63 for the learned answers. On the Galaxy Watch, the fallback windows (16% of those
   reported) make the overall reported error (7.75) worse than the learned candidate on every
-  window (7.68). This was not changed here: the model card already says any product use must
-  re-decide the fallback on separate data, and this is that data. It is a finding for whoever
-  makes that decision.
+  window (7.68). The pipeline reported the classical answer when the learned probability was
+  low; the evaluation above is of that rule. It has since been changed (D-094, below).
+
+## After D-094: an unsure learned selector gives "unavailable"
+
+Since D-094 (26 November 2026), a window where the learned selector ran and its probability was
+below 0.5 is reported as unavailable (`learned_low_confidence`), not with the classical answer.
+The rule was chosen on PPG-DaLiA leave-one-subject-out data from 14 subjects
+(`docs/ai/heart/fallback_rule_analysis.json`), **not on GalaxyPPG**, which stays an independent
+test; an alternative that kept the classical answer when it agreed with the learned candidate
+within 5 bpm was rejected there.
+
+**GalaxyPPG was not downloaded or run again.** The change relabels windows and changes nothing the
+estimators compute (the selector's tracking does not depend on what is reported), so the new rule's
+answers are exactly the "of which learned" rows of the run above, and its coverage is the learned
+share. The numbers below are those rows, not a new run, and `cross_dataset_galaxyppg.json` is
+left as the record of the run under the previous rule. Mean ± sd of participants is not available
+for the learned rows (the run kept only the pooled figure for them).
+
+| Pooled, windows with a reference | Before D-094: MAE (RMSE), coverage | After D-094: MAE (RMSE), coverage |
+| --- | --- | --- |
+| E4 | 3.56 (10.22) bpm, 35,321 of 40,903 (86.4%) | **2.19 (5.82) bpm**, 33,537 (82.0%) |
+| Galaxy Watch 5 at 25 Hz | 7.75 (19.41) bpm, 29,395 of 37,303 (78.8%) | **1.63 (3.64) bpm**, 24,638 (66.0%) |
+
+Over all windows (with or without a reference), coverage goes from 85.2% to 80.8% on the E4
+(38,939 to 36,913 windows) and from 78.2% to 65.8% on the Galaxy Watch (33,028 to 27,788). The
+price on the Galaxy Watch is large: about one window in six that showed a number now says the selector
+was not sure. At 25 Hz, and on a sensor the selector never saw, that is the honest answer.
 
 ## Processing
 
