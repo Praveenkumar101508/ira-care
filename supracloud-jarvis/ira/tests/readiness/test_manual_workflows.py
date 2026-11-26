@@ -286,3 +286,13 @@ def test_phone_smoke_checks_the_sign_in_screen():
     # The text the smoke waits for is the one the app shows.
     login = (ROOT / "mobile" / "src" / "screens" / "LoginScreen.tsx").read_text(encoding="utf-8")
     assert mod.SIGN_IN_TEXT in login
+
+
+def test_smoke_retries_no_connection_but_not_a_refused_code():
+    smoke = _smoke_module()
+    script = (ROOT / "scripts" / "emulator" / "watch_smoke.py").read_text(encoding="utf-8")
+    assert 1 <= smoke.NO_CONNECTION_RETRIES <= 3
+    # A refused code ends the step at once: retrying it would hide a server or pairing defect.
+    refused = script.index('find(nodes, text="That code was not recognised.")')
+    assert script[refused:refused + 120].count("gone = False") == 1
+    assert "no_connection_retries >= NO_CONNECTION_RETRIES" in script

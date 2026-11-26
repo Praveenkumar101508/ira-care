@@ -152,6 +152,10 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           script: python3 scripts/emulator/watch_smoke.py --apk watch/app/build/outputs/apk/wearos/debug/app-wearos-debug.apk --out build/emulator-smoke ${{ inputs.journey == 'care-journey' && format('--api http://127.0.0.1:8000 --credentials {0}/seed.json', runner.temp) || '' }} && if [ "${{ inputs.instrumented }}" = "true" ] && [ -d watch/app/src/androidTest ]; then (cd watch && ./gradlew --no-daemon --console=plain connectedWearosDebugAndroidTest); fi
 
+      - name: Show the end of the demo API log (on failure)
+        if: failure() && inputs.journey == 'care-journey'
+        run: tail -n 60 "$RUNNER_TEMP/api.log" || true
+
       - name: Upload screenshots, UI dumps, logcat and results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

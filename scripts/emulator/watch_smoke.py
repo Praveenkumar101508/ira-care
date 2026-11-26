@@ -60,6 +60,10 @@ def find(nodes: list[dict], *, text: str | None = None, desc_prefix: str | None 
     return None
 
 
+#: How many times the smoke presses Pair again after "No connection. Try again." (see _run).
+NO_CONNECTION_RETRIES = 2
+
+
 def app_crashes(crash_log: str, package: str) -> list[str]:
     """The crash-buffer lines that start a crash of this app's process."""
     return [ln.strip() for ln in crash_log.splitlines()
@@ -305,6 +309,7 @@ class Smoke:
         t0 = time.time()
         self.adb("shell", "input", "tap", *map(str, centre(btn_target or btn)))
         retapped = False
+        no_connection_retries = 0
         gone = None
         deadline = time.time() + a.ui_timeout
         while time.time() < deadline:
@@ -320,9 +325,24 @@ class Smoke:
             if find(nodes, text="Pair this watch") is None:
                 gone = True
                 break
-            if find(nodes, text="That code was not recognised.") or find(nodes, text="No connection. Try again."):
+            if find(nodes, text="That code was not recognised."):
                 gone = False
                 break
+            if find(nodes, text="No connection. Try again."):
+                # Right after boot the emulator's network can lag (run 45766023517); the watch
+                # says so and a person would press Pair again. Retry up to NO_CONNECTION_RETRIES
+                # times, 10 s apart, each noted; a lasting block still fails.
+                if no_connection_retries >= NO_CONNECTION_RETRIES:
+                    gone = False
+                    break
+                no_connection_retries += 1
+                probe = self.adb("shell", "ping", "-c", "1", "-W", "2", "10.0.2.2", timeout=30, check=False)
+                print(json.dumps({"note": f"watch said No connection; pressing Pair again ({no_connection_retries})",
+                                  "host_ping": "1 received" in probe or "1 packets received" in probe}), flush=True)
+                time.sleep(10)
+                again = find(self.dump(), text="Pair")
+                if again is not None:
+                    self.adb("shell", "input", "tap", *map(str, centre(clickable_ancestor(self.last_xml, again) or again)))
             time.sleep(3)
         self.save_dump("after_pair")
         shot = self.shot("after_pair")
