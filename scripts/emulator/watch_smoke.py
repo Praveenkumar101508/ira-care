@@ -114,7 +114,32 @@ def find(nodes: list[dict], *, text: str | None = None, desc_prefix: str | None 
 
 
 #: How many times the smoke presses Pair again after "No connection. Try again." (see _run).
-NO_CONNECTION_RETRIES = 2
+NO_CONNECTION_RETRIES = 5
+
+#: How long to wait, after boot, for the emulator to reach the host (10.0.2.2) before the app is
+#: launched. On GitHub's runners the guest's network can come up well after `sys.boot_completed`
+#: (runs 45766023517 and 45902249975: the watch said "No connection" for 40 s with the host
+#: unreachable from the guest); the app is only started once a ping to the host answers.
+HOST_NETWORK_TIMEOUT_S = 120
+HOST_ADDRESS = "10.0.2.2"
+
+
+def host_reachable(probe_output: str) -> bool:
+    """Whether a `ping -c 1` answered (toybox and busybox wordings)."""
+    return "1 received" in probe_output or "1 packets received" in probe_output
+
+
+def wait_for_host_network(probe, *, timeout_s: float = HOST_NETWORK_TIMEOUT_S, clock=time.monotonic,
+                          sleep=time.sleep) -> tuple[bool, float]:
+    """Call `probe()` (a ping to the host) until it answers or `timeout_s` passes.
+    Returns (reachable, seconds waited)."""
+    start = clock()
+    while True:
+        if host_reachable(probe()):
+            return True, round(clock() - start, 1)
+        if clock() - start >= timeout_s:
+            return False, round(clock() - start, 1)
+        sleep(3)
 
 
 def app_crashes(crash_log: str, package: str) -> list[str]:
@@ -758,6 +783,11 @@ class Smoke:
                     "input keyevent KEYCODE_WAKEUP"):
             self.adb("shell", cmd, timeout=120, check=False)
 
+    def wait_for_host(self) -> tuple[bool, float]:
+        """The guest can reach the host (the development server's address) before the app starts."""
+        return wait_for_host_network(
+            lambda: self.adb("shell", "ping", "-c", "1", "-W", "2", HOST_ADDRESS, timeout=30, check=False))
+
     def run(self) -> int:
         try:
             return self._run()
@@ -793,7 +823,8 @@ class Smoke:
 
         t0 = time.time()
         self.prepare_device()
-        self.step("prepare_device", True, t0)
+        host_up, waited = self.wait_for_host() if a.api else (None, 0.0)
+        self.step("prepare_device", True, t0, host_reachable=host_up, host_network_wait_s=waited)
 
         t0 = time.time()
         if a.skip_install:
@@ -946,9 +977,9 @@ class Smoke:
                     gone = False
                     break
                 no_connection_retries += 1
-                probe = self.adb("shell", "ping", "-c", "1", "-W", "2", "10.0.2.2", timeout=30, check=False)
+                probe = self.adb("shell", "ping", "-c", "1", "-W", "2", HOST_ADDRESS, timeout=30, check=False)
                 print(json.dumps({"note": f"watch said No connection; pressing Pair again ({no_connection_retries})",
-                                  "host_ping": "1 received" in probe or "1 packets received" in probe}), flush=True)
+                                  "host_ping": host_reachable(probe)}), flush=True)
                 time.sleep(10)
                 again = find(self.dump(), text="Pair")
                 if again is not None:

@@ -298,3 +298,41 @@ def test_workflow_passes_the_steps_input_and_uploads_evidence():
     assert "--steps" in emu["with"]["script"] and "inputs.steps" in emu["with"]["script"]
     assert any("upload-artifact" in s.get("uses", "") for s in steps)
     assert json.dumps(doc["jobs"]["wear-emulator"]["timeout-minutes"]) == "45"
+
+
+# --------------------------------------------------------------------------- host network wait
+
+def test_the_app_waits_for_the_host_network_and_records_how_long(smoke):
+    """Run 45902249975: the guest's network came up after boot and the watch said No connection.
+    The journey now pings the host until it answers, then starts the app."""
+    answers = iter(["", "", "1 packets transmitted, 1 received, 0% packet loss"])
+    now = [0.0]
+
+    def clock():
+        return now[0]
+
+    def sleep(s):
+        now[0] += s
+
+    ok, waited = smoke.wait_for_host_network(lambda: next(answers), timeout_s=120, clock=clock, sleep=sleep)
+    assert ok is True and waited == 6.0
+
+
+def test_a_host_that_never_answers_is_reported_after_the_timeout(smoke):
+    now = [0.0]
+
+    def clock():
+        return now[0]
+
+    def sleep(s):
+        now[0] += s
+
+    ok, waited = smoke.wait_for_host_network(lambda: "100% packet loss", timeout_s=30, clock=clock, sleep=sleep)
+    assert ok is False and waited == 30.0
+
+
+def test_both_ping_wordings_count_as_reachable(smoke):
+    assert smoke.host_reachable("1 packets transmitted, 1 received")
+    assert smoke.host_reachable("1 packets transmitted, 1 packets received")
+    assert not smoke.host_reachable("1 packets transmitted, 0 received, 100% packet loss")
+    assert not smoke.host_reachable("")
