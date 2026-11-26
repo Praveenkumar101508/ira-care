@@ -2592,6 +2592,10 @@
     {
      "kind": "docs_only",
      "ref": "docs/ai/heart/MODEL_CARD.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/review/REVIEW_PACK_F3c_HEART_MODEL_CARD.md"
     }
    ]
   },
@@ -2966,6 +2970,10 @@
     {
      "kind": "docs_only",
      "ref": "docs/DATASETS.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/review/REVIEW_PACK_F7a_ACTIVITY_DATASET.md"
     }
    ]
   },
@@ -3038,6 +3046,10 @@
     {
      "kind": "docs_only",
      "ref": "docs/ai/activity/MODEL_CARD.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/review/REVIEW_PACK_F7e_ACTIVITY_MODEL_CARD.md"
     }
    ]
   },
@@ -3169,6 +3181,10 @@
     {
      "kind": "docs_only",
      "ref": "docs/ai/MODEL_WEIGHTS.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/review/REVIEW_PACK_F8a_SPEECH_LICENCES.md"
     }
    ]
   },
