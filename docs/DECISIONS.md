@@ -1958,3 +1958,65 @@ Plan tab, and shows an unreachable server as such rather than as all well (`pers
 `app_signout`, `shell` and `client` tests; 91 in the suite). The authenticated Android journey
 itself (`phone_smoke.py` beyond the login screen) is not yet written; the HTTPS decision for the
 test backend is still to be taken when it is.
+
+## D-103 A confirmation stage after a suspected fall, off by default: a still wrist is always asked, a wrist that kept its orientation with the hand carrying on, or a burst of impacts, is not (requirement F4.i, 26 November 2026)
+
+The detectors decide from the impact alone; what separates a slap from a fall arrives in the
+seconds after it: the direction gravity reads on the wrist changes, and the arm is quiet or stirring
+rather than carrying on with a task. Decision: `FallConfirmation.kt`, between a detector's
+`SuspectedFall` and the countdown's question, decides four seconds after the impact from the
+orientation change (mean gravity 2.0 to 0.5 s before against 1.5 to 4.0 s after), the post-impact
+motion (standard deviation of |a|) and the impacts within three seconds. A wrist still afterwards
+(under 0.15 g) is always asked, whatever the orientation did; three or more impacts with the
+orientation within 30 degrees, or an orientation within 20 degrees with the hand moving over 0.35 g,
+is not asked; anything in between is asked. Saturation of an axis is flagged, never a reason. The
+model path's question comes up to two seconds later; the rule path loses nothing. The stage is
+mirrored line for line in `scripts/eval/fall_confirmation.py` and the two are pinned to each other.
+On 160 synthetic falls and 220 synthetic hand-impact recordings (`SYNTHETIC_SCENARIOS.md`, a
+regression corpus, not accuracy) the shipped pipeline caught 154 falls with and without the stage and
+alarms fell from 88 to 62. **It ships off** (`fall_confirm_before_asking`, default false): it has
+been measured on synthetic scenarios only, and nothing that could lose a real fall ships on before
+the permitted recorded falls (BITS-2, UCI HAR, not on the build machine) have been run with the
+gate the model card uses. Rejected: tuning the thresholds to the synthetic set (it would fit
+invented signals), and re-running WEDA-FALL (licence unresolved, F1). `FALSE_ALARM_INVESTIGATION.md`.
+
+## D-104 Round 9 scenario families with a hold-out set; the red-flag rule learns the older person's idiom and the dose reader never confirms a broken-off, indefinite or other-medicine answer (requirements F5.d, C-1.b, 26 November 2026)
+
+170 original turns in seven families (`scripts/eval/conversation_round9_scenarios.py`), 129 in a
+development set and 41 held out by position with a header saying it is never tuned on. Before the
+fixes the development set passed 87 of 129: the red-flag rule did not know "can't stand up", "taken
+a tumble", "the room is spinning", "knocked myself out", "my legs have gone", "I'm on the floor",
+"come over all funny", "can't catch my breath", "face drooping", "went down like a sack", "blood
+everywhere", "words coming out wrong", "my arm won't work"; and the dose reader read "Yes I took
+the— hang on, the door", "Yes yes y—", "I took something" and "The painkillers yes" as yes.
+Decision: `RED_FLAGS` gains those phrases with the person as subject (a thing that has "gone all
+funny" is not a flag); `read_dose_answer` reads a broken-off answer (a dash, or a turn to the door,
+the phone, "hang on"), an indefinite object, or a medicine not in the question's subject as
+`unclear`. After: 129 of 129, and the 162-turn set unchanged turn for turn with red-flag recall 1.0
+(`docs/evidence/eval/round9/set162_before_fake.json`, `set162_after_fake.json`). A new runner check,
+`no_secrecy_promise`: IRA never promises to hide something from the care circle; what the family
+sees is the consent settings' decision. The hold-out set, run once: 37 of 41; the four misses ("hit
+my head" twice, "the evening ones" to a question about the morning tablets, and the word "Help" in
+a question about the Help button read as a call for help) are recorded, not fixed, and are the
+next development set's first entries. Rejected: asserting the hold-out set in a test (it would
+become a tuning target). `docs/ai/conversation/ROUND9_SCENARIOS.md`.
+
+## D-105 The phone journey runs on the debug build with its JavaScript bundled, never on a release build with its network policy loosened; the iOS simulator reads a development-only journey probe (requirements D2.g, D2.h, 26 November 2026)
+
+The release APK refuses cleartext HTTP, so it cannot reach the demo server at 10.0.2.2, and a
+certificate the release build would trust would have to be written into the emulator's system
+store, which on API 34 is an updatable APEX. Decision: the authenticated Android journey
+(`scripts/emulator/phone_smoke.py` with `--api`) runs on the **debug** build, whose generated
+manifest already allows cleartext (Expo's own debug source set), with its JavaScript bundled by
+`scripts/emulator/android_bundle_debug.sh` (one line inside `react { }`, `debuggableVariants = []`);
+the release APK is still built and still runs the sign-in-screen smoke, so a release policy change
+would be seen. The journey's steps: sign in, person card, record and plan against the API, a Help
+alert raised by the watch and acknowledged in the app, dark mode kept across a restart, offline and
+back without "all well", sign-out with every session revoked and nothing on screen, the wearer's
+Talk, the carer's isolated home. On iOS, where there is no uiautomator, the Debug `.app` is built
+with its JavaScript bundled (`FORCE_BUNDLING=1`) and `mobile/src/journeyProbe.ts` logs one line per
+screen change in development bundles only (`__DEV__`; a release bundle logs nothing, pinned by a
+test); `scripts/simulator/ios_journey.py` boots a simulator, installs and launches the app with its
+console attached and records the sign-in screen, that the process still runs and that no crash
+report appeared. Neither journey ran on the build machine (no KVM, no Xcode): the pull request's
+native checks run both on GitHub's standard runners, and the evidence pages record their results.

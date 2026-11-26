@@ -1,5 +1,5 @@
 {
- "version": "1.8.0",
+ "version": "1.9.0",
  "methodology": "A fixed, versioned list of atomic requirements for the owner's master directive. Each item is one measurable deliverable with one state. States: not_started; implemented (code or document merged); accepted (functional evidence: unit_test, db_test, build, browser, emulator, model_eval or device; docs_only and config_check never count); verified (integration-level evidence: db_test, browser, emulator, model_eval or device); device_validated (device evidence); blocked_external (cannot progress without something outside the software; blocked_by says what). Every file ref must exist and a PR ref must be #44 or later; acceptance and verification need a qualifying evidence item that names a file, not only a PR. Items are never removed to raise a percentage: blocked and not-started items stay in every denominator. A requirement that changes scope gets a new id and the version is raised. scripts/completion_summary.py enforces these rules and computes the seven measures.",
  "requirements": [
   {
@@ -35,6 +35,10 @@
     {
      "kind": "unit_test",
      "ref": "supracloud-jarvis/ira/tests/care/test_care_safety_answers.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_round9_scenarios.py"
     }
    ]
   },
@@ -1335,6 +1339,18 @@
     {
      "kind": "build",
      "ref": "docs/evidence/builds/ANDROID.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_phone_journey_helpers.py"
+    },
+    {
+     "kind": "config_check",
+     "ref": ".github/workflows/phone-emulator.yml"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md"
     }
    ]
   },
@@ -1353,6 +1369,22 @@
     {
      "kind": "build",
      "ref": ".github/workflows/ios-simulator.yml"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_ios_journey.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/journey_probe.test.ts"
+    },
+    {
+     "kind": "config_check",
+     "ref": ".github/workflows/ios-simulator.yml"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/builds/IOS_SIMULATOR.md"
     }
    ]
   },
@@ -2832,6 +2864,32 @@
    ]
   },
   {
+   "id": "F4.i",
+   "parent": "F4",
+   "title": "Confirmation stage after a suspected fall: a still wrist is always asked, a wrist that kept its orientation with the hand carrying on or a burst of impacts is not; off by default until run on the permitted recorded falls",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/sensors/FallConfirmationTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_fall_confirmation.py"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/fall/synthetic_confirmation.json"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/fall/FALSE_ALARM_INVESTIGATION.md"
+    }
+   ]
+  },
+  {
    "id": "F5.a",
    "parent": "F5",
    "title": "Deterministic safety rules measured on the conversation evaluation set",
@@ -2842,6 +2900,14 @@
     {
      "kind": "model_eval",
      "ref": "docs/evidence/eval/phase7_rules.json"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_round9_scenarios.py"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/eval/round9/set162_after_fake.json"
     }
    ]
   },
@@ -2878,6 +2944,32 @@
     {
      "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_safety_answers_db.py"
+    }
+   ]
+  },
+  {
+   "id": "F5.d",
+   "parent": "F5",
+   "title": "Round 9 scenario families (false reassurance, ambiguous and interrupted dose answers, repetition, help in an older person's idiom, disguised injection, privacy requests) with a hold-out set run once; the red-flag and dose rules extended for every development MUST case",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_round9_scenarios.py"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/eval/round9/dev_fake.json"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/eval/round9/holdout_fake.json"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/conversation/ROUND9_SCENARIOS.md"
     }
    ]
   },
