@@ -148,7 +148,7 @@ section M.
   evaluation) no longer waits here: on 26 November 2026 it was done on WEDA-FALL, whose author
   added an ODC-By 1.0 licence (`docs/ai/fall/CROSS_DATASET_WEDA.md`). Because a separate check found
   no clear licence, WEDA-FALL's commercial use is recorded as `unclear`, and a permission request
-  **was sent to its authors on 26 November 2026** (`docs/legal/dataset_permission_requests/WEDAFALL.md`);
+  **was sent to its authors on 26 November 2026** (`docs/legal/WEDA_FALL_PERMISSION_REQUEST_2026-11-26.md`);
   no further use until they reply.
 - **Why external:** only the authors can grant or clarify their terms.
 - **Software preparation complete:** four request drafts and one sent request (`docs/legal/dataset_permission_requests/README.md`

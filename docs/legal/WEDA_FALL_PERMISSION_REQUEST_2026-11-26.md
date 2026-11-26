@@ -1,7 +1,10 @@
 # WEDA-FALL: permission request (sent)
 
+This is a record of a request that was sent, kept outside `dataset_permission_requests/`, which holds
+only unsent drafts.
+
 **Sent on 26 November 2026 at about 13:34 UTC** from the founders' Gmail account to
-`joaojtmarques@gmail.com`, the address the dataset's README gives for questions ("Any questions you
+the address the dataset's README gives for questions ("Any questions you
 may have, feel free to contact…"), asking for it to be passed to the co-author, Dr Plinio Moreno. The
 publishers' pages (MDPI, PubMed Central) could not be read from the build environment, so the
 co-author's own address was not used. **Awaiting a reply.** Until one is recorded in
