@@ -37,17 +37,34 @@ def _app(*middlewares) -> FastAPI:
     return app
 
 
+#: Plain data cannot form a reference cycle; it is in the collector's garbage only when
+#: something cyclic holds it. The test client leaves its own per-request cycle behind
+#: (about 95 objects on Python 3.12: BlockingPortal closures and frames), and that cycle
+#: holds the response headers, so the two header tuples a middleware adds showed up as
+#: "garbage" on 3.12 but not on 3.13. Counting only objects that can take part in a cycle
+#: measures what the middleware itself leaves behind, on either interpreter.
+INERT = (tuple, bytes, bytearray, str, int, float, bool, type(None))
+
+
+def cycle_forming(objects: list) -> int:
+    return sum(1 for o in objects if not isinstance(o, INERT))
+
+
 def _garbage_per_request(app: FastAPI) -> float:
     with TestClient(app) as client:
         for _ in range(5):   # warm up imports and caches
             assert client.post("/echo", json={"reading": 72.5}).status_code == 200
         gc.collect()
+        gc.set_debug(gc.DEBUG_SAVEALL)
         gc.disable()
         try:
             for _ in range(N):
                 assert client.post("/echo", json={"reading": 72.5}).status_code == 200
-            found = gc.collect()
+            gc.collect()
+            found = cycle_forming(gc.garbage)
+            gc.garbage.clear()
         finally:
+            gc.set_debug(0)
             gc.enable()
     return found / N
 
@@ -101,3 +118,10 @@ def test_the_ids_still_reach_the_response_and_the_state():
     assert r.status_code == 200
     assert r.headers[REQUEST_ID_HEADER] == seen["state"] == seen["var"] != ""
     assert r.headers[CORRELATION_ID_HEADER] == "corr-abc-123"
+
+
+def test_negative_control_inert_data_is_not_counted_but_a_cycle_is():
+    frame_like = {"self": None}
+    frame_like["self"] = frame_like          # a dict in a cycle with itself
+    assert cycle_forming([(b"x-request-id", b"abc"), b"abc", "s", 1, None]) == 0
+    assert cycle_forming([(b"x-request-id", b"abc"), frame_like, cycle_forming]) == 2
