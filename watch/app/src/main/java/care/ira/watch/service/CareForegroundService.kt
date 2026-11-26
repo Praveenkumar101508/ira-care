@@ -25,6 +25,7 @@ import care.ira.watch.checkin.ReminderButtons
 import care.ira.watch.checkin.ReminderChoice
 import care.ira.watch.sensors.FallDetector
 import care.ira.watch.sensors.FallEvent
+import care.ira.watch.sensors.FallInjection
 import care.ira.watch.sensors.FallSettings
 import care.ira.watch.sensors.ReadingKinds
 import care.ira.watch.ui.MainActivity
@@ -66,6 +67,9 @@ class CareForegroundService : LifecycleService() {
         startForeground(NOTIFICATION_ID, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
         lifecycleScope.launch(Dispatchers.IO) { collectReadings() }
         lifecycleScope.launch(Dispatchers.IO) { watchForFalls() }
+        // A synthetic fall (FallInjection; fed only by the debug build's synthetic-fall receiver)
+        // goes down the same path as a detector's event from here on.
+        lifecycleScope.launch(Dispatchers.IO) { FallInjection.events.collect { onSuspectedFall(it) } }
         deps.activity?.let { monitor ->
             lifecycleScope.launch(Dispatchers.Default) { watchActivity(monitor) }
         }
@@ -146,13 +150,21 @@ class CareForegroundService : LifecycleService() {
             if (!deps.fallSettings.enabled) return@onEach
             detector.onWrist = deps.lastOnWrist
             when (val event = detector.feed(sample)) {
-                // The impact time lets the countdown tell the same impact seen twice from a separate
-                // detection; a separate one during a countdown is never dropped (D-092).
-                is FallEvent.SuspectedFall -> performFall(
-                    fallCountdown.suspectedFall(event.peakG, event.stillForSeconds, deps.fallSettings.countdownS, event.impactAtMillis))
+                is FallEvent.SuspectedFall -> onSuspectedFall(event)
                 else -> {}
             }
         }.collect()
+    }
+
+    /**
+     * A suspected fall, from a detector or injected (FallInjection): the countdown starts, or the
+     * detection joins the countdown already running. The impact time lets the countdown tell the
+     * same impact seen twice from a separate detection; a separate one during a countdown is never
+     * dropped (D-092). Nothing happens while the carer has fall detection off.
+     */
+    private suspend fun onSuspectedFall(event: FallEvent.SuspectedFall) {
+        if (!deps.fallSettings.enabled) return
+        performFall(fallCountdown.suspectedFall(event.peakG, event.stillForSeconds, deps.fallSettings.countdownS, event.impactAtMillis))
     }
 
     /**
