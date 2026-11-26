@@ -82,12 +82,14 @@ PRODUCT_PRODUCT_PROPERTIES += \
 # framework by the overlay (overlays/IraFrameworkOverlay); Cuttlefish itself draws a square.
 #
 # The app declares uses-feature android.hardware.type.watch. The framework sets the watch UI
-# mode from that system feature, so the image declares it. UNCERTAIN: the inherited phone
-# product already copies handheld_core_hardware.xml; declaring both handheld and watch is
-# unusual and may need the handheld file removed on the build host.
+# mode from that system feature, so the image declares it, with IRA's own feature file:
+# AOSP's frameworks/native/data/etc/ has no android.hardware.type.watch.xml (checked against a
+# public mirror, os/reference/aosp_reference.json), so copying from there would stop the build.
+# UNCERTAIN: the inherited phone product already copies handheld_core_hardware.xml; declaring
+# both handheld and watch is unusual and may need the handheld file removed on the build host.
 # ---------------------------------------------------------------------------
 PRODUCT_COPY_FILES += \
-    frameworks/native/data/etc/android.hardware.type.watch.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.type.watch.xml
+    device/ira/ira_watch_cf/permissions/android.hardware.type.watch.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/android.hardware.type.watch.xml
 
 # ---------------------------------------------------------------------------
 # 5. IRA's own modules (defined in Android.bp next to this file).

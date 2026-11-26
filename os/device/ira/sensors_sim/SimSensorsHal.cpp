@@ -75,7 +75,14 @@ public:
         : sim_(scenario(android::base::GetProperty("persist.ira.sim.script", "resting")), 0x1EA) {}
 
     ndk::ScopedAStatus getSensorsList(std::vector<SensorInfo>* out) override {
-        constexpr int32_t kContinuous = 0, kOnChange = 2 << 1, kWakeUp = 1;
+        // SensorInfo.SENSOR_FLAG_BITS_*: the reporting mode occupies bits 1..3 (mask 0xE), and
+        // on-change is the value 2, one-shot 4. An earlier revision wrote `2 << 1` (= 4) here,
+        // which declared the heart-rate and off-body sensors ONE-SHOT: the framework would have
+        // deactivated each after its first event. Checked against the AIDL constants recorded
+        // in os/reference/aosp_reference.json by test_os_product_layer.py.
+        constexpr int32_t kContinuous = SensorInfo::SENSOR_FLAG_BITS_CONTINUOUS_MODE;  // 0
+        constexpr int32_t kOnChange = SensorInfo::SENSOR_FLAG_BITS_ON_CHANGE_MODE;      // 2
+        constexpr int32_t kWakeUp = SensorInfo::SENSOR_FLAG_BITS_WAKE_UP;               // 1
         *out = {
             info(1, SensorType::HEART_RATE, "IRA simulated heart rate", 250.0f, 1.0f, 1000000, kOnChange),
             info(2, SensorType::ACCELEROMETER, "IRA simulated accelerometer", 16 * 9.80665f, 0.001f, 20000, kContinuous),

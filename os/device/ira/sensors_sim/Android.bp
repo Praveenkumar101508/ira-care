@@ -18,6 +18,11 @@ cc_binary {
     name: "android.hardware.sensors-service.ira-sim",
     vendor: true,
     relative_install_path: "hw",
+    // The init script and the VINTF fragment the framework needs to start and find the service;
+    // the version in the fragment must equal the -V<n>-ndk library below (checked by
+    // supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py).
+    init_rc: ["android.hardware.sensors-service.ira-sim.rc"],
+    vintf_fragments: ["android.hardware.sensors-ira-sim.xml"],
     srcs: [
         "sim_signals.cpp",
         "SimSensorsHal.cpp",
@@ -25,8 +30,10 @@ cc_binary {
     shared_libs: [
         "libbase",
         "libbinder_ndk",
-        // UNCERTAIN: the AIDL sensors NDK library's versioned name in the checked-out release.
-        "android.hardware.sensors-V2-ndk",
+        // V3 is what the AOSP default sensors service links in Android 15 (hardware/interfaces,
+        // sensors/aidl/default/Android.bp, read from a public mirror: os/reference/
+        // aosp_reference.json). UNCERTAIN whether the checked-out release has moved to V4.
+        "android.hardware.sensors-V3-ndk",
     ],
     cflags: ["-Wall", "-Werror"],
 }

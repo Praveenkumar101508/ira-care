@@ -46,9 +46,14 @@ The file ends with a newline, which the parser expects.
 
 4. Check that every entry is stored, not deflated: `unzip -v bootanimation.zip` shows
    `Stored` on every line.
-5. Add the zip to the product with the `PRODUCT_COPY_FILES` line that is commented out in
-   `../ira_watch_cf.mk` (section 6). Produce the zip on the build host; do not commit it
-   unless the owner agrees that generated binary assets may enter the repository.
+5. The product copies the zip with the `PRODUCT_COPY_FILES` line in `../ira_watch_cf.mk`
+   (section 6) to `/product/media/bootanimation.zip`, the first place the platform's
+   `bootanimation` looks (before `/system/media/`). The zip is produced on the build host and
+   never committed.
+
+Steps 2 to 4 are what `os/scripts/make_bootanimation.py` does with Pillow instead of Inkscape
+and `zip`: 30 fade-in frames, 60 pulse frames, 8-bit RGB, every entry stored. The host test
+runs it and checks the result against this page (`docs/os/HOST_CHECKS.md`).
 
 Memory: 90 frames of 454 x 454 RGB are about 55 MB if all were decoded at once, so keep the
 frame count low, and use the format's optional `trim.txt` cropping (also in `FORMAT.md`) once
