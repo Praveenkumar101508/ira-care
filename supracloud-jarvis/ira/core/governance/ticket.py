@@ -73,9 +73,31 @@ _SIGNING_KEY: Final[bytes] = secrets.token_bytes(32)
 #: immediately by the caller that requested it, not held.
 DEFAULT_TTL_SECONDS: Final[float] = 300.0
 
-#: Tickets already redeemed, so one cannot be replayed.
-_consumed: set[str] = set()
+#: Tickets already redeemed, so one cannot be replayed: ticket id -> its expiry.
+#:
+#: Bounded. An id only needs remembering until its ticket expires, because
+#: `verify()` refuses an expired ticket anyway. Once the map reaches
+#: `_next_prune_at` entries (at least `_PRUNE_AT`, and twice what was left
+#: after the last pruning, so a burst of live tickets is not rescanned on every
+#: call), the ids of tickets that expired by the wall clock are
+#: dropped, and `_pruned_through` keeps the latest expiry dropped: a ticket
+#: whose expiry is at or before it is refused as possibly used, whatever `now`
+#: the caller passes, so pruning never reopens a replay. Without this the set
+#: grew by one id per governed action for the life of the process.
+_consumed: dict[str, float] = {}
 _consumed_lock = threading.Lock()
+_PRUNE_AT: Final[int] = 1024
+_pruned_through: float = float("-inf")
+_next_prune_at: int = _PRUNE_AT
+
+
+def _prune_expired_locked(wall_now: float) -> None:
+    """Drop the ids of tickets expired by the wall clock. Hold `_consumed_lock`."""
+    global _pruned_through, _next_prune_at
+    expired = [k for k, exp in _consumed.items() if exp <= wall_now]
+    for k in expired:
+        _pruned_through = max(_pruned_through, _consumed.pop(k))
+    _next_prune_at = max(_PRUNE_AT, 2 * len(_consumed))
 
 
 class TicketError(RuntimeError):
@@ -193,12 +215,14 @@ class ExecutionTicket:
         self.verify(request, now=now)
         key = str(self.ticket_id)
         with _consumed_lock:
-            if key in _consumed:
+            if key in _consumed or self.expires_at <= _pruned_through:
                 raise InvalidTicket(
                     f"Execution ticket {self.ticket_id} has already been used. "
                     f"An approval authorises an action once, not repeatedly."
                 )
-            _consumed.add(key)
+            if len(_consumed) >= _next_prune_at:
+                _prune_expired_locked(time.time())
+            _consumed[key] = self.expires_at
 
 
 def issue(
@@ -260,8 +284,11 @@ def reset_consumed_for_tests() -> None:
     Test support only. Named so that its presence in non-test code is obvious in
     review, rather than hiding behind something that sounds like maintenance.
     """
+    global _pruned_through, _next_prune_at
     with _consumed_lock:
         _consumed.clear()
+        _pruned_through = float("-inf")
+        _next_prune_at = _PRUNE_AT
 
 
 __all__ = [

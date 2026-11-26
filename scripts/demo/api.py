@@ -50,9 +50,13 @@ async def lifespan(app: FastAPI):
     scheduler = build_scheduler()
     scheduler.start()
     logger.info("care demo API up: jobs %s", sorted(j.id for j in scheduler.get_jobs()))
+    from demo.memtrace import start_if_asked
+    memtrace = start_if_asked()   # debug only: nothing unless IRA_DEBUG_MEMTRACE is set
     try:
         yield
     finally:
+        if memtrace is not None:
+            memtrace.cancel()
         scheduler.shutdown(wait=False)
         await close_redis()
         await close_pool()

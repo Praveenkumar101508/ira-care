@@ -344,16 +344,30 @@ async def dispatch(principal, now: Optional[dt.datetime] = None, *, provider=Non
 
 async def settle_push_attempts(conn, now: dt.datetime) -> int:
     """After push receipts arrive: a push with a delivered ticket is delivered;
-    one whose every ticket failed is failed."""
+    one whose every ticket failed is failed.
+
+    Only attempts whose receipt event is not yet recorded are returned. Every
+    escalation pass calls this; without that filter each pass re-read every
+    push attempt that ever had a receipt and wrote a duplicate event for each
+    (which the unique key then discarded), so a pass's work and memory grew
+    with the history of the deployment. The filter matches that key
+    (attempt, rank, provider status), so what is recorded is unchanged."""
     rows = await conn.fetch(
         """
-        SELECT t.attempt_id,
-               bool_or(t.status = 'delivered') AS any_delivered,
-               bool_and(t.status = 'failed') AS all_failed
-          FROM care_push_tickets t JOIN care_alert_attempts a ON a.id = t.attempt_id
-         WHERE a.channel = 'push' AND t.receipt_at IS NOT NULL
-         GROUP BY t.attempt_id
-        """)
+        SELECT s.* FROM (
+            SELECT t.attempt_id,
+                   bool_or(t.status = 'delivered') AS any_delivered,
+                   bool_and(t.status = 'failed') AS all_failed
+              FROM care_push_tickets t JOIN care_alert_attempts a ON a.id = t.attempt_id
+             WHERE a.channel = 'push' AND t.receipt_at IS NOT NULL
+             GROUP BY t.attempt_id) s
+         WHERE (s.any_delivered AND NOT EXISTS (
+                    SELECT 1 FROM care_alert_attempt_events ev WHERE ev.attempt_id = s.attempt_id
+                       AND ev.status_rank = $1 AND ev.provider_status = 'receipt: ok'))
+            OR (NOT s.any_delivered AND s.all_failed AND NOT EXISTS (
+                    SELECT 1 FROM care_alert_attempt_events ev WHERE ev.attempt_id = s.attempt_id
+                       AND ev.status_rank = $2 AND ev.provider_status = 'receipt: error'))
+        """, rank("delivered"), rank("failed"))
     moved = 0
     for r in rows:
         if r["any_delivered"]:

@@ -66,6 +66,9 @@ ALLOWED = {
     "docs/evidence/soak/wallclock_1h_run2_checkpoint.jsonl.gz":
         "our own 1-hour soak measurements against the local demo (fictional data, no logins; "
         "docs/evidence/soak/WALLCLOCK_1H.md)",
+    "docs/evidence/soak/wallclock_1h_fixed_checkpoint.jsonl.gz":
+        "our own 1-hour soak measurements on the memory fixes (fictional data, no logins; "
+        "docs/evidence/soak/WALLCLOCK_1H_FIXED.md)",
     "supracloud-jarvis/ira/editions/private/__init__.py":
         "source code: the 'private' edition of the product, not a private document",
 }
