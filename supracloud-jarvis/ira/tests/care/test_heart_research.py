@@ -177,7 +177,9 @@ def test_vigorous_motion_is_rejected_by_accelerometer_energy():
     assert (hard.status, hard.reason, hard.bpm) == ("unavailable", "motion_artefact", None)
     assert hard.classical is not None, "the estimates are still shown, marked unusable"
     walk = run(sim(bpm=72.0, swing_hz=1.6, swing_g=0.4, seconds=8.0)).windows[0]   # negative control
-    assert walk.quality["motion_rms_g"] < hr.MOTION_REJECT_G and walk.status == "estimate"
+    # (the first walking window is usable but the learned selector is unsure of it, so it is
+    # "learned_low_confidence" since D-094; what matters here is that motion did not reject it)
+    assert walk.quality["motion_rms_g"] < hr.MOTION_REJECT_G and walk.quality["usable"] and walk.reason != "motion_artefact"
 
 
 def test_the_fault_sample_shows_every_reason_and_never_a_number_with_one():
@@ -228,14 +230,47 @@ def _low_probability_model(tmp_path) -> str:
     return str(p)
 
 
-def test_a_low_probability_learned_answer_falls_back_to_a_reliable_classical_one(tmp_path):
+def test_a_low_probability_learned_answer_is_unavailable_not_the_classical_one(tmp_path):
+    """D-094: when the learned selector is unsure, the window says so; it is not answered by the
+    classical estimator, even a reliable one (16 to 39 bpm out on held-out and independent data)."""
     res = run(sim(bpm=68.0, seconds=20.0), model_path=_low_probability_model(tmp_path))
+    assert res.windows
     for w in res.windows:
         assert w.learned["reason"] == "low_confidence" and w.learned["bpm"] is None
-        assert (w.method, w.fallback) == ("classical", "learned_low_confidence")
-        assert w.bpm == w.classical["bpm"] and abs(w.bpm - 68.0) <= 2.0
+        # the classical estimate was reliable and close: the old rule would have reported it
+        assert w.classical["bpm"] is not None and abs(w.classical["bpm"] - 68.0) <= 2.0
+        assert (w.status, w.bpm, w.method, w.fallback, w.confidence) == ("unavailable", None, None, None, None)
+        assert w.reason == "learned_low_confidence"
+        assert "not reported" in w.to_dict()["reason_text"]
+    s = res.summary()
+    assert (s["estimates"], s["classical_fallbacks"]) == (0, 0)
+    assert s["unavailable_by_reason"] == {"learned_low_confidence": len(res.windows)}
     # negative control: with the shipped model the learned answer stands
     assert {w.method for w in run(sim(bpm=68.0, seconds=20.0)).windows} == {"learned"}
+
+
+def test_a_learned_selector_with_no_candidate_is_unavailable_not_the_classical_one(monkeypatch):
+    monkeypatch.setattr(hl, "candidate_features", lambda *a, **k: (np.zeros(0), np.zeros((0, len(hl.FEATURES)))))
+    res = run(sim(bpm=70.0, seconds=12.0))
+    assert res.windows
+    for w in res.windows:
+        assert w.classical["bpm"] is not None
+        assert (w.status, w.bpm, w.method, w.reason) == ("unavailable", None, None, "learned_no_candidates")
+
+
+def test_the_classical_answer_remains_only_where_the_learned_selector_cannot_run(tmp_path):
+    """The classical estimate, labelled as a fallback with why, is kept where there is no model or no
+    accelerometer; wherever the learned selector ran, no window is answered by the classical one."""
+    no_model = run(sim(bpm=72.0, seconds=16.0), model_path=str(tmp_path / "absent.json"))
+    d = sim(bpm=72.0, seconds=16.0)
+    d.pop("acc")
+    no_acc = run(d)
+    for res, why in ((no_model, "no_model"), (no_acc, "no_accelerometer")):
+        assert res.windows and all(w.status == "estimate" for w in res.windows)
+        assert {(w.method, w.fallback, w.confidence_kind) for w in res.windows} == {
+            ("classical", why, "spectral_concentration")}
+    low = run(sim(bpm=72.0, seconds=16.0), model_path=_low_probability_model(tmp_path))
+    assert not any(w.method == "classical" for w in low.windows)
 
 
 def test_when_neither_is_reliable_the_window_is_unavailable(tmp_path):
@@ -243,6 +278,9 @@ def test_when_neither_is_reliable_the_window_is_unavailable(tmp_path):
     d = sim(seconds=8.0)
     d["ppg"]["samples"] = [float(v) for v in rng.standard_normal(len(d["ppg"]["samples"]))]
     w = run(d, model_path=_low_probability_model(tmp_path)).windows[0]
+    assert (w.status, w.bpm, w.reason) == ("unavailable", None, "learned_low_confidence")
+    # without a model the classical estimator decides alone, and its own reason is kept
+    w = run(d, model_path=str(tmp_path / "absent.json")).windows[0]
     assert (w.status, w.bpm, w.reason) == ("unavailable", None, "low_confidence")
 
 
@@ -414,6 +452,19 @@ def test_the_excerpt_reproduces_the_held_out_evaluation():
     assert got["classical_all_windows"] == want["classical_all_windows"]
     assert got["learned_all_windows"] == want["learned_all_windows"]
     assert got["reported"] == want["reported"]
+    assert got["reported"] == want["reported_learned"]       # D-094: only learned answers are reported
+    assert want["reported_classical_fallback"]["windows"] == 0
+
+
+def test_the_excerpt_reports_no_classical_answer_where_the_learned_selector_was_unsure():
+    """On the real excerpt, the windows the old rule answered with the classical estimate are now
+    unavailable (learned_low_confidence); their number is the evaluation's recorded count."""
+    want = json.loads(EVAL.read_text())["excerpt"]["runs"]["shipped_model_trained_on_all_15"]
+    res = hr.run(hr.load_sample("ppg_dalia_s1_excerpt"))
+    assert not any(w.method == "classical" for w in res.windows)
+    held_back = [w for w in res.windows if w.reason == "learned_low_confidence" and w.classical["bpm"] is not None]
+    assert len(held_back) == want["previous_rule_classical_fallback"]["windows"] > 0
+    assert all(w.bpm is None and w.status == "unavailable" for w in held_back)
 
 
 def test_negative_control_without_the_accelerometer_the_excerpt_gives_different_answers():

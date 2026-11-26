@@ -1132,11 +1132,11 @@
    "title": "Watch app run on a Wear OS emulator through the care journey",
    "area": "software",
    "hardware_independent": true,
-   "state": "blocked_external",
+   "state": "verified",
    "evidence": [
     {
-     "kind": "docs_only",
-     "ref": "docs/evidence/emulator/NO_KVM_ATTEMPT.md"
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
     },
     {
      "kind": "config_check",
@@ -1145,9 +1145,12 @@
     {
      "kind": "config_check",
      "ref": "scripts/emulator/watch_smoke.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/emulator/NO_KVM_ATTEMPT.md"
     }
-   ],
-   "blocked_by": "a host with KVM virtualisation for the Android emulator. On this build machine (no /dev/kvm) the Wear OS 5 image was forced onto software CPU emulation: it booted in 34 minutes and the debug APK installed, but the framework watchdog restarted system_server every few minutes and nothing was drawn, so the journey could not run (docs/evidence/emulator/NO_KVM_ATTEMPT.md). The manual workflow .github/workflows/emulator.yml runs it on a KVM runner."
+   ]
   },
   {
    "id": "D1.j",
@@ -1325,9 +1328,17 @@
    "title": "iOS build of the phone app",
    "area": "software",
    "hardware_independent": true,
-   "state": "blocked_external",
-   "evidence": [],
-   "blocked_by": "macOS with Apple signing"
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "build",
+     "ref": "docs/evidence/builds/IOS_SIMULATOR.md"
+    },
+    {
+     "kind": "build",
+     "ref": ".github/workflows/ios-simulator.yml"
+    }
+   ]
   },
   {
    "id": "D2.i",
@@ -2461,7 +2472,7 @@
   {
    "id": "F3.g",
    "parent": "F3",
-   "title": "Research-mode raw-PPG pipeline on recorded or simulated signals only (data contract, signal-quality rejection, learned selector with classical fallback, confidence and provenance, care-manager endpoint and dashboard page), never stored and never reaching an alert",
+   "title": "Research-mode raw-PPG pipeline on recorded or simulated signals only (data contract, signal-quality rejection, learned selector, unavailable when it is unsure and classical only where it cannot run (D-094), confidence and provenance, care-manager endpoint and dashboard page), never stored and never reaching an alert",
    "area": "ai",
    "hardware_independent": true,
    "state": "verified",
@@ -2485,6 +2496,14 @@
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/research_heart.test.tsx"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/heart/cross_dataset_galaxyppg.json"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/heart/fallback_rule_analysis.json"
     }
    ]
   },
@@ -2517,6 +2536,18 @@
     {
      "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_fall_db.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_fall_overlap_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/checkin/FallCountdownOverlapTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/checkin/FallCountdownIncidentTest.kt"
     }
    ]
   },
@@ -2584,9 +2615,21 @@
    "title": "Cross-dataset fall evaluation (train on one dataset, test on another)",
    "area": "ai",
    "hardware_independent": true,
-   "state": "blocked_external",
-   "evidence": [],
-   "blocked_by": "a second wrist fall dataset with a licence that allows it (KFall and FallAllD permission pending; SisFall excluded by the owner; UMAFall terms conflict)"
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/fall/cross_dataset_weda.json"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_cross_dataset_eval.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/fall/CROSS_DATASET_WEDA.md"
+    }
+   ]
   },
   {
    "id": "F4.g",
@@ -4008,22 +4051,22 @@
    "title": "Emulator runs of the watch and phone apps on integrated main",
    "area": "software",
    "hardware_independent": true,
-   "state": "blocked_external",
+   "state": "verified",
    "evidence": [
     {
-     "kind": "docs_only",
-     "ref": "docs/evidence/emulator/NO_KVM_ATTEMPT.md"
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md"
     },
     {
      "kind": "config_check",
-     "ref": ".github/workflows/emulator.yml"
-    },
-    {
-     "kind": "config_check",
-     "ref": "scripts/emulator/watch_smoke.py"
+     "ref": ".github/workflows/native-checks.yml"
     }
    ],
-   "blocked_by": "a host with KVM virtualisation for the Android emulator. On this build machine (no /dev/kvm) the Wear OS 5 image was forced onto software CPU emulation: it booted in 34 minutes and the debug APK installed, but the framework watchdog restarted system_server every few minutes and nothing was drawn, so the journey could not run (docs/evidence/emulator/NO_KVM_ATTEMPT.md). The manual workflow .github/workflows/emulator.yml runs it on a KVM runner."
+   "note": "Both apps run on emulators in native-checks.yml, on pull_request runs (the pull request merged into main): the watch through pairing and Help, the phone app to its sign-in screen (release builds refuse plain HTTP, so no sign-in on the emulator)."
   },
   {
    "id": "K.h",

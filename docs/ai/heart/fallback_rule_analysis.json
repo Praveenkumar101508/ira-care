@@ -1,0 +1,183 @@
+{
+  "what": "which answer the research pipeline should give when the learned selector is unsure, decided on PPG-DaLiA leave-one-subject-out data",
+  "decision_rule_fixed_before_running": "adopt the agreement rule only if, pooled over the 14 subjects other than S1, the fallback windows where the classical estimate is within 5 bpm of the learned candidate have an MAE no higher than the confident learned answers on the same subjects; otherwise report unavailable",
+  "agreement_bpm": 5.0,
+  "decision_subjects": [
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6",
+    "S7",
+    "S8",
+    "S9",
+    "S10",
+    "S11",
+    "S12",
+    "S13",
+    "S14",
+    "S15"
+  ],
+  "decision": {
+    "agreement_rule_adopted": false,
+    "because": "agreeing fallback windows 13.68 bpm against confident learned 3.31 bpm (pooled, 14 subjects)",
+    "rule": "unavailable"
+  },
+  "fourteen_subjects_without_S1": {
+    "windows": 60094,
+    "confident_learned": {
+      "mae_bpm": 3.31,
+      "windows": 39632
+    },
+    "classical_fallback_old_rule": {
+      "mae_bpm": 26.87,
+      "windows": 7574
+    },
+    "classical_fallback_per_subject_mae_bpm_mean_sd": [
+      28.14,
+      12.82
+    ],
+    "fallback_agreeing_within_5_bpm": {
+      "mae_bpm": 13.68,
+      "windows": 3377
+    },
+    "fallback_disagreeing": {
+      "mae_bpm": 37.48,
+      "windows": 4197
+    },
+    "learned_unsure_windows": 18371,
+    "rules": {
+      "old_classical_fallback": {
+        "mae_bpm": 7.09,
+        "windows": 47206,
+        "coverage": 0.7855
+      },
+      "agreement_within_5_bpm": {
+        "mae_bpm": 4.12,
+        "windows": 43009,
+        "coverage": 0.7157
+      },
+      "unavailable": {
+        "mae_bpm": 3.31,
+        "windows": 39632,
+        "coverage": 0.6595
+      }
+    },
+    "share_of_reported_windows_over_10_bpm_out": {
+      "old_classical_fallback": 0.161,
+      "agreement_within_5_bpm": 0.0922,
+      "unavailable": 0.0626
+    }
+  },
+  "S1_held_out_not_used_to_decide": {
+    "windows": 4603,
+    "confident_learned": {
+      "mae_bpm": 4.59,
+      "windows": 2768
+    },
+    "classical_fallback_old_rule": {
+      "mae_bpm": 16.23,
+      "windows": 797
+    },
+    "classical_fallback_per_subject_mae_bpm_mean_sd": [
+      16.23,
+      0.0
+    ],
+    "fallback_agreeing_within_5_bpm": {
+      "mae_bpm": 6.81,
+      "windows": 346
+    },
+    "fallback_disagreeing": {
+      "mae_bpm": 23.46,
+      "windows": 451
+    },
+    "learned_unsure_windows": 1606,
+    "rules": {
+      "old_classical_fallback": {
+        "mae_bpm": 7.19,
+        "windows": 3565,
+        "coverage": 0.7745
+      },
+      "agreement_within_5_bpm": {
+        "mae_bpm": 4.84,
+        "windows": 3114,
+        "coverage": 0.6765
+      },
+      "unavailable": {
+        "mae_bpm": 4.59,
+        "windows": 2768,
+        "coverage": 0.6013
+      }
+    },
+    "share_of_reported_windows_over_10_bpm_out": {
+      "old_classical_fallback": 0.1849,
+      "agreement_within_5_bpm": 0.106,
+      "unavailable": 0.0921
+    }
+  },
+  "all_fifteen_subjects": {
+    "windows": 64697,
+    "confident_learned": {
+      "mae_bpm": 3.39,
+      "windows": 42400
+    },
+    "classical_fallback_old_rule": {
+      "mae_bpm": 25.86,
+      "windows": 8371
+    },
+    "classical_fallback_per_subject_mae_bpm_mean_sd": [
+      27.35,
+      12.73
+    ],
+    "fallback_agreeing_within_5_bpm": {
+      "mae_bpm": 13.05,
+      "windows": 3723
+    },
+    "fallback_disagreeing": {
+      "mae_bpm": 36.12,
+      "windows": 4648
+    },
+    "learned_unsure_windows": 19977,
+    "rules": {
+      "old_classical_fallback": {
+        "mae_bpm": 7.1,
+        "windows": 50771,
+        "coverage": 0.7848
+      },
+      "agreement_within_5_bpm": {
+        "mae_bpm": 4.17,
+        "windows": 46123,
+        "coverage": 0.7129
+      },
+      "unavailable": {
+        "mae_bpm": 3.39,
+        "windows": 42400,
+        "coverage": 0.6554
+      }
+    },
+    "share_of_reported_windows_over_10_bpm_out": {
+      "old_classical_fallback": 0.1626,
+      "agreement_within_5_bpm": 0.0931,
+      "unavailable": 0.0646
+    }
+  },
+  "thresholds": {
+    "learned_min_probability": 0.5,
+    "classical_min_confidence": 0.3,
+    "motion_reject_g": 0.5
+  },
+  "notes": [
+    "windows are all PPG-DaLiA label windows; MAE against the dataset's ECG-derived label",
+    "fold models trained as in heart_ppg_dalia.py (same features, settings, seed) and not kept",
+    "GalaxyPPG was not used: it stays an independent test"
+  ],
+  "runtime": {
+    "total_s": 174.9,
+    "machine": "x86_64, 4 CPUs, no GPU, shared with other jobs",
+    "versions": {
+      "python": "3.13.18",
+      "numpy": "2.5.5",
+      "scikit-learn": "1.9.1"
+    }
+  }
+}

@@ -34,8 +34,11 @@ Pipeline, per 8 s window (2 s apart, the PPG-DaLiA label windows):
    classical spectral concentration is reported as the quality index.
 4. **Inference**: :class:`care.heart_learned.LearnedHeartTracker` (which runs the classical
    :class:`care.heart_estimate.HeartTracker` inside it). The learned answer is reported when
-   it is reliable; otherwise the classical one, marked as a fallback; otherwise "unavailable"
-   with the reason. An unavailable window never carries a number in ``bpm``.
+   it is reliable. When the learned selector ran but is unsure, the window is "unavailable"
+   (``learned_low_confidence``), not answered by the classical estimator (D-094). The classical
+   answer, marked as a fallback, is reported only where the learned selector cannot run (no
+   model, no accelerometer). Otherwise "unavailable" with the reason. An unavailable window
+   never carries a number in ``bpm``.
 5. **Provenance** on every result: pipeline version, the learned model's format, SHA-256,
    size and training data, the classical estimator's settings, and where the recording came
    from.
@@ -111,7 +114,12 @@ REASON_TEXT = {
     "motion_artefact": "too much movement",
     "low_confidence": "no reliable peak",
     "no_candidates": "no candidate peaks",
+    "learned_low_confidence": "the learned selector was not confident enough (the classical estimate is not reported instead)",
+    "learned_no_candidates": "the learned selector found no candidate peak (the classical estimate is not reported instead)",
 }
+#: When the learned selector ran but gave no reliable answer, the window is unavailable with one of
+#: these reasons, never the classical estimate (D-094).
+LEARNED_UNSURE = {"low_confidence": "learned_low_confidence", "no_candidates": "learned_no_candidates"}
 
 DATASET = {
     "name": "PPG-DaLiA",
@@ -519,9 +527,14 @@ def run(rec: Recording, *, model_path: Optional[str] = None, use_learned: bool =
             continue
         if r.method == "learned" and r.reliable:
             res = ("estimate", r.bpm, "learned", r.confidence, "probability_within_5_bpm", None, None)
+        elif r.method == "learned":
+            # The learned selector ran and is unsure (or found no candidate). The classical answer is
+            # NOT reported in its place (D-094): on held-out PPG-DaLiA and on GalaxyPPG those answers
+            # were 16 to 39 bpm out. The classical candidate stays in ``classical`` for inspection.
+            res = ("unavailable", None, None, None, None, LEARNED_UNSURE.get(r.reason, "learned_low_confidence"), None)
         elif c is not None and c.reliable:
-            why = ("no_model" if model is None else "no_accelerometer" if a is None
-                   else "learned_low_confidence" if r.reason == "low_confidence" else r.reason or "learned_unavailable")
+            # Only where the learned selector cannot run at all: no model, or no accelerometer.
+            why = "no_model" if model is None else "no_accelerometer" if a is None else "learned_unavailable"
             res = ("estimate", c.bpm, "classical", c.confidence, "spectral_concentration", None, why)
         else:
             res = ("unavailable", None, None, None, None, r.reason or "low_confidence", None)

@@ -76,11 +76,32 @@ TFLite agrees with Keras on 200 of 200 windows.
 - A research band on the left wrist, not the IRA watch; its sampling rate is inferred (50 Hz).
 - 40 subjects; per-fall-type results are in `results_v3.json` (fall7 is the weakest: 16 of 40 for
   both the rule and v3).
-- Latency on a watch CPU is unmeasured.
+- Latency on a watch CPU is unmeasured (one TFLite invoke takes about 0.011 ms on the x86 build
+  machine, `cross_dataset_weda.json`).
 
 ## Cross-dataset evaluation (F4.f)
 
-Not possible yet with licensed data: no second wrist fall dataset in `docs/DATASETS.md` has a
-licence that allows it (KFall and FallAllD await the authors' permission; SisFall is excluded by
-the owner; UMAFall's terms conflict). The UCI HAR negatives above are the only cross-dataset
-check, and they cover false alarms, not falls.
+Done on 26 November 2026 on **WEDA-FALL** (ODC-By 1.0 in the clone used, with a provenance caveat of 26 November 2026 in `CROSS_DATASET_WEDA.md`; a Fitbit Sense on the wrist), with the
+shipped file, threshold and rules unchanged and nothing tuned: `CROSS_DATASET_WEDA.md`,
+`cross_dataset_weda.json`.
+
+- **Falls:** the shipped pipeline caught 326 of 350 falls by 14 young volunteers onto a mattress
+  (0.931). The model path caught the same 326; the rule caught 113, counting impacts still
+  waiting for their 20 s when the recording ended.
+- **Missed falls:** 20 of the 24 were detected while an earlier alarm's countdown was running, and
+  the countdown dropped the fall's own detection. Fixed in the watch and the server by D-092 (a
+  detection during a countdown is attached to the incident, its deadline unchanged, and asked
+  about again after an "I'm OK"); the model is unchanged. These figures were produced before the
+  fix and are not re-run until WEDA-FALL's licence is confirmed.
+- **False alarms:** on 157 recordings of daily activities by 11 older adults aged 77 to 95, the
+  model path raised the countdown on 25 (15.9%). Most came from hitting a table (11 of 31) and
+  clapping (10 of 32).
+- **Model candidates:** specificity 0.840 there and 0.862 for the young volunteers, against
+  0.977 on BITS-2.
+- **Findings for the owner and a clinical reviewer** (the model, its threshold and the rules were
+  not changed because of them):
+  - false alarms from everyday hand impacts: open; analysed with candidate mitigations in
+    `docs/compliance/CLINICAL_SAFETY_CASE.md` (H4);
+  - a detection during a running countdown was ignored: fixed in the countdown, not the model
+    (D-092).
+- **Not shown:** older adults' falls, or the IRA watch.

@@ -91,9 +91,9 @@ async def test_a_fall_start_sent_twice_does_not_open_two_alerts_and_the_replay_i
     assert r1.status_code == 201, r1.text
     r2 = await client.post(f"{C}/devices/me/fall", json={"peak_g": 3.4, "still_seconds": 20}, headers=h)
     assert r2.status_code == 201 and r2.json()["id"] == r1.json()["id"]
-    # Without the key a repeat is what it always was: refused, because one is already asking.
+    # Without the key a repeat is attached to the alert already asking (D-092): still one alert.
     r3 = await client.post(f"{C}/devices/me/fall", json={"peak_g": 3.4, "still_seconds": 20}, headers=p["h"])
-    assert r3.status_code == 409
+    assert r3.status_code == 201 and r3.json()["id"] == r1.json()["id"] and r3.json()["attached"] is True
     client.act_as(fam, "member", "member")
     assert await _alert_count(client, p["id"]) == 1
 

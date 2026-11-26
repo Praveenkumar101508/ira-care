@@ -1,0 +1,1849 @@
+{
+ "kind": "cross_dataset_fall_evaluation",
+ "requirement": "F4.f",
+ "notice": "Contains information from WEDA-FALL (https://github.com/joaojtmarques/WEDA-FALL), which is made available under the ODC Attribution License (https://opendatacommons.org/licenses/by/1-0/). Cite: J. Marques and P. Moreno, Online Fall Detection Using Wrist Devices, Sensors 23(3):1146, 2023. Results only: no WEDA-FALL data is copied into this repository.",
+ "pipeline": {
+  "model": "fall model v3 (shipped, unchanged)",
+  "mode": "recover",
+  "threshold": 0.95,
+  "candidate_g": 2.0,
+  "rule_settings": {
+   "impact_g": 2.5,
+   "still_seconds": 20,
+   "still_threshold_g": 0.3,
+   "moving_samples_tolerated": 3
+  },
+  "tflite_bytes": 18216,
+  "tflite_sha256": "2cab7c9bcbf60de51d7c42f5690ad549bcbf4f13eb6266c35bf5d0a59b063278",
+  "tensorflow": "2.21.0",
+  "params": 6705,
+  "trained_on": "BITS-2 (Zenodo 10013090, CC BY 4.0) and UCI HAR (UCI 240, CC BY 4.0) only; see docs/ai/fall/MODEL_CARD_V3.md",
+  "retrained": false,
+  "threshold_changed": false
+ },
+ "dataset": {
+  "name": "WEDA-FALL",
+  "source": "https://github.com/joaojtmarques/WEDA-FALL",
+  "commit": "9bf15151131644e26403eadd11ecd7949e917740",
+  "licence": "ODC-By 1.0 (Open Data Commons Attribution License v1.0)",
+  "citation": "J. Marques and P. Moreno, Online Fall Detection Using Wrist Devices, Sensors 23(3):1146, 2023",
+  "device": "Fitbit Sense, wrist",
+  "files_used": 969,
+  "refused": {},
+  "fall_recordings": 350,
+  "adl_recordings": 619,
+  "young_people": 14,
+  "older_people": 11
+ },
+ "transforms": {
+  "unit": "m/s^2 divided by 9.80665 (checked: median magnitude about 1 g)",
+  "axes": "Fitbit device frame, unchanged",
+  "time": "rows ordered by delivery time; sample i at i / native rate",
+  "native_hz_files": {
+   "50": 644,
+   "40": 325
+  },
+  "files_with_rows_reordered": 24,
+  "resampling": "linear interpolation to 50 Hz",
+  "padding_s": {
+   "before": 2.0,
+   "after": 3.0
+  },
+  "axis_samples_at_the_fitbit_4_g_limit": 1403
+ },
+ "scoring": {
+  "fall_tolerance_s": 1.0,
+  "countdown_ms": 30000,
+  "conventions": {
+   "a": "only complete 20 s still windows count for the rule",
+   "b": "also a rule impact still waiting when the recording ended"
+  }
+ },
+ "falls": {
+  "sensitivity": {
+   "rule_a": {
+    "n": 350,
+    "k": 0,
+    "share": 0.0
+   },
+   "rule_b": {
+    "n": 350,
+    "k": 113,
+    "share": 0.3229
+   },
+   "model_a": {
+    "n": 350,
+    "k": 326,
+    "share": 0.9314
+   },
+   "shipped_a": {
+    "n": 350,
+    "k": 326,
+    "share": 0.9314
+   },
+   "shipped_b": {
+    "n": 350,
+    "k": 326,
+    "share": 0.9314
+   }
+  },
+  "shipped_beyond_the_strict_count": {
+   "covered_at_the_fall_or_by_a_countdown_already_running_when_it_began": {
+    "n": 350,
+    "k": 330,
+    "share": 0.9429
+   },
+   "raised_at_the_fall_counting_alarms_a_running_countdown_ignored": {
+    "n": 350,
+    "k": 346,
+    "share": 0.9886
+   },
+   "earlier_alarm_in_the_fall_recording": 20
+  },
+  "by_type": {
+   "F01": {
+    "name": "forward, walking, slip",
+    "n": 42,
+    "rule_b": 16,
+    "model": 41,
+    "shipped_a": 41,
+    "shipped_b": 41,
+    "reached_2_0_g_in_fall": 42,
+    "reached_2_5_g_in_fall": 42
+   },
+   "F02": {
+    "name": "lateral, walking, slip",
+    "n": 42,
+    "rule_b": 12,
+    "model": 42,
+    "shipped_a": 42,
+    "shipped_b": 42,
+    "reached_2_0_g_in_fall": 42,
+    "reached_2_5_g_in_fall": 42
+   },
+   "F03": {
+    "name": "backward, walking, slip",
+    "n": 42,
+    "rule_b": 16,
+    "model": 38,
+    "shipped_a": 38,
+    "shipped_b": 38,
+    "reached_2_0_g_in_fall": 42,
+    "reached_2_5_g_in_fall": 42
+   },
+   "F04": {
+    "name": "forward, walking, trip",
+    "n": 42,
+    "rule_b": 15,
+    "model": 42,
+    "shipped_a": 42,
+    "shipped_b": 42,
+    "reached_2_0_g_in_fall": 42,
+    "reached_2_5_g_in_fall": 42
+   },
+   "F05": {
+    "name": "backward, trying to sit down",
+    "n": 42,
+    "rule_b": 8,
+    "model": 41,
+    "shipped_a": 41,
+    "shipped_b": 41,
+    "reached_2_0_g_in_fall": 42,
+    "reached_2_5_g_in_fall": 41
+   },
+   "F06": {
+    "name": "forward, sitting, faint",
+    "n": 42,
+    "rule_b": 9,
+    "model": 35,
+    "shipped_a": 35,
+    "shipped_b": 35,
+    "reached_2_0_g_in_fall": 42,
+    "reached_2_5_g_in_fall": 42
+   },
+   "F07": {
+    "name": "backward, sitting, faint",
+    "n": 42,
+    "rule_b": 15,
+    "model": 38,
+    "shipped_a": 38,
+    "shipped_b": 38,
+    "reached_2_0_g_in_fall": 42,
+    "reached_2_5_g_in_fall": 42
+   },
+   "F08": {
+    "name": "lateral, sitting, faint",
+    "n": 56,
+    "rule_b": 22,
+    "model": 49,
+    "shipped_a": 49,
+    "shipped_b": 49,
+    "reached_2_0_g_in_fall": 56,
+    "reached_2_5_g_in_fall": 55
+   }
+  },
+  "f08_by_side_shipped_b": {
+   "toward_the_watch_side_R01_R02": {
+    "n": 28,
+    "k": 25,
+    "share": 0.8929
+   },
+   "away_from_the_watch_side_R03_R04": {
+    "n": 28,
+    "k": 24,
+    "share": 0.8571
+   }
+  },
+  "rule_b_vs_model": {
+   "both": 109,
+   "model_only": 217,
+   "rule_only": 4,
+   "neither": 20
+  },
+  "missed_by_shipped_b": 24,
+  "missed_reasons": {
+   "raised at the fall but ignored: an earlier alarm's countdown was already running": 20,
+   "the model scored the fall below the threshold": 4
+  },
+  "missed_scored_by_model_p_median": 0.9995,
+  "alarms_outside_the_annotated_fall": {
+   "rule": 0,
+   "model": 20,
+   "shipped": 20
+  }
+ },
+ "adl": {
+  "young": {
+   "recordings": 462,
+   "hours": 1.7589,
+   "people": 14,
+   "model_candidates": {
+    "scored": 789,
+    "at_or_above_threshold": 109,
+    "specificity_on_candidates": 0.8619
+   },
+   "rule_a": {
+    "alarms": 0,
+    "alarms_per_hour": 0.0,
+    "recordings_with_an_alarm": 0,
+    "alarms_per_recording": 0.0,
+    "specificity_recordings_without_an_alarm": 1.0
+   },
+   "rule_b": {
+    "alarms": 150,
+    "alarms_per_hour": 85.28,
+    "recordings_with_an_alarm": 150,
+    "alarms_per_recording": 0.3247,
+    "specificity_recordings_without_an_alarm": 0.6753
+   },
+   "model_a": {
+    "alarms": 104,
+    "alarms_per_hour": 59.13,
+    "recordings_with_an_alarm": 104,
+    "alarms_per_recording": 0.2251,
+    "specificity_recordings_without_an_alarm": 0.7749
+   },
+   "shipped_a": {
+    "alarms": 104,
+    "alarms_per_hour": 59.13,
+    "recordings_with_an_alarm": 104,
+    "alarms_per_recording": 0.2251,
+    "specificity_recordings_without_an_alarm": 0.7749
+   },
+   "shipped_b": {
+    "alarms": 192,
+    "alarms_per_hour": 109.16,
+    "recordings_with_an_alarm": 191,
+    "alarms_per_recording": 0.4156,
+    "specificity_recordings_without_an_alarm": 0.5866
+   }
+  },
+  "older": {
+   "recordings": 157,
+   "hours": 0.4723,
+   "people": 11,
+   "model_candidates": {
+    "scored": 156,
+    "at_or_above_threshold": 25,
+    "specificity_on_candidates": 0.8397
+   },
+   "rule_a": {
+    "alarms": 0,
+    "alarms_per_hour": 0.0,
+    "recordings_with_an_alarm": 0,
+    "alarms_per_recording": 0.0,
+    "specificity_recordings_without_an_alarm": 1.0
+   },
+   "rule_b": {
+    "alarms": 65,
+    "alarms_per_hour": 137.61,
+    "recordings_with_an_alarm": 65,
+    "alarms_per_recording": 0.414,
+    "specificity_recordings_without_an_alarm": 0.586
+   },
+   "model_a": {
+    "alarms": 25,
+    "alarms_per_hour": 52.93,
+    "recordings_with_an_alarm": 25,
+    "alarms_per_recording": 0.1592,
+    "specificity_recordings_without_an_alarm": 0.8408
+   },
+   "shipped_a": {
+    "alarms": 25,
+    "alarms_per_hour": 52.93,
+    "recordings_with_an_alarm": 25,
+    "alarms_per_recording": 0.1592,
+    "specificity_recordings_without_an_alarm": 0.8408
+   },
+   "shipped_b": {
+    "alarms": 70,
+    "alarms_per_hour": 148.2,
+    "recordings_with_an_alarm": 68,
+    "alarms_per_recording": 0.4459,
+    "specificity_recordings_without_an_alarm": 0.5669
+   }
+  },
+  "all": {
+   "recordings": 619,
+   "hours": 2.2312,
+   "people": 25,
+   "model_candidates": {
+    "scored": 945,
+    "at_or_above_threshold": 134,
+    "specificity_on_candidates": 0.8582
+   },
+   "rule_a": {
+    "alarms": 0,
+    "alarms_per_hour": 0.0,
+    "recordings_with_an_alarm": 0,
+    "alarms_per_recording": 0.0,
+    "specificity_recordings_without_an_alarm": 1.0
+   },
+   "rule_b": {
+    "alarms": 215,
+    "alarms_per_hour": 96.36,
+    "recordings_with_an_alarm": 215,
+    "alarms_per_recording": 0.3473,
+    "specificity_recordings_without_an_alarm": 0.6527
+   },
+   "model_a": {
+    "alarms": 129,
+    "alarms_per_hour": 57.82,
+    "recordings_with_an_alarm": 129,
+    "alarms_per_recording": 0.2084,
+    "specificity_recordings_without_an_alarm": 0.7916
+   },
+   "shipped_a": {
+    "alarms": 129,
+    "alarms_per_hour": 57.82,
+    "recordings_with_an_alarm": 129,
+    "alarms_per_recording": 0.2084,
+    "specificity_recordings_without_an_alarm": 0.7916
+   },
+   "shipped_b": {
+    "alarms": 262,
+    "alarms_per_hour": 117.42,
+    "recordings_with_an_alarm": 259,
+    "alarms_per_recording": 0.4233,
+    "specificity_recordings_without_an_alarm": 0.5816
+   }
+  }
+ },
+ "adl_by_type": {
+  "D01": {
+   "name": "walking",
+   "young": {
+    "recordings": 42,
+    "reached_2_0_g": 13,
+    "specificity_rule_b": 0.9762,
+    "specificity_model_a": 0.9524,
+    "specificity_shipped_a": 0.9524,
+    "specificity_shipped_b": 0.9286
+   },
+   "older": {
+    "recordings": 26,
+    "reached_2_0_g": 2,
+    "specificity_rule_b": 0.9615,
+    "specificity_model_a": 1.0,
+    "specificity_shipped_a": 1.0,
+    "specificity_shipped_b": 0.9615
+   }
+  },
+  "D02": {
+   "name": "jogging",
+   "young": {
+    "recordings": 42,
+    "reached_2_0_g": 42,
+    "specificity_rule_b": 0.5,
+    "specificity_model_a": 1.0,
+    "specificity_shipped_a": 1.0,
+    "specificity_shipped_b": 0.5
+   }
+  },
+  "D03": {
+   "name": "walking up and down stairs",
+   "young": {
+    "recordings": 42,
+    "reached_2_0_g": 38,
+    "specificity_rule_b": 0.881,
+    "specificity_model_a": 0.9048,
+    "specificity_shipped_a": 0.9048,
+    "specificity_shipped_b": 0.8095
+   },
+   "older": {
+    "recordings": 10,
+    "reached_2_0_g": 6,
+    "specificity_rule_b": 1.0,
+    "specificity_model_a": 1.0,
+    "specificity_shipped_a": 1.0,
+    "specificity_shipped_b": 1.0
+   }
+  },
+  "D04": {
+   "name": "sit on a chair, wait, get up",
+   "young": {
+    "recordings": 42,
+    "reached_2_0_g": 11,
+    "specificity_rule_b": 0.9524,
+    "specificity_model_a": 1.0,
+    "specificity_shipped_a": 1.0,
+    "specificity_shipped_b": 0.9524
+   },
+   "older": {
+    "recordings": 29,
+    "reached_2_0_g": 3,
+    "specificity_rule_b": 0.931,
+    "specificity_model_a": 0.9655,
+    "specificity_shipped_a": 0.9655,
+    "specificity_shipped_b": 0.931
+   }
+  },
+  "D05": {
+   "name": "sit, try to get up, collapse into the chair",
+   "young": {
+    "recordings": 42,
+    "reached_2_0_g": 37,
+    "specificity_rule_b": 0.5476,
+    "specificity_model_a": 0.6429,
+    "specificity_shipped_a": 0.6429,
+    "specificity_shipped_b": 0.5
+   }
+  },
+  "D06": {
+   "name": "crouch, tie shoes, get up",
+   "young": {
+    "recordings": 42,
+    "reached_2_0_g": 40,
+    "specificity_rule_b": 0.9286,
+    "specificity_model_a": 0.8333,
+    "specificity_shipped_a": 0.8333,
+    "specificity_shipped_b": 0.7619
+   }
+  },
+  "D07": {
+   "name": "stumble while walking",
+   "young": {
+    "recordings": 42,
+    "reached_2_0_g": 41,
+    "specificity_rule_b": 0.7143,
+    "specificity_model_a": 0.7381,
+    "specificity_shipped_a": 0.7381,
+    "specificity_shipped_b": 0.5
+   }
+  },
+  "D08": {
+   "name": "gentle jump (reach a high object)",
+   "young": {
+    "recordings": 42,
+    "reached_2_0_g": 42,
+    "specificity_rule_b": 0.4048,
+    "specificity_model_a": 0.3095,
+    "specificity_shipped_a": 0.3095,
+    "specificity_shipped_b": 0.1667
+   }
+  },
+  "D09": {
+   "name": "hit a table with the hand",
+   "young": {
+    "recordings": 42,
+    "reached_2_0_g": 42,
+    "specificity_rule_b": 0.1667,
+    "specificity_model_a": 0.2857,
+    "specificity_shipped_a": 0.2857,
+    "specificity_shipped_b": 0.0238
+   },
+   "older": {
+    "recordings": 31,
+    "reached_2_0_g": 30,
+    "specificity_rule_b": 0.0968,
+    "specificity_model_a": 0.6452,
+    "specificity_shipped_a": 0.6452,
+    "specificity_shipped_b": 0.0968
+   }
+  },
+  "D10": {
+   "name": "clapping hands",
+   "young": {
+    "recordings": 42,
+    "reached_2_0_g": 42,
+    "specificity_rule_b": 0.4524,
+    "specificity_model_a": 0.881,
+    "specificity_shipped_a": 0.881,
+    "specificity_shipped_b": 0.4048
+   },
+   "older": {
+    "recordings": 32,
+    "reached_2_0_g": 32,
+    "specificity_rule_b": 0.0625,
+    "specificity_model_a": 0.6875,
+    "specificity_shipped_a": 0.6875,
+    "specificity_shipped_b": 0.0312
+   }
+  },
+  "D11": {
+   "name": "open and close a door",
+   "young": {
+    "recordings": 42,
+    "reached_2_0_g": 20,
+    "specificity_rule_b": 0.9048,
+    "specificity_model_a": 0.9762,
+    "specificity_shipped_a": 0.9762,
+    "specificity_shipped_b": 0.9048
+   },
+   "older": {
+    "recordings": 29,
+    "reached_2_0_g": 23,
+    "specificity_rule_b": 0.8621,
+    "specificity_model_a": 0.8966,
+    "specificity_shipped_a": 0.8966,
+    "specificity_shipped_b": 0.7931
+   }
+  }
+ },
+ "padding": {
+  "decisions": 1469,
+  "decisions_whose_window_touched_padding": 304,
+  "falls_caught_only_by_a_decision_that_used_padding": 0
+ },
+ "failure_cases": {
+  "adl_false_alarms_shipped": [
+   {
+    "recording": "D04/U30_R02",
+    "group": "older",
+    "path": "model",
+    "at_s": 2.32,
+    "peak_g": 3.165,
+    "p": 0.957,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U21_R02",
+    "group": "older",
+    "path": "model",
+    "at_s": 3.16,
+    "peak_g": 4.982,
+    "p": 0.9683,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U23_R01",
+    "group": "older",
+    "path": "model",
+    "at_s": 6.64,
+    "peak_g": 5.796,
+    "p": 0.9889,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U23_R02",
+    "group": "older",
+    "path": "model",
+    "at_s": 3.18,
+    "peak_g": 5.176,
+    "p": 0.9925,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U23_R03",
+    "group": "older",
+    "path": "model",
+    "at_s": 1.62,
+    "peak_g": 6.105,
+    "p": 0.9997,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U24_R02",
+    "group": "older",
+    "path": "model",
+    "at_s": 2.34,
+    "peak_g": 5.036,
+    "p": 0.9618,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U27_R01",
+    "group": "older",
+    "path": "model",
+    "at_s": 1.32,
+    "peak_g": 4.606,
+    "p": 0.9949,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U27_R02",
+    "group": "older",
+    "path": "model",
+    "at_s": 1.42,
+    "peak_g": 4.309,
+    "p": 0.9867,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U27_R03",
+    "group": "older",
+    "path": "model",
+    "at_s": 2.5,
+    "peak_g": 5.325,
+    "p": 0.9985,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U28_R01",
+    "group": "older",
+    "path": "model",
+    "at_s": 5.2,
+    "peak_g": 4.478,
+    "p": 0.9906,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U29_R03",
+    "group": "older",
+    "path": "model",
+    "at_s": 2.84,
+    "peak_g": 5.027,
+    "p": 0.9704,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U30_R03",
+    "group": "older",
+    "path": "model",
+    "at_s": 2.52,
+    "peak_g": 4.683,
+    "p": 0.9851,
+    "decision_used_padding": true
+   },
+   {
+    "recording": "D10/U21_R01",
+    "group": "older",
+    "path": "model",
+    "at_s": 10.96,
+    "peak_g": 4.473,
+    "p": 0.9823,
+    "decision_used_padding": true
+   },
+   {
+    "recording": "D10/U22_R01",
+    "group": "older",
+    "path": "model",
+    "at_s": 3.1,
+    "peak_g": 5.27,
+    "p": 0.9953,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U23_R01",
+    "group": "older",
+    "path": "model",
+    "at_s": 3.06,
+    "peak_g": 5.334,
+    "p": 0.9898,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U23_R02",
+    "group": "older",
+    "path": "model",
+    "at_s": 1.64,
+    "peak_g": 4.84,
+    "p": 0.9972,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U23_R03",
+    "group": "older",
+    "path": "model",
+    "at_s": 3.2,
+    "peak_g": 4.87,
+    "p": 0.9954,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U27_R01",
+    "group": "older",
+    "path": "model",
+    "at_s": 1.74,
+    "peak_g": 6.429,
+    "p": 0.9787,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U27_R02",
+    "group": "older",
+    "path": "model",
+    "at_s": 3.4,
+    "peak_g": 5.577,
+    "p": 0.9956,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U27_R03",
+    "group": "older",
+    "path": "model",
+    "at_s": 2.18,
+    "peak_g": 5.664,
+    "p": 0.9979,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U28_R03",
+    "group": "older",
+    "path": "model",
+    "at_s": 7.44,
+    "peak_g": 5.434,
+    "p": 0.9727,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U29_R01",
+    "group": "older",
+    "path": "model",
+    "at_s": 7.88,
+    "peak_g": 4.99,
+    "p": 0.9702,
+    "decision_used_padding": true
+   },
+   {
+    "recording": "D11/U26_R03",
+    "group": "older",
+    "path": "model",
+    "at_s": 1.86,
+    "peak_g": 3.907,
+    "p": 0.9597,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D11/U28_R01",
+    "group": "older",
+    "path": "model",
+    "at_s": 2.42,
+    "peak_g": 4.021,
+    "p": 0.9695,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D11/U31_R02",
+    "group": "older",
+    "path": "model",
+    "at_s": 1.8,
+    "peak_g": 4.261,
+    "p": 0.9549,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D01/U08_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 0.7,
+    "peak_g": 2.321,
+    "p": 0.9552,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D01/U13_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.0,
+    "peak_g": 2.67,
+    "p": 0.9775,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D03/U01_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 25.68,
+    "peak_g": 2.164,
+    "p": 0.9647,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D03/U08_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 22.0,
+    "peak_g": 2.333,
+    "p": 0.9692,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D03/U10_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 31.14,
+    "peak_g": 3.811,
+    "p": 0.952,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D03/U13_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 19.16,
+    "peak_g": 2.378,
+    "p": 0.9559,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U01_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 6.04,
+    "peak_g": 4.03,
+    "p": 0.999,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U01_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 5.46,
+    "peak_g": 6.433,
+    "p": 0.9957,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U01_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 5.38,
+    "peak_g": 4.019,
+    "p": 0.9998,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U05_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 8.04,
+    "peak_g": 3.844,
+    "p": 0.9933,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U06_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.04,
+    "peak_g": 5.345,
+    "p": 0.9998,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U06_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.6,
+    "peak_g": 4.224,
+    "p": 0.9977,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U07_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.84,
+    "peak_g": 4.867,
+    "p": 0.986,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U07_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.28,
+    "peak_g": 3.636,
+    "p": 0.9605,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U08_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 5.54,
+    "peak_g": 3.756,
+    "p": 0.9928,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U09_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.64,
+    "peak_g": 4.801,
+    "p": 0.9744,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U11_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.94,
+    "peak_g": 3.482,
+    "p": 0.9898,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U12_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 5.0,
+    "peak_g": 3.475,
+    "p": 0.9978,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U12_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 7.0,
+    "peak_g": 2.502,
+    "p": 0.9653,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U12_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 5.46,
+    "peak_g": 4.218,
+    "p": 0.9973,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D05/U13_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 0.86,
+    "peak_g": 3.829,
+    "p": 0.9612,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D06/U01_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 9.96,
+    "peak_g": 3.496,
+    "p": 0.9887,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D06/U01_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 10.56,
+    "peak_g": 3.886,
+    "p": 0.9853,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D06/U05_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 7.16,
+    "peak_g": 4.941,
+    "p": 0.9972,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D06/U05_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 9.7,
+    "peak_g": 4.065,
+    "p": 0.9546,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D06/U07_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.4,
+    "peak_g": 3.521,
+    "p": 0.959,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D06/U08_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 12.42,
+    "peak_g": 2.954,
+    "p": 0.98,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D06/U09_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 7.88,
+    "peak_g": 3.263,
+    "p": 0.9735,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D07/U01_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 5.38,
+    "peak_g": 4.849,
+    "p": 0.962,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D07/U01_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 5.62,
+    "peak_g": 6.453,
+    "p": 0.9997,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D07/U01_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 6.4,
+    "peak_g": 6.012,
+    "p": 0.9849,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D07/U02_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.14,
+    "peak_g": 2.569,
+    "p": 0.9679,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D07/U03_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.36,
+    "peak_g": 4.469,
+    "p": 0.994,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D07/U05_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 6.84,
+    "peak_g": 5.993,
+    "p": 1.0,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D07/U05_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 6.24,
+    "peak_g": 4.858,
+    "p": 0.9915,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D07/U05_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 7.12,
+    "peak_g": 6.004,
+    "p": 0.99,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D07/U07_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.56,
+    "peak_g": 3.592,
+    "p": 0.996,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D07/U13_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 0.94,
+    "peak_g": 3.658,
+    "p": 0.9544,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D07/U14_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 6.44,
+    "peak_g": 5.676,
+    "p": 0.9877,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U01_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.08,
+    "peak_g": 3.33,
+    "p": 0.9984,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U01_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.72,
+    "peak_g": 3.883,
+    "p": 0.9976,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U01_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.48,
+    "peak_g": 4.063,
+    "p": 0.9969,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U02_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.66,
+    "peak_g": 3.789,
+    "p": 0.9836,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U02_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.54,
+    "peak_g": 4.151,
+    "p": 0.9995,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U02_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.48,
+    "peak_g": 2.948,
+    "p": 0.9991,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U03_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.92,
+    "peak_g": 3.905,
+    "p": 0.9955,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U03_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.62,
+    "peak_g": 2.671,
+    "p": 0.9543,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U04_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.46,
+    "peak_g": 4.529,
+    "p": 0.9995,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U04_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.82,
+    "peak_g": 4.083,
+    "p": 0.9978,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U05_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.24,
+    "peak_g": 4.792,
+    "p": 0.9989,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U05_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.88,
+    "peak_g": 5.356,
+    "p": 0.9994,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U05_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.04,
+    "peak_g": 4.73,
+    "p": 0.9999,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U06_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.92,
+    "peak_g": 3.063,
+    "p": 0.9522,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U07_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.2,
+    "peak_g": 2.441,
+    "p": 0.9747,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U07_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.46,
+    "peak_g": 2.621,
+    "p": 0.978,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U08_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.12,
+    "peak_g": 3.388,
+    "p": 0.9741,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U09_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.7,
+    "peak_g": 3.949,
+    "p": 0.9963,
+    "decision_used_padding": true
+   },
+   {
+    "recording": "D08/U10_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.68,
+    "peak_g": 4.142,
+    "p": 0.9809,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U10_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.76,
+    "peak_g": 3.61,
+    "p": 0.9532,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U10_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.0,
+    "peak_g": 3.448,
+    "p": 0.9965,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U11_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.98,
+    "peak_g": 4.059,
+    "p": 0.9996,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U11_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.46,
+    "peak_g": 3.289,
+    "p": 0.9984,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U11_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.96,
+    "peak_g": 3.579,
+    "p": 0.9861,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U13_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.62,
+    "peak_g": 3.951,
+    "p": 0.9867,
+    "decision_used_padding": true
+   },
+   {
+    "recording": "D08/U13_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.74,
+    "peak_g": 4.454,
+    "p": 0.9977,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U14_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.36,
+    "peak_g": 4.832,
+    "p": 0.9999,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U14_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.98,
+    "peak_g": 5.528,
+    "p": 0.9991,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D08/U14_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.7,
+    "peak_g": 5.15,
+    "p": 1.0,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U01_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.7,
+    "peak_g": 5.421,
+    "p": 0.9996,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U01_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.8,
+    "peak_g": 4.985,
+    "p": 0.9983,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U01_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.06,
+    "peak_g": 5.205,
+    "p": 0.9997,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U03_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.42,
+    "peak_g": 4.726,
+    "p": 0.9862,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U03_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.8,
+    "peak_g": 4.927,
+    "p": 0.9601,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U04_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.4,
+    "peak_g": 4.493,
+    "p": 0.9965,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U05_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 5.14,
+    "peak_g": 4.566,
+    "p": 0.9979,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U05_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.7,
+    "peak_g": 5.683,
+    "p": 0.9998,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U05_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.06,
+    "peak_g": 5.3,
+    "p": 1.0,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U06_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.4,
+    "peak_g": 5.539,
+    "p": 0.9683,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U06_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.42,
+    "peak_g": 6.087,
+    "p": 0.9985,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U06_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.04,
+    "peak_g": 5.348,
+    "p": 0.9995,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U07_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.8,
+    "peak_g": 4.719,
+    "p": 0.988,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U07_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.08,
+    "peak_g": 4.121,
+    "p": 0.9887,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U07_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.86,
+    "peak_g": 4.8,
+    "p": 0.9879,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U08_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.06,
+    "peak_g": 4.929,
+    "p": 0.9884,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U08_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.28,
+    "peak_g": 4.309,
+    "p": 0.9984,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U09_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.76,
+    "peak_g": 5.592,
+    "p": 0.999,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U09_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.56,
+    "peak_g": 5.705,
+    "p": 0.9817,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U10_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.42,
+    "peak_g": 4.41,
+    "p": 0.9887,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U10_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.4,
+    "peak_g": 5.633,
+    "p": 0.9615,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U11_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.36,
+    "peak_g": 4.991,
+    "p": 0.9935,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U11_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.08,
+    "peak_g": 5.051,
+    "p": 0.9625,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U12_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.82,
+    "peak_g": 5.337,
+    "p": 0.9963,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U12_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.58,
+    "peak_g": 5.662,
+    "p": 0.9999,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U12_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 2.98,
+    "peak_g": 5.739,
+    "p": 0.9999,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U13_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.48,
+    "peak_g": 5.584,
+    "p": 0.9982,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U13_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.5,
+    "peak_g": 5.667,
+    "p": 0.9679,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U13_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.38,
+    "peak_g": 5.792,
+    "p": 1.0,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D09/U14_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.58,
+    "peak_g": 4.492,
+    "p": 0.9916,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U04_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.82,
+    "peak_g": 4.642,
+    "p": 0.9947,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U05_R01",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.76,
+    "peak_g": 5.34,
+    "p": 0.9911,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U05_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 3.7,
+    "peak_g": 5.606,
+    "p": 0.9993,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U05_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 4.0,
+    "peak_g": 5.91,
+    "p": 0.9999,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D10/U11_R03",
+    "group": "young",
+    "path": "model",
+    "at_s": 1.86,
+    "peak_g": 3.965,
+    "p": 0.976,
+    "decision_used_padding": false
+   },
+   {
+    "recording": "D11/U02_R02",
+    "group": "young",
+    "path": "model",
+    "at_s": 9.8,
+    "peak_g": 2.907,
+    "p": 0.9571,
+    "decision_used_padding": false
+   }
+  ],
+  "missed_falls_shipped_b": [
+   {
+    "recording": "F01/U13_R01",
+    "max_g_in_fall": 5.62,
+    "best_p_in_fall": 0.9999,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F03/U02_R01",
+    "max_g_in_fall": 4.25,
+    "best_p_in_fall": 0.9988,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F03/U08_R02",
+    "max_g_in_fall": 3.67,
+    "best_p_in_fall": 0.8293,
+    "reason": "the model scored the fall below the threshold"
+   },
+   {
+    "recording": "F03/U12_R03",
+    "max_g_in_fall": 5.54,
+    "best_p_in_fall": 0.7436,
+    "reason": "the model scored the fall below the threshold"
+   },
+   {
+    "recording": "F03/U14_R02",
+    "max_g_in_fall": 5.65,
+    "best_p_in_fall": 0.9981,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F05/U08_R02",
+    "max_g_in_fall": 5.44,
+    "best_p_in_fall": 0.9976,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F06/U02_R01",
+    "max_g_in_fall": 6.2,
+    "best_p_in_fall": 0.9999,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F06/U02_R02",
+    "max_g_in_fall": 4.81,
+    "best_p_in_fall": 0.9998,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F06/U05_R03",
+    "max_g_in_fall": 4.03,
+    "best_p_in_fall": 1.0,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F06/U07_R03",
+    "max_g_in_fall": 4.53,
+    "best_p_in_fall": 0.9999,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F06/U08_R03",
+    "max_g_in_fall": 4.43,
+    "best_p_in_fall": 0.9983,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F06/U13_R01",
+    "max_g_in_fall": 5.72,
+    "best_p_in_fall": 0.9961,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F06/U13_R03",
+    "max_g_in_fall": 6.71,
+    "best_p_in_fall": 0.9993,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F07/U08_R01",
+    "max_g_in_fall": 4.43,
+    "best_p_in_fall": 0.9999,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F07/U08_R03",
+    "max_g_in_fall": 5.56,
+    "best_p_in_fall": 0.9999,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F07/U11_R02",
+    "max_g_in_fall": 5.03,
+    "best_p_in_fall": 0.9962,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F07/U12_R02",
+    "max_g_in_fall": 4.8,
+    "best_p_in_fall": 0.9344,
+    "reason": "the model scored the fall below the threshold"
+   },
+   {
+    "recording": "F08/U02_R01",
+    "max_g_in_fall": 4.6,
+    "best_p_in_fall": 1.0,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F08/U06_R04",
+    "max_g_in_fall": 6.73,
+    "best_p_in_fall": 1.0,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F08/U11_R02",
+    "max_g_in_fall": 4.81,
+    "best_p_in_fall": 1.0,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F08/U13_R01",
+    "max_g_in_fall": 4.13,
+    "best_p_in_fall": 0.9999,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F08/U13_R03",
+    "max_g_in_fall": 5.73,
+    "best_p_in_fall": 1.0,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F08/U13_R04",
+    "max_g_in_fall": 4.35,
+    "best_p_in_fall": 0.9975,
+    "reason": "raised at the fall but ignored: an earlier alarm's countdown was already running"
+   },
+   {
+    "recording": "F08/U14_R03",
+    "max_g_in_fall": 2.19,
+    "best_p_in_fall": 0.7095,
+    "reason": "the model scored the fall below the threshold"
+   }
+  ]
+ },
+ "latency": {
+  "windows": 2000,
+  "threads": 1,
+  "median_ms": 0.0108,
+  "p95_ms": 0.0303,
+  "max_ms": 0.1031,
+  "machine": "x86_64, 4 CPUs shared, Python 3.13.18",
+  "what": "one TFLite invoke on a 200 x 4 window, one thread"
+ },
+ "seconds": 8.3
+}

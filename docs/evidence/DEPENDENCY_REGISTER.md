@@ -18,12 +18,12 @@ every item, and this register must be updated when that list changes.
 | Group | Blocker | Requirements | Cost |
 | --- | --- | --- | --- |
 | A | Physical watches and phones, with device builds | C-5.b, C-12.c, C-13.c, C-17.b, C-19.b, C-21.d, C-23.e, D1.j, D2.i, F4.g, F7.k, J.f, K.h | not estimated |
-| B | A host with KVM virtualisation | D1.i, K.g | not estimated |
+| B | A host with KVM virtualisation | resolved: GitHub's free KVM runner (D1.i verified) | none |
 | C | An AOSP build host (about 400 GB disk, 64 GB RAM) | E2.h, E2.i, E2.l, E2.n, E4.a, E4.b, E4.c, E4.e, E4.f, E6.c | not estimated |
 | D | The target board, its BSP, suppliers, an ODM and funding | E3.f, E4.h, E4.i, E4.j, E6.d, D4.c, F3.d, F3.e, H1–H4.h, H1–H4.i, H1–H4.j | certification estimates only (below) |
 | E | Signing-key custody by the founders | D1b.c, E4.g | none (keys are made on founder-controlled machines) |
-| F | Apple and Google accounts, and a Mac | D2.h, D2.j, D2.k | not estimated |
-| G | Dataset authors' permission | F1.d, F1.e, F1.f, F1.g, F4.f | none expected; not confirmed |
+| F | Apple and Google accounts | D2.j, D2.k | not estimated |
+| G | Dataset authors' permission | F1.d, F1.e, F1.f, F1.g | none expected; not confirmed |
 | H | A GPU session for the conversation fine-tune | F2.e, F2.f, F2.g | Kaggle's free GPU was used before (`docs/MODEL_CHOICE.md`) |
 | I | Older-adult speech data and listeners | F8.c, F8.d, F8.e | not estimated |
 | J | A rented server (owner's approval to spend) | G1.e, G2.f, G4.d | not estimated (prices unreadable, `docs/ops/HOSTING_PROPOSAL.md`) |
@@ -56,17 +56,18 @@ section M.
   `docs/DEVICE_SETUP.md`.
 - **Cost:** not estimated.
 
-## B. A host with KVM virtualisation
+## B. A host with KVM virtualisation (resolved, 26 November 2026)
 
-- **Requirements:** D1.i (watch app on a Wear OS emulator through the care journey), K.g
-  (emulator runs on integrated `main`).
-- **Why external:** the Android emulator needs hardware virtualisation; this build machine has no
-  /dev/kvm (`docs/progress/VERIFICATION.md`).
-- **Software preparation complete:** the apps build and their unit tests pass in CI; the care
-  journey passes against the real API with the browser watch.
-- **Needed:** a Linux host with KVM, or a CI runner that exposes it.
-- **Next action:** owner decision on which host to use.
-- **Cost:** not estimated.
+- **Requirements:** D1.i (watch app on a Wear OS emulator through the care journey) and K.g
+  (emulator runs of both apps on integrated `main`) are now **verified**.
+- **How it was resolved:** GitHub's standard Linux runner exposes KVM, and it is free while the
+  repository is public. `.github/workflows/native-checks.yml` runs the Wear OS journey on every
+  pull request that changes the apps: install, pair, home and Help all pass, and the server records
+  the alert (`docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md`).
+- **Phone app:** the family app's release build reaches its sign-in screen on an Android 14
+  emulator in the same checks (`docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md`). Both run on
+  pull requests merged into `main`, so K.g is verified too.
+- **Cost:** none while the repository is public.
 
 ## C. An AOSP build host
 
@@ -129,8 +130,9 @@ section M.
 
 ## F. Apple and Google accounts, and a Mac
 
-- **Requirements:** D2.h (iOS build of the phone app: macOS with Apple signing), D2.j (Google Play
-  listing), D2.k (App Store listing).
+- **Requirements:** D2.j (Google Play listing), D2.k (App Store listing). D2.h, the iOS build, is
+  no longer blocked: the unsigned simulator build compiles on GitHub's free macOS runner
+  (`docs/evidence/builds/IOS_SIMULATOR.md`); a signed device build still needs the Apple account.
 - **Why external:** store submission needs developer accounts in the company's name; an iOS build
   needs macOS and Apple signing.
 - **Software preparation complete:** the store listings are drafted (`docs/store/FAMILY_APP_LISTING.md`,
@@ -142,8 +144,9 @@ section M.
 ## G. Dataset authors' permission
 
 - **Requirements:** F1.d (KFall), F1.e (FallAllD), F1.f (SisFall terms, or the owner accepts the
-  risk), F1.g (UMAFall: CC BY 4.0 against a CC BY-NC record), F4.f (cross-dataset fall evaluation,
-  which needs a second licensed wrist fall dataset).
+  risk), F1.g (UMAFall: CC BY 4.0 against a CC BY-NC record). F4.f (cross-dataset fall
+  evaluation) no longer waits here: on 26 November 2026 it was done on WEDA-FALL, whose author
+  added an ODC-By 1.0 licence (`docs/ai/fall/CROSS_DATASET_WEDA.md`).
 - **Why external:** only the authors can grant or clarify their terms.
 - **Software preparation complete:** four request drafts (`docs/legal/dataset_permission_requests/README.md`
   and the files beside it); the shipped fall model uses only CC BY 4.0 data (D-080); SisFall is in
@@ -253,7 +256,7 @@ section M.
 | O3 | Create the signing keys | Not created (group E) | Founders, per `docs/security/SIGNING_KEYS.md` |
 | O4 | Mozilla Data Collective account | Not opened (group I) | Owner |
 | O5 | Apple and Google developer accounts; a Mac | Not opened (group F) | Owner |
-| O6 | AOSP build host; KVM host | None (groups B and C) | Owner |
+| O6 | AOSP build host (the KVM host for emulators is resolved) | None (group C) | Owner |
 | O7 | Test devices; ODM | None (groups A and D) | Owner, after funding for the ODM |
 | O8 | Provider credentials; monitoring-centre contract | None (group K) | Owner |
 | O9 | Penetration tester; Clinical Safety Officer; MHRA adviser; DPO and the ICO check | None engaged (group L) | Owner |

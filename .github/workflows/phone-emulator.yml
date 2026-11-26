@@ -1,0 +1,95 @@
+# Family phone app smoke on an Android phone emulator. Manual, or called by native-checks.yml.
+#
+# Runs only by hand (workflow_dispatch) or when native-checks.yml calls it (workflow_call) on a
+# pull request that changes the apps; tests/readiness/test_manual_workflows.py fails if any other
+# trigger is added. Standard runners are free while the repository is public.
+#
+# What it does, on a standard ubuntu-latest runner:
+#   1. enables /dev/kvm for the runner user (the documented udev rule);
+#   2. builds the family app's release APK as the tests workflow does, but for x86_64 (the
+#      emulator's ABI) instead of arm64-v8a; it is debug-signed and bundles its JavaScript;
+#   3. boots an Android 14 (API 34) phone emulator and runs scripts/emulator/phone_smoke.py:
+#      install, launch, the sign-in screen, and no crash of the app in the crash buffer;
+#   4. uploads screenshots, the UI dump, logcat and results.json as an artifact.
+# Release builds refuse plain HTTP, so this does not sign in to a local server.
+name: phone emulator (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_level:
+        description: "Android system image API level"
+        type: choice
+        options: ["34", "33"]
+        default: "34"
+  workflow_call:
+    inputs:
+      api_level:
+        type: string
+        default: "34"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phone-emulator-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  phone-emulator:
+    name: Family app on an Android phone emulator
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Enable KVM for the runner user
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
+
+      - name: Build the family app release APK for x86_64 (debug signing)
+        working-directory: mobile
+        run: |
+          npm ci --no-audit --no-fund
+          npx expo prebuild --platform android --no-install
+          (cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon --console=plain)
+          ls -l android/app/build/outputs/apk/release/
+
+      - name: Boot a phone emulator and run the smoke
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: ${{ inputs.api_level || '34' }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          force-avd-creation: true
+          disable-animations: true
+          emulator-boot-timeout: 900
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: python3 scripts/emulator/phone_smoke.py --apk mobile/android/app/build/outputs/apk/release/app-release.apk --out build/phone-smoke
+
+      - name: Upload screenshots, UI dump, logcat and results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: phone-emulator-smoke-api${{ inputs.api_level || '34' }}
+          path: build/phone-smoke/
+          if-no-files-found: warn
+          retention-days: 14
