@@ -42,7 +42,8 @@ class CheckinController(
         /** `choice` is a reminder's button ("done", "later", "skip"); null for words or "I'm OK". */
         data class ReportAnswer(val checkinId: String, val text: String, val via: String, val choice: String? = null) : Action()
         data class ReportMissed(val checkinId: String) : Action()
-        data class RequestHelp(val via: String) : Action()
+        /** `incidentId` is set when the request is a fall countdown's (D-092). */
+        data class RequestHelp(val via: String, val incidentId: String? = null) : Action()
         object Nothing : Action()
     }
 

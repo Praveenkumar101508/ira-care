@@ -2521,6 +2521,18 @@
     {
      "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_fall_db.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_fall_overlap_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/checkin/FallCountdownOverlapTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/checkin/FallCountdownIncidentTest.kt"
     }
    ]
   },

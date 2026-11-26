@@ -35,7 +35,7 @@ test named in the Code and Tests columns is checked to exist by
 | H1 | A person in trouble is not noticed | No question asked; the watch off, flat or out of signal; quiet hours | Delayed help | Check-ins every 15 to 20 minutes outside quiet hours; a notice when the watch has not synced, is off the wrist, or is low; "no movement by wake time" morning check; off-wrist at night is a notice; the watch keeps an offline queue and retries | `care/checkin_cycle.py`, `care/monitoring.py`, `watch/.../OfflineQueue.kt` | `tests/tenancy/test_care_checkins_db.py`, `test_care_continuous_db.py::test_the_morning_check_runs_when_nothing_has_moved_by_wake_time`, `test_care_escalation_db.py`, `watch/.../OfflineQueueTest.kt` | Possible/considerable: a watch that is off cannot notice; the product says so (DEVICE_SETUP, store text) |
 | H2 | A person does not answer and is not moving, and nobody is told | The sensor check or the escalation fails | Delayed help | After a miss the watch syncs a snapshot; the pass opens an SOS when movement is at or below the floor; tiers 1, 2, 3 with retries and acknowledgement; the last tier says "call 999 now" | `care/monitoring.py::evaluate_missed_checkin`, `care/escalation.py` | `test_care_escalation_db.py`, `scripts/simulate_patient.py` (stops-answering), `scripts/soak_24h.py` (20 of 20 silent people escalated) | Unlikely/major |
 | H3 | A heart rate outside the carer's range is missed or acted on wrongly | One noisy reading; a range nobody set | Delayed help, or alarm fatigue | Readings checked on arrival; two in a row over two minutes; no built-in range; "ask first" before an SOS; the server keeps the deadline | `care/continuous.py`, `care/askfirst.py`, `care/repository.py::evaluate_arrivals` | `tests/care/test_care_continuous_rules.py`, `test_care_continuous_db.py` (asks first, silence becomes an SOS, I'm OK resolves) | Possible/significant: the range is the carer's judgement |
-| H4 | A fall is not detected, or detected when there was none | The heuristic's limits; the watch off the wrist | Delayed help; alarm fatigue | Impact then stillness; off-wrist suppresses; a 30 s countdown that asks first; the server's own deadline; a per-person off switch; the maker's own detection recommended as a second layer; accuracy stated as unmeasured | `watch/.../FallDetector.kt`, `FallCountdown.kt`, `care/falls.py` | `FallDetectorTest.kt` (synthetic set, counts in STATUS.md), `FallCountdownTest.kt`, `test_care_fall_db.py`; cross-dataset test of the shipped pipeline on WEDA-FALL, `docs/ai/fall/CROSS_DATASET_WEDA.md` | Possible/considerable: real-world accuracy unmeasured; the product says so. On WEDA-FALL (26 November 2026, another wrist device, nothing retuned): 326 of 350 young volunteers' mattress falls caught; older adults' everyday hand impacts raised the countdown in about a third of table-hit and clapping recordings (alarm fatigue); in 20 falls an earlier alarm's countdown was running and the fall's own detection was dropped. Both are open findings for the clinical reviewer, not yet acted on |
+| H4 | A fall is not detected, or detected when there was none | The heuristic's limits; the watch off the wrist; a fall detected while an earlier alarm's countdown runs | Delayed help; alarm fatigue | Impact then stillness; off-wrist suppresses; a 30 s countdown that asks first; the server's own deadline; a per-person off switch; the maker's own detection recommended as a second layer; accuracy stated as unmeasured; a detection during a countdown is never dropped: the same impact is absorbed, a separate one is attached to the incident without moving its deadline, and an "I'm OK" given after it asks again with a fresh countdown (D-092); at most one fall SOS per person, events keyed by incident and sent in order | `watch/.../FallDetector.kt`, `FallCountdown.kt`, `watch/.../FallOutbox.kt`, `watch/.../Outbox.kt`, `care/falls.py` | `FallDetectorTest.kt` (synthetic set, counts in STATUS.md), `FallCountdownTest.kt`, `FallCountdownOverlapTest.kt`, `FallCountdownIncidentTest.kt`, `test_care_fall_db.py`, `test_care_fall_overlap_db.py`; cross-dataset test of the shipped pipeline on WEDA-FALL, `docs/ai/fall/CROSS_DATASET_WEDA.md` | Possible/considerable: real-world accuracy unmeasured; the product says so. On WEDA-FALL (26 November 2026, another wrist device, nothing retuned): 326 of 350 young volunteers' mattress falls caught; in 20 of the 24 misses an earlier alarm's countdown was running and the fall's own detection was dropped, which D-092 fixes (synthetic regression tests; the WEDA-FALL figures predate the fix and are not re-run until its licence is confirmed); older adults' everyday hand impacts raised the countdown in about a third of table-hit and clapping recordings (alarm fatigue), still open, analysed below for the clinical reviewer with no threshold changed |
 | H5 | The system stops silently | The worker dies; the database or Redis is down | Nobody is told that nobody is being told | Heartbeats per pass; `/health/jobs`; the dashboard's "monitoring paused" banner; an operations message; container health checks and restarts | `care/ops.py`, `care/server.py`, `deploy/docker-compose.yml` | `test_care_continuous_db.py::test_the_operations_check_notices_when_the_jobs_stop`, `dashboard topbar.test.tsx` | Unlikely/significant |
 | H6 | Responders go to the wrong place | No location; a stale fix; a guess | Delayed help | Location sent once at the SOS; "unavailable" said plainly; at-home decided from the carer's coordinates with the fix's accuracy; the address in every message | `care/location.py` | `tests/care/test_care_location_rules.py`, `test_care_location_db.py` | Unlikely/significant |
 | H7 | The companion gives medical advice or a diagnosis | A language model reply | Wrong action by the person | Every reply through a guard (no diagnosis words, no advice, bounded); a reply that tells the person what they have is refused: any "you have" followed by a health word, any hedged or inferred one ("you may have", "sounds like you have", "I think you've got") unless what follows is plainly social, and any plain "you have" not in a wish, a question or a plainly social sentence (round 7: "I hope you have a peaceful evening" now passes; hedged diagnoses the earlier rule let through, such as "you may have a urine infection", are now refused); advice requests answered with a refusal that offers the carer; templates as fallback; the keyword rules' safety signals can never be downgraded by the model | `care/conversation.py::guard`, `care/conversation.py::_tells_them_what_they_have`, `merge` | `tests/care/test_care_conversation_rules.py`, `tests/care/test_care_advice_guard_corpus.py` (labelled corpus: 44 must-refuse, 33 must-allow, 4 harmless sentences refused by design), `test_care_conversation_db.py` | Unlikely/significant: open-ended language; a health word missing from the list is still refused unless the sentence is social in shape |
@@ -52,6 +52,82 @@ test named in the Code and Tests columns is checked to exist by
 | H18 | The watch stores sensitive data unencrypted, or loses a Help request, when its key fails | A Keystore failure on the device | Loss of privacy; delayed help | No plain-text fallback for sensitive data; a Help event is still queued, stripped of location and words; readings held in memory | `watch/.../SecureFiles.kt`, `watch/.../Outbox.kt`, `watch/.../OfflineQueue.kt` | `DegradedStorageTest.kt` | Unlikely/significant: a genuinely broken Keystore untested on a device (REMEDIATION D9) |
 | H19 | Demonstration pages, or a demonstration model, reach people in production | Demo routes in a production build; a model trained on data whose rights are unconfirmed in any build | Confusion with real alerts; unlicensed use | Demo, presenter and simulator pages answer 404 unless the build opts in; the SisFall-trained fall model is in no build of any kind, and the watch refuses any fall model but the reviewed v3 (D-077, D-082) | `dashboard/src/middleware.ts`, `dashboard/src/lib/demoPages.ts` | `demo_pages.test.ts`, `FallModelReleaseTest.kt`, `test_dataset_register.py` | Rare/significant (REMEDIATION B6, F3) |
 | H20 | A screen says "All well" when the system cannot vouch for it | Monitoring paused, messages failing, a stale page, or a watch offline | False reassurance; delayed help | The person page says "Cannot confirm all is well" with the reason when monitoring is paused, alert messages are queued too long or failed in the last hour, or the page could not refresh; an unknown health counts as not vouched for; both watch faces say "No connection" instead of "All well" when offline; Help, a fall and a question still come first | `care/ops.py::delivery_health`, `dashboard/src/lib/view.ts`, `dashboard/src/lib/face.ts`, `watch/.../FaceText.kt` | `test_care_delivery_db.py::test_ops_says_when_alert_messages_are_not_getting_out`, `view.test.ts`, `face.test.ts`, `person_live.test.tsx`, `FaceTextTest.kt` | Unlikely/significant (REMEDIATION F4) |
+
+### H4 in detail: the countdown overlap (fixed) and hand-impact false alarms (open)
+
+**The countdown overlap (D-092, fixed 26 November 2026).** Before the fix the watch ignored any
+fall detection while a countdown ran, and the server refused a second fall start. On WEDA-FALL
+that lost 20 of 24 missed falls: a movement 1.4 to 5.2 s before the fall raised the countdown, and
+the fall's own detection (model probability 0.996 to 1.000) was dropped. Had the person answered
+"I'm OK" to the first prompt, the fall would have had no countdown and no escalation. Now:
+
+| Situation | What happens |
+| --- | --- |
+| The same impact detected twice (within 1.5 s) | Counted on the incident; nothing else |
+| A separate detection while nobody has answered | Attached to the incident (the server records it); the wrist asks again; the deadline stays where it was, and with no answer help is asked for then |
+| "I'm OK" after a separate detection | The first incident is reported OK; the person is asked again at once, with a fresh countdown |
+| An unclear answer ("maybe", "not sure", "yes but I can't stand") | Nothing cancelled; the deadline stands |
+| Help | The SOS at once |
+| Offline, retries, two drains, concurrent requests | Events keyed by incident, sent in order, held once; at most one fall SOS per person on the server |
+
+Shown on synthetic signals and requests only (no dataset): `FallCountdownOverlapTest.kt` replays
+a 2.3 g stumble followed 3 s later by a 4.8 g fall through the shipped detector logic with a fake
+model, taps "I'm OK" seven seconds after the fall, and checks the fall is asked about again and
+escalates when that second question goes unanswered; it fails on the code before the fix. The
+server tests (`test_care_fall_overlap_db.py`) all fail on the server before the fix.
+
+**Hand-impact false alarms (open; analysis only, nothing changed).** On WEDA-FALL, older adults'
+recordings raised the countdown on 25 of 157 (52.9 per hour of those dense recordings, all from
+the model path), most of them hitting a table (11 of 31 recordings) and clapping (10 of 32). From
+the code:
+
+- The rule path cannot raise these on its own: it needs 20 s of stillness after the impact, and
+  a person who hits a table or claps goes on moving. Every one of those alarms came from the model
+  path (rule (a): 0 alarms on those recordings).
+- On the model path a candidate is any sample at or above 2.0 g. The only gate after it is the
+  model's score of the 4 s window around the peak (2 s after it). Nothing else is checked: not a
+  low-g phase before the impact, not a change of wrist orientation, not stillness after it. A
+  sharp hand impact reaches 4 to 6 g at the wrist, as a fall does.
+- The model was trained on randomly rotated windows of BITS-2 and UCI HAR, which contain no table
+  hits or clapping. It sees only 2 s after the peak.
+- A clapping bout is several candidates in a row. Before D-092 the countdown swallowed the later
+  ones. After D-092 they are attached to the same incident, so a person who answers "I'm OK" while
+  still clapping is asked once more. On synthetic signals, with a model that flags every window
+  (the worst case), an 8 s bout of claps gives three model decisions: one countdown, two
+  attached; at most one more question per OK.
+
+Synthetic signals (made up for this analysis, no dataset; worst-case model) show the features
+that separate a fall from a hand impact in principle, not how well they would work on people:
+
+| Synthetic signal | Lowest magnitude in the second before the impact | Wrist orientation change, before vs 1 to 3 s after | Samples at or above 2 g |
+| --- | --- | --- | --- |
+| One table hit | 0.95 g | 1° | 2 |
+| Three table hits | 0.94 g | 0° | 5 |
+| Clapping, 8 s at 2 per second | 0.93 g | 4° | 16 |
+| Clapping, 8 s at 4 per second | 0.94 g | 6° | 32 |
+| A fall (free fall, 4.5 g impact, lying) | 0.25 g | 90° | 2 |
+
+Candidate mitigations for the clinical reviewer, all to be measured before any is adopted, none
+implemented, and none a threshold change:
+
+1. **Post-impact orientation and stillness, as the rules already use.** Confirm a model alarm only
+   when the wrist's gravity direction has changed, or the person has stayed fairly still for a
+   few seconds after the impact (the rule detector's stillness test over a shorter window). Risk:
+   falls where the person moves straight away, which the model path exists to catch.
+2. **Multi-window confirmation.** Score two or three windows shifted by 0.5 to 1 s around the
+   peak and require agreement. Risk: a slower alarm and some lost falls; needs a held-out
+   evaluation on licensed data.
+3. **A pre-impact low-g phase as supporting evidence.** Most falls from standing show a short free
+   fall; a hand impact does not. Risk: falls from sitting or a slump show little free fall.
+4. **Repetition.** Several impacts at or above 2 g within a few seconds with the wrist upright
+   (clapping) as evidence against a fall. Risk: a fall after a stumble also has two impacts, which
+   is exactly the case D-092 fixed.
+5. **Better training data.** Older adults' hand impacts as negatives, from a dataset whose licence
+   allows it. WEDA-FALL is not used for this until its licence is confirmed.
+
+Each needs a decision on how many missed falls are acceptable for fewer false alarms. That is the
+clinical reviewer's and the owner's decision, not a retune on a test set. Until then the
+countdown, which asks first, is the control for false alarms.
 
 ## 5. Test evidence
 

@@ -70,7 +70,10 @@ class Syncer(private val deps: CareDependencies) {
      * answer from the server (success or a refusal such as 404 or 409: the server
      * remembers refusals under the key too). It stays, with a longer wait, when
      * the server could not be reached. Returns false when the link is down.
+     * One drain at a time (the service and this worker both drain): two at once could send the
+     * same event twice in parallel or one event ahead of an older one (D-092).
      */
+    @Synchronized
     fun drainOutbox(): Boolean {
         for (event in deps.outbox.due()) {
             when (val out = deps.api.sendUrgent(event.path, event.body, event.idempotencyKey)) {

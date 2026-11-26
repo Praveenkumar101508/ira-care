@@ -22,6 +22,10 @@ CONSENT_KINDS = ("transcripts_family", "transcripts_carer", "transcripts_organis
 PLATFORMS = ("wearos", "watchos", "other")
 
 
+#: A watch fall incident's id (D-092): a UUID in practice; letters, digits and hyphens accepted.
+INCIDENT_ID = r"^[A-Za-z0-9-]{8,64}$"
+
+
 class HomeFields(BaseModel):
     """Where responders go, and what they need to know on arrival. Free text the
     carer controls; no fields of our own for conditions. `access_notes` is
@@ -281,6 +285,8 @@ class HelpRequest(BaseModel):
     via: str = Field("button", pattern=r"^(button|voice|fall)$")
     note: str = Field("", max_length=400)
     location: Optional[LocationFix] = None
+    #: The fall incident, when the request is a fall countdown's (D-092).
+    incident_id: Optional[str] = Field(None, pattern=INCIDENT_ID)
 
 
 class PushRegistration(BaseModel):
@@ -339,9 +345,17 @@ class Talk(BaseModel):
 
 
 class FallStart(BaseModel):
-    """The watch's fall detector fired and its countdown has started."""
+    """The watch's fall detector fired: the countdown has started (detection 1), or a later
+    detection of the same incident is attached to it (detection 2, 3 ...; D-092)."""
     peak_g: Optional[float] = Field(None, ge=0, le=50)
     still_seconds: Optional[int] = Field(None, ge=0, le=600)
+    incident_id: Optional[str] = Field(None, pattern=INCIDENT_ID)
+    detection: Optional[int] = Field(None, ge=1, le=10000)
+
+
+class FallOk(BaseModel):
+    """"I'm OK" during a fall countdown, for one incident (D-092). Empty from older watches."""
+    incident_id: Optional[str] = Field(None, pattern=INCIDENT_ID)
 
 
 class Acknowledge(BaseModel):
