@@ -2205,7 +2205,7 @@
    "evidence": [
     {
      "kind": "docs_only",
-     "ref": "docs/legal/dataset_permission_requests/KFALL.md"
+     "ref": "docs/legal/KFALL_PERMISSION_REQUEST_2026-11-26.md"
     }
    ],
    "blocked_by": "the KFall authors"
@@ -2250,7 +2250,7 @@
    "evidence": [
     {
      "kind": "docs_only",
-     "ref": "docs/legal/dataset_permission_requests/UMAFALL.md"
+     "ref": "docs/legal/UMAFALL_PERMISSION_REQUEST_2026-11-26.md"
     }
    ],
    "blocked_by": "the UMAFall authors"

@@ -1,6 +1,11 @@
-# Request to use the KFall dataset in a commercial care product (draft)
+# Request to use the KFall dataset in a commercial care product (sent)
 
-**Draft, not sent.** For the founders to review, complete and send.
+**Sent on 26 November 2026 at about 13:45 UTC** from the founders' Gmail account, at the founders'
+instruction, to the corresponding author at the KAIST address printed in the 2021 paper. **Awaiting a reply.** This record is kept outside
+`dataset_permission_requests/`, which holds only unsent drafts. The message as sent is the one in
+the founders' Gmail; the request below is its text. When a reply arrives, record it in
+`docs/DATASETS.md` (licence, date, who confirmed, any conditions) and keep the reply itself with the
+company's legal records, not in this repository.
 
 ## How to reach them
 
