@@ -52,3 +52,17 @@ runs the job on GitHub's standard macOS runner; the result is to be added here. 
 does not do yet: sign in against a backend (a PostgreSQL and Redis on the macOS runner, as the
 Android job has, is the next step), and nothing about a physical iPhone or signed distribution,
 which stay blocked on an Apple developer account (D2.i, D2.k).
+
+### First launch in the simulator (run 45910155640, 26 November 2026, 23:38 UTC)
+
+On GitHub's macOS 15 runner: the Debug build with its JavaScript bundled compiled (18 minutes), an
+iPhone SE (3rd generation) on iOS 26.2 booted in 123 s, `IRACARE.app` installed (138 s) and
+launched, **the process was still running after 97 s and no crash report appeared**: the native
+app and its bundled JavaScript start in the simulator. The `sign_in_screen_shown` step failed
+because the probe's console line never reached the attached console (one line in 90 s): the
+console of an app started with `simctl launch --console-pty` is not a dependable channel. The
+probe now also posts each record to a listener the journey script runs on the host's loopback
+(`mobile/src/journeyProbe.ts` `PROBE_URL`, development bundles only; a release bundle posts
+nothing, pinned by a test), and the script reads that first. The next run is the proof for the
+sign-in step.
+

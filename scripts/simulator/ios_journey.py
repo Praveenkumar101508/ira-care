@@ -26,10 +26,56 @@ import json
 import select
 import subprocess
 import sys
+import threading
 import time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 PROBE_PREFIX = "ira-journey "
+#: Where the development build posts each probe record (mobile/src/journeyProbe.ts PROBE_URL): the
+#: simulator shares the host's loopback. The console of a launched app is not always attached
+#: (run 45910155640: one console line in 90 s while the app ran), so the listener is the channel
+#: that counts; the console is kept as a second one.
+PROBE_PORT = 8777
+
+
+class ProbeListener:
+    """Collects the JSON bodies the app posts to http://127.0.0.1:PROBE_PORT/journey."""
+
+    def __init__(self, port: int = PROBE_PORT):
+        self.records: list[dict] = []
+        listener = self
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):  # noqa: N802 - the http.server contract
+                n = int(self.headers.get("Content-Length") or 0)
+                body = self.rfile.read(n).decode("utf-8", errors="replace")
+                listener.accept(body)
+                self.send_response(204)
+                self.end_headers()
+
+            def log_message(self, *_):   # quiet
+                return
+
+        self.server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+
+    def accept(self, body: str) -> None:
+        try:
+            self.records.append(json.loads(body))
+        except json.JSONDecodeError:
+            pass
+
+    def start(self):
+        self.thread.start()
+        return self
+
+    def stop(self) -> None:
+        self.server.shutdown()
+        self.server.server_close()
+
+    def screens(self) -> list[str]:
+        return [r.get("screen", "") for r in self.records]
 
 
 def pick_device(simctl_list_json: str, wanted: str | None = None) -> dict | None:
@@ -125,11 +171,12 @@ class Journey:
             return self.finish()
 
         t0 = time.time()
+        listener = ProbeListener(a.probe_port).start()
         # --console-pty attaches the app's stdout and stderr (where the development bundle's
         # console.log arrives) until the process ends or we stop reading.
         proc = subprocess.Popen(["xcrun", "simctl", "launch", "--console-pty", udid, a.bundle_id],
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        self.step("launched", True, t0, bundle_id=a.bundle_id)
+        self.step("launched", True, t0, bundle_id=a.bundle_id, probe_listener=f"127.0.0.1:{a.probe_port}")
 
         t0 = time.time()
         console_path = self.out / "console.txt"
@@ -141,17 +188,18 @@ class Journey:
                 line = proc.stdout.readline()
                 if line:
                     collected.append(line)
-                    if "sign-in" in screens(line) and time.time() - t0 < a.seconds - 10:
-                        deadline = min(deadline, time.time() + 10)   # ten more seconds after the screen
+            if "sign-in" in listener.screens() + screens("".join(collected)) and time.time() - t0 < a.seconds - 10:
+                deadline = min(deadline, time.time() + 10)   # ten more seconds after the screen
             if proc.poll() is not None:
                 break
         console = "".join(collected)
         console_path.write_text(console)
+        (self.out / "probe_posts.jsonl").write_text("".join(json.dumps(r) + "\n" for r in listener.records))
         shot = self.out / "01_launched.png"
         run(["xcrun", "simctl", "io", udid, "screenshot", str(shot)])
-        seen = screens(console)
+        seen = listener.screens() or screens(console)
         self.step("sign_in_screen_shown", "sign-in" in seen, t0, screens=seen[:10], screenshot=shot.name,
-                  console_lines=len(collected))
+                  console_lines=len(collected), probe_posts=len(listener.records))
 
         t0 = time.time()
         alive = proc.poll() is None
@@ -159,6 +207,7 @@ class Journey:
         self.step("still_running", alive or pids > 0, t0, console_attached=alive, launchctl_entries=pids)
         if alive:
             proc.terminate()
+        listener.stop()
 
         t0 = time.time()
         log = run(["xcrun", "simctl", "spawn", udid, "log", "show", "--last", "5m", "--style", "compact",
@@ -177,6 +226,7 @@ def main(argv=None) -> int:
     ap.add_argument("--device", default=None, help="simulator name, e.g. 'iPhone 16' (default: a booted or the newest iPhone)")
     ap.add_argument("--bundle-id", default="care.ira.family")
     ap.add_argument("--seconds", type=int, default=60, help="how long to read the console for the sign-in screen")
+    ap.add_argument("--probe-port", type=int, default=PROBE_PORT, help="the loopback port the app posts its probe to")
     return Journey(ap.parse_args(argv)).main()
 
 

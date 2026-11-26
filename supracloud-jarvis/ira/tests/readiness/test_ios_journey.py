@@ -74,3 +74,19 @@ def test_only_new_crash_reports_naming_the_app_count(journey):
     after = before | {"IRACARE-2026-11-26-231005.ips", "Mail-2026-11-26-231006.ips"}
     assert journey.new_crash_reports(before, after, "IRACARE") == ["IRACARE-2026-11-26-231005.ips"]
     assert journey.new_crash_reports(before, before, "IRACARE") == []
+
+
+def test_the_probe_listener_collects_what_the_app_posts_and_ignores_junk(journey):
+    import urllib.request
+
+    listener = journey.ProbeListener(port=0).start()
+    port = listener.server.server_address[1]
+    try:
+        for body in (b'{"screen": "sign-in", "signedIn": false}', b"not json", b'{"screen": "home", "signedIn": true}'):
+            req = urllib.request.Request(f"http://127.0.0.1:{port}/journey", data=body, method="POST",
+                                         headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=5) as r:  # noqa: S310 - loopback
+                assert r.status == 204
+        assert listener.screens() == ["sign-in", "home"]
+    finally:
+        listener.stop()
