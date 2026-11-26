@@ -154,11 +154,6 @@ jobs:
       IRA_REQUIRE_DB_HARNESS: "1"
       # Database 9 of the service above; each test clears what it writes.
       IRA_TEST_REDIS_URL: redis://localhost:6379/9
-      # The passwords of the three provisioned roles, for the tests that connect by role
-      # name alone (postgresql://ira_migrator@...): tests/runtime/test_migration_runner_separation.py
-      # and tests/tenancy/test_rls_by_role.py. The service authenticates every TCP connection
-      # with a password, so without this file those tests skipped with "cannot connect as".
-      PGPASSFILE: ${{ runner.temp }}/pgpass
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -187,11 +182,17 @@ jobs:
             -c "SELECT pg_reload_conf()"
       - name: Apply the migration chain as ira_migrator
         run: python -m scripts.migrate apply --dsn postgresql://ira_migrator:ira_migrator@localhost:5432/iratest
+      # The passwords of the three provisioned roles, for the tests that connect by role name
+      # alone (postgresql://ira_migrator@...): tests/runtime/test_migration_runner_separation.py and
+      # tests/tenancy/test_rls_by_role.py. The service authenticates every TCP connection with a
+      # password, so without this file those tests skipped with "cannot connect as". It goes to
+      # libpq's and asyncpg's default place, ~/.pgpass (the `runner` context is not allowed in a
+      # job's env, so no PGPASSFILE variable).
       - name: Role passwords for the tests that connect by role name
         run: |
           printf '%s\n' 'localhost:5432:*:ira_app:ira_app' 'localhost:5432:*:ira_worker:ira_worker' \
-            'localhost:5432:*:ira_migrator:ira_migrator' > "$PGPASSFILE"
-          chmod 600 "$PGPASSFILE"
+            'localhost:5432:*:ira_migrator:ira_migrator' > "$HOME/.pgpass"
+          chmod 600 "$HOME/.pgpass"
       - name: Applied migrations are unchanged
         run: python -m scripts.check_migration_integrity
       - name: Run the database suites

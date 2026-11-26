@@ -64,6 +64,17 @@ def test_accessibility_checks_on_a_recorded_home_dump(smoke):
     # A text field is labelled by the hint beside it, so it is not an unlabelled clickable.
     field = '<node text="" content-desc="" class="android.widget.EditText" package="%s" clickable="true" bounds="[20,200][434,240]"/>' % PKG
     assert smoke.unlabelled_clickables(smoke.parse_nodes(field)) == []
+    # Compose: a clickable card with its words on a child is labelled (a screen reader reads the
+    # child); the same card with a wordless child is not. Run 45905347211 flagged every card.
+    card = ('<hierarchy><node text="" content-desc="" class="android.view.View" package="%s" clickable="true" bounds="[20,78][434,174]">'
+            '<node text="%%s" content-desc="" class="android.widget.TextView" package="%s" clickable="false" bounds="[30,90][420,160]"/>'
+            '</node></hierarchy>') % (PKG, PKG)
+    assert smoke.unlabelled_clickables_xml(card % "Talk to IRA", PKG) == []
+    assert [n["bounds"] for n in smoke.unlabelled_clickables_xml(card % "", PKG)] == ["[20,78][434,174]"]
+    assert smoke.unlabelled_clickables_xml("<not xml", PKG) == []
+    # The size rule is about buttons: a wordless clickable row 18 px high is not one.
+    row = '<node text="" content-desc="" class="android.view.View" package="%s" clickable="true" bounds="[20,368][434,386]"/>' % PKG
+    assert smoke.small_targets(smoke.parse_nodes(row), 88) == []
 
 
 def test_touch_target_threshold_is_the_projects_44_dp_with_a_48_px_floor(smoke):

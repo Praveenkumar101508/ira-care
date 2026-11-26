@@ -215,23 +215,51 @@ def bounds_of(node: dict) -> tuple[int, int, int, int] | None:
     return tuple(map(int, found[:4])) if len(found) == 4 else None
 
 
+def _labelled(attrs: dict) -> bool:
+    return bool(attrs.get("text", "").strip() or attrs.get("content-desc", "").strip())
+
+
 def unlabelled_clickables(nodes: list[dict]) -> list[dict]:
     """Clickable nodes with neither text nor a content description: a screen reader would say
-    nothing for them. A text field is excluded: its label is the hint beside it."""
+    nothing for them. A text field is excluded: its label is the hint beside it. Flat form, for
+    callers without the XML; `unlabelled_clickables_xml` also accepts a label on a child."""
     out = []
     for n in nodes:
         if n.get("clickable") != "true" or n.get("class") == "android.widget.EditText":
             continue
-        if not n.get("text", "").strip() and not n.get("content-desc", "").strip():
+        if not _labelled(n):
             out.append({k: n.get(k) for k in ("class", "bounds", "resource-id")})
     return out
 
 
+def unlabelled_clickables_xml(xml: str, package: str) -> list[dict]:
+    """The app's clickable nodes that neither carry a label nor contain one. Compose puts a card's
+    or a row's `clickable` on the container and its words on a child node; a screen reader reads
+    the child, so such a container is labelled (run 45905347211 flagged every card this way)."""
+    import xml.etree.ElementTree as ET
+
+    out = []
+    try:
+        root = ET.fromstring(xml)
+    except ET.ParseError:
+        return out
+    for el in root.iter("node"):
+        a = el.attrib
+        if a.get("package") != package or a.get("clickable") != "true" or a.get("class") == "android.widget.EditText":
+            continue
+        if _labelled(a) or any(_labelled(child.attrib) for child in el.iter("node") if child is not el):
+            continue
+        out.append({k: a.get(k) for k in ("class", "bounds", "resource-id")})
+    return out
+
+
 def small_targets(nodes: list[dict], min_px: int) -> list[dict]:
-    """Clickable nodes narrower or shorter than `min_px` on screen."""
+    """Labelled clickable nodes (the buttons) narrower or shorter than `min_px` on screen. The
+    project's rule (AccessibilityTest) is about buttons; a clickable row or card whose words are
+    on a child is not a button and its height is its content's."""
     out = []
     for n in nodes:
-        if n.get("clickable") != "true":
+        if n.get("clickable") != "true" or not _labelled(n):
             continue
         b = bounds_of(n)
         if b is None:
@@ -381,6 +409,16 @@ class AdbWrist:
             n = find(nodes, text=label) or find(nodes, desc_prefix=label)
             if n is not None:
                 target = clickable_ancestor(self.s.last_xml, n) or n
+                # The face can change between the dump and the tap (a question answered, an SOS
+                # state arriving): look once more, and only tap a label that is still there, in
+                # the same place, so a tap meant for Done never lands on Help.
+                again = self.s.dump()
+                n2 = find(again, text=label) or find(again, desc_prefix=label)
+                if n2 is None:
+                    return None
+                target2 = clickable_ancestor(self.s.last_xml, n2) or n2
+                if target2.get("bounds") != target.get("bounds"):
+                    target = target2
                 self.s.adb("shell", "input", "tap", *map(str, centre(target)))
                 return label
         return None
@@ -1044,8 +1082,28 @@ class Smoke:
 
     # ── The extended groups ──────────────────────────────────────────────────
 
+    def quiet_face(self, label: str) -> None:
+        """Every open SOS for the person is resolved by the coordinator, and the wrist is given
+        until --sos-idle-timeout to show neither an active nor a closed SOS: the face shows a closed
+        SOS for ten minutes (care/sos.py `current`), and while it does the reminder buttons and the
+        Unpair button are not offered (run 45905347211: the core Help left the face in that state
+        through the medication and check-in groups)."""
+        t0 = time.time()
+        resolved = []
+        for al in self.person_alerts():
+            if al.get("status") not in ("resolved",) and al.get("kind") in ("help_requested", "suspected_fall"):
+                self.resolve(al["id"])
+                resolved.append(al["id"])
+        quiet_words = (HELP_RECEIVED, "This is now resolved.", "is on the way", "has arrived", "Did you fall")
+        quiet = self.wait_until(lambda: (not any(q in t for t in self.wrist.visible() for q in quiet_words)) or None,
+                                self.a.sos_idle_timeout, every=15)
+        self.step(f"{label}_face_quiet", quiet is not None, t0, resolved_alerts=len(resolved), waited_s=round(time.time() - t0, 1),
+                  visible=self.wrist.visible()[:6])
+
     def extended(self, groups: list[str]) -> None:
         self.journey_settings()
+        if any(g in groups for g in ("medication", "checkin")):
+            self.quiet_face("before_groups")
         for g in groups:
             t0 = time.time()
             print(json.dumps({"group": g}), flush=True)
@@ -1317,6 +1375,7 @@ class Smoke:
     def journey_unpair(self) -> None:
         """Unpairing from the wrist, with its warning; the server's row; a dead token; pairing again."""
         w, pid = self.wrist, self.person["id"]
+        self.quiet_face("before_unpair")
         t0 = time.time()
         # The Unpair button waits for a quiet face: the server reports a closed SOS for ten minutes.
         btn = w.wait_text("Unpair watch", self.a.sos_idle_timeout)
@@ -1368,7 +1427,7 @@ class Smoke:
         min_px = min_target_px(dpi)
         wanted = ("home", "reminder", "reminder_confirm", "checkin", "fall", "fall_alert", "help_during_fall", "responder", "after_help", "permission", "unpair")
         screens = {label: app_nodes(parse_nodes(self.dumps[label]), self.a.package) for label in wanted if label in self.dumps}
-        unlabelled = {label: unlabelled_clickables(nodes) for label, nodes in screens.items()}
+        unlabelled = {label: unlabelled_clickables_xml(self.dumps[label], self.a.package) for label in screens}
         small = {label: small_targets(nodes, min_px) for label, nodes in screens.items()}
         clickables = {label: sum(1 for n in nodes if n.get("clickable") == "true") for label, nodes in screens.items()}
         self.step("accessibility_labels", bool(screens) and "home" in screens and not any(unlabelled.values()), t0,
