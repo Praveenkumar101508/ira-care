@@ -1133,8 +1133,21 @@
    "area": "software",
    "hardware_independent": true,
    "state": "blocked_external",
-   "evidence": [],
-   "blocked_by": "a host with KVM virtualisation for the Android emulator (this build machine has no /dev/kvm)"
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/emulator/NO_KVM_ATTEMPT.md"
+    },
+    {
+     "kind": "config_check",
+     "ref": ".github/workflows/emulator.yml"
+    },
+    {
+     "kind": "config_check",
+     "ref": "scripts/emulator/watch_smoke.py"
+    }
+   ],
+   "blocked_by": "a host with KVM virtualisation for the Android emulator. On this build machine (no /dev/kvm) the Wear OS 5 image was forced onto software CPU emulation: it booted in 34 minutes and the debug APK installed, but the framework watchdog restarted system_server every few minutes and nothing was drawn, so the journey could not run (docs/evidence/emulator/NO_KVM_ATTEMPT.md). The manual workflow .github/workflows/emulator.yml runs it on a KVM runner."
   },
   {
    "id": "D1.j",
@@ -3186,6 +3199,18 @@
     {
      "kind": "config_check",
      "ref": "scripts/soak_24h.py"
+    },
+    {
+     "kind": "config_check",
+     "ref": "scripts/soak_wallclock.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/soak/HOW_TO_RUN_24H.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/soak/WALLCLOCK_1H.md"
     }
    ]
   },
@@ -4000,8 +4025,21 @@
    "area": "software",
    "hardware_independent": true,
    "state": "blocked_external",
-   "evidence": [],
-   "blocked_by": "a host with KVM virtualisation for the Android emulator (this build machine has no /dev/kvm)"
+   "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/emulator/NO_KVM_ATTEMPT.md"
+    },
+    {
+     "kind": "config_check",
+     "ref": ".github/workflows/emulator.yml"
+    },
+    {
+     "kind": "config_check",
+     "ref": "scripts/emulator/watch_smoke.py"
+    }
+   ],
+   "blocked_by": "a host with KVM virtualisation for the Android emulator. On this build machine (no /dev/kvm) the Wear OS 5 image was forced onto software CPU emulation: it booted in 34 minutes and the debug APK installed, but the framework watchdog restarted system_server every few minutes and nothing was drawn, so the journey could not run (docs/evidence/emulator/NO_KVM_ATTEMPT.md). The manual workflow .github/workflows/emulator.yml runs it on a KVM runner."
   },
   {
    "id": "K.h",
