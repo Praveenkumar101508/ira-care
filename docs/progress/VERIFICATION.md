@@ -36,9 +36,10 @@ the `tests` workflow on every merged pull request; the emulator and simulator jo
 ### Wall-clock soak
 
 The 1-hour soaks from #117 failed only the memory criterion (6.65 and 6.45 % an hour against 5 %).
-#123 fixes three causes with regression tests; its complete 1-hour run on the fixed code is
-recorded in `docs/evidence/soak/` when it finishes. The 24-hour run (G2.e) has not been started: this
-container restarted during the night.
+#123 fixes three causes with regression tests; its complete 1-hour run on the fixed code
+(`docs/evidence/soak/WALLCLOCK_1H_FIXED.md`) passed every criterion but memory, at 5.18 % an hour:
+lower, still a FAIL. The 24-hour run (G2.e) has not been started: this container restarted during
+the night.
 
 # Integrated verification on `main` (register K, round 7)
 

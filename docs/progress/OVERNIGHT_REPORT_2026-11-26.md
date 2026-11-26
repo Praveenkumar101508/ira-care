@@ -25,8 +25,7 @@ Two things interrupted the night and are stated up front:
 | External and commercial readiness | 1 / 34 | 1 / 34 |
 | Blocked by something external | 58 | **54** |
 
-Eight pull requests merged (#115 to #122), each with every required check green; one is open in
-draft (#123, memory growth) with its evidence run still in progress. The four requirements that
+Nine pull requests merged (#115 to #123), each with every required check green. The four requirements that
 moved to complete: F4.f (cross-dataset evaluation), D2.h (iOS build), D1.i (watch on a Wear OS
 emulator through the care journey) and K.g (both apps on emulators).
 
@@ -45,10 +44,10 @@ What matters most:
    HTTP), and **every build crashed after pairing** if the sensor permission had not yet been granted.
    Both are fixed with guard tests.
 3. **The 1-hour soak's memory criterion is still not met.** Two genuinely unbounded growths and a
-   per-request reference cycle were found and fixed with regression tests (#123), and growth fell
-   (6.65 %/h before; 5.29 %/h on the only post-fix run, cut short at 1 h 04), but 5.29 is above the
-   5 %/h limit. A complete 1-hour run on the fixed code is in progress; its figure goes into #123
-   whatever it says.
+   per-request reference cycle were found and fixed with regression tests (#123, merged), and growth
+   fell from 6.65 %/h to **5.18 %/h on a complete 1-hour run of the fixed code**, which is still above
+   the 5 %/h limit. Every other criterion of that run passed. What remains is not yet identified to
+   a line of code (`docs/evidence/soak/WALLCLOCK_1H_FIXED.md`).
 4. **The public repository was reviewed and protected (#121):** no real credential or personal data
    in the tree or the history; data, weights and env files are ignored; a staged-file check runs in
    CI. Two items need the owner: the SisFall-trained v1 weights remain in public history, and the
@@ -71,7 +70,7 @@ Every merge is a squash of a pull request whose required checks all passed at th
 | #120 | `fix/heart-low-confidence-unavailable` | `212fa08`, 04:29 | F3.g; D-094 | An unsure learned heart estimate is reported unavailable rather than replaced by the classical one. Held-out S1: 7.19 bpm on 77.5 % of windows → 4.59 bpm on 60.1 %. An agreement rule was tested and rejected (`scripts/training/heart_fallback_rule.py`) | care 615, heart research 42, dashboard 138; old code fails 6 new tests, old dashboard fails the D-094 test | green |
 | #119 | `fix/native-checks-on-pr` | `cd20743`, 06:05 | D1.i verified; D2.h accepted; K.g (watch half); two watch defects | `native-checks.yml` runs the emulator journey and the iOS build on pull requests that change the apps. Six emulator runs found five problems, all fixed (section D). `docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md`, `docs/evidence/builds/IOS_SIMULATOR.md` | `test_manual_workflows.py` (24), `test_watch_cleartext.py` (4), `test_watch_foreground_start.py` (3, flags all three old start sites), `ForegroundPermissionTest.kt` | green, including both native jobs |
 | #122 | `fix/phone-emulator-smoke` | `540c6e5`, 11:47 | K.g verified | The family app's release build on an Android 14 phone emulator: install, launch, sign-in screen, no crash. `docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md` | `test_manual_workflows.py` (29, negative controls for the dialog and retry rules) | green, three native jobs |
-| #123 (draft) | `fix/api-memory-growth` | open, `758e353` | G2.e's memory criterion | Section G | 15 new tests; 1,141 in the surrounding suites; 15 database tests | running |
+| #123 | `fix/api-memory-growth` | `83aaf48`, 13:07 | G2.e's memory criterion | Section G | 16 new tests (each fails on the old code); 1,141 in the surrounding suites; 15 database tests; the 1-hour evidence run | green |
 
 ## C. Safety
 
@@ -156,16 +155,17 @@ training ran on Kaggle; no dataset was downloaded, redistributed or added to the
   container. Every criterion held (availability 1.0, p95 latency about 16 ms, no server errors, no
   lost or duplicate alerts, outbox drained, worker heartbeat) **except the API's resident memory: 6.65
   and 6.45 % an hour against a 5 % limit.** `docs/evidence/soak/WALLCLOCK_1H.md`.
-- **Investigation (#123, draft):** three causes found, each with a regression test and a negative
+- **Investigation (#123, merged):** three causes found, each with a regression test and a negative
   control: the consumed execution-ticket set grew for the life of the process (now bounded, replay
   protection unchanged); every escalation pass re-read every push attempt that ever had a receipt
-  (now only the unrecorded ones); Starlette's `BaseHTTPMiddleware` left about 51 cyclic objects per
-  request with a body (both middlewares are now plain ASGI). Evidence so far, honestly: a 3-hour run
-  on the first two fixes was cut to 2 h 04 by the restart and showed 6.23 %/h; a 2-hour run with all
-  three was cut to 1 h 04 and showed 5.29 %/h; two 30-minute profiling runs showed 1.0 and 3.0 %/h
-  but are too short to count. **The criterion is not yet shown to be met.** A complete 1-hour run on
-  the fixed code merged with `main` started at 11:48 UTC on this container; its summary goes into
-  #123 before it leaves draft.
+  (now only the unrecorded ones); Starlette's `BaseHTTPMiddleware` left about 50 cyclic objects per
+  request with a body (both middlewares are now plain ASGI). Evidence: a 3-hour run on the first two
+  fixes was cut to 2 h 04 by the restart and showed 6.23 %/h; a 2-hour run with all three was cut to
+  1 h 04 and showed 5.29 %/h; the **complete 1-hour run on all three, merged with `main` (11:48 to
+  12:48 UTC): 5.18 %/h, FAIL on memory alone**, with 2,316 requests, p95 23.8 ms, no errors, 19 of 19
+  alerts and the outbox drained (`docs/evidence/soak/WALLCLOCK_1H_FIXED.md`). The fixes stay; about
+  10 MB an hour still grows from a source not yet traced to a line of code. Next step: a longer run
+  with the new `memtrace.py` on the fixed code.
 - **24-hour soak (G2.e): not started**, because this container restarted during the night and has
   no persistent host. `docs/evidence/soak/HOW_TO_RUN_24H.md` is the founder-machine procedure; a
   GitHub runner cannot do it (6-hour job limit).
@@ -227,4 +227,5 @@ the endorsement application, and whether it can wait until investment.
 `python3 scripts/completion_summary.py` on `main` at `540c6e5`; `docs/progress/VERIFICATION.md`
 (round 8) for the integrated test runs; the pull requests named above for each change's own tests;
 the GitHub Actions runs named in section D for the native evidence. The completion history
-snapshot for this round is recorded once #123 is settled.
+snapshot for this round is "main after #123" (`83aaf48`) in `docs/progress/completion_history.json`;
+its figures equal the "Now" column above, since #123 changed no requirement state.
