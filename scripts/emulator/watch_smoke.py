@@ -60,6 +60,41 @@ def find(nodes: list[dict], *, text: str | None = None, desc_prefix: str | None 
     return None
 
 
+def app_crashes(crash_log: str, package: str) -> list[str]:
+    """The crash-buffer lines that start a crash of this app's process."""
+    return [ln.strip() for ln in crash_log.splitlines()
+            if ("FATAL EXCEPTION" in ln or "Process: " in ln) and package in ln]
+
+
+def visible_text(nodes: list[dict]) -> list[str]:
+    """The texts and descriptions on screen, in order, without blanks or repeats."""
+    seen: list[str] = []
+    for n in nodes:
+        for key in ("text", "content-desc"):
+            v = n.get(key, "").strip()
+            if v and v not in seen:
+                seen.append(v)
+    return seen
+
+
+def clickable_ancestor(xml: str, node: dict | None) -> dict | None:
+    """The innermost clickable node whose bounds contain `node` (Compose puts the click on the
+    Button, not on its Text)."""
+    if node is None:
+        return None
+    x, y = centre(node)
+    best = None
+    for n in parse_nodes(xml):
+        if n.get("clickable") != "true" or "bounds" not in n:
+            continue
+        x1, y1, x2, y2 = map(int, re.findall(r"\d+", n["bounds"]))
+        if x1 <= x <= x2 and y1 <= y <= y2:
+            area = (x2 - x1) * (y2 - y1)
+            if best is None or area < best[0]:
+                best = (area, n)
+    return best[1] if best else None
+
+
 def centre(node: dict) -> tuple[int, int]:
     x1, y1, x2, y2 = map(int, re.findall(r"\d+", node["bounds"]))
     return (x1 + x2) // 2, (y1 + y2) // 2
@@ -93,10 +128,38 @@ class Smoke:
 
     def dump(self) -> list[dict]:
         # /data/local/tmp, not /sdcard: a watch image has no shared storage the shell can read back.
-        self.adb("shell", "uiautomator", "dump", "/data/local/tmp/ui.xml", timeout=180, check=False)
+        self.last_dump_output = self.adb("shell", "uiautomator", "dump", "/data/local/tmp/ui.xml",
+                                         timeout=180, check=False).strip()
         xml = self.adb("exec-out", "cat", "/data/local/tmp/ui.xml", timeout=60, check=False)
         self.last_xml = xml
         return parse_nodes(xml)
+
+    def keyboard_shown(self) -> bool:
+        out = self.adb("shell", "dumpsys", "input_method", timeout=60, check=False)
+        return "mInputShown=true" in out or "mIsInputViewShown=true" in out
+
+    def diagnose(self, label: str) -> dict:
+        """What the device shows when a UI step fails, printed into the job log as well as saved,
+        because the uploaded artefacts are not always reachable by whoever reads the result."""
+        nodes = parse_nodes(getattr(self, "last_xml", ""))
+        focus = self.adb("shell", "dumpsys", "window", "displays", timeout=60, check=False)
+        crash = self.adb("logcat", "-d", "-b", "crash", timeout=60, check=False)
+        app_log = self.adb("logcat", "-d", "-t", "400", timeout=60, check=False)
+        info = {
+            "label": label,
+            "uiautomator": getattr(self, "last_dump_output", "")[-300:],
+            "visible_text": visible_text(nodes)[:40],
+            "packages_on_screen": sorted({n.get("package", "") for n in nodes} - {""}),
+            "clickable": [{k: n.get(k) for k in ("text", "class", "bounds", "enabled")}
+                          for n in nodes if n.get("clickable") == "true"][:12],
+            "keyboard_shown": self.keyboard_shown(),
+            "focus": [ln.strip() for ln in focus.splitlines() if "mCurrentFocus" in ln or "mFocusedApp" in ln][:4],
+            "crash": crash.strip().splitlines()[-25:],
+            "app_errors": [ln for ln in app_log.splitlines() if " E " in ln or "FATAL" in ln][-25:],
+        }
+        (self.out / f"diagnosis_{label}.json").write_text(json.dumps(info, indent=2) + "\n")
+        print(json.dumps({"diagnosis": info}), flush=True)
+        return info
 
     def wait_for(self, timeout: float, **kw) -> dict | None:
         deadline = time.time() + timeout
@@ -105,6 +168,28 @@ class Smoke:
             if n is not None:
                 return n
             time.sleep(3)
+        return None
+
+    def app_in_front(self) -> bool:
+        focus = self.adb("shell", "dumpsys", "window", "displays", timeout=60, check=False)
+        return any(self.a.package in ln for ln in focus.splitlines() if "mCurrentFocus" in ln)
+
+    def wait_for_app_screen(self, timeout: float, max_relaunch: int = 3, **kw) -> dict | None:
+        """wait_for, but if Wear OS puts its own screen in front of the app (the watch face or
+        the charging clock, as runs 45755139976 and 45762586497 showed), bring the app back, at
+        most `max_relaunch` times, each one noted in the log."""
+        deadline = time.time() + timeout
+        relaunched = 0
+        while time.time() < deadline:
+            node = self.wait_for(min(30, max(1, deadline - time.time())), **kw)
+            if node is not None:
+                return node
+            if relaunched < max_relaunch and not self.app_in_front():
+                relaunched += 1
+                self.adb("shell", "am", "start", "-n", f"{self.a.package}/care.ira.watch.ui.MainActivity",
+                         timeout=120, check=False)
+                print(json.dumps({"note": f"another screen was in front of the app; brought it back ({relaunched})"}),
+                      flush=True)
         return None
 
     def save_dump(self, label: str) -> None:
@@ -143,9 +228,13 @@ class Smoke:
         print(json.dumps({"device": props}), flush=True)
 
         # A fresh emulator: mark setup done (the Wear setup wizard otherwise holds
-        # the app's task back), keep the screen on and wake it.
+        # the app's task back), keep the screen on and wake it. The emulator reports that
+        # it is on a charger, and Wear OS then puts its charging clock (sysui
+        # ChargingActivity) over every app (run 45755139976); report it unplugged, as a
+        # watch on a wrist is. `stayon true` keeps the screen on without a charger.
         t0 = time.time()
         for cmd in ("settings put secure user_setup_complete 1", "settings put global device_provisioned 1",
+                    "dumpsys battery unplug", "dumpsys battery set status 3",
                     "svc power stayon true", "settings put system screen_off_timeout 2147483647",
                     "input keyevent KEYCODE_WAKEUP"):
             self.adb("shell", cmd, timeout=120, check=False)
@@ -169,7 +258,7 @@ class Smoke:
                   total_time_ms=int(total.group(1)) if total else None, am_start=out.strip()[-300:])
 
         t0 = time.time()
-        title = self.wait_for(a.ui_timeout, text="Pair this watch")
+        title = self.wait_for_app_screen(a.ui_timeout, text="Pair this watch")
         pair_btn = find(self.dump(), text="Pair") if title else None
         self.save_dump("pairing")
         shot = self.shot("pairing_screen")
@@ -198,14 +287,35 @@ class Smoke:
         time.sleep(2)
         self.adb("shell", "input", "text", code)
         time.sleep(3)
+        # The Wear keyboard can stay over the screen after typing; close it so the tap reaches
+        # the Pair button, and record where the button is and whether it is enabled.
+        if self.keyboard_shown():
+            self.adb("shell", "input", "keyevent", "KEYCODE_ESCAPE", check=False)
+            time.sleep(2)
+        if self.keyboard_shown():
+            self.adb("shell", "input", "keyevent", "KEYCODE_BACK", check=False)
+            time.sleep(2)
         btn = find(self.dump(), text="Pair")
+        btn_target = clickable_ancestor(self.last_xml, btn) if btn else None
         shot = self.shot("code_typed")
-        self.step("type_code", btn is not None, t0, screenshot=shot)
+        self.step("type_code", btn is not None, t0, screenshot=shot,
+                  button={k: (btn_target or btn or {}).get(k) for k in ("bounds", "enabled", "clickable")},
+                  screen=self.adb("shell", "wm", "size", check=False).strip(),
+                  keyboard_shown=self.keyboard_shown())
         t0 = time.time()
-        self.adb("shell", "input", "tap", *map(str, centre(btn)))
+        self.adb("shell", "input", "tap", *map(str, centre(btn_target or btn)))
+        retapped = False
         gone = None
         deadline = time.time() + a.ui_timeout
         while time.time() < deadline:
+            if not retapped and time.time() - t0 > 20:
+                # Nothing changed after the first tap: tap once more (a first tap can be eaten
+                # by a keyboard that was still closing), and say so.
+                retapped = True
+                print(json.dumps({"note": "no change 20 s after tapping Pair; tapped again"}), flush=True)
+                again = find(self.dump(), text="Pair")
+                if again is not None:
+                    self.adb("shell", "input", "tap", *map(str, centre(clickable_ancestor(self.last_xml, again) or again)))
             nodes = self.dump()
             if find(nodes, text="Pair this watch") is None:
                 gone = True
@@ -229,7 +339,7 @@ class Smoke:
             r = subprocess.run([a.adb, "-s", a.serial, "shell", "pm", "grant", pkg, p], capture_output=True, text=True)
             granted.append({"permission": p, "ok": r.returncode == 0, "error": r.stderr.strip()[:160]})
         self.adb("shell", "am", "start", "-W", "-n", f"{pkg}/care.ira.watch.ui.MainActivity", timeout=300)
-        help_btn = self.wait_for(a.ui_timeout, desc_prefix="Help. Tells your family")
+        help_btn = self.wait_for_app_screen(a.ui_timeout, desc_prefix="Help. Tells your family")
         self.save_dump("home")
         shot = self.shot("home_help_button")
         if not self.step("home_help_button_visible", help_btn is not None, t0, screenshot=shot, permissions=granted):
@@ -252,6 +362,13 @@ class Smoke:
         mine = [x for x in alerts if x.get("person_id") == person["id"] and x.get("kind") == "help_requested"]
         self.step("help_received_on_wrist", received is not None, t0, screenshot=shot)
         self.step("help_alert_on_server", len(mine) == 1, t0, alerts=[{k: x.get(k) for k in ("id", "kind", "status", "opened_at", "details")} for x in mine])
+
+        # A journey can pass while the app crashed and restarted on the way (run 45760714043's
+        # crash after pairing was hidden that way in an earlier pass), so read the crash buffer.
+        t0 = time.time()
+        crash = self.adb("logcat", "-d", "-b", "crash", timeout=60, check=False)
+        mine_crashes = app_crashes(crash, pkg)
+        self.step("no_app_crash", not mine_crashes, t0, crashes=mine_crashes[:5])
         return self.finish()
 
     def finish(self, _=None) -> int:
@@ -260,6 +377,12 @@ class Smoke:
         except Exception as exc:   # the results still matter without the log
             print(f"logcat not saved: {exc}", file=sys.stderr)
         ok = bool(self.steps) and all(s["ok"] for s in self.steps)
+        if not ok:
+            try:
+                self.dump()
+                self.diagnose(self.steps[-1]["step"] if self.steps else "start")
+            except Exception as exc:   # a device that stopped answering still gets its results written
+                print(f"diagnosis not taken: {exc}", file=sys.stderr)
         (self.out / "results.json").write_text(json.dumps({"ok": ok, "steps": self.steps}, indent=2) + "\n")
         print(json.dumps({"ok": ok, "steps": len(self.steps)}))
         return 0 if ok else 1

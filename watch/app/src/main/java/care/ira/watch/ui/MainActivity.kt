@@ -230,6 +230,9 @@ class MainActivity : ComponentActivity() {
         val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
             val granted = deps.sensors.backgroundPermissionGranted()
             deps.status.value = deps.status.value.copy(permissionGranted = granted)
+            // Paired, and now allowed to run in the foreground: start the care service
+            // (pairing could not, before this grant; see ForegroundPermission).
+            if (deps.pairing.isPaired) CareForegroundService.start(this@MainActivity)
             // Background body sensors can only be allowed from system settings: go there only if
             // it is still missing after the dialog.
             if (HomePolicy.needsSettings(granted)) {

@@ -412,18 +412,23 @@ class CareForegroundService : LifecycleService() {
         const val FALL_LISTEN_MS = 4_000L
         const val LISTEN_MS = 20_000L
 
-        fun start(context: Context) {
-            context.startForegroundService(Intent(context, CareForegroundService::class.java))
-        }
+        /** Starts the service if Android allows a health foreground service now
+         *  ([ForegroundPermission]); returns whether it was started. Without the permission
+         *  Android would throw and kill the app, so it waits for the permission screen. */
+        fun start(context: Context): Boolean = startWith(context, Intent(context, CareForegroundService::class.java))
 
-        fun send(context: Context, action: String) {
-            context.startForegroundService(Intent(context, CareForegroundService::class.java).setAction(action))
-        }
+        fun send(context: Context, action: String): Boolean =
+            startWith(context, Intent(context, CareForegroundService::class.java).setAction(action))
 
         /** A reminder's button on the home screen. */
-        fun sendChoice(context: Context, choice: ReminderChoice) {
-            context.startForegroundService(Intent(context, CareForegroundService::class.java)
+        fun sendChoice(context: Context, choice: ReminderChoice): Boolean =
+            startWith(context, Intent(context, CareForegroundService::class.java)
                 .setAction(ACTION_REMINDER).putExtra(EXTRA_CHOICE, choice.wire))
+
+        private fun startWith(context: Context, intent: Intent): Boolean {
+            if (!ForegroundPermission.allowed(context)) return false
+            context.startForegroundService(intent)
+            return true
         }
     }
 }

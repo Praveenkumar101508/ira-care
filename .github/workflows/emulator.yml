@@ -1,4 +1,4 @@
-# Wear OS emulator smoke journey for the watch app. MANUAL ONLY.
+# Wear OS emulator smoke journey for the watch app. Manual, or called by native-checks.yml.
 #
 # This workflow runs only when someone presses "Run workflow" on the Actions
 # tab (workflow_dispatch). It has no push, pull_request or schedule trigger and
@@ -39,6 +39,19 @@ on:
         default: "34"
       instrumented:
         description: "Also run connectedWearosDebugAndroidTest (only if androidTest sources exist)"
+        type: boolean
+        default: false
+  # Also callable from native-checks.yml, which runs it on pull requests that change the watch
+  # app (standard runners are free while the repository is public).
+  workflow_call:
+    inputs:
+      journey:
+        type: string
+        default: care-journey
+      api_level:
+        type: string
+        default: "34"
+      instrumented:
         type: boolean
         default: false
 
@@ -113,6 +126,9 @@ jobs:
           set -euo pipefail
           pip install -q -r requirements-test.txt
           pip install -q --no-deps --require-hashes -r requirements-nodeps.txt
+          # The demo starts the worker scheduler, whose security monitor needs psutil; the test
+          # requirements do not include it. Take the pinned version from the runtime requirements.
+          pip install -q "$(grep -E '^psutil==' requirements.txt)"
           psql -h 127.0.0.1 -U postgres -d ira_test -v ON_ERROR_STOP=1 -q -f ../postgres/provisioning/001_database_roles.sql
           psql -h 127.0.0.1 -U postgres -d ira_test -v ON_ERROR_STOP=1 -c \
             "ALTER ROLE ira_migrator PASSWORD 'ira_migrator'; ALTER ROLE ira_app PASSWORD 'ira_app'; ALTER ROLE ira_worker PASSWORD 'ira_worker';"

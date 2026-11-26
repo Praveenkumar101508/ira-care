@@ -1,10 +1,12 @@
-"""The emulator and iOS simulator workflows run only when someone asks.
+"""The emulator and iOS simulator workflows run when someone asks, or for the pull requests that need them.
 
-Both are long (an emulator run is 20 to 40 runner minutes; a macOS run would be
-billed at ten times the Linux rate if the repository were private), so they run
-when someone decides to: `workflow_dispatch` and nothing else. A push, pull_request,
-schedule or any other trigger fails here. Every action they use is pinned to a
-full commit, and each job has a time limit.
+Both are long (an emulator run is 20 to 40 runner minutes). They run by hand
+(`workflow_dispatch`) or when called by native-checks.yml (`workflow_call`) and
+nothing else: a push, schedule or any other trigger on them fails here.
+native-checks.yml runs them only on pull requests that change the watch or phone
+apps (a path filter); standard runners are free while the repository is public
+(docs/evidence/COMPUTE_RESOURCES.md). Every action is pinned to a full commit,
+and each job has a time limit.
 """
 from __future__ import annotations
 
@@ -39,7 +41,7 @@ def triggers(doc: dict) -> set[str]:
 def manual_only_problems(doc: dict) -> list[str]:
     problems = []
     t = triggers(doc)
-    if t != {"workflow_dispatch"}:
+    if not t <= {"workflow_dispatch", "workflow_call"} or "workflow_dispatch" not in t:
         problems.append(f"triggers must be exactly workflow_dispatch, found {sorted(t)}")
     for job_id, job in (doc.get("jobs") or {}).items():
         if not isinstance(job.get("timeout-minutes"), int):
@@ -104,9 +106,163 @@ def test_emulator_enables_kvm_and_uploads_evidence():
     assert (ROOT / "scripts" / "emulator" / "watch_smoke.py").exists()
 
 
+# Runtime packages the demo backend needs (its worker scheduler imports them) that the test
+# requirements leave out. Run 45753366726 failed because psutil was missing.
+DEMO_RUNTIME_EXTRAS = ["psutil"]
+
+
+def demo_backend_missing(step_run: str, test_requirements: str) -> list[str]:
+    """Packages in DEMO_RUNTIME_EXTRAS that neither the test requirements nor the step install."""
+    have = {line.split("==")[0].strip().lower() for line in test_requirements.splitlines()}
+    return [p for p in DEMO_RUNTIME_EXTRAS
+            if p not in have and f"grep -E '^{p}==' requirements.txt" not in step_run]
+
+
+def _demo_step() -> str:
+    steps = _load("emulator.yml")["jobs"]["wear-emulator"]["steps"]
+    return next(s["run"] for s in steps if s.get("name", "").startswith("Start the demo backend"))
+
+
+def test_demo_backend_installs_its_runtime_extras():
+    reqs = (ROOT / "supracloud-jarvis" / "ira" / "requirements-test.txt").read_text(encoding="utf-8")
+    assert demo_backend_missing(_demo_step(), reqs) == []
+    pinned = (ROOT / "supracloud-jarvis" / "ira" / "requirements.txt").read_text(encoding="utf-8")
+    assert all(re.search(rf"^{p}==\S+", pinned, re.M) for p in DEMO_RUNTIME_EXTRAS)
+
+
+def test_negative_control_demo_backend_without_psutil_is_caught():
+    step = _demo_step().replace("pip install -q \"$(grep -E '^psutil==' requirements.txt)\"", "")
+    assert demo_backend_missing(step, "pytest==8.3.3\n") == ["psutil"]
+
+
 def test_generated_native_folders_are_not_tracked():
     ignore = (ROOT / "mobile" / ".gitignore").read_text(encoding="utf-8")
     assert re.search(r"^/ios/$", ignore, re.M) and re.search(r"^/android/$", ignore, re.M)
     tracked = subprocess.run(["git", "ls-files", "--", "mobile/ios", "mobile/android"], cwd=ROOT,
                              capture_output=True, text=True, check=True).stdout.split()
     assert tracked == []
+
+
+NATIVE_PATHS = {"watch/**", "mobile/**", "scripts/emulator/**", ".github/workflows/emulator.yml",
+                ".github/workflows/ios-simulator.yml", ".github/workflows/native-checks.yml"}
+
+
+def native_checks_problems(doc: dict) -> list[str]:
+    problems = []
+    on = doc.get("on", doc.get(True)) or {}
+    if set(on) != {"pull_request"}:
+        problems.append(f"native-checks must run on pull_request only, found {sorted(on)}")
+    paths = set(((on.get("pull_request") or {}) if isinstance(on, dict) else {}).get("paths") or [])
+    if not paths or not paths <= NATIVE_PATHS:
+        problems.append(f"native-checks needs a path filter limited to the native apps, found {sorted(paths)}")
+    called = {job.get("uses") for job in (doc.get("jobs") or {}).values()}
+    if called != {"./.github/workflows/emulator.yml", "./.github/workflows/ios-simulator.yml"}:
+        problems.append(f"native-checks must only call the two native workflows, found {sorted(map(str, called))}")
+    return problems
+
+
+def test_native_checks_runs_only_for_native_changes():
+    assert native_checks_problems(_load("native-checks.yml")) == []
+
+
+@pytest.mark.parametrize("mutate", [
+    lambda on: on["pull_request"].pop("paths"),
+    lambda on: on["pull_request"]["paths"].append("**"),
+    lambda on: on.update({"push": {"branches": ["main"]}}),
+])
+def test_negative_control_native_checks_widened_is_refused(mutate):
+    doc = copy.deepcopy(_load("native-checks.yml"))
+    mutate(doc.get("on", doc.get(True)))
+    assert native_checks_problems(doc) != []
+
+
+def _smoke_module():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("watch_smoke", ROOT / "scripts" / "emulator" / "watch_smoke.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_smoke_failure_reports_what_is_on_screen():
+    smoke = _smoke_module()
+    xml = ('<hierarchy><node text="Pair this watch" content-desc="" package="care.ira.watch.debug"/>'
+           '<node text="" content-desc="Allow" package="com.google.android.permissioncontroller"/>'
+           '<node text="Pair this watch" package="care.ira.watch.debug"/></hierarchy>')
+    assert smoke.visible_text(smoke.parse_nodes(xml)) == ["Pair this watch", "Allow"]
+    # Negative control: an empty dump (uiautomator failed) shows nothing, rather than raising.
+    assert smoke.visible_text(smoke.parse_nodes("")) == []
+    assert "self.diagnose(" in (ROOT / "scripts" / "emulator" / "watch_smoke.py").read_text(encoding="utf-8")
+
+
+def test_smoke_reports_the_emulator_unplugged():
+    # Wear OS puts its charging clock over every app while the emulator reports a charger.
+    script = (ROOT / "scripts" / "emulator" / "watch_smoke.py").read_text(encoding="utf-8")
+    assert "dumpsys battery unplug" in script and "wait_for_app_screen(" in script
+
+
+def test_smoke_taps_the_button_not_its_label():
+    smoke = _smoke_module()
+    xml = ('<hierarchy><node class="android.view.View" clickable="true" bounds="[0,0][454,454]"/>'
+           '<node class="android.view.View" clickable="true" enabled="true" bounds="[150,300][300,360]"/>'
+           '<node text="Pair" clickable="false" bounds="[200,315][250,345]"/></hierarchy>')
+    label = smoke.find(smoke.parse_nodes(xml), text="Pair")
+    # The innermost clickable node around the label is the button, not the full-screen container.
+    assert smoke.clickable_ancestor(xml, label)["bounds"] == "[150,300][300,360]"
+    # Negative control: no label, nothing to tap.
+    assert smoke.clickable_ancestor(xml, None) is None
+
+
+def test_smoke_fails_when_the_app_crashed_on_the_way():
+    smoke = _smoke_module()
+    # The crash from run 45760714043, as the crash buffer prints it.
+    log = ("11-26 05:22:33.830  3802  3802 E AndroidRuntime: FATAL EXCEPTION: main\n"
+           "11-26 05:22:33.830  3802  3802 E AndroidRuntime: Process: care.ira.watch.debug, PID: 3802\n"
+           "11-26 05:22:33.834  3802  3802 E AndroidRuntime: Caused by: java.lang.SecurityException: Starting FGS\n")
+    assert smoke.app_crashes(log, "care.ira.watch.debug") == [
+        "11-26 05:22:33.830  3802  3802 E AndroidRuntime: Process: care.ira.watch.debug, PID: 3802"]
+    # Negative controls: another app's crash, and an empty buffer, are not this app's.
+    other = log.replace("care.ira.watch.debug", "com.google.android.wearable.sysui")
+    assert smoke.app_crashes(other, "care.ira.watch.debug") == []
+    assert smoke.app_crashes("", "care.ira.watch.debug") == []
+    assert '"no_app_crash"' in (ROOT / "scripts" / "emulator" / "watch_smoke.py").read_text(encoding="utf-8")
+
+
+def test_smoke_brings_the_app_back_when_the_watch_face_covers_it(tmp_path):
+    smoke = _smoke_module()
+
+    class Args:
+        out, adb, serial, package = str(tmp_path), "adb", "emulator-5554", "care.ira.watch.debug"
+
+    s = smoke.Smoke(Args())
+    calls = []
+    screens = iter(["face", "face", "app"])
+    state = {"screen": "face"}
+
+    def fake_adb(*args, **kw):
+        calls.append(args)
+        if args[:2] == ("shell", "dumpsys"):
+            return f"  mCurrentFocus=Window{{1 u0 {'care.ira.watch.debug' if state['screen'] == 'app' else 'com.google.android.wearable.sysui'}/X}}"
+        if args[:3] == ("shell", "am", "start"):
+            state["screen"] = next(screens)
+        return ""
+
+    s.adb = fake_adb
+    s.wait_for = lambda timeout, **kw: {"text": "Pair this watch"} if state["screen"] == "app" else None
+    assert s.wait_for_app_screen(600, text="Pair this watch") == {"text": "Pair this watch"}
+    assert sum(1 for c in calls if c[:3] == ("shell", "am", "start")) == 3
+
+    # Negative control: a screen that never comes back stops after max_relaunch, returning None.
+    state["screen"] = "face"
+    screens = iter(["face"] * 10)
+    calls.clear()
+    s.wait_for = lambda timeout, **kw: None
+    import time as _t
+    real = _t.time
+    clock = [real()]
+    smoke.time.time = lambda: clock.__setitem__(0, clock[0] + 40) or clock[0]
+    try:
+        assert s.wait_for_app_screen(600, max_relaunch=2, text="Pair this watch") is None
+    finally:
+        smoke.time.time = real
+    assert sum(1 for c in calls if c[:3] == ("shell", "am", "start")) == 2
