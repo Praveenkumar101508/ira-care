@@ -404,6 +404,23 @@ Loading the model took 29.8 ms; the process's maximum resident set went from 31.
 over the whole benchmark. On the held-out run, under heavier load, the mean was 14.6 ms a
 window. Windows arrive every 2 s. Each result also reports its own per-window time.
 
+### Independent evaluation on GalaxyPPG (`CROSS_DATASET_GALAXYPPG.md`)
+
+On 26 November 2026 the research pipeline ran unchanged on GalaxyPPG (CC BY 4.0, 24 adults aged
+20 to 29, none of them in the training data). The reference was R peaks from a Polar H10 chest ECG.
+
+- **Empatica E4** (every window with a reference, mean ± sd of participants): classical
+  9.62 ± 4.03 bpm, learned 6.18 ± 2.92 bpm. That is lower than on PPG-DaLiA (13.28 and 7.75) only
+  because most of the protocol is seated. On walking, the one activity both datasets share, it is
+  slightly worse.
+- **Galaxy Watch 5 at 25 Hz** (accepted by the data contract, never seen in training): classical
+  17.86 ± 7.16 bpm, learned 7.83 ± 4.31 bpm. The learned answers with probability ≥ 0.5 were
+  1.63 bpm on 24,638 windows. One participant's watch was refused: its clock was 8.5 s from the
+  strap's.
+- **The classical fallback after a low learned probability is confirmed as poor:** 29.27 bpm
+  (E4) and 39.44 bpm (Galaxy Watch), against 2.19 and 1.63 for the learned answers. It was not
+  changed; whoever decides product use must decide it.
+
 ## Limitations
 
 - **Population:** 15 adults aged 30.6 ± 9.6 years. **No older adults.** IRA CARE serves

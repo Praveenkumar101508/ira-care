@@ -2472,6 +2472,10 @@
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/research_heart.test.tsx"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/heart/cross_dataset_galaxyppg.json"
     }
    ]
   },
@@ -2571,9 +2575,21 @@
    "title": "Cross-dataset fall evaluation (train on one dataset, test on another)",
    "area": "ai",
    "hardware_independent": true,
-   "state": "blocked_external",
-   "evidence": [],
-   "blocked_by": "a second wrist fall dataset with a licence that allows it (KFall and FallAllD permission pending; SisFall excluded by the owner; UMAFall terms conflict)"
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/fall/cross_dataset_weda.json"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_cross_dataset_eval.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/fall/CROSS_DATASET_WEDA.md"
+    }
+   ]
   },
   {
    "id": "F4.g",

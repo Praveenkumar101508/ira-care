@@ -23,7 +23,7 @@ every item, and this register must be updated when that list changes.
 | D | The target board, its BSP, suppliers, an ODM and funding | E3.f, E4.h, E4.i, E4.j, E6.d, D4.c, F3.d, F3.e, H1–H4.h, H1–H4.i, H1–H4.j | certification estimates only (below) |
 | E | Signing-key custody by the founders | D1b.c, E4.g | none (keys are made on founder-controlled machines) |
 | F | Apple and Google accounts, and a Mac | D2.h, D2.j, D2.k | not estimated |
-| G | Dataset authors' permission | F1.d, F1.e, F1.f, F1.g, F4.f | none expected; not confirmed |
+| G | Dataset authors' permission | F1.d, F1.e, F1.f, F1.g | none expected; not confirmed |
 | H | A GPU session for the conversation fine-tune | F2.e, F2.f, F2.g | Kaggle's free GPU was used before (`docs/MODEL_CHOICE.md`) |
 | I | Older-adult speech data and listeners | F8.c, F8.d, F8.e | not estimated |
 | J | A rented server (owner's approval to spend) | G1.e, G2.f, G4.d | not estimated (prices unreadable, `docs/ops/HOSTING_PROPOSAL.md`) |
@@ -142,8 +142,9 @@ section M.
 ## G. Dataset authors' permission
 
 - **Requirements:** F1.d (KFall), F1.e (FallAllD), F1.f (SisFall terms, or the owner accepts the
-  risk), F1.g (UMAFall: CC BY 4.0 against a CC BY-NC record), F4.f (cross-dataset fall evaluation,
-  which needs a second licensed wrist fall dataset).
+  risk), F1.g (UMAFall: CC BY 4.0 against a CC BY-NC record). F4.f (cross-dataset fall
+  evaluation) no longer waits here: on 26 November 2026 it was done on WEDA-FALL, whose author
+  added an ODC-By 1.0 licence (`docs/ai/fall/CROSS_DATASET_WEDA.md`).
 - **Why external:** only the authors can grant or clarify their terms.
 - **Software preparation complete:** four request drafts (`docs/legal/dataset_permission_requests/README.md`
   and the files beside it); the shipped fall model uses only CC BY 4.0 data (D-080); SisFall is in
