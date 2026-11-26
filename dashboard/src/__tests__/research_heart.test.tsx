@@ -6,7 +6,7 @@ import { vi } from 'vitest';
 import { ResearchBanner, ResearchView } from '@/components/ResearchHeart';
 import { Api } from '@/lib/api';
 import {
-  RESEARCH_BANNER, answerWords, boxOf, confidenceWords, estimateSeries, isResearchResult, scaledPolyline, seriesPoints,
+  FALLBACK_WORDS, LEARNED_UNSURE_WORDS, RESEARCH_BANNER, answerWords, boxOf, confidenceWords, estimateSeries, isResearchResult, scaledPolyline, seriesPoints,
   type ResearchResult, type ResearchWindow,
 } from '@/lib/research';
 
@@ -23,8 +23,15 @@ const unavailable = win(1, {
   status: 'unavailable', bpm: null, method: null, confidence: null, confidence_kind: null, reason: 'motion_artefact',
   reason_text: 'too much movement', quality: { usable: false, reason: 'motion_artefact', motion_rms_g: 1.1 },
 });
-const fallback = win(2, { method: 'classical', bpm: 74, confidence: 0.55, confidence_kind: 'spectral_concentration', fallback: 'learned_low_confidence',
-  learned: { bpm: null, candidate_bpm: 90, probability: 0.3, reason: 'low_confidence' } });
+const fallback = win(2, { method: 'classical', bpm: 74, confidence: 0.55, confidence_kind: 'spectral_concentration', fallback: 'no_accelerometer',
+  quality: { usable: true, motion_rms_g: null, clipped_share: 0.01, spectral_concentration: 0.55, accelerometer: false },
+  learned: null });
+// D-094: the learned selector ran and was unsure; the classical estimate (74) is not reported.
+const unsure = win(3, {
+  status: 'unavailable', bpm: null, method: null, confidence: null, confidence_kind: null, reason: 'learned_low_confidence',
+  reason_text: 'the learned selector was not confident enough (the classical estimate is not reported instead)',
+  learned: { bpm: null, candidate_bpm: 90, probability: 0.3, reason: 'low_confidence' },
+});
 
 function result(extra: Partial<ResearchResult> = {}): ResearchResult {
   return {
@@ -38,8 +45,8 @@ function result(extra: Partial<ResearchResult> = {}): ResearchResult {
     },
     contract: { window_s: 8, shift_s: 2, ppg_hz: 64, acc_hz: 32, seconds: 14, motion_reject_g: 0.5 },
     resources: { total_ms: 40, per_window_ms_mean: 13.3, per_window_ms_max: 15 },
-    summary: { windows: 3, estimates: 2, unavailable: 1, unavailable_by_reason: { motion_artefact: 1 }, learned_estimates: 1, classical_fallbacks: 1 },
-    windows: [win(0), unavailable, fallback],
+    summary: { windows: 4, estimates: 2, unavailable: 2, unavailable_by_reason: { motion_artefact: 1, learned_low_confidence: 1 }, learned_estimates: 1, classical_fallbacks: 1 },
+    windows: [win(0), unavailable, fallback, unsure],
     preview: { ppg: [[0, 1], [0.5, -1], [1, null], [1.5, 0.5]], ppg_unit: 'arbitrary', acc_magnitude_g: [[0, 1], [1, 1.2]] },
     ...extra,
   };
@@ -59,10 +66,10 @@ test('a research result shows the banner, the signal, both methods, quality and 
   expect(screen.getByRole('img', { name: 'Research signal (wrist PPG)' }).querySelector('polyline')).not.toBeNull();
   expect(screen.getByRole('img', { name: 'Heart-rate estimates' }).querySelectorAll('polyline').length).toBe(4);
   const rows = within(screen.getByTestId('research-windows')).getAllByRole('row').slice(1);
-  expect(rows).toHaveLength(3);
+  expect(rows).toHaveLength(4);
   expect(rows[0].textContent).toContain('72.0 bpm (learned)');
   expect(rows[0].textContent).toContain('81% likely within 5 bpm');
-  expect(rows[2].textContent).toContain('classical, because the learned answer was not confident enough');
+  expect(rows[2].textContent).toContain('74.0 bpm (classical, because there is no accelerometer signal)');
   expect(screen.getByTestId('research-provenance').textContent).toContain('heart_selector@3b0863a9a8cf');
   expect(screen.getByTestId('research-provenance').textContent).toContain('CC BY 4.0');
 });
@@ -76,6 +83,20 @@ test('an unavailable window shows its reason and never a number', () => {
   expect(answerWords(unavailable)).toBe('Unavailable: too much movement');
   expect(answerWords(win(0))).toBe('72.0 bpm (learned)');               // negative control
   expect(confidenceWords(unavailable)).toBe('—');
+});
+
+test('an unsure learned selector gives an unavailable window, not the classical number (D-094)', () => {
+  render(<ResearchView result={result()} />);
+  const row = within(screen.getByTestId('research-windows')).getAllByRole('row')[4];
+  const reported = row.querySelectorAll('td')[4].textContent ?? '';
+  expect(reported).toBe('Unavailable: the learned selector was not confident enough (the classical estimate is not reported instead)');
+  expect(reported).not.toMatch(/\d/);
+  expect(row.querySelectorAll('td')[2].textContent).toBe('74.0');    // the classical candidate is still shown as a candidate
+  expect(Object.keys(FALLBACK_WORDS).sort()).toEqual(['no_accelerometer', 'no_model']);
+  const prov = screen.getByTestId('research-provenance').textContent ?? '';
+  expect(prov).not.toMatch(/not confident enough/);
+  expect(screen.getByTestId('research-learned-unsure').textContent).toBe(LEARNED_UNSURE_WORDS);
+  expect(screen.getByTestId('research-summary').textContent).toContain('1 for the learned selector was not confident enough');
 });
 
 test.each([
@@ -101,13 +122,13 @@ test('negative control: both research sources are accepted', () => {
 
 test('the chart helpers drop gaps and share one scale across lines', () => {
   expect(seriesPoints([[0, 1], [1, null], [2, 3]])).toEqual([{ t: 0, v: 1 }, { t: 2, v: 3 }]);
-  const s = estimateSeries([win(0), unavailable, fallback]);
+  const s = estimateSeries([win(0), unavailable, fallback, unsure]);
   expect(s.reported.map((p) => p.v)).toEqual([72, 74]);
-  expect(s.classical).toHaveLength(3);
+  expect(s.classical).toHaveLength(4);
   expect(s.learned.map((p) => p.v)).toEqual([72, 72, 90]);
   const box = boxOf(s.classical, s.learned);
-  expect(box).toEqual({ t0: 4, t1: 8, v0: 72, v1: 90 });
-  expect(scaledPolyline([{ t: 4, v: 90 }, { t: 8, v: 72 }], box, 100, 50, 0)).toBe('0.0,0.0 100.0,50.0');
+  expect(box).toEqual({ t0: 4, t1: 10, v0: 72, v1: 90 });
+  expect(scaledPolyline([{ t: 4, v: 90 }, { t: 8, v: 72 }], { t0: 4, t1: 8, v0: 72, v1: 90 }, 100, 50, 0)).toBe('0.0,0.0 100.0,50.0');
 });
 
 test('the research result is accessible', async () => {

@@ -1722,3 +1722,101 @@ all harmless and hedged ("you may have missed a bus", "You must have been very t
 all spoken, so they cannot show what the old rule refused and the new one allows; the corpus does. The hazard log (H7) and the claims
 register name the corpus. A Clinical Safety Officer's review of the rule is still owed, as for the
 rest of the hazard log.
+
+## D-092 A fall detected during a running countdown is never dropped: one incident, the same deadline, asked again after an OK (hazard H4, 26 November 2026)
+
+The cross-dataset test on WEDA-FALL (`docs/ai/fall/CROSS_DATASET_WEDA.md`) found that 20 of the
+24 falls the shipped pipeline missed were detected (model probability 0.996 to 1.000) while an
+earlier alarm's 30 s countdown was running, 1.4 to 5.2 s before the fall. `FallCountdown` ignored
+any detection while it counted, and the server refused a second fall start with 409, which the
+watch's outbox treats as final. A person who tapped "I'm OK" for the first prompt got no
+countdown and no escalation for the fall itself.
+
+Decision: a fall countdown is one **incident** with its own id, and a detection is never dropped.
+
+- **The same impact seen twice** (impacts within 1.5 s, `FallCountdown.SAME_IMPACT_MS`, the time
+  both detectors already treat as the impact itself) is counted on the incident and changes
+  nothing else: no new report, no new countdown.
+- **A separate detection** during the countdown is attached to the incident: the wrist vibrates
+  and asks again ("I noticed another possible fall. Are you OK?"), the server records it on the
+  alert it already holds, and **the deadline does not move**. With no answer, help is asked for
+  at the original deadline, by the watch and, if the watch has gone quiet, by the server.
+- **"I'm OK" covers only what was detected before the question it answers.** If a separate
+  detection came after the question, the OK is reported for the first incident and the person is
+  asked again at once with a fresh countdown and a new incident id. Each fresh countdown needs a
+  new explicit OK, so nothing is put off without the person answering, and the fall's own
+  escalation comes at most two countdowns after it (bounded by the first countdown's end plus one
+  countdown).
+- **An unclear answer cancels nothing** (as before); **Help escalates at once**, whatever else
+  was detected.
+- **Offline and retries:** every event carries the incident id and an idempotency key derived
+  from it (`fall-<id>-d<n>`, `fall-<id>-ok`, `fall-<id>-help`); the outbox holds a key once and
+  now sends strictly in order, so an incident's OK always reaches the server before the next
+  incident's start (before, a newer event could overtake one that was backing off). One drain at
+  a time on the watch.
+- **On the server** (`care/falls.py`): at most one unresolved fall alert per person; a start while
+  one is unresolved is attached to it (`details.detections`), never refused, and leaves
+  `next_action_at` alone; "I'm OK" resolves only for the latest incident attached (an older one is
+  recorded and answered 409, and the alert keeps asking until its original deadline); Help or the
+  end of a countdown while a fall SOS is open returns that SOS instead of opening a second; every
+  change runs under a per-person transaction lock, so concurrent events open at most one SOS.
+
+Not changed: the thresholds, the model, the rule detector (still the backstop when the model is
+missing or refused), and the countdown length. The price: a person who keeps moving after an
+alarm (clapping, several table hits, getting up and sitting again) may be asked a second time
+after saying "I'm OK". On synthetic signals a clapping bout gives at most one more question per
+OK (`docs/compliance/CLINICAL_SAFETY_CASE.md`, H4). The owner asked for the missed fall to be
+fixed first; alarm fatigue from hand impacts is a separate finding for the clinical reviewer.
+
+The historical WEDA-FALL figures were produced before this change and are not re-run until the
+dataset's licence is confirmed; `scripts/eval/fall_cross_weda.py --countdown d092` mirrors the new
+behaviour for that re-run. Tests: `FallCountdownOverlapTest.kt` (written against the API before
+the fix: five of its seven tests fail on the old code), `FallCountdownIncidentTest.kt`,
+`tests/tenancy/test_care_fall_overlap_db.py` (all six fail on the old server),
+`tests/readiness/test_cross_dataset_eval.py`.
+
+## D-094 Heart research mode: when the learned selector is unsure, the window is unavailable, not answered by the classical estimator (requirement F3.g, 26 November 2026)
+
+The research pipeline (`care/heart_research.py`, D-086) reported the classical estimate whenever
+the learned selector's probability was below 0.5 and the classical confidence was at least 0.3. Two
+evaluations found those answers poor: on held-out PPG-DaLiA subject S1 they were 16.23 bpm out
+(against 4.59 for the confident learned answers), and on the independent GalaxyPPG data 29.27 bpm
+on the Empatica E4 and 39.44 bpm on the Galaxy Watch 5 (against 2.19 and 1.63).
+
+Decision: **when the learned selector has run and is unsure, the window is unavailable** with the
+reason `learned_low_confidence` (or `learned_no_candidates` if it found no candidate peak), and no
+number. The classical candidate is still shown in the window's detail, as a candidate, never as the
+answer. The classical estimate is still reported, labelled as a fallback with why, only where the
+learned selector cannot run at all: no model (`no_model`) or no accelerometer (`no_accelerometer`).
+Nothing else changes: thresholds, the motion gate, the provenance, and the flags
+(`is_measurement: false`, `may_alert: false`, `stored: false`).
+
+**An agreement check was considered and rejected.** The alternative was to keep the classical
+answer when it is within 5 bpm of the learned candidate (5 bpm being the selector's own definition
+of a correct candidate, fixed in advance). The rule for choosing was fixed before running: adopt it
+only if, pooled over the 14 PPG-DaLiA subjects other than S1 (leave-one-subject-out fold models;
+S1 was not used to decide, and GalaxyPPG was not used at all), the windows it would add score no
+worse than the confident learned answers. They did not: 13.68 bpm on 3,377 windows, against 3.31
+bpm on 39,632. When the two methods agree while the selector is unsure, they are often both
+following the same wrong peak (a motion harmonic). Record: `docs/ai/heart/fallback_rule_analysis.json`,
+`scripts/training/heart_fallback_rule.py`.
+
+| 14 subjects without S1 (LOSO) | MAE (bpm) | Coverage | Reported windows over 10 bpm out |
+| --- | --- | --- | --- |
+| Previous rule (classical fallback) | 7.09 | 78.6% | 16.1% |
+| Agreement within 5 bpm (rejected) | 4.12 | 71.6% | 9.2% |
+| Unavailable (adopted) | 3.31 | 66.0% | 6.3% |
+
+**Re-measured on held-out S1** (`docs/ai/heart/research_pipeline_eval.json`, same fold model,
+SHA-256 `31670471ecfc…`): reported 7.19 bpm on 3,565 windows (77.5%) before, 4.59 bpm on 2,768
+(60.1%) after; the 797 windows no longer answered (16.23 bpm) are now `learned_low_confidence`.
+**On GalaxyPPG** (not re-run, because the change only relabels windows and does not change what the
+estimators compute, so the "learned" rows of the existing run are exactly the new rule's output):
+on the E4, 3.56 bpm on 86.4% of the windows with a reference before, 2.19 bpm on 82.0% after; on
+the Galaxy Watch 5, 7.75 bpm on 78.8% before, 1.63 bpm on 66.0% after
+(`docs/ai/heart/CROSS_DATASET_GALAXYPPG.md`).
+
+What it costs: fewer answers. Coverage falls by 12.6 percentage points on the 14 PPG-DaLiA
+subjects, 17.3 on S1, 4.4 on the GalaxyPPG E4 and 12.8 on the Galaxy Watch. In research mode
+"unavailable" is the honest answer there. What would change it: a better fallback shown on separate
+data (not S1 and not GalaxyPPG, which have now both been used to judge this one).

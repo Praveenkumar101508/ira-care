@@ -61,12 +61,16 @@ export const SOURCE_WORDS: Record<ResearchSource, string> = {
   research_recording: 'Recorded research data (public dataset)',
 };
 
+/** Why the classical estimator answered. Only where the learned selector cannot run at all: when it
+ * ran and was unsure, the window is unavailable (`learned_low_confidence`), never answered by the
+ * classical estimator instead (D-094). */
 export const FALLBACK_WORDS: Record<string, string> = {
   no_model: 'the learned model is not available',
   no_accelerometer: 'there is no accelerometer signal',
-  learned_low_confidence: 'the learned answer was not confident enough',
-  learned_unavailable: 'the learned answer was not available',
 };
+
+export const LEARNED_UNSURE_WORDS =
+  'When the learned selector runs but is not confident, the window is unavailable: the classical estimate is not reported in its place.';
 
 /** The reported answer in words: a number only when there is one. */
 export function answerWords(w: ResearchWindow): string {

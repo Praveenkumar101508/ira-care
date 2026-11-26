@@ -81,7 +81,7 @@ TFLite agrees with Keras on 200 of 200 windows.
 
 ## Cross-dataset evaluation (F4.f)
 
-Done on 26 November 2026 on **WEDA-FALL** (ODC-By 1.0; a Fitbit Sense on the wrist), with the
+Done on 26 November 2026 on **WEDA-FALL** (ODC-By 1.0 in the clone used, with a provenance caveat of 26 November 2026 in `CROSS_DATASET_WEDA.md`; a Fitbit Sense on the wrist), with the
 shipped file, threshold and rules unchanged and nothing tuned: `CROSS_DATASET_WEDA.md`,
 `cross_dataset_weda.json`.
 
@@ -89,13 +89,19 @@ shipped file, threshold and rules unchanged and nothing tuned: `CROSS_DATASET_WE
   (0.931). The model path caught the same 326; the rule caught 113, counting impacts still
   waiting for their 20 s when the recording ended.
 - **Missed falls:** 20 of the 24 were detected while an earlier alarm's countdown was running, and
-  the countdown dropped the fall's own detection.
+  the countdown dropped the fall's own detection. Fixed in the watch and the server by D-092 (a
+  detection during a countdown is attached to the incident, its deadline unchanged, and asked
+  about again after an "I'm OK"); the model is unchanged. These figures were produced before the
+  fix and are not re-run until WEDA-FALL's licence is confirmed.
 - **False alarms:** on 157 recordings of daily activities by 11 older adults aged 77 to 95, the
   model path raised the countdown on 25 (15.9%). Most came from hitting a table (11 of 31) and
   clapping (10 of 32).
 - **Model candidates:** specificity 0.840 there and 0.862 for the young volunteers, against
   0.977 on BITS-2.
-- **Open findings for the owner and a clinical reviewer** (nothing was changed because of them):
-  - false alarms from everyday hand impacts;
-  - a detection during a running countdown is ignored.
+- **Findings for the owner and a clinical reviewer** (the model, its threshold and the rules were
+  not changed because of them):
+  - false alarms from everyday hand impacts: open; analysed with candidate mitigations in
+    `docs/compliance/CLINICAL_SAFETY_CASE.md` (H4);
+  - a detection during a running countdown was ignored: fixed in the countdown, not the model
+    (D-092).
 - **Not shown:** older adults' falls, or the IRA watch.

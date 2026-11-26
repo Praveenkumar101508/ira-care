@@ -347,10 +347,13 @@ person").
   The classical spectral concentration is reported as the quality index. An unavailable window
   never carries a number, only the reason.
 - **Inference.** `LearnedHeartTracker` (which runs the classical tracker inside it). The learned
-  answer is reported when its probability is at least 0.5; otherwise the classical answer when
-  its confidence is at least 0.3, marked as a fallback with the reason (`no_model`,
-  `no_accelerometer`, `learned_low_confidence`); otherwise "unavailable". Confidence is reported
-  with its kind (probability within 5 bpm, or spectral concentration).
+  answer is reported when its probability is at least 0.5. When the learned selector has run and
+  its probability is lower, the window is **unavailable** (`learned_low_confidence`, or
+  `learned_no_candidates`); the classical estimate is not reported in its place (D-094, below).
+  The classical answer, when its confidence is at least 0.3, is reported only where the learned
+  selector cannot run, marked as a fallback with the reason (`no_model`, `no_accelerometer`);
+  otherwise "unavailable". Confidence is reported with its kind (probability within 5 bpm, or
+  spectral concentration).
 - **Provenance on every result:** pipeline version, the learned model's version
   (`heart_selector@3b0863a9a8cf`), SHA-256, size, trees and training data, the classical
   settings, and the recording's source (`simulated` or `research_recording`), dataset, licence
@@ -369,23 +372,40 @@ SHA-256 `31670471ecfc…`), and runs the research pipeline over S1's whole recor
 | --- | --- | --- |
 | Classical candidate, every window | 11.01 | 4,603 |
 | Learned candidate, every window | 8.09 | 4,603 |
-| Reported by the pipeline (learned or classical fallback) | 7.19 | 3,565 (77.5%) |
-| of which learned (probability ≥ 0.5) | 4.59 | 2,768 |
-| of which classical fallback after a low learned probability | 16.23 | 797 |
-| Unavailable: low confidence 809, motion artefact 229 | — | 1,038 |
+| **Reported by the pipeline (D-094: learned only)** | **4.59** | **2,768 (60.1%)** |
+| Unavailable: learned low confidence 1,606, motion artefact 229 | — | 1,835 |
+| *Before D-094:* reported (learned or classical fallback) | 7.19 | 3,565 (77.5%) |
+| *Before D-094:* of which classical fallback after a low learned probability | 16.23 | 797 |
+
+Re-run on 26 November 2026 with D-094 in place (the archive re-downloaded and its SHA-256 checked,
+then deleted). The "before" rows are computed from the same run: the classical estimate in the
+windows now marked `learned_low_confidence`, where it was reliable. They equal the figures first
+recorded for the previous rule exactly.
 
 - **Reproduction:** every one of the 4,603 windows matched the evaluation script's own path:
   classical candidates identical, learned selections equal to 0.1 bpm. The all-window MAEs are
   exactly the S1 figures in `results.json` (11.01 and 8.09). This is a check that the research
   pipeline runs the evaluated estimators unchanged, not a new accuracy number.
-- **Finding: the classical fallback after a low learned probability is poor.** Those 797
-  windows score 16.23 bpm, against 4.59 for the confident learned answers. The fallback was
-  asked for and is kept as specified (changing it after seeing held-out data would be tuning on
-  it), but this one subject says that "unavailable" would be the better answer there. Any
-  product use must re-decide this on separate data.
+- **Finding, and the change it led to: the classical fallback after a low learned probability was
+  poor.** Those 797 windows scored 16.23 bpm, against 4.59 for the confident learned answers, and
+  GalaxyPPG confirmed it (below). D-094 makes those windows unavailable. The rule was chosen on
+  PPG-DaLiA leave-one-subject-out data from the 14 other subjects, not on S1 or GalaxyPPG
+  (`docs/ai/heart/fallback_rule_analysis.json`, `scripts/training/heart_fallback_rule.py`):
+
+  | 14 subjects without S1 (LOSO) | MAE (bpm) | Coverage | Reported windows over 10 bpm out |
+  | --- | --- | --- | --- |
+  | Previous rule (classical fallback) | 7.09 | 78.6% | 16.1% |
+  | Classical kept only within 5 bpm of the learned candidate (rejected) | 4.12 | 71.6% | 9.2% |
+  | Unavailable (adopted) | 3.31 | 66.0% | 6.3% |
+
+  The agreement check was to be adopted only if the windows it adds scored no worse than the
+  confident learned answers (fixed before running). They scored 13.68 bpm on 3,377 windows against
+  3.31: when both methods agree while the selector is unsure, they often follow the same wrong
+  peak.
 - **Excerpt in the repository** (S1, 1,800–2,100 s, transient and cycling, 147 windows):
   classical 12.65, learned 3.61 (fold model) and 3.48 (shipped model, which saw S1); reported
-  3.98 on 117 windows (fold) and 4.11 on 120 (shipped). The motion gate rejected no window of
+  2.08 on 101 windows (fold) and 1.84 on 103 (shipped) since D-094, against 3.98 on 117 and 4.11
+  on 120 under the previous rule. The motion gate rejected no window of
   the excerpt and 229 of S1's (5%). `test_the_excerpt_reproduces_the_held_out_evaluation` fails
   if the pipeline's excerpt numbers move.
 - One subject and a 5-minute excerpt: nothing here generalises beyond them.
@@ -397,7 +417,7 @@ simulations (1,140 windows), on the shared 4-CPU machine:
 
 | | Per window, mean | median | 95th percentile | max | Python peak allocation per run |
 | --- | --- | --- | --- | --- | --- |
-| Learned with classical fallback | 12.6 ms | 12.5 ms | 20.2 ms | 41.9 ms | 0.80 MiB |
+| Learned path (measured before D-094, which changes no computation) | 12.6 ms | 12.5 ms | 20.2 ms | 41.9 ms | 0.80 MiB |
 | Classical only | 0.92 ms | 0.91 ms | 1.60 ms | 3.63 ms | 0.77 MiB |
 
 Loading the model took 29.8 ms; the process's maximum resident set went from 31.0 to 44.1 MiB
@@ -417,9 +437,11 @@ On 26 November 2026 the research pipeline ran unchanged on GalaxyPPG (CC BY 4.0,
   17.86 ± 7.16 bpm, learned 7.83 ± 4.31 bpm. The learned answers with probability ≥ 0.5 were
   1.63 bpm on 24,638 windows. One participant's watch was refused: its clock was 8.5 s from the
   strap's.
-- **The classical fallback after a low learned probability is confirmed as poor:** 29.27 bpm
-  (E4) and 39.44 bpm (Galaxy Watch), against 2.19 and 1.63 for the learned answers. It was not
-  changed; whoever decides product use must decide it.
+- **The classical fallback after a low learned probability was confirmed as poor:** 29.27 bpm
+  (E4) and 39.44 bpm (Galaxy Watch), against 2.19 and 1.63 for the learned answers. Since D-094
+  those windows are unavailable; the pipeline's reported answers on GalaxyPPG become 2.19 bpm on
+  82.0% of windows with a reference (E4, was 3.56 on 86.4%) and 1.63 bpm on 66.0% (Galaxy Watch,
+  was 7.75 on 78.8%). GalaxyPPG was not used to choose the rule.
 
 ## Limitations
 

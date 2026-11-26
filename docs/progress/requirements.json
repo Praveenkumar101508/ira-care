@@ -2461,7 +2461,7 @@
   {
    "id": "F3.g",
    "parent": "F3",
-   "title": "Research-mode raw-PPG pipeline on recorded or simulated signals only (data contract, signal-quality rejection, learned selector with classical fallback, confidence and provenance, care-manager endpoint and dashboard page), never stored and never reaching an alert",
+   "title": "Research-mode raw-PPG pipeline on recorded or simulated signals only (data contract, signal-quality rejection, learned selector, unavailable when it is unsure and classical only where it cannot run (D-094), confidence and provenance, care-manager endpoint and dashboard page), never stored and never reaching an alert",
    "area": "ai",
    "hardware_independent": true,
    "state": "verified",
@@ -2489,6 +2489,10 @@
     {
      "kind": "model_eval",
      "ref": "docs/ai/heart/cross_dataset_galaxyppg.json"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/heart/fallback_rule_analysis.json"
     }
    ]
   },
@@ -2521,6 +2525,18 @@
     {
      "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_fall_db.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_fall_overlap_db.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/checkin/FallCountdownOverlapTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/checkin/FallCountdownIncidentTest.kt"
     }
    ]
   },

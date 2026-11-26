@@ -458,7 +458,9 @@ async def device_talk(body: schemas.Talk, d: tuple[Principal, dict] = Depends(re
 async def device_fall_started(body: schemas.FallStart, d: tuple[Principal, dict] = Depends(require_device),
                               key: Optional[str] = Header(default=None, alias=sos.IDEMPOTENCY_HEADER)):
     """The watch suspects a fall and has started its countdown: the server opens
-    an asking alert and keeps its own deadline. 409 when fall detection is off."""
+    an asking alert and keeps its own deadline. A detection while a fall alert is
+    unresolved is attached to it (`attached: true`), its deadline unchanged (D-092).
+    409 when fall detection is off."""
     from . import falls
     principal, device = d
 
@@ -468,20 +470,24 @@ async def device_fall_started(body: schemas.FallStart, d: tuple[Principal, dict]
         except falls.FallDetectionOff as exc:
             raise HTTPException(status_code=409, detail=str(exc))
         if alert is None:
-            raise HTTPException(status_code=409, detail="A fall alert is already asking or open for this person.")
+            raise HTTPException(status_code=409, detail="No fall alert can be opened for this person.")
         return alert
     return await _idempotent(principal, device, key, "fall_started", 201, work)
 
 
 @router.post("/devices/me/fall/ok")
-async def device_fall_ok(d: tuple[Principal, dict] = Depends(require_device),
+async def device_fall_ok(body: Optional[schemas.FallOk] = None, d: tuple[Principal, dict] = Depends(require_device),
                          key: Optional[str] = Header(default=None, alias=sos.IDEMPOTENCY_HEADER)):
-    """The person tapped I'm OK during the fall countdown."""
+    """The person tapped I'm OK during the fall countdown. With the incident id, only an OK for
+    the latest detection attached to the alert resolves it (409 otherwise; D-092)."""
     from . import falls
     principal, device = d
 
     async def work():
-        alert = await falls.answered_ok(principal, device)
+        try:
+            alert = await falls.answered_ok(principal, device, incident_id=body.incident_id if body else None)
+        except falls.StaleAnswer as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
         if alert is None:
             raise _not_found("No fall alert is asking for this person.")
         return alert

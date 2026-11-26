@@ -30,29 +30,38 @@
       "windows": 4603
     },
     "reported": {
-      "mae_bpm": 7.19,
-      "windows": 3565
+      "mae_bpm": 4.59,
+      "windows": 2768
     },
-    "reported_share_of_windows": 0.7745,
+    "reported_share_of_windows": 0.6013,
     "reported_learned": {
       "mae_bpm": 4.59,
       "windows": 2768
     },
     "reported_classical_fallback": {
+      "mae_bpm": null,
+      "windows": 0
+    },
+    "previous_rule_reported": {
+      "mae_bpm": 7.19,
+      "windows": 3565
+    },
+    "previous_rule_reported_share_of_windows": 0.7745,
+    "previous_rule_classical_fallback": {
       "mae_bpm": 16.23,
       "windows": 797
     },
     "unavailable_by_reason": {
-      "low_confidence": 809,
+      "learned_low_confidence": 1606,
       "motion_artefact": 229
     },
     "resources": {
-      "total_ms": 67377.6,
-      "per_window_ms_mean": 14.638,
-      "per_window_ms_max": 48.549,
-      "max_rss_mib": 366.2
+      "total_ms": 58031.77,
+      "per_window_ms_mean": 12.607,
+      "per_window_ms_max": 45.979,
+      "max_rss_mib": 370.1
     },
-    "pipeline_s": 67.5
+    "pipeline_s": 58.1
   },
   "excerpt": {
     "file": {
@@ -72,26 +81,35 @@
           "windows": 147
         },
         "reported": {
-          "mae_bpm": 3.98,
-          "windows": 117
+          "mae_bpm": 2.08,
+          "windows": 101
         },
-        "reported_share_of_windows": 0.7959,
+        "reported_share_of_windows": 0.6871,
         "reported_learned": {
           "mae_bpm": 2.08,
           "windows": 101
         },
         "reported_classical_fallback": {
+          "mae_bpm": null,
+          "windows": 0
+        },
+        "previous_rule_reported": {
+          "mae_bpm": 3.98,
+          "windows": 117
+        },
+        "previous_rule_reported_share_of_windows": 0.7959,
+        "previous_rule_classical_fallback": {
           "mae_bpm": 16.0,
           "windows": 16
         },
         "unavailable_by_reason": {
-          "low_confidence": 30
+          "learned_low_confidence": 46
         },
         "resources": {
-          "total_ms": 1905.38,
-          "per_window_ms_mean": 12.962,
-          "per_window_ms_max": 19.458,
-          "max_rss_mib": 366.2
+          "total_ms": 1873.13,
+          "per_window_ms_mean": 12.742,
+          "per_window_ms_max": 20.301,
+          "max_rss_mib": 370.1
         },
         "learned_model": "heart_selector@31670471ecfc"
       },
@@ -106,26 +124,35 @@
           "windows": 147
         },
         "reported": {
-          "mae_bpm": 4.11,
-          "windows": 120
+          "mae_bpm": 1.84,
+          "windows": 103
         },
-        "reported_share_of_windows": 0.8163,
+        "reported_share_of_windows": 0.7007,
         "reported_learned": {
           "mae_bpm": 1.84,
           "windows": 103
         },
         "reported_classical_fallback": {
+          "mae_bpm": null,
+          "windows": 0
+        },
+        "previous_rule_reported": {
+          "mae_bpm": 4.11,
+          "windows": 120
+        },
+        "previous_rule_reported_share_of_windows": 0.8163,
+        "previous_rule_classical_fallback": {
           "mae_bpm": 17.88,
           "windows": 17
         },
         "unavailable_by_reason": {
-          "low_confidence": 27
+          "learned_low_confidence": 44
         },
         "resources": {
-          "total_ms": 2051.3,
-          "per_window_ms_mean": 13.954,
-          "per_window_ms_max": 27.942,
-          "max_rss_mib": 366.2
+          "total_ms": 1986.56,
+          "per_window_ms_mean": 13.514,
+          "per_window_ms_max": 28.11,
+          "max_rss_mib": 370.1
         },
         "learned_model": "heart_selector@3b0863a9a8cf"
       }
@@ -138,7 +165,7 @@
     "note": "fixed before this evaluation; not tuned on it"
   },
   "runtime": {
-    "total_s": 1853.2,
+    "total_s": 144.3,
     "machine": "x86_64, 4 CPUs, no GPU, shared with other jobs",
     "versions": {
       "python": "3.13.18",
