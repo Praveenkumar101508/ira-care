@@ -73,8 +73,11 @@ async def test_a_fall_countdown_asks_first_and_im_ok_resolves_it(client, familie
     assert alert["kind"] == "suspected_fall" and alert["status"] == "asking" and alert["checkin_id"] is None
     assert "hard impact (3.4 g)" in alert["details"]["summary"] and alert["details"]["countdown_s"] == 30
     assert alert["details"]["ask_first_wait_s"] == 40, "the server waits the countdown plus a grace"
-    # A second start while one is asking is refused.
-    assert (await client.post(f"{C}/devices/me/fall", json={"peak_g": 5.0}, headers=p["h"])).status_code == 409
+    # A second start while one is asking is attached to it, never dropped, and opens nothing new;
+    # the deadline stands (D-092; until then it was refused with 409 and the watch let it go).
+    r = await client.post(f"{C}/devices/me/fall", json={"peak_g": 5.0}, headers=p["h"])
+    assert r.status_code == 201 and r.json()["id"] == alert["id"] and r.json()["attached"] is True
+    assert r.json()["next_action_at"] == alert["next_action_at"] and len(r.json()["details"]["detections"]) == 2
     # The watch does not get a safety question to ask: it is asking already.
     assert (await client.get(f"{C}/devices/me/checkins/due", headers=p["h"])).json()["checkin"] is None
     r = await client.post(f"{C}/devices/me/fall/ok", headers=p["h"])

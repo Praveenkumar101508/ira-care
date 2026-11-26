@@ -44,9 +44,15 @@
 #     still window counts; (b) also an impact still waiting for its 20 s when the recording ended
 #     (the person had not moved). WEDA-FALL recordings last about 3 to 40 s, so (a) almost never
 #     completes and (b) is the rule's fair score.
-#   - Alarms: suspected falls that start the 30 s countdown (a second one inside a running
-#     countdown is ignored, as FallCountdown does). False alarms are counted per hour of the
-#     daily-activity recordings and per recording, young and older adults separately.
+#   - Alarms: suspected falls that start the 30 s countdown. False alarms are counted per hour of
+#     the daily-activity recordings and per recording, young and older adults separately.
+#   - A second detection inside a running countdown (--countdown): "ignore" drops it, as
+#     FallCountdown did before D-092; the published figures (cross_dataset_weda.json, 26 November
+#     2026) were produced this way and it stays the default so they reproduce. "d092" mirrors the
+#     watch after D-092: one within SAME_IMPACT_MS of the impact that started the countdown is the
+#     same impact (absorbed); any other is attached to the incident and counts as an alarm (the
+#     watch asks again after an OK, and escalates at the original deadline without one), an upper
+#     bound for false alarms. Not yet run on WEDA-FALL: that waits for its licence to be confirmed.
 #
 #   python3 -I scripts/eval/fall_cross_weda.py --data <scratch>/weda/repo/dataset \
 #       --commit <hash> --out docs/ai/fall/cross_dataset_weda.json
@@ -76,6 +82,8 @@ MAX_BACKWARD_S = 3.0
 PRE_PAD_S, POST_PAD_S = 2.0, 3.0
 FALL_TOLERANCE_S = 1.0
 COUNTDOWN_MS = 30_000
+SAME_IMPACT_MS = 1_500        # FallCountdown.SAME_IMPACT_MS (D-092)
+COUNTDOWN_POLICIES = ("ignore", "d092")
 OLDER_FROM_USER = 21          # README: users 1-14 young, 21-31 older adults
 HEADER = ["accel_time_list", "accel_x_list", "accel_y_list", "accel_z_list"]
 ADL_NAMES = {"D01": "walking", "D02": "jogging", "D03": "walking up and down stairs",
@@ -295,14 +303,18 @@ class RecoveringFallDetector:
 
 # ── one recording through one configuration ─────────────────────────────────
 
-def stream(acc_g: np.ndarray, *, spec: dict, infer, config: str) -> dict:
+def stream(acc_g: np.ndarray, *, spec: dict, infer, config: str, countdown: str = "ignore") -> dict:
     """Run ``config`` ("rule", "model" or "shipped") over a 50 Hz recording in g, with the edge
-    padding of step 5. Times in the result are seconds from the first real sample."""
+    padding of step 5. Times in the result are seconds from the first real sample. ``countdown``
+    is what a detection inside a running countdown does (see the header): "ignore" or "d092"."""
+    if countdown not in COUNTDOWN_POLICIES:
+        raise ValueError(f"countdown must be one of {COUNTDOWN_POLICIES}")
     pre, post = int(PRE_PAD_S * OUT_HZ), int(POST_PAD_S * OUT_HZ)
     sig = np.vstack([np.repeat(acc_g[:1], pre, 0), acc_g, np.repeat(acc_g[-1:], post, 0)])
     real_end = pre + len(acc_g)
     offset_ms = pre * 1000 // OUT_HZ
-    decisions, raised, ignored = [], [], []
+    decisions, raised, ignored, attached, absorbed = [], [], [], [], []
+    trigger_at = None
     if config == "rule":
         det = FallDetector()
     else:
@@ -326,21 +338,29 @@ def stream(acc_g: np.ndarray, *, spec: dict, infer, config: str) -> dict:
             continue
         if ev[4] == "rule" and i >= real_end:
             continue                                      # a rule event made of padding
-        if at < countdown_until:                          # FallCountdown ignores it while counting
-            ignored.append({"path": ev[4], "at_s": (ev[1] - offset_ms) / 1000, "raised_s": (at - offset_ms) / 1000})
+        if at < countdown_until:
+            item = {"path": ev[4], "at_s": (ev[1] - offset_ms) / 1000, "raised_s": (at - offset_ms) / 1000}
+            if countdown == "ignore":                     # FallCountdown before D-092
+                ignored.append(item)
+            elif abs(ev[1] - trigger_at) <= SAME_IMPACT_MS:  # D-092: the same impact seen twice
+                absorbed.append(item)
+            else:                                         # D-092: attached; the deadline stands
+                attached.append(item)
             continue
         countdown_until = at + COUNTDOWN_MS
+        trigger_at = ev[1]
         raised.append({"path": ev[4], "at_s": (ev[1] - offset_ms) / 1000, "peak_g": round(ev[2], 3),
                        "raised_s": (at - offset_ms) / 1000, "padded": i >= real_end})
     if config == "model":
         open_impact = None
-    return {"raised": raised, "ignored_during_countdown": ignored, "open_rule_impact_s": open_impact, "decisions": decisions}
+    return {"raised": raised, "ignored_during_countdown": ignored, "attached_during_countdown": attached,
+            "absorbed_same_impact": absorbed, "open_rule_impact_s": open_impact, "decisions": decisions}
 
 
 def alarms(res: dict, convention: str) -> list[float]:
     """Alarm times (impact or peak, s) under convention "a" (raised only) or "b" (also an open
     rule impact at the end, unless a raised alarm's countdown was still running then)."""
-    out = [r["at_s"] for r in res["raised"]]
+    out = [r["at_s"] for r in res["raised"]] + [r["at_s"] for r in res.get("attached_during_countdown", [])]
     if convention == "b" and res["open_rule_impact_s"] is not None:
         if not any(r["raised_s"] <= res["open_rule_impact_s"] < r["raised_s"] + COUNTDOWN_MS / 1000 for r in res["raised"]):
             out.append(res["open_rule_impact_s"])
@@ -414,6 +434,8 @@ def main():
     ap.add_argument("--data", type=Path, required=True, help="WEDA-FALL's dataset/ directory (outside the repository)")
     ap.add_argument("--commit", required=True)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--countdown", choices=COUNTDOWN_POLICIES, default="ignore",
+                    help="a detection inside a running countdown: ignore (before D-092, the published figures) or d092")
     args = ap.parse_args()
     t_start = time.time()
     spec, infer, model_info = load_shipped()
@@ -433,7 +455,7 @@ def main():
         prep["native_hz"][str(rec["native_hz"])] = prep["native_hz"].get(str(rec["native_hz"]), 0) + 1
         prep["rows_reordered_files"] += int(rec["rows_reordered"] > 0)
         prep["clipped_axis_samples"] += rec["clipped_axis_samples"]
-        res = {c: stream(rec["acc_g"], spec=spec, infer=infer, config=c) for c in configs}
+        res = {c: stream(rec["acc_g"], spec=spec, infer=infer, config=c, countdown=args.countdown) for c in configs}
         item = {"act": act, "user": user, "trial": trial, "group": "older" if user >= OLDER_FROM_USER else "young",
                 "seconds": rec["seconds"], "native_hz": rec["native_hz"], "res": res,
                 "max_g": float(np.max(np.linalg.norm(rec["acc_g"], axis=1)))}
@@ -579,7 +601,7 @@ def main():
                        "native_hz_files": prep["native_hz"], "files_with_rows_reordered": prep["rows_reordered_files"],
                        "resampling": "linear interpolation to 50 Hz", "padding_s": {"before": PRE_PAD_S, "after": POST_PAD_S},
                        "axis_samples_at_the_fitbit_4_g_limit": prep["clipped_axis_samples"]},
-        "scoring": {"fall_tolerance_s": FALL_TOLERANCE_S, "countdown_ms": COUNTDOWN_MS,
+        "scoring": {"fall_tolerance_s": FALL_TOLERANCE_S, "countdown_ms": COUNTDOWN_MS, "countdown_policy": args.countdown,
                     "conventions": {"a": "only complete 20 s still windows count for the rule",
                                     "b": "also a rule impact still waiting when the recording ended"}},
         "falls": {"sensitivity": sens, "shipped_beyond_the_strict_count": beyond, "by_type": by_type, "f08_by_side_shipped_b": f08_side,

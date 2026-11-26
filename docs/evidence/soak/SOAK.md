@@ -11,6 +11,9 @@ escalation. It does not show what a real day of wall-clock time shows: slow leak
 database that grows for 24 hours, provider and network weather. That run, on the machine
 that will serve people, is still to do, so requirement G2.e stays **not started**.
 
+The wall-clock harness for that run is `scripts/soak_wallclock.py`: see
+[`HOW_TO_RUN_24H.md`](HOW_TO_RUN_24H.md) and the one-hour run in [`WALLCLOCK_1H.md`](WALLCLOCK_1H.md).
+
 | Measure | Result |
 |---|---|
 | People, each with a paired watch and a circle | 200 |

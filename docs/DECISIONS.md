@@ -1723,6 +1723,58 @@ all spoken, so they cannot show what the old rule refused and the new one allows
 register name the corpus. A Clinical Safety Officer's review of the rule is still owed, as for the
 rest of the hazard log.
 
+## D-092 A fall detected during a running countdown is never dropped: one incident, the same deadline, asked again after an OK (hazard H4, 26 November 2026)
+
+The cross-dataset test on WEDA-FALL (`docs/ai/fall/CROSS_DATASET_WEDA.md`) found that 20 of the
+24 falls the shipped pipeline missed were detected (model probability 0.996 to 1.000) while an
+earlier alarm's 30 s countdown was running, 1.4 to 5.2 s before the fall. `FallCountdown` ignored
+any detection while it counted, and the server refused a second fall start with 409, which the
+watch's outbox treats as final. A person who tapped "I'm OK" for the first prompt got no
+countdown and no escalation for the fall itself.
+
+Decision: a fall countdown is one **incident** with its own id, and a detection is never dropped.
+
+- **The same impact seen twice** (impacts within 1.5 s, `FallCountdown.SAME_IMPACT_MS`, the time
+  both detectors already treat as the impact itself) is counted on the incident and changes
+  nothing else: no new report, no new countdown.
+- **A separate detection** during the countdown is attached to the incident: the wrist vibrates
+  and asks again ("I noticed another possible fall. Are you OK?"), the server records it on the
+  alert it already holds, and **the deadline does not move**. With no answer, help is asked for
+  at the original deadline, by the watch and, if the watch has gone quiet, by the server.
+- **"I'm OK" covers only what was detected before the question it answers.** If a separate
+  detection came after the question, the OK is reported for the first incident and the person is
+  asked again at once with a fresh countdown and a new incident id. Each fresh countdown needs a
+  new explicit OK, so nothing is put off without the person answering, and the fall's own
+  escalation comes at most two countdowns after it (bounded by the first countdown's end plus one
+  countdown).
+- **An unclear answer cancels nothing** (as before); **Help escalates at once**, whatever else
+  was detected.
+- **Offline and retries:** every event carries the incident id and an idempotency key derived
+  from it (`fall-<id>-d<n>`, `fall-<id>-ok`, `fall-<id>-help`); the outbox holds a key once and
+  now sends strictly in order, so an incident's OK always reaches the server before the next
+  incident's start (before, a newer event could overtake one that was backing off). One drain at
+  a time on the watch.
+- **On the server** (`care/falls.py`): at most one unresolved fall alert per person; a start while
+  one is unresolved is attached to it (`details.detections`), never refused, and leaves
+  `next_action_at` alone; "I'm OK" resolves only for the latest incident attached (an older one is
+  recorded and answered 409, and the alert keeps asking until its original deadline); Help or the
+  end of a countdown while a fall SOS is open returns that SOS instead of opening a second; every
+  change runs under a per-person transaction lock, so concurrent events open at most one SOS.
+
+Not changed: the thresholds, the model, the rule detector (still the backstop when the model is
+missing or refused), and the countdown length. The price: a person who keeps moving after an
+alarm (clapping, several table hits, getting up and sitting again) may be asked a second time
+after saying "I'm OK". On synthetic signals a clapping bout gives at most one more question per
+OK (`docs/compliance/CLINICAL_SAFETY_CASE.md`, H4). The owner asked for the missed fall to be
+fixed first; alarm fatigue from hand impacts is a separate finding for the clinical reviewer.
+
+The historical WEDA-FALL figures were produced before this change and are not re-run until the
+dataset's licence is confirmed; `scripts/eval/fall_cross_weda.py --countdown d092` mirrors the new
+behaviour for that re-run. Tests: `FallCountdownOverlapTest.kt` (written against the API before
+the fix: five of its seven tests fail on the old code), `FallCountdownIncidentTest.kt`,
+`tests/tenancy/test_care_fall_overlap_db.py` (all six fail on the old server),
+`tests/readiness/test_cross_dataset_eval.py`.
+
 ## D-094 Heart research mode: when the learned selector is unsure, the window is unavailable, not answered by the classical estimator (requirement F3.g, 26 November 2026)
 
 The research pipeline (`care/heart_research.py`, D-086) reported the classical estimate whenever

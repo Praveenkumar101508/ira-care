@@ -13,8 +13,8 @@ import care.ira.watch.R
 import care.ira.watch.api.ApiOutcome
 import care.ira.watch.api.CareApi
 import care.ira.watch.api.CheckinAnswer
-import care.ira.watch.api.FallStart
 import care.ira.watch.api.HelpRequest
+import care.ira.watch.outbox.FallOutbox
 import care.ira.watch.outbox.Outbox
 import care.ira.watch.outbox.SosState
 import kotlinx.serialization.encodeToString
@@ -146,8 +146,10 @@ class CareForegroundService : LifecycleService() {
             if (!deps.fallSettings.enabled) return@onEach
             detector.onWrist = deps.lastOnWrist
             when (val event = detector.feed(sample)) {
-                is FallEvent.SuspectedFall ->
-                    performFall(fallCountdown.suspectedFall(event.peakG, event.stillForSeconds, deps.fallSettings.countdownS))
+                // The impact time lets the countdown tell the same impact seen twice from a separate
+                // detection; a separate one during a countdown is never dropped (D-092).
+                is FallEvent.SuspectedFall -> performFall(
+                    fallCountdown.suspectedFall(event.peakG, event.stillForSeconds, deps.fallSettings.countdownS, event.impactAtMillis))
                 else -> {}
             }
         }.collect()
@@ -210,17 +212,19 @@ class CareForegroundService : LifecycleService() {
                 is FallCountdown.Action.Speak -> deps.speaker.speak(action.text, louder = true)
                 is FallCountdown.Action.ReportFallStarted -> {
                     // Through the outbox: it reaches the server even if the link is down right now.
-                    deps.outbox.enqueue(Outbox.KIND_FALL_STARTED, CareApi.PATH_FALL, json.encodeToString(FallStart(action.peakG, action.stillSeconds)))
+                    // Keyed by the incident (FallOutbox): a later detection attaches to the same alert.
+                    FallOutbox.started(deps.outbox, action)
                     deps.status.value = deps.status.value.copy(sos = SosState.Sending, urgentPending = deps.outbox.size())
                     deps.sync.drainOutbox()
                 }
-                FallCountdown.Action.ReportFallOk -> {
-                    deps.outbox.enqueue(Outbox.KIND_FALL_OK, CareApi.PATH_FALL_OK, "{}")
+                is FallCountdown.Action.ReportFallOk -> {
+                    FallOutbox.ok(deps.outbox, action)
                     deps.status.value = deps.status.value.copy(sos = SosState.Idle, urgentPending = deps.outbox.size())
                     deps.sync.drainOutbox()
-                    deps.speaker.speak("Good. I will leave you be.", louder = false)
+                    // Not when a later detection means the person is being asked again (D-092).
+                    if (fallCountdown.state !is FallCountdown.State.Counting) deps.speaker.speak("Good. I will leave you be.", louder = false)
                 }
-                FallCountdown.Action.RequestHelp -> perform(listOf(CheckinController.Action.RequestHelp("fall")))
+                is FallCountdown.Action.RequestHelp -> perform(listOf(CheckinController.Action.RequestHelp("fall", action.incidentId)))
             }
         }
         deps.status.value = deps.status.value.copy(fallCountdown = fallCountdown.secondsLeft)
@@ -298,7 +302,9 @@ class CareForegroundService : LifecycleService() {
                     // Speaking first let a slow or stuck speech engine hold the request back.
                     deps.status.value = deps.status.value.copy(sos = SosState.Sending)
                     val fix = deps.location.currentFix(HELP_FIX_MS)
-                    deps.outbox.enqueue(Outbox.KIND_HELP, CareApi.PATH_HELP, json.encodeToString(HelpRequest(via = action.via, location = fix)))
+                    // A fall incident's Help is keyed by the incident, so it is queued and opened once.
+                    if (action.incidentId != null) FallOutbox.help(deps.outbox, action.incidentId, action.via, fix)
+                    else deps.outbox.enqueue(Outbox.KIND_HELP, CareApi.PATH_HELP, json.encodeToString(HelpRequest(via = action.via, location = fix)))
                     deps.status.value = deps.status.value.copy(urgentPending = deps.outbox.size())
                     deps.sync.drainOutbox()
                     deps.speaker.speak("Sending your request for help. Stay where you are.", louder = true)

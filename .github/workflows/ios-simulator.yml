@@ -1,0 +1,80 @@
+# iOS simulator build of the family app (mobile/). MANUAL ONLY.
+#
+# Cost: this job runs on a GitHub-hosted macOS runner. The repository is public,
+# and standard hosted runners (Linux and macOS) cost nothing for a public
+# repository. If it is ever made private again, macOS minutes are billed at 10
+# times the Linux rate (one minute here uses ten minutes of the monthly
+# allowance; a run takes roughly 20 to 40 minutes). Either way it runs only
+# when someone presses "Run workflow" on the Actions tab (workflow_dispatch).
+# It has no push, pull_request or schedule trigger and must never get one:
+# tests/readiness/test_manual_workflows.py fails if any other trigger is added.
+#
+# What it does: Node 22, `npm ci`, `npx expo prebuild --platform ios` (the ios/
+# folder is generated here and never committed), `pod install`, then an
+# unsigned Debug build for the iOS simulator with xcodebuild
+# (CODE_SIGNING_ALLOWED=NO, so no Apple certificate or account is needed). The
+# built IRACARE.app is uploaded as an artifact; it runs in the iOS Simulator
+# (`xcrun simctl install booted IRACARE.app`), not on a phone.
+name: ios-simulator (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-simulator-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios-simulator-build:
+    name: iOS simulator build (unsigned, Debug)
+    runs-on: macos-15
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Generate the iOS project
+        env:
+          CI: "1"
+          EXPO_NO_TELEMETRY: "1"
+        run: npx expo prebuild --platform ios --no-install
+      - name: Install CocoaPods dependencies
+        working-directory: mobile/ios
+        run: pod install
+      - name: Build for the iOS simulator (unsigned)
+        working-directory: mobile/ios
+        run: |
+          set -o pipefail
+          xcodebuild -workspace IRACARE.xcworkspace -scheme IRACARE \
+            -sdk iphonesimulator -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO build | tee xcodebuild.log | tail -n 200
+      - name: Package the .app
+        working-directory: mobile/ios
+        run: |
+          app=$(find build/Build/Products/Debug-iphonesimulator -maxdepth 1 -name '*.app' | head -1)
+          test -n "$app"
+          ditto -c -k --keepParent "$app" "$RUNNER_TEMP/IRACARE-simulator.app.zip"
+          ls -l "$RUNNER_TEMP/IRACARE-simulator.app.zip"
+      - name: Upload the simulator app and the build log
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ios-simulator-app
+          path: |
+            ${{ runner.temp }}/IRACARE-simulator.app.zip
+            mobile/ios/xcodebuild.log
+          if-no-files-found: warn
+          retention-days: 14

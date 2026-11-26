@@ -1,0 +1,21 @@
+{"device": {"ro.build.fingerprint": "google/sdk_gwear_x86_64/emu64xa:14/AW2A.240422.007.E8/12230326:userdebug/dev-keys", "ro.build.version.sdk": "34", "ro.product.cpu.abi": "x86_64", "ro.build.characteristics": "emulator,nosdcard,watch", "sys.boot_completed": "1"}}
+{"step": "prepare_device", "ok": true, "seconds": 164.1}
+{"step": "install", "ok": true, "seconds": 655.2, "output": "Performing Streamed Install\nSuccess"}
+{"step": "launch", "ok": false, "seconds": 69.4, "total_time_ms": null, "am_start": "Starting: Intent { cmp=care.ira.watch.debug/care.ira.watch.ui.MainActivity }\nStatus: timeout\nLaunchState: UNKNOWN (-1)\nActivity: care.ira.watch.debug/care.ira.watch.ui.MainActivity\nWaitTime: 56203\nComplete"}
+{"step": "pairing_screen_shown", "ok": true, "seconds": 153.4, "screenshot": "01_pairing_screen.png"}
+{"step": "pairing_code_created", "ok": true, "seconds": 0.0, "device_id": "91f04336-c35d-4abb-95d8-a7d5b41a0c97"}
+Traceback (most recent call last):
+  File "/home/user/ira-native/scripts/emulator/watch_smoke.py", line 271, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/home/user/ira-native/scripts/emulator/watch_smoke.py", line 267, in main
+    return Smoke(a).run()
+           ~~~~~~~~~~~~^^
+  File "/home/user/ira-native/scripts/emulator/watch_smoke.py", line 183, in run
+    self.adb("shell", "input", "tap", *map(str, centre(field)))
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/ira-native/scripts/emulator/watch_smoke.py", line 79, in adb
+    raise RuntimeError(f"adb {' '.join(args)} failed: {r.stderr.decode(errors='replace')[:400]}")
+RuntimeError: adb shell input tap 227 234 failed: cmd: Can't find service: input
+
+exit 1
