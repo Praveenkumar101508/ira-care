@@ -1,0 +1,7694 @@
+{
+ "what": "the shipped fall pipeline with and without the confirmation stage, on original synthetic scenarios (not real accuracy)",
+ "measured_at": "2026-11-26T23:23:35Z",
+ "seed": 7,
+ "per_kind": {
+  "forward": {
+   "label": "fall",
+   "scenarios": 20,
+   "seconds": 585.9200000000001,
+   "baseline_alarmed": 20,
+   "confirmed_alarmed": 20,
+   "baseline_alarms": 20,
+   "confirmed_alarms": 20,
+   "paths": {
+    "rule": 5,
+    "model": 15
+   },
+   "added_delay_ms_median": 2000,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 122.9,
+   "confirmed_alarms_per_hour": 122.9
+  },
+  "backward": {
+   "label": "fall",
+   "scenarios": 20,
+   "seconds": 585.0200000000001,
+   "baseline_alarmed": 20,
+   "confirmed_alarmed": 20,
+   "baseline_alarms": 20,
+   "confirmed_alarms": 20,
+   "paths": {
+    "rule": 5,
+    "model": 15
+   },
+   "added_delay_ms_median": 2000,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 123.1,
+   "confirmed_alarms_per_hour": 123.1
+  },
+  "sideways": {
+   "label": "fall",
+   "scenarios": 20,
+   "seconds": 580.16,
+   "baseline_alarmed": 20,
+   "confirmed_alarmed": 20,
+   "baseline_alarms": 20,
+   "confirmed_alarms": 20,
+   "paths": {
+    "rule": 2,
+    "model": 18
+   },
+   "added_delay_ms_median": 2000,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 124.1,
+   "confirmed_alarms_per_hour": 124.1
+  },
+  "from_sitting": {
+   "label": "fall",
+   "scenarios": 20,
+   "seconds": 584.4399999999999,
+   "baseline_alarmed": 20,
+   "confirmed_alarmed": 20,
+   "baseline_alarms": 20,
+   "confirmed_alarms": 20,
+   "paths": {
+    "rule": 14,
+    "model": 6
+   },
+   "added_delay_ms_median": 0,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 123.2,
+   "confirmed_alarms_per_hour": 123.2
+  },
+  "slow_collapse": {
+   "label": "fall",
+   "scenarios": 20,
+   "seconds": 583.2600000000001,
+   "baseline_alarmed": 20,
+   "confirmed_alarmed": 20,
+   "baseline_alarms": 20,
+   "confirmed_alarms": 20,
+   "paths": {
+    "rule": 19,
+    "model": 1
+   },
+   "added_delay_ms_median": 0,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 123.4,
+   "confirmed_alarms_per_hour": 123.4
+  },
+  "fall_then_moves": {
+   "label": "fall",
+   "scenarios": 20,
+   "seconds": 602.54,
+   "baseline_alarmed": 18,
+   "confirmed_alarmed": 18,
+   "baseline_alarms": 18,
+   "confirmed_alarms": 18,
+   "paths": {
+    "rule": 1,
+    "model": 17
+   },
+   "added_delay_ms_median": 2000,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 107.5,
+   "confirmed_alarms_per_hour": 107.5
+  },
+  "fall_wrist_under_body": {
+   "label": "fall",
+   "scenarios": 20,
+   "seconds": 582.1999999999999,
+   "baseline_alarmed": 20,
+   "confirmed_alarmed": 20,
+   "baseline_alarms": 20,
+   "confirmed_alarms": 20,
+   "paths": {
+    "rule": 4,
+    "model": 16
+   },
+   "added_delay_ms_median": 2000,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 123.7,
+   "confirmed_alarms_per_hour": 123.7
+  },
+  "stairs_tumble": {
+   "label": "fall",
+   "scenarios": 20,
+   "seconds": 633.4200000000001,
+   "baseline_alarmed": 16,
+   "confirmed_alarmed": 16,
+   "baseline_alarms": 16,
+   "confirmed_alarms": 16,
+   "paths": {
+    "rule": 12,
+    "model": 4
+   },
+   "added_delay_ms_median": 0,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 90.9,
+   "confirmed_alarms_per_hour": 90.9
+  },
+  "clapping": {
+   "label": "not_fall",
+   "scenarios": 20,
+   "seconds": 454.94000000000005,
+   "baseline_alarmed": 1,
+   "confirmed_alarmed": 0,
+   "baseline_alarms": 1,
+   "confirmed_alarms": 0,
+   "paths": {
+    "rule": 0,
+    "model": 1
+   },
+   "added_delay_ms_median": null,
+   "added_delay_ms_max": null,
+   "baseline_alarms_per_hour": 7.9,
+   "confirmed_alarms_per_hour": 0.0
+  },
+  "knocking": {
+   "label": "not_fall",
+   "scenarios": 20,
+   "seconds": 440.96,
+   "baseline_alarmed": 1,
+   "confirmed_alarmed": 0,
+   "baseline_alarms": 1,
+   "confirmed_alarms": 0,
+   "paths": {
+    "rule": 0,
+    "model": 1
+   },
+   "added_delay_ms_median": null,
+   "added_delay_ms_max": null,
+   "baseline_alarms_per_hour": 8.2,
+   "confirmed_alarms_per_hour": 0.0
+  },
+  "hammering": {
+   "label": "not_fall",
+   "scenarios": 20,
+   "seconds": 416.5,
+   "baseline_alarmed": 4,
+   "confirmed_alarmed": 0,
+   "baseline_alarms": 4,
+   "confirmed_alarms": 0,
+   "paths": {
+    "rule": 0,
+    "model": 4
+   },
+   "added_delay_ms_median": null,
+   "added_delay_ms_max": null,
+   "baseline_alarms_per_hour": 34.6,
+   "confirmed_alarms_per_hour": 0.0
+  },
+  "table_slap": {
+   "label": "not_fall",
+   "scenarios": 20,
+   "seconds": 356.0000000000001,
+   "baseline_alarmed": 8,
+   "confirmed_alarmed": 8,
+   "baseline_alarms": 8,
+   "confirmed_alarms": 8,
+   "paths": {
+    "rule": 0,
+    "model": 8
+   },
+   "added_delay_ms_median": 2000,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 80.9,
+   "confirmed_alarms_per_hour": 80.9
+  },
+  "drop_into_chair": {
+   "label": "not_fall",
+   "scenarios": 20,
+   "seconds": 408.8,
+   "baseline_alarmed": 9,
+   "confirmed_alarmed": 9,
+   "baseline_alarms": 9,
+   "confirmed_alarms": 9,
+   "paths": {
+    "rule": 0,
+    "model": 9
+   },
+   "added_delay_ms_median": 2000,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 79.3,
+   "confirmed_alarms_per_hour": 79.3
+  },
+  "brushing_teeth": {
+   "label": "not_fall",
+   "scenarios": 20,
+   "seconds": 540.0,
+   "baseline_alarmed": 6,
+   "confirmed_alarmed": 1,
+   "baseline_alarms": 7,
+   "confirmed_alarms": 1,
+   "paths": {
+    "rule": 0,
+    "model": 7
+   },
+   "added_delay_ms_median": 2000,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 46.7,
+   "confirmed_alarms_per_hour": 6.7
+  },
+  "watch_put_on_table": {
+   "label": "not_fall",
+   "scenarios": 20,
+   "seconds": 566.0000000000001,
+   "baseline_alarmed": 20,
+   "confirmed_alarmed": 20,
+   "baseline_alarms": 20,
+   "confirmed_alarms": 20,
+   "paths": {
+    "rule": 6,
+    "model": 14
+   },
+   "added_delay_ms_median": 2000,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 127.2,
+   "confirmed_alarms_per_hour": 127.2
+  },
+  "wrist_shake": {
+   "label": "not_fall",
+   "scenarios": 20,
+   "seconds": 384.72,
+   "baseline_alarmed": 18,
+   "confirmed_alarmed": 4,
+   "baseline_alarms": 18,
+   "confirmed_alarms": 4,
+   "paths": {
+    "rule": 0,
+    "model": 18
+   },
+   "added_delay_ms_median": 2000,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 168.4,
+   "confirmed_alarms_per_hour": 37.4
+  },
+  "washing_hands": {
+   "label": "not_fall",
+   "scenarios": 20,
+   "seconds": 420.2399999999999,
+   "baseline_alarmed": 0,
+   "confirmed_alarmed": 0,
+   "baseline_alarms": 0,
+   "confirmed_alarms": 0,
+   "paths": {
+    "rule": 0,
+    "model": 0
+   },
+   "added_delay_ms_median": null,
+   "added_delay_ms_max": null,
+   "baseline_alarms_per_hour": 0.0,
+   "confirmed_alarms_per_hour": 0.0
+  },
+  "stairs_down": {
+   "label": "not_fall",
+   "scenarios": 20,
+   "seconds": 501.08,
+   "baseline_alarmed": 0,
+   "confirmed_alarmed": 0,
+   "baseline_alarms": 0,
+   "confirmed_alarms": 0,
+   "paths": {
+    "rule": 0,
+    "model": 0
+   },
+   "added_delay_ms_median": null,
+   "added_delay_ms_max": null,
+   "baseline_alarms_per_hour": 0.0,
+   "confirmed_alarms_per_hour": 0.0
+  },
+  "clipping_hit": {
+   "label": "not_fall",
+   "scenarios": 20,
+   "seconds": 356.0000000000001,
+   "baseline_alarmed": 20,
+   "confirmed_alarmed": 20,
+   "baseline_alarms": 20,
+   "confirmed_alarms": 20,
+   "paths": {
+    "rule": 0,
+    "model": 20
+   },
+   "added_delay_ms_median": 2000,
+   "added_delay_ms_max": 2000,
+   "baseline_alarms_per_hour": 202.2,
+   "confirmed_alarms_per_hour": 202.2
+  }
+ },
+ "model": {
+  "tflite_sha256": "2cab7c9bcbf60de51d7c42f5690ad549bcbf4f13eb6266c35bf5d0a59b063278",
+  "runtime": "ai-edge-litert"
+ },
+ "confirmation_constants": {
+  "PRE_FROM_S": 2.0,
+  "PRE_TO_S": 0.5,
+  "POST_FROM_S": 1.5,
+  "POST_TO_S": 4.0,
+  "STILL_SD_G": 0.15,
+  "BUSY_SD_G": 0.35,
+  "SAME_TURN_DEG": 20.0,
+  "REPEAT_TURN_DEG": 30.0,
+  "REPEAT_MIN": 3,
+  "REPEAT_WINDOW_S": 3.0,
+  "REPEAT_GAP_S": 0.15,
+  "IMPACT_G": 2.0,
+  "CLIP_G": 15.5
+ },
+ "summary": {
+  "falls": {
+   "scenarios": 160,
+   "caught_baseline": 154,
+   "caught_with_confirmation": 154
+  },
+  "not_falls": {
+   "scenarios": 220,
+   "hours": 1.346,
+   "alarms_baseline": 88,
+   "alarms_with_confirmation": 62,
+   "alarms_per_hour_baseline": 65.4,
+   "alarms_per_hour_with_confirmation": 46.1
+  }
+ },
+ "seconds_to_run": 1.0,
+ "details": [
+  {
+   "id": "fall_forward_000",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 3.59,
+    "orientation_change_deg": 83.5,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3620,
+     "peak_g": 4.623,
+     "raised_ms": 5620,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 82.9,
+     "post_motion_sd_g": 0.041,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7620
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_001",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 3.65,
+    "orientation_change_deg": 84.8,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3180,
+     "peak_g": 4.382,
+     "raised_ms": 23180,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 84.0,
+     "post_motion_sd_g": 0.049,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23180
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_002",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 2.98,
+    "orientation_change_deg": 113.1,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3940,
+     "peak_g": 3.821,
+     "raised_ms": 23940,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 112.3,
+     "post_motion_sd_g": 0.044,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23940
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_003",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 6.74,
+    "orientation_change_deg": 108.0,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3980,
+     "peak_g": 7.685,
+     "raised_ms": 5980,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 107.5,
+     "post_motion_sd_g": 0.029,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7980
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_004",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 4.72,
+    "orientation_change_deg": 77.4,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3620,
+     "peak_g": 5.668,
+     "raised_ms": 5620,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 78.1,
+     "post_motion_sd_g": 0.037,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7620
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_005",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 6.67,
+    "orientation_change_deg": 78.9,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3640,
+     "peak_g": 7.65,
+     "raised_ms": 5640,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 78.5,
+     "post_motion_sd_g": 0.042,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7640
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_006",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 3.51,
+    "orientation_change_deg": 65.7,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3160,
+     "peak_g": 4.508,
+     "raised_ms": 5160,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 65.3,
+     "post_motion_sd_g": 0.045,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7160
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_007",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 4.8,
+    "orientation_change_deg": 74.7,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3740,
+     "peak_g": 5.78,
+     "raised_ms": 5740,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 75.2,
+     "post_motion_sd_g": 0.035,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7740
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_008",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 6.8,
+    "orientation_change_deg": 111.7,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3920,
+     "peak_g": 7.735,
+     "raised_ms": 5920,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 110.8,
+     "post_motion_sd_g": 0.02,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7920
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_009",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 6.51,
+    "orientation_change_deg": 107.7,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3220,
+     "peak_g": 7.632,
+     "raised_ms": 5220,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 107.8,
+     "post_motion_sd_g": 0.03,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7220
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_010",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 5.71,
+    "orientation_change_deg": 89.2,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3980,
+     "peak_g": 6.745,
+     "raised_ms": 5980,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 87.8,
+     "post_motion_sd_g": 0.025,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7980
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_011",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 5.27,
+    "orientation_change_deg": 127.0,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3180,
+     "peak_g": 6.243,
+     "raised_ms": 5180,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 127.3,
+     "post_motion_sd_g": 0.016,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7180
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_012",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 4.7,
+    "orientation_change_deg": 130.8,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3560,
+     "peak_g": 5.568,
+     "raised_ms": 5560,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 130.8,
+     "post_motion_sd_g": 0.039,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7560
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_013",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 4.77,
+    "orientation_change_deg": 93.4,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3760,
+     "peak_g": 5.73,
+     "raised_ms": 5760,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 93.1,
+     "post_motion_sd_g": 0.032,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7760
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_014",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 2.63,
+    "orientation_change_deg": 77.9,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3920,
+     "peak_g": 3.738,
+     "raised_ms": 23920,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 78.4,
+     "post_motion_sd_g": 0.025,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23920
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_015",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 3.66,
+    "orientation_change_deg": 102.0,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3820,
+     "peak_g": 4.68,
+     "raised_ms": 23820,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 103.5,
+     "post_motion_sd_g": 0.023,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23820
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_016",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 4.8,
+    "orientation_change_deg": 109.2,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3540,
+     "peak_g": 5.672,
+     "raised_ms": 5540,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 108.3,
+     "post_motion_sd_g": 0.044,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7540
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_017",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 6.89,
+    "orientation_change_deg": 113.0,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3200,
+     "peak_g": 7.522,
+     "raised_ms": 5200,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 113.0,
+     "post_motion_sd_g": 0.016,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7200
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_018",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 3.42,
+    "orientation_change_deg": 125.8,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3260,
+     "peak_g": 4.405,
+     "raised_ms": 23260,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 125.1,
+     "post_motion_sd_g": 0.049,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23260
+    }
+   ]
+  },
+  {
+   "id": "fall_forward_019",
+   "label": "fall",
+   "kind": "forward",
+   "params": {
+    "peak_g": 5.22,
+    "orientation_change_deg": 107.5,
+    "kind": "forward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3680,
+     "peak_g": 6.154,
+     "raised_ms": 5680,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 110.6,
+     "post_motion_sd_g": 0.028,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7680
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_000",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 5.06,
+    "orientation_change_deg": 67.9,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3800,
+     "peak_g": 6.078,
+     "raised_ms": 5800,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 65.7,
+     "post_motion_sd_g": 0.034,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7800
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_001",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 5.13,
+    "orientation_change_deg": 120.4,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3420,
+     "peak_g": 6.076,
+     "raised_ms": 5420,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 120.8,
+     "post_motion_sd_g": 0.024,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7420
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_002",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 6.61,
+    "orientation_change_deg": 58.7,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3520,
+     "peak_g": 7.556,
+     "raised_ms": 5520,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 57.2,
+     "post_motion_sd_g": 0.03,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7520
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_003",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 2.9,
+    "orientation_change_deg": 58.2,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3500,
+     "peak_g": 3.784,
+     "raised_ms": 23500,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 57.8,
+     "post_motion_sd_g": 0.029,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23500
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_004",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 3.85,
+    "orientation_change_deg": 139.6,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3860,
+     "peak_g": 4.811,
+     "raised_ms": 5860,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 138.6,
+     "post_motion_sd_g": 0.024,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7859
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_005",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 6.11,
+    "orientation_change_deg": 72.3,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3440,
+     "peak_g": 6.89,
+     "raised_ms": 5440,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 71.4,
+     "post_motion_sd_g": 0.017,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7439
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_006",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 5.9,
+    "orientation_change_deg": 123.3,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3740,
+     "peak_g": 6.627,
+     "raised_ms": 5740,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 125.5,
+     "post_motion_sd_g": 0.038,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7740
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_007",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 3.92,
+    "orientation_change_deg": 80.0,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3280,
+     "peak_g": 4.828,
+     "raised_ms": 5280,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 80.1,
+     "post_motion_sd_g": 0.046,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7279
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_008",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 2.89,
+    "orientation_change_deg": 104.1,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3320,
+     "peak_g": 3.914,
+     "raised_ms": 23320,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 104.0,
+     "post_motion_sd_g": 0.032,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23320
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_009",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 4.18,
+    "orientation_change_deg": 82.1,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3700,
+     "peak_g": 5.094,
+     "raised_ms": 5700,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 80.4,
+     "post_motion_sd_g": 0.045,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7700
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_010",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 2.97,
+    "orientation_change_deg": 126.8,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3380,
+     "peak_g": 3.928,
+     "raised_ms": 23380,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 127.0,
+     "post_motion_sd_g": 0.044,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23380
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_011",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 4.45,
+    "orientation_change_deg": 138.3,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3880,
+     "peak_g": 5.18,
+     "raised_ms": 5880,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 140.5,
+     "post_motion_sd_g": 0.016,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7880
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_012",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 5.67,
+    "orientation_change_deg": 125.3,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3480,
+     "peak_g": 6.596,
+     "raised_ms": 5480,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 123.9,
+     "post_motion_sd_g": 0.024,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7480
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_013",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 2.89,
+    "orientation_change_deg": 98.2,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3500,
+     "peak_g": 3.718,
+     "raised_ms": 23500,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 97.5,
+     "post_motion_sd_g": 0.041,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23500
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_014",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 5.6,
+    "orientation_change_deg": 136.6,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3080,
+     "peak_g": 6.598,
+     "raised_ms": 5080,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 136.0,
+     "post_motion_sd_g": 0.032,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7080
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_015",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 7.0,
+    "orientation_change_deg": 123.8,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3600,
+     "peak_g": 7.914,
+     "raised_ms": 5600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 124.5,
+     "post_motion_sd_g": 0.034,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7600
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_016",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 4.77,
+    "orientation_change_deg": 55.3,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3780,
+     "peak_g": 5.8,
+     "raised_ms": 5780,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 57.9,
+     "post_motion_sd_g": 0.036,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7779
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_017",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 3.83,
+    "orientation_change_deg": 107.8,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3840,
+     "peak_g": 4.838,
+     "raised_ms": 5840,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 109.9,
+     "post_motion_sd_g": 0.015,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7840
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_018",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 6.0,
+    "orientation_change_deg": 108.2,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3120,
+     "peak_g": 6.919,
+     "raised_ms": 5120,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 107.6,
+     "post_motion_sd_g": 0.043,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7120
+    }
+   ]
+  },
+  {
+   "id": "fall_backward_019",
+   "label": "fall",
+   "kind": "backward",
+   "params": {
+    "peak_g": 3.16,
+    "orientation_change_deg": 70.6,
+    "kind": "backward"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3780,
+     "peak_g": 4.078,
+     "raised_ms": 23780,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 70.0,
+     "post_motion_sd_g": 0.032,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23780
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_000",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 5.1,
+    "orientation_change_deg": 126.8,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2920,
+     "peak_g": 6.044,
+     "raised_ms": 4920,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 129.1,
+     "post_motion_sd_g": 0.034,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6920
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_001",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 5.69,
+    "orientation_change_deg": 139.1,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3180,
+     "peak_g": 6.543,
+     "raised_ms": 5180,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 138.4,
+     "post_motion_sd_g": 0.026,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7180
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_002",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 2.98,
+    "orientation_change_deg": 89.1,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3300,
+     "peak_g": 3.796,
+     "raised_ms": 23300,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 89.2,
+     "post_motion_sd_g": 0.026,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23300
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_003",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 5.25,
+    "orientation_change_deg": 126.7,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3620,
+     "peak_g": 6.192,
+     "raised_ms": 5620,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 124.4,
+     "post_motion_sd_g": 0.039,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7620
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_004",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 5.41,
+    "orientation_change_deg": 79.5,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3580,
+     "peak_g": 6.33,
+     "raised_ms": 5580,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 81.9,
+     "post_motion_sd_g": 0.024,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7580
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_005",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 6.26,
+    "orientation_change_deg": 139.5,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3400,
+     "peak_g": 7.316,
+     "raised_ms": 5400,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 139.3,
+     "post_motion_sd_g": 0.018,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7400
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_006",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 6.09,
+    "orientation_change_deg": 85.6,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3640,
+     "peak_g": 7.045,
+     "raised_ms": 5640,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 87.0,
+     "post_motion_sd_g": 0.042,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7640
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_007",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 3.97,
+    "orientation_change_deg": 129.3,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3880,
+     "peak_g": 4.806,
+     "raised_ms": 23880,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 128.6,
+     "post_motion_sd_g": 0.025,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23880
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_008",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 4.69,
+    "orientation_change_deg": 90.8,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3440,
+     "peak_g": 5.585,
+     "raised_ms": 5440,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 90.4,
+     "post_motion_sd_g": 0.045,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7439
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_009",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 4.1,
+    "orientation_change_deg": 63.2,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3400,
+     "peak_g": 5.084,
+     "raised_ms": 5400,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 63.4,
+     "post_motion_sd_g": 0.044,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7400
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_010",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 6.28,
+    "orientation_change_deg": 95.4,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3340,
+     "peak_g": 7.265,
+     "raised_ms": 5340,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 94.9,
+     "post_motion_sd_g": 0.021,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7340
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_011",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 5.85,
+    "orientation_change_deg": 79.2,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3320,
+     "peak_g": 6.869,
+     "raised_ms": 5320,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 79.4,
+     "post_motion_sd_g": 0.033,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7320
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_012",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 3.44,
+    "orientation_change_deg": 113.9,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3260,
+     "peak_g": 4.531,
+     "raised_ms": 5260,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 113.7,
+     "post_motion_sd_g": 0.021,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7260
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_013",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 6.21,
+    "orientation_change_deg": 94.5,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3160,
+     "peak_g": 7.228,
+     "raised_ms": 5160,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 94.4,
+     "post_motion_sd_g": 0.054,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7160
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_014",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 5.71,
+    "orientation_change_deg": 98.9,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3080,
+     "peak_g": 6.566,
+     "raised_ms": 5080,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 98.9,
+     "post_motion_sd_g": 0.044,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7080
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_015",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 5.97,
+    "orientation_change_deg": 109.1,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2940,
+     "peak_g": 6.855,
+     "raised_ms": 4940,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 111.9,
+     "post_motion_sd_g": 0.045,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6939
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_016",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 4.52,
+    "orientation_change_deg": 144.6,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3460,
+     "peak_g": 5.265,
+     "raised_ms": 5460,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 144.3,
+     "post_motion_sd_g": 0.037,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7460
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_017",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 5.96,
+    "orientation_change_deg": 100.3,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3160,
+     "peak_g": 6.968,
+     "raised_ms": 5160,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 100.8,
+     "post_motion_sd_g": 0.029,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7160
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_018",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 3.81,
+    "orientation_change_deg": 132.1,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3000,
+     "peak_g": 4.744,
+     "raised_ms": 5000,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 134.1,
+     "post_motion_sd_g": 0.036,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7000
+    }
+   ]
+  },
+  {
+   "id": "fall_sideways_019",
+   "label": "fall",
+   "kind": "sideways",
+   "params": {
+    "peak_g": 6.24,
+    "orientation_change_deg": 101.9,
+    "kind": "sideways"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3080,
+     "peak_g": 7.305,
+     "raised_ms": 5080,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 104.1,
+     "post_motion_sd_g": 0.044,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7080
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_000",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 3.13,
+    "orientation_change_deg": 51.7,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3320,
+     "peak_g": 4.135,
+     "raised_ms": 23320,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 51.9,
+     "post_motion_sd_g": 0.023,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23320
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_001",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 2.38,
+    "orientation_change_deg": 91.5,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3380,
+     "peak_g": 3.284,
+     "raised_ms": 23380,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 91.5,
+     "post_motion_sd_g": 0.026,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23380
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_002",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 3.9,
+    "orientation_change_deg": 56.3,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3680,
+     "peak_g": 4.83,
+     "raised_ms": 5680,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 58.7,
+     "post_motion_sd_g": 0.022,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7680
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_003",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 3.88,
+    "orientation_change_deg": 76.8,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3660,
+     "peak_g": 4.773,
+     "raised_ms": 23660,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 78.1,
+     "post_motion_sd_g": 0.029,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23660
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_004",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 4.35,
+    "orientation_change_deg": 108.9,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3660,
+     "peak_g": 5.243,
+     "raised_ms": 5660,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 104.7,
+     "post_motion_sd_g": 0.018,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7660
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_005",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 3.36,
+    "orientation_change_deg": 96.4,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3380,
+     "peak_g": 4.219,
+     "raised_ms": 23380,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 96.7,
+     "post_motion_sd_g": 0.018,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23380
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_006",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 3.25,
+    "orientation_change_deg": 93.9,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3100,
+     "peak_g": 4.175,
+     "raised_ms": 23100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 95.1,
+     "post_motion_sd_g": 0.033,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23100
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_007",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 3.27,
+    "orientation_change_deg": 68.4,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3880,
+     "peak_g": 4.19,
+     "raised_ms": 23880,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 70.1,
+     "post_motion_sd_g": 0.046,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23880
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_008",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 3.71,
+    "orientation_change_deg": 57.5,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3880,
+     "peak_g": 4.64,
+     "raised_ms": 23880,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 58.5,
+     "post_motion_sd_g": 0.03,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23880
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_009",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 4.09,
+    "orientation_change_deg": 104.1,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3440,
+     "peak_g": 4.787,
+     "raised_ms": 23440,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 104.4,
+     "post_motion_sd_g": 0.041,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23440
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_010",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 2.94,
+    "orientation_change_deg": 80.8,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3500,
+     "peak_g": 4.037,
+     "raised_ms": 23500,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 81.6,
+     "post_motion_sd_g": 0.034,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23500
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_011",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 3.61,
+    "orientation_change_deg": 81.5,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3620,
+     "peak_g": 4.567,
+     "raised_ms": 23620,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 79.2,
+     "post_motion_sd_g": 0.026,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23620
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_012",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 2.53,
+    "orientation_change_deg": 53.8,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3340,
+     "peak_g": 3.575,
+     "raised_ms": 23340,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 53.6,
+     "post_motion_sd_g": 0.04,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23340
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_013",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 2.92,
+    "orientation_change_deg": 53.2,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3720,
+     "peak_g": 3.908,
+     "raised_ms": 23720,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 56.0,
+     "post_motion_sd_g": 0.033,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23720
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_014",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 3.81,
+    "orientation_change_deg": 94.2,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3780,
+     "peak_g": 4.73,
+     "raised_ms": 23780,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 94.8,
+     "post_motion_sd_g": 0.033,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23780
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_015",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 4.37,
+    "orientation_change_deg": 48.8,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3460,
+     "peak_g": 5.402,
+     "raised_ms": 5460,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 49.7,
+     "post_motion_sd_g": 0.029,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7460
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_016",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 2.95,
+    "orientation_change_deg": 68.8,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3440,
+     "peak_g": 3.91,
+     "raised_ms": 23440,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 67.9,
+     "post_motion_sd_g": 0.045,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23440
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_017",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 4.32,
+    "orientation_change_deg": 83.5,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3160,
+     "peak_g": 5.276,
+     "raised_ms": 5160,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 83.2,
+     "post_motion_sd_g": 0.047,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7160
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_018",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 3.11,
+    "orientation_change_deg": 81.9,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3180,
+     "peak_g": 4.156,
+     "raised_ms": 5180,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 81.8,
+     "post_motion_sd_g": 0.043,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7180
+    }
+   ]
+  },
+  {
+   "id": "fall_from_sitting_019",
+   "label": "fall",
+   "kind": "from_sitting",
+   "params": {
+    "peak_g": 3.81,
+    "orientation_change_deg": 93.5,
+    "kind": "from_sitting"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3860,
+     "peak_g": 4.768,
+     "raised_ms": 5860,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 93.4,
+     "post_motion_sd_g": 0.028,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7859
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_000",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.54,
+    "orientation_change_deg": 77.9,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3600,
+     "peak_g": 3.455,
+     "raised_ms": 23600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 76.5,
+     "post_motion_sd_g": 0.031,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23600
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_001",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.87,
+    "orientation_change_deg": 113.1,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3680,
+     "peak_g": 3.906,
+     "raised_ms": 23680,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 111.6,
+     "post_motion_sd_g": 0.022,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23680
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_002",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.26,
+    "orientation_change_deg": 74.0,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3480,
+     "peak_g": 3.277,
+     "raised_ms": 23480,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 72.8,
+     "post_motion_sd_g": 0.029,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23480
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_003",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.71,
+    "orientation_change_deg": 62.8,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3260,
+     "peak_g": 3.751,
+     "raised_ms": 23260,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 62.6,
+     "post_motion_sd_g": 0.03,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23260
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_004",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.49,
+    "orientation_change_deg": 60.3,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3620,
+     "peak_g": 3.43,
+     "raised_ms": 23620,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 60.1,
+     "post_motion_sd_g": 0.026,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23620
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_005",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.77,
+    "orientation_change_deg": 95.4,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3480,
+     "peak_g": 3.619,
+     "raised_ms": 23480,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 95.1,
+     "post_motion_sd_g": 0.021,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23480
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_006",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.17,
+    "orientation_change_deg": 113.8,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3400,
+     "peak_g": 3.005,
+     "raised_ms": 23400,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 114.3,
+     "post_motion_sd_g": 0.024,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23400
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_007",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.6,
+    "orientation_change_deg": 113.9,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3580,
+     "peak_g": 3.471,
+     "raised_ms": 23580,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 112.0,
+     "post_motion_sd_g": 0.032,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23580
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_008",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.91,
+    "orientation_change_deg": 50.7,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3540,
+     "peak_g": 3.757,
+     "raised_ms": 23540,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 50.9,
+     "post_motion_sd_g": 0.034,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23540
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_009",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.39,
+    "orientation_change_deg": 98.4,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3620,
+     "peak_g": 3.389,
+     "raised_ms": 23620,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 97.8,
+     "post_motion_sd_g": 0.036,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23620
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_010",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.79,
+    "orientation_change_deg": 98.8,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3140,
+     "peak_g": 3.793,
+     "raised_ms": 23140,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 99.8,
+     "post_motion_sd_g": 0.042,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23140
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_011",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 3.1,
+    "orientation_change_deg": 94.0,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3580,
+     "peak_g": 4.08,
+     "raised_ms": 23580,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 95.0,
+     "post_motion_sd_g": 0.036,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23580
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_012",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.49,
+    "orientation_change_deg": 62.1,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3180,
+     "peak_g": 3.574,
+     "raised_ms": 23180,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 61.8,
+     "post_motion_sd_g": 0.034,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23180
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_013",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.48,
+    "orientation_change_deg": 98.3,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3320,
+     "peak_g": 3.466,
+     "raised_ms": 23320,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 97.9,
+     "post_motion_sd_g": 0.029,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23320
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_014",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.33,
+    "orientation_change_deg": 88.3,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3320,
+     "peak_g": 3.199,
+     "raised_ms": 23320,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 87.9,
+     "post_motion_sd_g": 0.024,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23320
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_015",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.98,
+    "orientation_change_deg": 63.1,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3960,
+     "peak_g": 3.877,
+     "raised_ms": 23960,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 62.4,
+     "post_motion_sd_g": 0.048,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23960
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_016",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 3.01,
+    "orientation_change_deg": 112.5,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3220,
+     "peak_g": 4.028,
+     "raised_ms": 5220,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 112.5,
+     "post_motion_sd_g": 0.02,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7220
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_017",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.15,
+    "orientation_change_deg": 114.4,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3380,
+     "peak_g": 3.063,
+     "raised_ms": 23380,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 114.7,
+     "post_motion_sd_g": 0.021,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23380
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_018",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 3.07,
+    "orientation_change_deg": 95.5,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3280,
+     "peak_g": 4.072,
+     "raised_ms": 23280,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 95.7,
+     "post_motion_sd_g": 0.023,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23280
+    }
+   ]
+  },
+  {
+   "id": "fall_slow_collapse_019",
+   "label": "fall",
+   "kind": "slow_collapse",
+   "params": {
+    "peak_g": 2.95,
+    "orientation_change_deg": 82.1,
+    "kind": "slow_collapse"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3620,
+     "peak_g": 3.953,
+     "raised_ms": 23620,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 82.6,
+     "post_motion_sd_g": 0.035,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23620
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_000",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 6.27,
+    "orientation_change_deg": 105.5,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3060,
+     "peak_g": 7.359,
+     "raised_ms": 5060,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 104.4,
+     "post_motion_sd_g": 0.179,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7060
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_001",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 4.05,
+    "orientation_change_deg": 107.7,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3400,
+     "peak_g": 4.998,
+     "raised_ms": 23400,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 108.3,
+     "post_motion_sd_g": 0.058,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23400
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_002",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 5.47,
+    "orientation_change_deg": 134.9,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3640,
+     "peak_g": 6.493,
+     "raised_ms": 5640,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 137.4,
+     "post_motion_sd_g": 0.05,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7640
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_003",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 6.93,
+    "orientation_change_deg": 140.5,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3320,
+     "peak_g": 7.882,
+     "raised_ms": 5320,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 143.0,
+     "post_motion_sd_g": 0.039,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7320
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_004",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 6.99,
+    "orientation_change_deg": 118.6,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3820,
+     "peak_g": 7.954,
+     "raised_ms": 5820,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 116.9,
+     "post_motion_sd_g": 0.247,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7820
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_005",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 5.5,
+    "orientation_change_deg": 128.2,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3160,
+     "peak_g": 6.329,
+     "raised_ms": 5160,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 126.9,
+     "post_motion_sd_g": 0.267,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7160
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_006",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 5.02,
+    "orientation_change_deg": 61.1,
+    "kind": "fall_then_moves"
+   },
+   "raised": []
+  },
+  {
+   "id": "fall_fall_then_moves_007",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 6.34,
+    "orientation_change_deg": 147.4,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3580,
+     "peak_g": 7.341,
+     "raised_ms": 5580,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 146.3,
+     "post_motion_sd_g": 0.044,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7580
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_008",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 3.91,
+    "orientation_change_deg": 87.0,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3520,
+     "peak_g": 4.976,
+     "raised_ms": 5520,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 86.3,
+     "post_motion_sd_g": 0.045,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7520
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_009",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 4.8,
+    "orientation_change_deg": 103.6,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3800,
+     "peak_g": 5.835,
+     "raised_ms": 5800,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 100.8,
+     "post_motion_sd_g": 0.248,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7800
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_010",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 3.31,
+    "orientation_change_deg": 131.7,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3200,
+     "peak_g": 4.192,
+     "raised_ms": 5200,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 131.2,
+     "post_motion_sd_g": 0.139,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7200
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_011",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 5.21,
+    "orientation_change_deg": 111.3,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3400,
+     "peak_g": 6.143,
+     "raised_ms": 5400,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 110.7,
+     "post_motion_sd_g": 0.268,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7400
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_012",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 5.78,
+    "orientation_change_deg": 107.2,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3800,
+     "peak_g": 6.596,
+     "raised_ms": 5800,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 109.3,
+     "post_motion_sd_g": 0.165,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7800
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_013",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 3.98,
+    "orientation_change_deg": 129.2,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3280,
+     "peak_g": 4.763,
+     "raised_ms": 5280,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 128.0,
+     "post_motion_sd_g": 0.078,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7279
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_014",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 5.97,
+    "orientation_change_deg": 76.7,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3140,
+     "peak_g": 6.83,
+     "raised_ms": 5140,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 77.4,
+     "post_motion_sd_g": 0.126,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7140
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_015",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 6.75,
+    "orientation_change_deg": 138.2,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 7.662,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 140.8,
+     "post_motion_sd_g": 0.187,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_016",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 6.09,
+    "orientation_change_deg": 101.9,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3960,
+     "peak_g": 7.022,
+     "raised_ms": 5960,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 100.6,
+     "post_motion_sd_g": 0.119,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7960
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_017",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 6.91,
+    "orientation_change_deg": 110.5,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3200,
+     "peak_g": 7.913,
+     "raised_ms": 5200,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 110.9,
+     "post_motion_sd_g": 0.076,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7200
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_then_moves_018",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 3.94,
+    "orientation_change_deg": 123.7,
+    "kind": "fall_then_moves"
+   },
+   "raised": []
+  },
+  {
+   "id": "fall_fall_then_moves_019",
+   "label": "fall",
+   "kind": "fall_then_moves",
+   "params": {
+    "peak_g": 6.46,
+    "orientation_change_deg": 60.5,
+    "kind": "fall_then_moves"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3320,
+     "peak_g": 7.006,
+     "raised_ms": 5320,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 60.6,
+     "post_motion_sd_g": 0.085,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7320
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_000",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 4.56,
+    "orientation_change_deg": 129.2,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2980,
+     "peak_g": 5.416,
+     "raised_ms": 4980,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 130.2,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6980
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_001",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 3.98,
+    "orientation_change_deg": 71.8,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3140,
+     "peak_g": 4.973,
+     "raised_ms": 5140,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 71.1,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7140
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_002",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 6.26,
+    "orientation_change_deg": 102.0,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3700,
+     "peak_g": 7.288,
+     "raised_ms": 5700,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 100.2,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7700
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_003",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 5.37,
+    "orientation_change_deg": 90.4,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3820,
+     "peak_g": 6.042,
+     "raised_ms": 5820,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 91.8,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7820
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_004",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 3.7,
+    "orientation_change_deg": 63.4,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3640,
+     "peak_g": 4.609,
+     "raised_ms": 23640,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 62.3,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23640
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_005",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 4.56,
+    "orientation_change_deg": 99.5,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3180,
+     "peak_g": 5.538,
+     "raised_ms": 5180,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 99.5,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7180
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_006",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 4.95,
+    "orientation_change_deg": 90.5,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3440,
+     "peak_g": 5.781,
+     "raised_ms": 5440,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 90.3,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7439
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_007",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 5.73,
+    "orientation_change_deg": 132.1,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3420,
+     "peak_g": 6.687,
+     "raised_ms": 5420,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 133.0,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7420
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_008",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 3.14,
+    "orientation_change_deg": 62.3,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3780,
+     "peak_g": 4.018,
+     "raised_ms": 23780,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 62.1,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23780
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_009",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 5.85,
+    "orientation_change_deg": 98.0,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3340,
+     "peak_g": 6.686,
+     "raised_ms": 5340,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 98.0,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7340
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_010",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 5.61,
+    "orientation_change_deg": 68.0,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3480,
+     "peak_g": 6.678,
+     "raised_ms": 5480,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 67.1,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7480
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_011",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 6.35,
+    "orientation_change_deg": 84.2,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3320,
+     "peak_g": 7.19,
+     "raised_ms": 5320,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 84.4,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7320
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_012",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 6.14,
+    "orientation_change_deg": 107.9,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3280,
+     "peak_g": 6.84,
+     "raised_ms": 5280,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 108.2,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7279
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_013",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 6.2,
+    "orientation_change_deg": 55.3,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3180,
+     "peak_g": 6.908,
+     "raised_ms": 5180,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 55.1,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7180
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_014",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 5.0,
+    "orientation_change_deg": 63.6,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3840,
+     "peak_g": 5.942,
+     "raised_ms": 5840,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 63.6,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7840
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_015",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 3.63,
+    "orientation_change_deg": 58.5,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3200,
+     "peak_g": 4.509,
+     "raised_ms": 5200,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 59.1,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7200
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_016",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 2.71,
+    "orientation_change_deg": 81.5,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3100,
+     "peak_g": 3.603,
+     "raised_ms": 23100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 80.8,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23100
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_017",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 3.8,
+    "orientation_change_deg": 98.8,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3080,
+     "peak_g": 4.783,
+     "raised_ms": 5080,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 97.9,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7080
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_018",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 3.53,
+    "orientation_change_deg": 77.6,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3700,
+     "peak_g": 4.534,
+     "raised_ms": 5700,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 74.2,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7700
+    }
+   ]
+  },
+  {
+   "id": "fall_fall_wrist_under_body_019",
+   "label": "fall",
+   "kind": "fall_wrist_under_body",
+   "params": {
+    "peak_g": 3.04,
+    "orientation_change_deg": 139.7,
+    "kind": "fall_wrist_under_body"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3580,
+     "peak_g": 3.891,
+     "raised_ms": 23580,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 141.7,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23580
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_000",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 4.86,
+    "orientation_change_deg": 122.1,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 6640,
+     "peak_g": 4.741,
+     "raised_ms": 26640,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 52.8,
+     "post_motion_sd_g": 0.042,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "asked_at_ms": 26640
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_001",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 4.1,
+    "orientation_change_deg": 73.7,
+    "kind": "stairs_tumble"
+   },
+   "raised": []
+  },
+  {
+   "id": "fall_stairs_tumble_002",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 4.71,
+    "orientation_change_deg": 91.2,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 5740,
+     "peak_g": 3.891,
+     "raised_ms": 25740,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 3.7,
+     "post_motion_sd_g": 0.017,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "asked_at_ms": 25740
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_003",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 6.21,
+    "orientation_change_deg": 57.1,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3400,
+     "peak_g": 7.158,
+     "raised_ms": 5400,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 44.5,
+     "post_motion_sd_g": 0.287,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "asked_at_ms": 7400
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_004",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 3.79,
+    "orientation_change_deg": 144.3,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 6020,
+     "peak_g": 3.961,
+     "raised_ms": 26020,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 44.3,
+     "post_motion_sd_g": 0.014,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "asked_at_ms": 26020
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_005",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 5.28,
+    "orientation_change_deg": 61.9,
+    "kind": "stairs_tumble"
+   },
+   "raised": []
+  },
+  {
+   "id": "fall_stairs_tumble_006",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 3.25,
+    "orientation_change_deg": 88.8,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 5160,
+     "peak_g": 4.497,
+     "raised_ms": 25160,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 31.7,
+     "post_motion_sd_g": 0.032,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "asked_at_ms": 25160
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_007",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 4.5,
+    "orientation_change_deg": 125.4,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 5540,
+     "peak_g": 4.076,
+     "raised_ms": 25540,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 24.0,
+     "post_motion_sd_g": 0.04,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "asked_at_ms": 25540
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_008",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 5.37,
+    "orientation_change_deg": 70.2,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3780,
+     "peak_g": 6.328,
+     "raised_ms": 5780,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 56.2,
+     "post_motion_sd_g": 0.527,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "asked_at_ms": 7779
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_009",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 6.74,
+    "orientation_change_deg": 74.3,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3720,
+     "peak_g": 7.703,
+     "raised_ms": 5720,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 71.1,
+     "post_motion_sd_g": 0.256,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "asked_at_ms": 7720
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_010",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 3.48,
+    "orientation_change_deg": 101.3,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 5720,
+     "peak_g": 3.292,
+     "raised_ms": 25720,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 13.7,
+     "post_motion_sd_g": 0.016,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "asked_at_ms": 25720
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_011",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 3.58,
+    "orientation_change_deg": 77.1,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 5440,
+     "peak_g": 4.419,
+     "raised_ms": 25440,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 16.2,
+     "post_motion_sd_g": 0.1,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "asked_at_ms": 25440
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_012",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 3.53,
+    "orientation_change_deg": 111.1,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 5600,
+     "peak_g": 4.748,
+     "raised_ms": 25600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 31.0,
+     "post_motion_sd_g": 0.022,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "asked_at_ms": 25600
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_013",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 6.41,
+    "orientation_change_deg": 64.0,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3820,
+     "peak_g": 7.387,
+     "raised_ms": 5820,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 60.0,
+     "post_motion_sd_g": 0.267,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "asked_at_ms": 7820
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_014",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 3.03,
+    "orientation_change_deg": 78.9,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 5140,
+     "peak_g": 2.912,
+     "raised_ms": 25140,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 18.2,
+     "post_motion_sd_g": 0.024,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "asked_at_ms": 25140
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_015",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 3.61,
+    "orientation_change_deg": 89.3,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 6640,
+     "peak_g": 4.042,
+     "raised_ms": 26640,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 26.7,
+     "post_motion_sd_g": 0.03,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "asked_at_ms": 26640
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_016",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 3.0,
+    "orientation_change_deg": 61.6,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 5600,
+     "peak_g": 3.763,
+     "raised_ms": 25600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 3.9,
+     "post_motion_sd_g": 0.027,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "asked_at_ms": 25600
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_017",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 3.41,
+    "orientation_change_deg": 70.2,
+    "kind": "stairs_tumble"
+   },
+   "raised": []
+  },
+  {
+   "id": "fall_stairs_tumble_018",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 6.84,
+    "orientation_change_deg": 102.3,
+    "kind": "stairs_tumble"
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 5620,
+     "peak_g": 4.589,
+     "raised_ms": 25620,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 35.1,
+     "post_motion_sd_g": 0.043,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "asked_at_ms": 25620
+    }
+   ]
+  },
+  {
+   "id": "fall_stairs_tumble_019",
+   "label": "fall",
+   "kind": "stairs_tumble",
+   "params": {
+    "peak_g": 4.97,
+    "orientation_change_deg": 78.7,
+    "kind": "stairs_tumble"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_000",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 2.4,
+    "hits": 15,
+    "rate_hz": 3.01
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_001",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 2.37,
+    "hits": 31,
+    "rate_hz": 4.44
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_002",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 2.21,
+    "hits": 23,
+    "rate_hz": 3.05
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_003",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.47,
+    "hits": 10,
+    "rate_hz": 2.65
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_004",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.19,
+    "hits": 32,
+    "rate_hz": 4.19
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_005",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.95,
+    "hits": 11,
+    "rate_hz": 3.61
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_006",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.19,
+    "hits": 23,
+    "rate_hz": 2.93
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_007",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.43,
+    "hits": 13,
+    "rate_hz": 4.09
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_008",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.8,
+    "hits": 22,
+    "rate_hz": 3.36
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_009",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.58,
+    "hits": 18,
+    "rate_hz": 2.93
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_010",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.98,
+    "hits": 14,
+    "rate_hz": 3.31
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_011",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 2.8,
+    "hits": 24,
+    "rate_hz": 4.09
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_012",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.69,
+    "hits": 20,
+    "rate_hz": 3.62
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2480,
+     "peak_g": 4.438,
+     "raised_ms": 4480,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 13.4,
+     "post_motion_sd_g": 0.779,
+     "impacts_in_window": 10,
+     "clipped": false,
+     "asked_at_ms": 6480
+    }
+   ]
+  },
+  {
+   "id": "notfall_clapping_013",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 2.59,
+    "hits": 24,
+    "rate_hz": 3.63
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_014",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.58,
+    "hits": 25,
+    "rate_hz": 3.4
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_015",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.42,
+    "hits": 17,
+    "rate_hz": 4.11
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_016",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.58,
+    "hits": 11,
+    "rate_hz": 2.51
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_017",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.12,
+    "hits": 14,
+    "rate_hz": 3.4
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_018",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.06,
+    "hits": 22,
+    "rate_hz": 3.31
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clapping_019",
+   "label": "not_fall",
+   "kind": "clapping",
+   "params": {
+    "kind": "clapping",
+    "peak_g": 3.01,
+    "hits": 26,
+    "rate_hz": 3.88
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_000",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 4.42,
+    "hits": 15,
+    "rate_hz": 2.25
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_001",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 3.42,
+    "hits": 18,
+    "rate_hz": 3.17
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_002",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 4.58,
+    "hits": 14,
+    "rate_hz": 2.58
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_003",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 3.35,
+    "hits": 17,
+    "rate_hz": 2.35
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_004",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 3.02,
+    "hits": 10,
+    "rate_hz": 2.13
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_005",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 4.18,
+    "hits": 22,
+    "rate_hz": 3.43
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_006",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 3.0,
+    "hits": 19,
+    "rate_hz": 2.66
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_007",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 4.39,
+    "hits": 10,
+    "rate_hz": 2.97
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2820,
+     "peak_g": 5.187,
+     "raised_ms": 4820,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 5.1,
+     "post_motion_sd_g": 0.734,
+     "impacts_in_window": 10,
+     "clipped": false,
+     "asked_at_ms": 6820
+    }
+   ]
+  },
+  {
+   "id": "notfall_knocking_008",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 4.94,
+    "hits": 12,
+    "rate_hz": 2.43
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_009",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 4.43,
+    "hits": 17,
+    "rate_hz": 2.26
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_010",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 4.37,
+    "hits": 19,
+    "rate_hz": 3.84
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_011",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 3.28,
+    "hits": 12,
+    "rate_hz": 2.14
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_012",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 2.82,
+    "hits": 10,
+    "rate_hz": 2.23
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_013",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 4.89,
+    "hits": 10,
+    "rate_hz": 2.29
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_014",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 2.76,
+    "hits": 20,
+    "rate_hz": 3.24
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_015",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 3.88,
+    "hits": 24,
+    "rate_hz": 3.36
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_016",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 2.54,
+    "hits": 13,
+    "rate_hz": 2.05
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_017",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 2.78,
+    "hits": 18,
+    "rate_hz": 2.91
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_018",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 2.88,
+    "hits": 19,
+    "rate_hz": 2.77
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_knocking_019",
+   "label": "not_fall",
+   "kind": "knocking",
+   "params": {
+    "kind": "knocking",
+    "peak_g": 4.64,
+    "hits": 14,
+    "rate_hz": 2.1
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_000",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 6.44,
+    "hits": 10,
+    "rate_hz": 2.8
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_001",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 5.95,
+    "hits": 19,
+    "rate_hz": 2.45
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_002",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 5.71,
+    "hits": 13,
+    "rate_hz": 1.81
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_003",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 5.59,
+    "hits": 11,
+    "rate_hz": 2.93
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2480,
+     "peak_g": 5.227,
+     "raised_ms": 4480,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 28.2,
+     "post_motion_sd_g": 0.851,
+     "impacts_in_window": 10,
+     "clipped": false,
+     "asked_at_ms": 6480
+    }
+   ]
+  },
+  {
+   "id": "notfall_hammering_004",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 3.34,
+    "hits": 11,
+    "rate_hz": 1.98
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_005",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 7.12,
+    "hits": 15,
+    "rate_hz": 2.0
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3300,
+     "peak_g": 5.771,
+     "raised_ms": 5300,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 27.7,
+     "post_motion_sd_g": 1.222,
+     "impacts_in_window": 9,
+     "clipped": false,
+     "asked_at_ms": 7300
+    }
+   ]
+  },
+  {
+   "id": "notfall_hammering_006",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 3.58,
+    "hits": 11,
+    "rate_hz": 2.09
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_007",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 3.04,
+    "hits": 9,
+    "rate_hz": 1.67
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_008",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 4.41,
+    "hits": 13,
+    "rate_hz": 2.81
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_009",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 5.97,
+    "hits": 13,
+    "rate_hz": 2.32
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_010",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 6.48,
+    "hits": 11,
+    "rate_hz": 1.73
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_011",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 4.75,
+    "hits": 10,
+    "rate_hz": 2.53
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_012",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 5.86,
+    "hits": 7,
+    "rate_hz": 2.03
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_013",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 3.67,
+    "hits": 13,
+    "rate_hz": 2.83
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_014",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 3.86,
+    "hits": 14,
+    "rate_hz": 2.61
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_015",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 7.03,
+    "hits": 14,
+    "rate_hz": 2.91
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3500,
+     "peak_g": 7.349,
+     "raised_ms": 5500,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 1.1,
+     "post_motion_sd_g": 1.142,
+     "impacts_in_window": 13,
+     "clipped": false,
+     "asked_at_ms": 7500
+    }
+   ]
+  },
+  {
+   "id": "notfall_hammering_016",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 7.91,
+    "hits": 9,
+    "rate_hz": 1.88
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3360,
+     "peak_g": 8.78,
+     "raised_ms": 5360,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 9.5,
+     "post_motion_sd_g": 1.506,
+     "impacts_in_window": 8,
+     "clipped": false,
+     "asked_at_ms": 7359
+    }
+   ]
+  },
+  {
+   "id": "notfall_hammering_017",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 7.37,
+    "hits": 7,
+    "rate_hz": 1.97
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_018",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 3.51,
+    "hits": 4,
+    "rate_hz": 1.51
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_hammering_019",
+   "label": "not_fall",
+   "kind": "hammering",
+   "params": {
+    "kind": "hammering",
+    "peak_g": 3.04,
+    "hits": 7,
+    "rate_hz": 2.37
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_000",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_001",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_002",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 4.92,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 1.9,
+     "post_motion_sd_g": 0.156,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_table_slap_003",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 4.411,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 2.4,
+     "post_motion_sd_g": 0.032,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_table_slap_004",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 4.518,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 1.9,
+     "post_motion_sd_g": 0.071,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_table_slap_005",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_006",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_007",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 5.491,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 1.3,
+     "post_motion_sd_g": 0.265,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_table_slap_008",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 5.784,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 1.0,
+     "post_motion_sd_g": 0.2,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_table_slap_009",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_010",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_011",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_012",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 4.449,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 1.9,
+     "post_motion_sd_g": 0.192,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_table_slap_013",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 4.025,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 0.7,
+     "post_motion_sd_g": 0.158,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_table_slap_014",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_015",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_016",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_017",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_018",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_table_slap_019",
+   "label": "not_fall",
+   "kind": "table_slap",
+   "params": {
+    "kind": "table_slap"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 5.389,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 2.4,
+     "post_motion_sd_g": 0.097,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_drop_into_chair_000",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2240,
+     "peak_g": 3.775,
+     "raised_ms": 4240,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 5.3,
+     "post_motion_sd_g": 0.153,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6240
+    }
+   ]
+  },
+  {
+   "id": "notfall_drop_into_chair_001",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_drop_into_chair_002",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_drop_into_chair_003",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2240,
+     "peak_g": 4.419,
+     "raised_ms": 4240,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 16.0,
+     "post_motion_sd_g": 0.139,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6240
+    }
+   ]
+  },
+  {
+   "id": "notfall_drop_into_chair_004",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_drop_into_chair_005",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2240,
+     "peak_g": 4.186,
+     "raised_ms": 4240,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 10.5,
+     "post_motion_sd_g": 0.093,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6240
+    }
+   ]
+  },
+  {
+   "id": "notfall_drop_into_chair_006",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_drop_into_chair_007",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_drop_into_chair_008",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2240,
+     "peak_g": 3.959,
+     "raised_ms": 4240,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 13.6,
+     "post_motion_sd_g": 0.224,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6240
+    }
+   ]
+  },
+  {
+   "id": "notfall_drop_into_chair_009",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_drop_into_chair_010",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_drop_into_chair_011",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2240,
+     "peak_g": 4.168,
+     "raised_ms": 4240,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 22.3,
+     "post_motion_sd_g": 0.063,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6240
+    }
+   ]
+  },
+  {
+   "id": "notfall_drop_into_chair_012",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_drop_into_chair_013",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_drop_into_chair_014",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_drop_into_chair_015",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2240,
+     "peak_g": 4.023,
+     "raised_ms": 4240,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 7.9,
+     "post_motion_sd_g": 0.24,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6240
+    }
+   ]
+  },
+  {
+   "id": "notfall_drop_into_chair_016",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2240,
+     "peak_g": 4.322,
+     "raised_ms": 4240,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 9.0,
+     "post_motion_sd_g": 0.1,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6240
+    }
+   ]
+  },
+  {
+   "id": "notfall_drop_into_chair_017",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2240,
+     "peak_g": 4.277,
+     "raised_ms": 4240,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 16.4,
+     "post_motion_sd_g": 0.101,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6240
+    }
+   ]
+  },
+  {
+   "id": "notfall_drop_into_chair_018",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2240,
+     "peak_g": 4.115,
+     "raised_ms": 4240,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 9.8,
+     "post_motion_sd_g": 0.083,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6240
+    }
+   ]
+  },
+  {
+   "id": "notfall_drop_into_chair_019",
+   "label": "not_fall",
+   "kind": "drop_into_chair",
+   "params": {
+    "kind": "drop_into_chair"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_000",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_001",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_002",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2360,
+     "peak_g": 2.508,
+     "raised_ms": 4360,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 1.1,
+     "post_motion_sd_g": 0.495,
+     "impacts_in_window": 17,
+     "clipped": false,
+     "asked_at_ms": 6359
+    }
+   ]
+  },
+  {
+   "id": "notfall_brushing_teeth_003",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_004",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2040,
+     "peak_g": 2.783,
+     "raised_ms": 4040,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 0.2,
+     "post_motion_sd_g": 0.656,
+     "impacts_in_window": 14,
+     "clipped": false,
+     "asked_at_ms": 6040
+    }
+   ]
+  },
+  {
+   "id": "notfall_brushing_teeth_005",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_006",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_007",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_008",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3480,
+     "peak_g": 3.267,
+     "raised_ms": 5480,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 3.5,
+     "post_motion_sd_g": 0.809,
+     "impacts_in_window": 17,
+     "clipped": false,
+     "asked_at_ms": 7480
+    },
+    {
+     "path": "model",
+     "impact_ms": 21380,
+     "peak_g": 3.268,
+     "raised_ms": 23380,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 2.9,
+     "post_motion_sd_g": 0.02,
+     "impacts_in_window": 14,
+     "clipped": false,
+     "asked_at_ms": 25380
+    }
+   ]
+  },
+  {
+   "id": "notfall_brushing_teeth_009",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2760,
+     "peak_g": 2.421,
+     "raised_ms": 4760,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 3.3,
+     "post_motion_sd_g": 0.405,
+     "impacts_in_window": 14,
+     "clipped": false,
+     "asked_at_ms": 6760
+    }
+   ]
+  },
+  {
+   "id": "notfall_brushing_teeth_010",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_011",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2320,
+     "peak_g": 2.555,
+     "raised_ms": 4320,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 0.8,
+     "post_motion_sd_g": 0.445,
+     "impacts_in_window": 13,
+     "clipped": false,
+     "asked_at_ms": 6320
+    }
+   ]
+  },
+  {
+   "id": "notfall_brushing_teeth_012",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_013",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_014",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_015",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2460,
+     "peak_g": 2.756,
+     "raised_ms": 4460,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 0.7,
+     "post_motion_sd_g": 0.64,
+     "impacts_in_window": 17,
+     "clipped": false,
+     "asked_at_ms": 6460
+    }
+   ]
+  },
+  {
+   "id": "notfall_brushing_teeth_016",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_017",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_018",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_brushing_teeth_019",
+   "label": "not_fall",
+   "kind": "brushing_teeth",
+   "params": {
+    "kind": "brushing_teeth"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_watch_put_on_table_000",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3100,
+     "peak_g": 3.856,
+     "raised_ms": 23100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 87.5,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_001",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 3.897,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 106.0,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_002",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 4.477,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 93.2,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_003",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 4.029,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 20.4,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_004",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 4.901,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 75.4,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_005",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 4.763,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 40.7,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_006",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 3.643,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 50.1,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_007",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3100,
+     "peak_g": 3.934,
+     "raised_ms": 23100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 92.2,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_008",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 3.693,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 79.5,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_009",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 4.169,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 108.9,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_010",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 4.527,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 39.5,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_011",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 4.984,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 46.5,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_012",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3100,
+     "peak_g": 4.114,
+     "raised_ms": 23100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 71.1,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_013",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 3.639,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 53.3,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_014",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3100,
+     "peak_g": 3.353,
+     "raised_ms": 23100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 56.5,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_015",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3100,
+     "peak_g": 3.475,
+     "raised_ms": 23100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 32.5,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_016",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "rule",
+     "impact_ms": 3100,
+     "peak_g": 3.513,
+     "raised_ms": 23100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 27.5,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 23100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_017",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 4.159,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 58.3,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_018",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 4.442,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 33.8,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_watch_put_on_table_019",
+   "label": "not_fall",
+   "kind": "watch_put_on_table",
+   "params": {
+    "kind": "watch_put_on_table",
+    "off_wrist_after_s": 3.3
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 4.946,
+     "raised_ms": 5100,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 52.2,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_000",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2900,
+     "peak_g": 4.148,
+     "raised_ms": 4900,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 4.4,
+     "post_motion_sd_g": 0.162,
+     "impacts_in_window": 14,
+     "clipped": false,
+     "asked_at_ms": 6900
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_001",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2900,
+     "peak_g": 3.285,
+     "raised_ms": 4900,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 4.2,
+     "post_motion_sd_g": 0.082,
+     "impacts_in_window": 9,
+     "clipped": false,
+     "asked_at_ms": 6900
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_002",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2520,
+     "peak_g": 3.384,
+     "raised_ms": 4520,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 4.7,
+     "post_motion_sd_g": 0.845,
+     "impacts_in_window": 15,
+     "clipped": false,
+     "asked_at_ms": 6520
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_003",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2960,
+     "peak_g": 2.476,
+     "raised_ms": 4960,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 4.5,
+     "post_motion_sd_g": 0.103,
+     "impacts_in_window": 11,
+     "clipped": false,
+     "asked_at_ms": 6960
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_004",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3100,
+     "peak_g": 2.849,
+     "raised_ms": 5100,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 1.5,
+     "post_motion_sd_g": 0.503,
+     "impacts_in_window": 21,
+     "clipped": false,
+     "asked_at_ms": 7100
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_005",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3380,
+     "peak_g": 3.475,
+     "raised_ms": 5380,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 1.1,
+     "post_motion_sd_g": 0.208,
+     "impacts_in_window": 11,
+     "clipped": false,
+     "asked_at_ms": 7380
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_006",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3240,
+     "peak_g": 3.399,
+     "raised_ms": 5240,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 1.2,
+     "post_motion_sd_g": 0.033,
+     "impacts_in_window": 11,
+     "clipped": false,
+     "asked_at_ms": 7240
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_007",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2060,
+     "peak_g": 3.488,
+     "raised_ms": 4060,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 0.8,
+     "post_motion_sd_g": 0.932,
+     "impacts_in_window": 14,
+     "clipped": false,
+     "asked_at_ms": 6060
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_008",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2140,
+     "peak_g": 3.018,
+     "raised_ms": 4140,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 0.9,
+     "post_motion_sd_g": 0.681,
+     "impacts_in_window": 18,
+     "clipped": false,
+     "asked_at_ms": 6140
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_009",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2160,
+     "peak_g": 2.798,
+     "raised_ms": 4160,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 1.5,
+     "post_motion_sd_g": 0.649,
+     "impacts_in_window": 13,
+     "clipped": false,
+     "asked_at_ms": 6160
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_010",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3420,
+     "peak_g": 2.915,
+     "raised_ms": 5420,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 2.5,
+     "post_motion_sd_g": 0.101,
+     "impacts_in_window": 16,
+     "clipped": false,
+     "asked_at_ms": 7420
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_011",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2280,
+     "peak_g": 3.29,
+     "raised_ms": 4280,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 0.4,
+     "post_motion_sd_g": 0.691,
+     "impacts_in_window": 17,
+     "clipped": false,
+     "asked_at_ms": 6279
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_012",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2160,
+     "peak_g": 4.099,
+     "raised_ms": 4160,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 2.2,
+     "post_motion_sd_g": 0.975,
+     "impacts_in_window": 15,
+     "clipped": false,
+     "asked_at_ms": 6160
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_013",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2040,
+     "peak_g": 3.546,
+     "raised_ms": 4040,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 3.8,
+     "post_motion_sd_g": 0.849,
+     "impacts_in_window": 16,
+     "clipped": false,
+     "asked_at_ms": 6040
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_014",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2500,
+     "peak_g": 2.766,
+     "raised_ms": 4500,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 1.7,
+     "post_motion_sd_g": 0.465,
+     "impacts_in_window": 18,
+     "clipped": false,
+     "asked_at_ms": 6500
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_015",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 2.803,
+     "raised_ms": 4600,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 3.7,
+     "post_motion_sd_g": 0.394,
+     "impacts_in_window": 15,
+     "clipped": false,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_016",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_wrist_shake_017",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 3040,
+     "peak_g": 2.927,
+     "raised_ms": 5040,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 1.4,
+     "post_motion_sd_g": 0.363,
+     "impacts_in_window": 15,
+     "clipped": false,
+     "asked_at_ms": 7040
+    }
+   ]
+  },
+  {
+   "id": "notfall_wrist_shake_018",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_wrist_shake_019",
+   "label": "not_fall",
+   "kind": "wrist_shake",
+   "params": {
+    "kind": "wrist_shake"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2540,
+     "peak_g": 3.324,
+     "raised_ms": 4540,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 2.9,
+     "post_motion_sd_g": 0.283,
+     "impacts_in_window": 12,
+     "clipped": false,
+     "asked_at_ms": 6540
+    }
+   ]
+  },
+  {
+   "id": "notfall_washing_hands_000",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_001",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_002",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_003",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_004",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_005",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_006",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_007",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_008",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_009",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_010",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_011",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_012",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_013",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_014",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_015",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_016",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_017",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_018",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_washing_hands_019",
+   "label": "not_fall",
+   "kind": "washing_hands",
+   "params": {
+    "kind": "washing_hands"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_000",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_001",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_002",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_003",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_004",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_005",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_006",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_007",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_008",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_009",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_010",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_011",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_012",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_013",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_014",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_015",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_016",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_017",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_018",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_stairs_down_019",
+   "label": "not_fall",
+   "kind": "stairs_down",
+   "params": {
+    "kind": "stairs_down"
+   },
+   "raised": []
+  },
+  {
+   "id": "notfall_clipping_hit_000",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 18.114,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 1.7,
+     "post_motion_sd_g": 0.271,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_001",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 17.596,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 1.1,
+     "post_motion_sd_g": 0.108,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_002",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 17.442,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 1.6,
+     "post_motion_sd_g": 0.215,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_003",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 22.714,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 2.7,
+     "post_motion_sd_g": 0.208,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_004",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 17.389,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 2.8,
+     "post_motion_sd_g": 0.171,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_005",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 21.316,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 1.2,
+     "post_motion_sd_g": 0.313,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_006",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 20.489,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 0.7,
+     "post_motion_sd_g": 0.192,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_007",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 24.319,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 0.1,
+     "post_motion_sd_g": 0.092,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_008",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 19.341,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 1.3,
+     "post_motion_sd_g": 0.123,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_009",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 20.211,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 3.7,
+     "post_motion_sd_g": 0.081,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_010",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 23.875,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 3.0,
+     "post_motion_sd_g": 0.3,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_011",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 18.005,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 0.7,
+     "post_motion_sd_g": 0.062,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_012",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 24.209,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 0.4,
+     "post_motion_sd_g": 0.131,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_013",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 18.19,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 1.3,
+     "post_motion_sd_g": 0.078,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_014",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 19.138,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 2.9,
+     "post_motion_sd_g": 0.101,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_015",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 16.626,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 2.3,
+     "post_motion_sd_g": 0.129,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_016",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 21.591,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 3.4,
+     "post_motion_sd_g": 0.087,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_017",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 22.866,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 2.5,
+     "post_motion_sd_g": 0.194,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_018",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 23.955,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 2.6,
+     "post_motion_sd_g": 0.107,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  },
+  {
+   "id": "notfall_clipping_hit_019",
+   "label": "not_fall",
+   "kind": "clipping_hit",
+   "params": {
+    "kind": "clipping_hit"
+   },
+   "raised": [
+    {
+     "path": "model",
+     "impact_ms": 2600,
+     "peak_g": 22.78,
+     "raised_ms": 4600,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 1.2,
+     "post_motion_sd_g": 0.038,
+     "impacts_in_window": 1,
+     "clipped": true,
+     "asked_at_ms": 6600
+    }
+   ]
+  }
+ ]
+}

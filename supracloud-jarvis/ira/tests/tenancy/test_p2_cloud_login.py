@@ -503,14 +503,21 @@ async def test_the_token_carries_no_authority_claims_at_all(cloud, client):
     `users.id`, the key of its token-version counter, so the version check
     needs no lookup by name. It names the account `sub` names, and grants
     nothing: every grant is still looked up from `sub`.
+
+    `auth_time` and `amr` (D-095) are not authorities either: when the holder
+    last proved who they are, and how. They can only make the server ask for
+    MORE proof (step-up); nothing reads them as a grant. A password-only sign-in
+    records exactly that.
     """
     with patch("utils.redis_client.get_redis", return_value=_redis()):
         r = await client.post("/auth/cloud/login",
                         data={"email": email("solo"), "password": PASSWORD})
 
     claims = _claims(r.json()["access_token"])
-    assert set(claims) == {"sub", "exp", "jti", "tok", "ver", "uid"}
+    assert set(claims) == {"sub", "exp", "jti", "tok", "ver", "uid", "auth_time", "amr"}
     assert claims["uid"] == str(ACCOUNTS["solo"][0])
+    assert claims["amr"] == ["pwd"]
+    assert isinstance(claims["auth_time"], int) and abs(claims["auth_time"] - int(time.time())) < 60
 
 
 async def test_the_token_version_is_the_verified_accounts_not_a_squatters(cloud, client):

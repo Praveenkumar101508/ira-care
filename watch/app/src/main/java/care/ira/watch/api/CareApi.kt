@@ -92,6 +92,8 @@ data class FallSettingsDto(
     @SerialName("fall_impact_g") val impactG: Double = 2.5,
     @SerialName("fall_still_seconds") val stillSeconds: Int = 20,
     @SerialName("fall_still_threshold_g") val stillThresholdG: Double = 0.3,
+    /** The confirmation stage before the question (FallConfirmation): off until the carer's settings say so. */
+    @SerialName("fall_confirm_before_asking") val confirmBeforeAsking: Boolean = false,
 )
 
 /** The carer's heart-rate range and how often ordinary readings go up, as `GET /devices/me` returns them. */

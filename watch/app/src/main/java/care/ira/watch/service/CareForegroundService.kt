@@ -23,6 +23,7 @@ import care.ira.watch.checkin.CheckinController
 import care.ira.watch.checkin.FallCountdown
 import care.ira.watch.checkin.ReminderButtons
 import care.ira.watch.checkin.ReminderChoice
+import care.ira.watch.sensors.FallConfirmation
 import care.ira.watch.sensors.FallDetector
 import care.ira.watch.sensors.FallEvent
 import care.ira.watch.sensors.FallInjection
@@ -144,14 +145,28 @@ class CareForegroundService : LifecycleService() {
     private suspend fun watchForFalls() {
         var configured = fallSettings()
         var detector = newFallDetector(configured)
+        val confirmation = FallConfirmation()
+        var pending: FallEvent.SuspectedFall? = null
         deps.accelerometer.samples().onEach { sample ->
             val wanted = fallSettings()
             if (wanted != configured) { configured = wanted; detector = newFallDetector(wanted) }
             if (!deps.fallSettings.enabled) return@onEach
+            confirmation.add(sample)
             detector.onWrist = deps.lastOnWrist
             when (val event = detector.feed(sample)) {
-                is FallEvent.SuspectedFall -> onSuspectedFall(event)
+                is FallEvent.SuspectedFall -> {
+                    // With the confirmation stage on, the question waits until the seconds after
+                    // the impact have been seen; otherwise, as before, it is asked at once.
+                    if (deps.fallSettings.confirmBeforeAsking) pending = pending ?: event else onSuspectedFall(event)
+                }
                 else -> {}
+            }
+            val held = pending
+            if (held != null && confirmation.ready(held.impactAtMillis, sample.atMillis)) {
+                pending = null
+                val decision = confirmation.decide(held.impactAtMillis)
+                deps.lastFallConfirmation = decision
+                if (decision.confirm) onSuspectedFall(held)
             }
         }.collect()
     }

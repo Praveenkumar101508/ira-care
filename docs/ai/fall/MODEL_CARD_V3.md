@@ -105,3 +105,16 @@ shipped file, threshold and rules unchanged and nothing tuned: `CROSS_DATASET_WE
   - a detection during a running countdown was ignored: fixed in the countdown, not the model
     (D-092).
 - **Not shown:** older adults' falls, or the IRA watch.
+
+## Round 9: the confirmation stage after a suspected fall (26 November 2026)
+
+A stage between a detector's suspected fall and the question on the wrist
+(`FallConfirmation.kt`; `FALSE_ALARM_INVESTIGATION.md`): a still wrist is always asked about;
+a wrist that kept its orientation and whose hand carried on, or that took a burst of impacts, is
+not. **Off by default** (`fall_confirm_before_asking`) until it has been run on the permitted
+recorded falls. On the original synthetic scenarios (`SYNTHETIC_SCENARIOS.md`, 160 falls and 220
+other recordings; a regression corpus, not accuracy) the shipped pipeline caught 154 falls with
+and without the stage, and alarms on the other recordings fell from 88 to 62 (65.4 to 46.1 an
+hour): every clap, knock and hammer burst and most shaking removed, single slaps and sitting down
+hard still asked about. The WEDA-FALL figures above are not re-run (licence unresolved) and are
+not the stage's performance.
