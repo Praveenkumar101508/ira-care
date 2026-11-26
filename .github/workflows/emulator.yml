@@ -18,7 +18,13 @@
 #      (pinned to a commit) and runs scripts/emulator/watch_smoke.py: install,
 #      launch, pairing screen; and for "care-journey" also pairing with a real
 #      code, permissions, the Help button, pressing Help, and the alert on the
-#      server;
+#      server (the eleven core steps), then the extended groups chosen by the
+#      "steps" input (default all: a medication reminder answered unclearly and
+#      then confirmed in two steps, a requested check-in answered by touch, a
+#      synthetic fall countdown with a second detection attached (D-092), Help
+#      during a countdown and the responder on the wrist, a Help queued offline
+#      and delivered once, a reboot, the sensor permission revoked and granted,
+#      unpairing and pairing again, and the accessibility of the screens dumped);
 #   5. uploads screenshots, UI dumps, logcat and results.json as an artifact.
 # The watch app has no instrumented tests (watch/app/src/androidTest does not
 # exist); if some are added, set the "instrumented" input to run them too.
@@ -28,7 +34,7 @@ on:
   workflow_dispatch:
     inputs:
       journey:
-        description: "launch-only (pairing screen) or care-journey (pair, Help, alert on the server)"
+        description: "launch-only (pairing screen) or care-journey (pair, Help, alert on the server, then the extended groups)"
         type: choice
         options: [care-journey, launch-only]
         default: care-journey
@@ -41,6 +47,10 @@ on:
         description: "Also run connectedWearosDebugAndroidTest (only if androidTest sources exist)"
         type: boolean
         default: false
+      steps:
+        description: "Extended journey groups after the eleven core steps (care-journey only): all, or a comma list of medication, checkin, fall, help_during_fall, offline, reboot, permission, unpair, accessibility"
+        type: string
+        default: all
   # Also callable from native-checks.yml, which runs it on pull requests that change the watch
   # app (standard runners are free while the repository is public).
   workflow_call:
@@ -54,6 +64,9 @@ on:
       instrumented:
         type: boolean
         default: false
+      steps:
+        type: string
+        default: all
 
 permissions:
   contents: read
@@ -150,7 +163,7 @@ jobs:
           disable-animations: true
           emulator-boot-timeout: 900
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: python3 scripts/emulator/watch_smoke.py --apk watch/app/build/outputs/apk/wearos/debug/app-wearos-debug.apk --out build/emulator-smoke ${{ inputs.journey == 'care-journey' && format('--api http://127.0.0.1:8000 --credentials {0}/seed.json', runner.temp) || '' }} && if [ "${{ inputs.instrumented }}" = "true" ] && [ -d watch/app/src/androidTest ]; then (cd watch && ./gradlew --no-daemon --console=plain connectedWearosDebugAndroidTest); fi
+          script: python3 scripts/emulator/watch_smoke.py --apk watch/app/build/outputs/apk/wearos/debug/app-wearos-debug.apk --out build/emulator-smoke ${{ inputs.journey == 'care-journey' && format('--api http://127.0.0.1:8000 --credentials {0}/seed.json --steps "{1}"', runner.temp, inputs.steps) || '' }} && if [ "${{ inputs.instrumented }}" = "true" ] && [ -d watch/app/src/androidTest ]; then (cd watch && ./gradlew --no-daemon --console=plain connectedWearosDebugAndroidTest); fi
 
       - name: Show the end of the demo API log (on failure)
         if: failure() && inputs.journey == 'care-journey'
