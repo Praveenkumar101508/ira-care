@@ -114,7 +114,7 @@ def find(nodes: list[dict], *, text: str | None = None, desc_prefix: str | None 
 
 
 #: How many times the smoke presses Pair again after "No connection. Try again." (see _run).
-NO_CONNECTION_RETRIES = 5
+NO_CONNECTION_RETRIES = 3
 
 #: How long to wait, after boot, for the emulator to reach the host (10.0.2.2) before the app is
 #: launched. On GitHub's runners the guest's network can come up well after `sys.boot_completed`

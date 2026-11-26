@@ -46,6 +46,15 @@ def sign_in_screen_problems(nodes: list[dict]) -> list[str]:
 MAX_RECOVERIES = 3
 
 
+def anr_answer(recovery: int) -> str:
+    """Which button to press on another app's "isn't responding" dialog at the n-th recovery.
+    The first time, Wait: the app may just be slow after boot. From the second time on, Close
+    app: a launcher that is still hung after a wait and a relaunch (run 45903217691: three
+    Waits, 240 s, the dialog back each time) is closed, Android restarts it, and our app is
+    brought to the front. The hung app is never ours (foreign_anr), so nothing of IRA's is closed."""
+    return "Wait" if recovery <= 1 else "Close app"
+
+
 def foreign_anr(nodes: list[dict]) -> str | None:
     """The text of a "... isn't responding" dialog for an app other than ours, if one is shown."""
     for n in nodes:
@@ -122,11 +131,14 @@ class PhoneSmoke:
             other = foreign_anr(nodes)
             if recoveries < MAX_RECOVERIES and (other or not self.app_in_front()):
                 recoveries += 1
-                wait = find(nodes, text="Wait")
-                if other and wait is not None:
-                    self.adb("shell", "input", "tap", *map(str, centre(wait)))
+                answer = anr_answer(recoveries)
+                button = find(nodes, text=answer)
+                if other and button is not None:
+                    self.adb("shell", "input", "tap", *map(str, centre(button)))
+                    time.sleep(2)
                 self.adb("shell", "monkey", "-p", PACKAGE, "-c", "android.intent.category.LAUNCHER", "1", timeout=120)
-                print(json.dumps({"note": f"recovered the screen ({recoveries})", "dialog": other}), flush=True)
+                print(json.dumps({"note": f"recovered the screen ({recoveries})", "dialog": other,
+                                  "answered": answer if other else None}), flush=True)
             time.sleep(3)
         (self.out / "ui_sign_in.xml").write_text(self.last_xml)
         shot = self.shot("sign_in")

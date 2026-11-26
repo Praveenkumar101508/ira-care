@@ -309,3 +309,6 @@ def test_phone_smoke_answers_another_apps_not_responding_dialog():
     assert mod.foreign_anr([{"text": "IRA CARE isn't responding"}]) is None
     assert mod.foreign_anr([{"text": mod.SIGN_IN_TEXT}]) is None
     assert 1 <= mod.MAX_RECOVERIES <= 3
+    # The first recovery waits; a launcher still hung after that is closed (it is never our app).
+    assert mod.anr_answer(1) == "Wait"
+    assert [mod.anr_answer(n) for n in (2, 3)] == ["Close app", "Close app"]
