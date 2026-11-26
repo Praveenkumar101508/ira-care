@@ -192,11 +192,37 @@ def test_a_fall_counts_only_near_its_annotation():
 
 
 def test_a_second_detection_inside_the_countdown_is_ignored_as_on_the_watch():
+    # The default policy is the watch before D-092, which produced the published figures.
     mags = _impact(2.2, _still(5)) + _impact(2.4, _still(5))[5 * HZ:]
     res = fall.stream(np.c_[np.zeros(len(mags)), np.zeros(len(mags)), mags], spec=SPEC,
                       infer=lambda w: np.float32(0.99), config="shipped")
     assert len(res["raised"]) == 1 and len(res["ignored_during_countdown"]) == 1
+    assert res["attached_during_countdown"] == []
     assert fall.countdown_running_at(res, res["ignored_during_countdown"][0]["at_s"])
+
+
+def test_after_d092_a_separate_detection_inside_the_countdown_is_attached_and_counts():
+    # The same synthetic pair of impacts: under the D-092 policy the second is attached to the
+    # incident, not dropped, and it is an alarm time for scoring a fall.
+    mags = _impact(2.2, _still(5)) + _impact(2.4, _still(5))[5 * HZ:]
+    acc = np.c_[np.zeros(len(mags)), np.zeros(len(mags)), mags]
+    old = fall.stream(acc, spec=SPEC, infer=lambda w: np.float32(0.99), config="shipped")
+    new = fall.stream(acc, spec=SPEC, infer=lambda w: np.float32(0.99), config="shipped", countdown="d092")
+    assert len(new["raised"]) == 1 and new["ignored_during_countdown"] == [] and new["absorbed_same_impact"] == []
+    assert len(new["attached_during_countdown"]) == 1
+    second = new["attached_during_countdown"][0]["at_s"]
+    assert second - new["raised"][0]["at_s"] > fall.SAME_IMPACT_MS / 1000
+    assert second in fall.alarms(new, "a") and second not in fall.alarms(old, "a")
+    # A fall annotated around the second impact is caught after D-092 and missed before it.
+    assert fall.caught(fall.alarms(new, "a"), second - 0.2, second + 0.2)
+    assert not fall.caught(fall.alarms(old, "a"), second - 0.2, second + 0.2)
+
+
+def test_an_unknown_countdown_policy_is_refused():
+    mags = _impact(2.2, _still(5))
+    with pytest.raises(ValueError):
+        fall.stream(np.c_[np.zeros(len(mags)), np.zeros(len(mags)), mags], spec=SPEC,
+                    infer=lambda w: np.float32(0.99), config="shipped", countdown="restart")
 
 
 def test_an_open_rule_impact_counts_only_under_convention_b():

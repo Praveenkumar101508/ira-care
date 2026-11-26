@@ -553,6 +553,8 @@ async def record_help_request(principal: Principal, device: dict, body: dict) ->
     loc = location.from_body(body.get("location"))
     now = _now()
     async with workspace_connection(principal) as conn:
+        # One fall SOS per person at a time, even with concurrent events (D-092).
+        await falls.lock_person(conn, device["person_id"])
         # A fall countdown that ended, or Help during one, opens the fall alert itself.
         fall = await falls.confirmed(conn, device, body, now)
         if fall is not None:

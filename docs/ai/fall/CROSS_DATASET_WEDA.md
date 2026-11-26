@@ -1,5 +1,13 @@
 # Fall v3 on WEDA-FALL: a cross-dataset test of the shipped pipeline (F4.f)
 
+> **These figures predate D-092 (26 November 2026).** They were produced while the watch's
+> countdown ignored a detection during a running countdown. D-092 changed that: such a detection
+> is now attached to the incident and asked about again, so the 20 "countdown already running"
+> misses below would not be lost in the same way. The fix is shown on synthetic regression tests
+> only. WEDA-FALL is not being used again until its licence is confirmed, so the figures have not
+> been re-run; `scripts/eval/fall_cross_weda.py --countdown d092` mirrors the new behaviour for
+> that re-run, and its default (`ignore`) reproduces the figures here.
+
 **Not a medical device, and not a measurement on the people IRA CARE serves.** Young volunteers
 fell onto a mattress wearing a Fitbit Sense; older adults did daily activities only. This is a
 held-out test of the pipeline the watch ships, on data it never saw, with nothing retrained and no
@@ -71,7 +79,7 @@ of the pipeline. A re-run gave identical results.
 - **A fall is caught** when a suspected fall is raised whose impact (rule) or peak (model) lies
   within the hand-annotated fall (`fall_timestamps.csv`), widened by 1 s each side.
 - **The countdown:** a second detection while the 30 s countdown is running is ignored, as
-  `FallCountdown` does on the watch.
+  `FallCountdown` did on the watch before D-092.
 - **The rule's two conventions** (as in `MODEL_CARD_V3.md`):
   - (a) only a complete 20 s still window counts;
   - (b) an impact still waiting for its 20 s when the recording ended also counts.
@@ -187,8 +195,9 @@ peaks were 3.2 to 6.4 g, as high as the falls'. Each is listed in the JSON
 
 ## Findings for the owner and a clinical reviewer
 
-Nothing was changed because of these results: the model, its threshold and the rules are as
-shipped. These need a decision by people, not a retune on a test set.
+Nothing was changed because of these results when they were produced: the model, its threshold
+and the rules are as shipped. Since then the countdown, not the model, was changed by D-092 (see
+finding 2). These need a decision by people, not a retune on a test set.
 
 1. **Everyday hand impacts by older adults raise the model path's alarm.** Hitting a table raised it
    in 11 of 31 recordings, clapping in 10 of 32. At the wrist those reach 4 to 6 g, as falls do,
@@ -196,12 +205,16 @@ shipped. These need a decision by people, not a retune on a test set.
    30 s countdown asking "are you OK?", not a call for help. Often enough, though, people may
    learn to dismiss it. The rule is worse on the same recordings under (b). It would raise them
    only if the person then stayed still for 20 s, which these recordings are too short to show.
+   *Still open: analysed, with candidate mitigations and no threshold changed, in
+   `docs/compliance/CLINICAL_SAFETY_CASE.md` (H4).*
 2. **A detection during a running countdown is dropped.** In 20 falls, movement just before the
    fall (probably sitting down, in most) started a countdown, and the fall's own detection was ignored. The
    countdown still asks and still calls for help if nobody answers. But a person who dismisses
    the first prompt after falling, believing it was about the earlier movement, gets no second
    countdown for the fall. Whether a detection during a countdown should restart or extend it is
-   a clinical design question. It is recorded here and not changed.
+   a clinical design question. *Addressed by D-092 (26 November 2026): the detection is attached to
+   the same incident without moving its deadline, and an "I'm OK" given after it asks again with a
+   fresh countdown. Shown on synthetic tests; not re-run on WEDA-FALL (licence unconfirmed).*
 3. **Sensitivity on these falls is high, but they are easy:** all 350 reached 2.0 g on a mattress.
    This does not show how the pipeline does on soft, slow or partial falls of older people.
 

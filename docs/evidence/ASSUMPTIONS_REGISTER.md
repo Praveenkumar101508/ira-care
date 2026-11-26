@@ -90,3 +90,6 @@ exists on 25 November 2026:
   `python3 scripts/hosting_cost.py docs/ops/hosting_prices.json --tier pilot` and copy the
   result here with the date.
 - Re-measure I2 to I6 on the rented server (G2.f) before quoting any capacity to anyone.
+- Inputs for three-year projections that build on these rows (cost drivers, hardware stages,
+  subscription options with comparable prices, deployment effort) are in
+  [`docs/business/ASSUMPTIONS_FOR_PROJECTIONS.md`](../business/ASSUMPTIONS_FOR_PROJECTIONS.md).

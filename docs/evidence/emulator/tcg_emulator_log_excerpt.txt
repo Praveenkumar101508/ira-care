@@ -1,0 +1,23 @@
+# Excerpts from the emulator's own logs (Wear OS 5 x86_64, emulator 37.3.10, -accel off with ANDROID_I_WANT_MY_TCG=yes), 26 November 2026 UTC.
+# First attempt without the TCG override:
+ERROR        | Software CPU emulation (-accel off) is not supported. A hardware CPU accelerator is required (or set ANDROID_I_WANT_MY_TCG=yes to force TCG software emulation).
+# Boot script:
+START 2026-11-26T01:31:46Z
+WARNING      | Feature QuickbootFileBacked is disabled due to stability issues, if you really want that, the environment variable ANDROID_EMU_FORCE_QUICKBOOT_FILE_BACKED need to set to 1
+BOOT_COMPLETED after 2031s
+BOOTED 2026-11-26T02:05:37Z
+# Framework watchdog in logcat (several logcat buffers, rotated; not every kill is still in a buffer):
+11-26 02:45:51.174 I/watchdog( 9290): Blocked in handler on main thread (main) for 74s
+11-26 02:50:34.375 I/watchdog(10103): Blocked in handler on main thread (main) for 60s
+11-26 02:56:04.772 I/watchdog(10961): Blocked in handler on main thread (main) for 60s
+11-26 03:01:21.931 I/watchdog(11751): Blocked in handler on main thread (main) for 60s
+11-26 03:02:23.857 W/Watchdog(11751): *** WATCHDOG KILLING SYSTEM PROCESS: Blocked in handler on main thread (main) for 60s
+11-26 03:05:45.823 I/watchdog(12497): Blocked in handler on main thread (main) for 70s
+11-26 03:06:52.422 W/Watchdog(12497): *** WATCHDOG KILLING SYSTEM PROCESS: Blocked in handler on main thread (main) for 70s
+11-26 03:11:15.482 I/watchdog(13348): Blocked in handler on main thread (main) for 60s
+# DeadSystemException crashes seen earlier in the crash buffer: 01:44:52, 01:49:07, 01:53:35 (system processes losing system_server)
+# system_server PIDs observed: 551, 1090, 1678, 2306, 3043, 3769, 4387, 9290, 10103, 10961, 11751, 12371, 12497, 13348
+# "*** WATCHDOG KILLING SYSTEM PROCESS" lines read from logcat during the session before those buffers rotated:
+#   01:53:27 (pid 2306), 02:01:46 (pid 3769), 02:47:08 (pid 9290), 02:52:29 (pid 10103), 02:57:19 (pid 10961)
+# Mitigations tried, none of which stopped the kills: settings put global system_server_watchdog_timeout_ms 1800000;
+# adb root + persist.debug.dalvik.vm.jdwp.enabled=1 and a JDWP connection held open to each new system_server.

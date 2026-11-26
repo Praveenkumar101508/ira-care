@@ -76,7 +76,13 @@ data class LocationFix(
 )
 
 @Serializable
-data class HelpRequest(val via: String = "button", val note: String = "", val location: LocationFix? = null)
+data class HelpRequest(
+    val via: String = "button",
+    val note: String = "",
+    val location: LocationFix? = null,
+    /** The fall incident the request is for (D-092), when it comes from a fall countdown. */
+    @SerialName("incident_id") val incidentId: String? = null,
+)
 
 /** The carer's fall settings, as `GET /devices/me` returns them. Thresholds, not medical claims. */
 @Serializable
@@ -163,7 +169,18 @@ data class TalkRequest(val text: String)
 data class TalkOutcome(val sentences: List<String>, val action: JsonObject?, val needsHelp: Boolean)
 
 @Serializable
-data class FallStart(@SerialName("peak_g") val peakG: Double, @SerialName("still_seconds") val stillSeconds: Int)
+data class FallStart(
+    @SerialName("peak_g") val peakG: Double,
+    @SerialName("still_seconds") val stillSeconds: Int,
+    /** The fall incident (D-092): one id per countdown, sent with every event for it. */
+    @SerialName("incident_id") val incidentId: String? = null,
+    /** 1 for the detection that started the countdown; 2, 3 ... for later ones attached to it. */
+    val detection: Int? = null,
+)
+
+/** "I'm OK" during a fall countdown, for one incident (D-092). */
+@Serializable
+data class FallOk(@SerialName("incident_id") val incidentId: String? = null)
 
 /** What went wrong talking to the backend, in a way the caller can act on. */
 sealed class ApiOutcome<out T> {
