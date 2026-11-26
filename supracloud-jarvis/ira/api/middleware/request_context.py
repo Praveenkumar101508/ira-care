@@ -14,9 +14,9 @@ from __future__ import annotations
 import logging
 import time
 
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from core.runtime.request_context import (
     CORRELATION_ID_HEADER,
@@ -33,8 +33,24 @@ logger = logging.getLogger("ira.access")
 _QUIET_PATHS = frozenset({"/livez", "/readyz", "/health", "/metrics"})
 
 
-class RequestContextMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
+class RequestContextMiddleware:
+    """A plain ASGI middleware, not Starlette's BaseHTTPMiddleware: that one runs
+    each request's body through an anyio task group whose cancellation leaves a
+    reference cycle (frames, a CancelledError and its traceback) behind on
+    every request with a body, and those cycles wait for the collector's rare
+    full collection (found by the wall-clock soak). Running in the request's
+    own task also means the IDs bound here are the ones every later middleware
+    and the route see, with no copied context in between.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        request = Request(scope)
         request_id, correlation_id = bind(
             request.headers.get(REQUEST_ID_HEADER),
             request.headers.get(CORRELATION_ID_HEADER),
@@ -51,17 +67,23 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
 
         started = time.perf_counter()
         status = 500
+
+        async def send_with_ids(message: Message) -> None:
+            nonlocal status
+            if message["type"] == "http.response.start":
+                status = message["status"]
+                headers = MutableHeaders(scope=message)
+                headers[REQUEST_ID_HEADER] = request_id
+                headers[CORRELATION_ID_HEADER] = correlation_id
+            await send(message)
+
         try:
-            response: Response = await call_next(request)
-            status = response.status_code
-            response.headers[REQUEST_ID_HEADER] = request_id
-            response.headers[CORRELATION_ID_HEADER] = correlation_id
-            return response
+            await self.app(scope, receive, send_with_ids)
         finally:
             duration_ms = round((time.perf_counter() - started) * 1000, 2)
             path = request.url.path
             if path not in _QUIET_PATHS:
-                route = request.scope.get("route")
+                route = scope.get("route")
                 logger.info(
                     "request",
                     extra={
@@ -73,8 +95,6 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
                         "duration_ms": duration_ms,
                     },
                 )
-            # ContextVars are per-task and would normally be discarded with the
-            # task, but Starlette's BaseHTTPMiddleware can run dispatch in a
-            # task that outlives the response. Clearing is cheap insurance
-            # against an ID leaking into an unrelated log line.
+            # The IDs are bound in the request's task; clear them so none can
+            # leak into an unrelated log line written later in the same task.
             clear()

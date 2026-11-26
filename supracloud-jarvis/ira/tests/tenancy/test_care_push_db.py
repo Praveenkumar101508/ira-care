@@ -223,3 +223,42 @@ async def test_account_erasure_removes_the_accounts_push_tokens_only(client, fam
         assert await _delete_own_care_push_tokens(conn, _principal(a, "member", "member")) == 1
         left = await conn.fetch("SELECT user_id FROM care_push_tokens")
     assert [r["user_id"] for r in left] == [a["viewer"]]
+
+
+async def test_a_settled_receipt_is_not_reprocessed_by_later_passes(client, families, monkeypatch):
+    """Each escalation pass settles push receipts. Once an attempt's receipt event
+    is recorded, later passes must not read and rewrite it again: before the fix
+    every pass re-processed every push attempt that ever had a receipt, so the
+    work and memory of a pass grew with the deployment's history.
+    Negative control: with the previous query each of the three later passes
+    touches the settled attempt again (3 entries)."""
+    from care import delivery
+    a = families["a"]
+    p = await _setup(client, a)
+    await _register(client, a, TOKEN_A)
+    alert_id = await _help(client, p)
+    fake = FakePush()
+    now = dt.datetime.now(UTC)
+    await escalation.run_workspace(p["jp"], now, provider=providers.LogOnlyProvider(), push_provider=fake)
+    fake.receipt_plan = {"ticket-1": push.Receipt("ticket-1", "delivered")}
+    async with workspace_connection(p["jp"]) as conn:
+        await push.fetch_receipts(conn, fake, now=now + dt.timedelta(seconds=30))
+
+    touched: list = []
+    real = delivery.record_state
+
+    async def counting(conn, attempt_id, outcome, **kw):
+        touched.append((attempt_id, outcome))
+        return await real(conn, attempt_id, outcome, **kw)
+    monkeypatch.setattr(delivery, "record_state", counting)
+
+    async with workspace_connection(p["jp"]) as conn:
+        first = await delivery.settle_push_attempts(conn, now + dt.timedelta(seconds=40))
+        assert len(touched) == 1 and touched[0][1] == "delivered" and first == 1
+        touched.clear()
+        for i in range(3):
+            assert await delivery.settle_push_attempts(conn, now + dt.timedelta(seconds=50 + i)) == 0
+    assert touched == [], f"later passes re-processed {len(touched)} settled attempt(s)"
+    client.act_as(a, "member", "member")
+    pushes = [x for x in (await client.get(f"{C}/alerts/{alert_id}")).json()["attempts"] if x["channel"] == "push"]
+    assert pushes[0]["delivery"] == "delivered"
