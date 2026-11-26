@@ -60,6 +60,12 @@ ALLOWED = {
         "fall model v3, the shipped watch model (BITS-2 and UCI HAR, both CC BY 4.0; docs/ai/MODEL_WEIGHTS.md)",
     "docs/ai/fall/fall_model_v2.tflite":
         "fall model v2 candidate, kept as evaluation evidence (BITS-2 and UCI HAR; docs/ai/fall/MODEL_CARD_V2.md)",
+    "docs/evidence/soak/wallclock_1h_run1_checkpoint.jsonl.gz":
+        "our own 1-hour soak measurements against the local demo (fictional data, no logins; "
+        "docs/evidence/soak/WALLCLOCK_1H.md)",
+    "docs/evidence/soak/wallclock_1h_run2_checkpoint.jsonl.gz":
+        "our own 1-hour soak measurements against the local demo (fictional data, no logins; "
+        "docs/evidence/soak/WALLCLOCK_1H.md)",
     "supracloud-jarvis/ira/editions/private/__init__.py":
         "source code: the 'private' edition of the product, not a private document",
 }
