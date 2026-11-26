@@ -18,7 +18,7 @@ every item, and this register must be updated when that list changes.
 | Group | Blocker | Requirements | Cost |
 | --- | --- | --- | --- |
 | A | Physical watches and phones, with device builds | C-5.b, C-12.c, C-13.c, C-17.b, C-19.b, C-21.d, C-23.e, D1.j, D2.i, F4.g, F7.k, J.f, K.h | not estimated |
-| B | A host with KVM virtualisation | D1.i, K.g | not estimated |
+| B | A host with KVM virtualisation | resolved: GitHub's free KVM runner (D1.i verified) | none |
 | C | An AOSP build host (about 400 GB disk, 64 GB RAM) | E2.h, E2.i, E2.l, E2.n, E4.a, E4.b, E4.c, E4.e, E4.f, E6.c | not estimated |
 | D | The target board, its BSP, suppliers, an ODM and funding | E3.f, E4.h, E4.i, E4.j, E6.d, D4.c, F3.d, F3.e, H1–H4.h, H1–H4.i, H1–H4.j | certification estimates only (below) |
 | E | Signing-key custody by the founders | D1b.c, E4.g | none (keys are made on founder-controlled machines) |
@@ -56,17 +56,17 @@ section M.
   `docs/DEVICE_SETUP.md`.
 - **Cost:** not estimated.
 
-## B. A host with KVM virtualisation
+## B. A host with KVM virtualisation (resolved for the watch, 26 November 2026)
 
-- **Requirements:** D1.i (watch app on a Wear OS emulator through the care journey), K.g
-  (emulator runs on integrated `main`).
-- **Why external:** the Android emulator needs hardware virtualisation; this build machine has no
-  /dev/kvm (`docs/progress/VERIFICATION.md`).
-- **Software preparation complete:** the apps build and their unit tests pass in CI; the care
-  journey passes against the real API with the browser watch.
-- **Needed:** a Linux host with KVM, or a CI runner that exposes it.
-- **Next action:** owner decision on which host to use.
-- **Cost:** not estimated.
+- **Requirements:** D1.i (watch app on a Wear OS emulator through the care journey) is now
+  **verified**; K.g (emulator runs of both apps on integrated `main`) is implemented for the watch.
+- **How it was resolved:** GitHub's standard Linux runner exposes KVM, and it is free while the
+  repository is public. `.github/workflows/native-checks.yml` runs the Wear OS journey on every
+  pull request that changes the apps: install, pair, home and Help all pass, and the server records
+  the alert (`docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md`).
+- **Still open (software, not external):** the family phone app on an Android emulator, and an
+  emulator run on integrated `main` for K.g.
+- **Cost:** none while the repository is public.
 
 ## C. An AOSP build host
 
@@ -255,7 +255,7 @@ section M.
 | O3 | Create the signing keys | Not created (group E) | Founders, per `docs/security/SIGNING_KEYS.md` |
 | O4 | Mozilla Data Collective account | Not opened (group I) | Owner |
 | O5 | Apple and Google developer accounts; a Mac | Not opened (group F) | Owner |
-| O6 | AOSP build host; KVM host | None (groups B and C) | Owner |
+| O6 | AOSP build host (the KVM host for emulators is resolved) | None (group C) | Owner |
 | O7 | Test devices; ODM | None (groups A and D) | Owner, after funding for the ODM |
 | O8 | Provider credentials; monitoring-centre contract | None (group K) | Owner |
 | O9 | Penetration tester; Clinical Safety Officer; MHRA adviser; DPO and the ICO check | None engaged (group L) | Owner |
