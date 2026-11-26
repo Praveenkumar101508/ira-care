@@ -22,7 +22,7 @@ every item, and this register must be updated when that list changes.
 | C | An AOSP build host (about 400 GB disk, 64 GB RAM) | E2.h, E2.i, E2.l, E2.n, E4.a, E4.b, E4.c, E4.e, E4.f, E6.c | not estimated |
 | D | The target board, its BSP, suppliers, an ODM and funding | E3.f, E4.h, E4.i, E4.j, E6.d, D4.c, F3.d, F3.e, H1–H4.h, H1–H4.i, H1–H4.j | certification estimates only (below) |
 | E | Signing-key custody by the founders | D1b.c, E4.g | none (keys are made on founder-controlled machines) |
-| F | Apple and Google accounts, and a Mac | D2.h, D2.j, D2.k | not estimated |
+| F | Apple and Google accounts | D2.j, D2.k | not estimated |
 | G | Dataset authors' permission | F1.d, F1.e, F1.f, F1.g | none expected; not confirmed |
 | H | A GPU session for the conversation fine-tune | F2.e, F2.f, F2.g | Kaggle's free GPU was used before (`docs/MODEL_CHOICE.md`) |
 | I | Older-adult speech data and listeners | F8.c, F8.d, F8.e | not estimated |
@@ -129,8 +129,9 @@ section M.
 
 ## F. Apple and Google accounts, and a Mac
 
-- **Requirements:** D2.h (iOS build of the phone app: macOS with Apple signing), D2.j (Google Play
-  listing), D2.k (App Store listing).
+- **Requirements:** D2.j (Google Play listing), D2.k (App Store listing). D2.h, the iOS build, is
+  no longer blocked: the unsigned simulator build compiles on GitHub's free macOS runner
+  (`docs/evidence/builds/IOS_SIMULATOR.md`); a signed device build still needs the Apple account.
 - **Why external:** store submission needs developer accounts in the company's name; an iOS build
   needs macOS and Apple signing.
 - **Software preparation complete:** the store listings are drafted (`docs/store/FAMILY_APP_LISTING.md`,

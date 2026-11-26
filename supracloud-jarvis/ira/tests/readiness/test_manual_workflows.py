@@ -199,3 +199,15 @@ def test_smoke_reports_the_emulator_unplugged():
     # Wear OS puts its charging clock over every app while the emulator reports a charger.
     script = (ROOT / "scripts" / "emulator" / "watch_smoke.py").read_text(encoding="utf-8")
     assert "dumpsys battery unplug" in script and "ChargingActivity" in script
+
+
+def test_smoke_taps_the_button_not_its_label():
+    smoke = _smoke_module()
+    xml = ('<hierarchy><node class="android.view.View" clickable="true" bounds="[0,0][454,454]"/>'
+           '<node class="android.view.View" clickable="true" enabled="true" bounds="[150,300][300,360]"/>'
+           '<node text="Pair" clickable="false" bounds="[200,315][250,345]"/></hierarchy>')
+    label = smoke.find(smoke.parse_nodes(xml), text="Pair")
+    # The innermost clickable node around the label is the button, not the full-screen container.
+    assert smoke.clickable_ancestor(xml, label)["bounds"] == "[150,300][300,360]"
+    # Negative control: no label, nothing to tap.
+    assert smoke.clickable_ancestor(xml, None) is None

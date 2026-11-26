@@ -71,6 +71,24 @@ def visible_text(nodes: list[dict]) -> list[str]:
     return seen
 
 
+def clickable_ancestor(xml: str, node: dict | None) -> dict | None:
+    """The innermost clickable node whose bounds contain `node` (Compose puts the click on the
+    Button, not on its Text)."""
+    if node is None:
+        return None
+    x, y = centre(node)
+    best = None
+    for n in parse_nodes(xml):
+        if n.get("clickable") != "true" or "bounds" not in n:
+            continue
+        x1, y1, x2, y2 = map(int, re.findall(r"\d+", n["bounds"]))
+        if x1 <= x <= x2 and y1 <= y <= y2:
+            area = (x2 - x1) * (y2 - y1)
+            if best is None or area < best[0]:
+                best = (area, n)
+    return best[1] if best else None
+
+
 def centre(node: dict) -> tuple[int, int]:
     x1, y1, x2, y2 = map(int, re.findall(r"\d+", node["bounds"]))
     return (x1 + x2) // 2, (y1 + y2) // 2
@@ -110,6 +128,10 @@ class Smoke:
         self.last_xml = xml
         return parse_nodes(xml)
 
+    def keyboard_shown(self) -> bool:
+        out = self.adb("shell", "dumpsys", "input_method", timeout=60, check=False)
+        return "mInputShown=true" in out or "mIsInputViewShown=true" in out
+
     def diagnose(self, label: str) -> dict:
         """What the device shows when a UI step fails, printed into the job log as well as saved,
         because the uploaded artefacts are not always reachable by whoever reads the result."""
@@ -122,6 +144,9 @@ class Smoke:
             "uiautomator": getattr(self, "last_dump_output", "")[-300:],
             "visible_text": visible_text(nodes)[:40],
             "packages_on_screen": sorted({n.get("package", "") for n in nodes} - {""}),
+            "clickable": [{k: n.get(k) for k in ("text", "class", "bounds", "enabled")}
+                          for n in nodes if n.get("clickable") == "true"][:12],
+            "keyboard_shown": self.keyboard_shown(),
             "focus": [ln.strip() for ln in focus.splitlines() if "mCurrentFocus" in ln or "mFocusedApp" in ln][:4],
             "crash": crash.strip().splitlines()[-25:],
             "app_errors": [ln for ln in app_log.splitlines() if " E " in ln or "FATAL" in ln][-25:],
@@ -241,14 +266,35 @@ class Smoke:
         time.sleep(2)
         self.adb("shell", "input", "text", code)
         time.sleep(3)
+        # The Wear keyboard can stay over the screen after typing; close it so the tap reaches
+        # the Pair button, and record where the button is and whether it is enabled.
+        if self.keyboard_shown():
+            self.adb("shell", "input", "keyevent", "KEYCODE_ESCAPE", check=False)
+            time.sleep(2)
+        if self.keyboard_shown():
+            self.adb("shell", "input", "keyevent", "KEYCODE_BACK", check=False)
+            time.sleep(2)
         btn = find(self.dump(), text="Pair")
+        btn_target = clickable_ancestor(self.last_xml, btn) if btn else None
         shot = self.shot("code_typed")
-        self.step("type_code", btn is not None, t0, screenshot=shot)
+        self.step("type_code", btn is not None, t0, screenshot=shot,
+                  button={k: (btn_target or btn or {}).get(k) for k in ("bounds", "enabled", "clickable")},
+                  screen=self.adb("shell", "wm", "size", check=False).strip(),
+                  keyboard_shown=self.keyboard_shown())
         t0 = time.time()
-        self.adb("shell", "input", "tap", *map(str, centre(btn)))
+        self.adb("shell", "input", "tap", *map(str, centre(btn_target or btn)))
+        retapped = False
         gone = None
         deadline = time.time() + a.ui_timeout
         while time.time() < deadline:
+            if not retapped and time.time() - t0 > 20:
+                # Nothing changed after the first tap: tap once more (a first tap can be eaten
+                # by a keyboard that was still closing), and say so.
+                retapped = True
+                print(json.dumps({"note": "no change 20 s after tapping Pair; tapped again"}), flush=True)
+                again = find(self.dump(), text="Pair")
+                if again is not None:
+                    self.adb("shell", "input", "tap", *map(str, centre(clickable_ancestor(self.last_xml, again) or again)))
             nodes = self.dump()
             if find(nodes, text="Pair this watch") is None:
                 gone = True

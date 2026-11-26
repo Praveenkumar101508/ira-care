@@ -1325,9 +1325,17 @@
    "title": "iOS build of the phone app",
    "area": "software",
    "hardware_independent": true,
-   "state": "blocked_external",
-   "evidence": [],
-   "blocked_by": "macOS with Apple signing"
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "build",
+     "ref": "docs/evidence/builds/IOS_SIMULATOR.md"
+    },
+    {
+     "kind": "build",
+     "ref": ".github/workflows/ios-simulator.yml"
+    }
+   ]
   },
   {
    "id": "D2.i",
