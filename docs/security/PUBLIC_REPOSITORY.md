@@ -177,7 +177,7 @@ redistributed. `docs/DATASETS.md` records commercial use as `unclear`.
 2. **Add a reporting route to `SECURITY.md`** once private vulnerability reporting is on; the
    file describes the threat model but not how to report a problem.
 3. **Decide on the SisFall v1 weights in history** (item 1 above), ideally together with the
-   SisFall confirmation request (`docs/legal/dataset_permission_requests/SISFALL.md`).
+   SisFall confirmation request (`docs/legal/SISFALL_PERMISSION_REQUEST_2026-11-26.md`, sent 26 November 2026).
 4. **Confirm WEDA-FALL permission with its authors** before any further use.
 5. **Confirm the parent project stays private** and its six published credentials are rotated.
 6. **Check the licence statement of the conversation dataset.**
