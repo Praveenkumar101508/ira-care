@@ -146,9 +146,12 @@ section M.
 - **Requirements:** F1.d (KFall), F1.e (FallAllD), F1.f (SisFall terms, or the owner accepts the
   risk), F1.g (UMAFall: CC BY 4.0 against a CC BY-NC record). F4.f (cross-dataset fall
   evaluation) no longer waits here: on 26 November 2026 it was done on WEDA-FALL, whose author
-  added an ODC-By 1.0 licence (`docs/ai/fall/CROSS_DATASET_WEDA.md`).
+  added an ODC-By 1.0 licence (`docs/ai/fall/CROSS_DATASET_WEDA.md`). Because a separate check found
+  no clear licence, WEDA-FALL's commercial use is recorded as `unclear`, and a permission request
+  **was sent to its authors on 26 November 2026** (`docs/legal/dataset_permission_requests/WEDAFALL.md`);
+  no further use until they reply.
 - **Why external:** only the authors can grant or clarify their terms.
-- **Software preparation complete:** four request drafts (`docs/legal/dataset_permission_requests/README.md`
+- **Software preparation complete:** four request drafts and one sent request (`docs/legal/dataset_permission_requests/README.md`
   and the files beside it); the shipped fall model uses only CC BY 4.0 data (D-080); SisFall is in
   no build (D-082).
 - **Needed:** the founders send the requests.
@@ -252,7 +255,7 @@ section M.
 | # | Action | State | Next action |
 | --- | --- | --- | --- |
 | O1 | Delete merged branches on GitHub | Pending the owner's permission: the session's access cannot delete branches (`docs/progress/FINAL_REPORT.md`, `docs/progress/NEXT.md`) | The owner deletes them from the GitHub branches page, or grants permission |
-| O2 | Send the dataset permission requests (KFall, FallAllD, SisFall, UMAFall) | Drafted, **not sent**. The recipients are **not verified**: the publishers' sites were unreachable from the build environment when the drafts were written, so no address was copied into them (`docs/legal/dataset_permission_requests/README.md`) | The founders open each official page, confirm the addressee and route, and send |
+| O2 | Send the dataset permission requests (KFall, FallAllD, SisFall, UMAFall; WEDA-FALL **sent** 26 November 2026, reply awaited) | Four drafted, **not sent**. The recipients are **not verified**: the publishers' sites were unreachable from the build environment when the drafts were written, so no address was copied into them (`docs/legal/dataset_permission_requests/README.md`) | The founders open each official page, confirm the addressee and route, and send |
 | O3 | Create the signing keys | Not created (group E) | Founders, per `docs/security/SIGNING_KEYS.md` |
 | O4 | Mozilla Data Collective account | Not opened (group I) | Owner |
 | O5 | Apple and Google developer accounts; a Mac | Not opened (group F) | Owner |
