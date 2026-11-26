@@ -191,7 +191,9 @@ def test_the_route_issues_through_the_existing_login_token_path():
     end = source.index("@app.post", start)
     body = source[start:end]
 
-    assert "create_login_tokens(outcome.subject)" in body, (
+    # `outcome.subject` first, then the methods the login checked (`amr`, D-095):
+    # still the one issuing function, now told what was proven.
+    assert "create_login_tokens(outcome.subject, amr=outcome.amr)" in body, (
         "the cloud login route no longer issues through create_login_tokens, "
         "which is the one function that looks the token version up before "
         "stamping both tokens with it.")

@@ -24,6 +24,7 @@ import logging
 import os
 import secrets
 import uuid
+from contextvars import ContextVar
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache as _lru_cache
 
@@ -91,6 +92,14 @@ class TokenPayload(BaseModel):
     #: resolved from `sub`, exactly as their account was created. Signed with
     #: the rest of the token, so it is used as given.
     uid: Optional[str] = None
+    #: When the holder last proved who they are with a credential, Unix seconds
+    #: (D-095). Set at login and at `/auth/step-up`; COPIED, never re-stamped,
+    #: by `/auth/refresh`, so a session kept alive by refreshes for a week still
+    #: says it was authenticated a week ago. Optional so a token issued before
+    #: the claim decodes; `security/stepup.py` reads None as "never recently".
+    auth_time: Optional[int] = None
+    #: The methods used then, OIDC `amr` names: "pwd", "otp", "recovery".
+    amr: Optional[list[str]] = None
 
 
 class TokenResponse(BaseModel):
@@ -275,14 +284,29 @@ async def bump_token_version(username: str, uid: str | None = None) -> None:
 
 # ── JWT issue helpers ─────────────────────────────────────────────────────────
 
+def _authentication_claims(auth_time: int | None, amr) -> dict:
+    """The `auth_time` and `amr` claims (D-095), or nothing when the moment of
+    authentication is unknown. Both or neither: an `amr` without a time would
+    say how without saying when, which no check could use."""
+    if auth_time is None:
+        return {}
+    methods = [str(m) for m in (amr or ())]
+    return {"auth_time": int(auth_time), "amr": methods}
+
+
 def _make_access_token(username: str, *, ver: int, tid: str | None = None,
-                       uid: str | None = None) -> tuple[str, str, datetime]:
+                       uid: str | None = None, auth_time: int | None = None,
+                       amr=None) -> tuple[str, str, datetime]:
     """Returns (encoded_token, jti, expiry_utc).
 
     `ver` is required and keyword-only (P2-04). It defaulted to 0, which is what
     made an unversioned token expressible: a caller who forgot the argument
     minted a token asserting a version nobody had looked up. A caller who
     forgets it now gets a TypeError instead of a credential.
+
+    `auth_time` and `amr` (D-095) record when and how the holder last proved
+    who they are. Login and `/auth/step-up` pass the present moment; a refresh
+    passes the refresh token's own values through unchanged.
     """
     cfg = get_settings()
     expire = datetime.now(timezone.utc) + timedelta(minutes=cfg.access_token_expire_minutes)
@@ -294,12 +318,14 @@ def _make_access_token(username: str, *, ver: int, tid: str | None = None,
         payload["tid"] = str(tid)
     if uid is not None:
         payload["uid"] = str(uid)
+    payload.update(_authentication_claims(auth_time, amr))
     token = jwt.encode(payload, cfg.ira_secret_key, algorithm=ALGORITHM)
     return token, jti, expire
 
 
 def _make_refresh_token(username: str, *, ver: int, tid: str | None = None,
-                        uid: str | None = None) -> tuple[str, str, datetime]:
+                        uid: str | None = None, auth_time: int | None = None,
+                        amr=None) -> tuple[str, str, datetime]:
     """Returns (encoded_token, jti, expiry_utc).
 
     The refresh token now carries `ver` (P2-04). It did not, and `/auth/refresh`
@@ -320,6 +346,9 @@ def _make_refresh_token(username: str, *, ver: int, tid: str | None = None,
         payload["tid"] = str(tid)
     if uid is not None:
         payload["uid"] = str(uid)
+    # The refresh token carries the authentication time too, because it is the
+    # only thing a refresh has to copy it from (D-095).
+    payload.update(_authentication_claims(auth_time, amr))
     token = jwt.encode(payload, cfg.ira_secret_key, algorithm=ALGORITHM)
     return token, jti, expire
 
@@ -345,12 +374,16 @@ async def assert_token_version_current(payload: TokenPayload) -> None:
         )
 
 
-async def create_login_tokens(username: str, *, tenant_id=None) -> LoginResponse:
+async def create_login_tokens(username: str, *, tenant_id=None, amr=("pwd",)) -> LoginResponse:
     """Issue access + refresh tokens. Call this at /auth/token login.
 
     `tenant_id` records which organisation the caller selected. It is carried
     as a selector and re-verified against membership on every request — see
     `TokenPayload.tid`. Passing one here does not grant anything.
+
+    `amr` names the credentials the login just checked ("pwd", plus "otp" or
+    "recovery" when a code was verified); both tokens are stamped with it and
+    with the present moment as `auth_time` (D-095).
     """
     from core.identity import token_versions
 
@@ -372,9 +405,13 @@ async def create_login_tokens(username: str, *, tenant_id=None) -> LoginResponse
         raise _version_error(e) from e
     tid = str(tenant_id) if tenant_id is not None else None
     uid = str(user_id)
-    access_token, _, access_exp = _make_access_token(username, ver=ver, tid=tid, uid=uid)
-    refresh_token, _, refresh_exp = _make_refresh_token(username, ver=ver, tid=tid, uid=uid)
     now = datetime.now(timezone.utc)
+    auth_time = int(now.timestamp())
+    methods = [str(m) for m in amr] or ["pwd"]
+    access_token, _, access_exp = _make_access_token(username, ver=ver, tid=tid, uid=uid,
+                                                     auth_time=auth_time, amr=methods)
+    refresh_token, _, refresh_exp = _make_refresh_token(username, ver=ver, tid=tid, uid=uid,
+                                                        auth_time=auth_time, amr=methods)
     return LoginResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -602,6 +639,34 @@ async def watch_socket_credential(
         raise
 
 
+# ── The request's own token (D-095) ──────────────────────────────────────────
+#
+# `require_auth` returns a username, and `resolve_principal` builds a Principal
+# from it; neither carries the token's `auth_time` or `amr`. Rather than change
+# the return type of a dependency ~276 call sites depend on, the decoded
+# payload is bound here for the length of the request and read back by
+# `principal_from_username`, exactly as `f1_revocation.bind_request_token`
+# already keeps the token's identifier for the evidence commit guard. It is
+# cleared at the start of every `require_auth`, so one request's token cannot
+# be read by the next; a request that never passes through `require_auth` (a
+# device token, a test override) has none.
+
+_request_token: ContextVar[Optional[TokenPayload]] = ContextVar("ira_request_token", default=None)
+
+
+def current_token_payload() -> Optional[TokenPayload]:
+    """The access token `require_auth` verified for this request, or None."""
+    return _request_token.get()
+
+
+def current_authentication() -> tuple[Optional[int], tuple[str, ...]]:
+    """`(auth_time, amr)` of this request's token; `(None, ())` when unknown."""
+    payload = _request_token.get()
+    if payload is None:
+        return None, ()
+    return payload.auth_time, tuple(payload.amr or ())
+
+
 # ── FastAPI dependency ─────────────────────────────────────────────────────────
 
 async def require_auth(
@@ -622,6 +687,7 @@ async def require_auth(
     """
     from core.identity.f1_revocation import clear_request_token, bind_request_token
     clear_request_token()
+    _request_token.set(None)
     cfg = get_settings()
 
     # P2-02: edition-gated. This returns the owner without inspecting a token,
@@ -669,6 +735,7 @@ async def require_auth(
         if not payload.jti:
             raise HTTPException(401, 'Token identifier required')
         bind_request_token(payload)
+    _request_token.set(payload)
     return payload.sub
 
 

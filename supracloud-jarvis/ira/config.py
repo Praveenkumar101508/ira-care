@@ -47,6 +47,12 @@ if _ENV_FILE:
 #: that carries a token version lives. Migration 096's purge window is the same
 #: seven days; the two must move together.
 MAX_REFRESH_TOKEN_EXPIRE_DAYS = 7
+#: Step-up authentication (D-095): how recently the holder of a session must have proved who
+#: they are before a deployment administrator may issue, approve or revoke a device
+#: instruction. Bounded at start; the default is ten minutes.
+STEP_UP_MAX_AGE_SECONDS_DEFAULT = 600
+STEP_UP_MAX_AGE_SECONDS_MIN = 60
+STEP_UP_MAX_AGE_SECONDS_MAX = 3600
 
 
 class Settings(BaseSettings):
@@ -90,6 +96,9 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = 7      # 7 day refresh window
     # Legacy alias kept for backward compat (not used by auth.py since P2.1)
     token_expire_hours: int = 24
+    # How old a session's last proof of identity (`auth_time`) may be for a step-up-protected
+    # route (security/stepup.py). IRA_STEP_UP_MAX_AGE_SECONDS; 60 to 3600, refused otherwise.
+    ira_step_up_max_age_seconds: int = STEP_UP_MAX_AGE_SECONDS_DEFAULT
 
     # ── Database ──────────────────────────────────────────────────────────────
     postgres_user: str = "jarvis"
@@ -733,6 +742,17 @@ class Settings(BaseSettings):
                 f"it must be between 1 and {MAX_REFRESH_TOKEN_EXPIRE_DAYS}. Migration 096 "
                 f"forgets a signed-out account's token version after "
                 f"{MAX_REFRESH_TOKEN_EXPIRE_DAYS} days, so no token may live longer."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _step_up_max_age_is_bounded(self) -> "Settings":
+        """A step-up window shorter than a minute would refuse the step-up it just issued;
+        one longer than an hour is not "recent". Refused at start, not clamped."""
+        if not STEP_UP_MAX_AGE_SECONDS_MIN <= self.ira_step_up_max_age_seconds <= STEP_UP_MAX_AGE_SECONDS_MAX:
+            raise RuntimeError(
+                f"IRA_STEP_UP_MAX_AGE_SECONDS={self.ira_step_up_max_age_seconds} is refused: it must be "
+                f"between {STEP_UP_MAX_AGE_SECONDS_MIN} and {STEP_UP_MAX_AGE_SECONDS_MAX} seconds."
             )
         return self
 
