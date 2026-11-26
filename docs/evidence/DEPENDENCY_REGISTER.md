@@ -56,16 +56,17 @@ section M.
   `docs/DEVICE_SETUP.md`.
 - **Cost:** not estimated.
 
-## B. A host with KVM virtualisation (resolved for the watch, 26 November 2026)
+## B. A host with KVM virtualisation (resolved, 26 November 2026)
 
-- **Requirements:** D1.i (watch app on a Wear OS emulator through the care journey) is now
-  **verified**; K.g (emulator runs of both apps on integrated `main`) is implemented for the watch.
+- **Requirements:** D1.i (watch app on a Wear OS emulator through the care journey) and K.g
+  (emulator runs of both apps on integrated `main`) are now **verified**.
 - **How it was resolved:** GitHub's standard Linux runner exposes KVM, and it is free while the
   repository is public. `.github/workflows/native-checks.yml` runs the Wear OS journey on every
   pull request that changes the apps: install, pair, home and Help all pass, and the server records
   the alert (`docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md`).
-- **Still open (software, not external):** the family phone app on an Android emulator, and an
-  emulator run on integrated `main` for K.g.
+- **Phone app:** the family app's release build reaches its sign-in screen on an Android 14
+  emulator in the same checks (`docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md`). Both run on
+  pull requests merged into `main`, so K.g is verified too.
 - **Cost:** none while the repository is public.
 
 ## C. An AOSP build host
