@@ -1,0 +1,155 @@
+{
+  "alerts": {
+    "duplicates": 0,
+    "issued": 16,
+    "lost": 0,
+    "lost_ids": [],
+    "observed": 16,
+    "replay_mismatches": 0,
+    "unexpected_ids": []
+  },
+  "availability": {
+    "health_ok": 1044,
+    "health_total": 1046,
+    "ratio": 0.998088
+  },
+  "checkins_by_status": {
+    "answered": 33,
+    "cancelled": 32,
+    "scheduled": 2
+  },
+  "checks": {
+    "alerts_closed": true,
+    "availability": false,
+    "client_errors": true,
+    "duplicate_alerts": true,
+    "lost_alerts": true,
+    "observed_coverage": true,
+    "outbox_drained": true,
+    "p95_latency": true,
+    "restarts": true,
+    "rss_growth": true,
+    "server_errors": true,
+    "worker_heartbeat": true
+  },
+  "criteria": {
+    "max_client_errors": 0,
+    "max_duplicate_alerts": 0,
+    "max_heartbeat_age_s": 180.0,
+    "max_lost_alerts": 0,
+    "max_open_alerts_at_end": 0,
+    "max_p95_latency_ms": 1000.0,
+    "max_restarts": 0,
+    "max_rss_growth_pct_per_hour": 5.0,
+    "max_server_errors": 0,
+    "max_stuck_outbox_rows": 0,
+    "min_availability": 0.999,
+    "min_observed_coverage": 0.99,
+    "rss_warmup_s": 600.0,
+    "stuck_outbox_after_s": 300.0
+  },
+  "db": {
+    "dispatch_retries_last": 0,
+    "growth_mb_per_hour": 1.11,
+    "outbox_pending_max": 0,
+    "rows_first": {
+      "care_acknowledgements": 0,
+      "care_alert_attempt_events": 0,
+      "care_alert_attempts": 0,
+      "care_alert_dispatch": 0,
+      "care_alerts": 2,
+      "care_checkins": 70,
+      "care_device_events": 0,
+      "care_transcripts": 0,
+      "care_vitals": 1284
+    },
+    "rows_last": {
+      "care_acknowledgements": 16,
+      "care_alert_attempt_events": 96,
+      "care_alert_attempts": 96,
+      "care_alert_dispatch": 96,
+      "care_alerts": 18,
+      "care_checkins": 137,
+      "care_device_events": 49,
+      "care_transcripts": 66,
+      "care_vitals": 4886
+    },
+    "size_first_mb": 20.6,
+    "size_last_mb": 22.39
+  },
+  "label": "round 9 profiling soak (memtrace)",
+  "load": {
+    "client_errors": 0,
+    "connection_errors": 0,
+    "counts": {
+      "acknowledge:200": 16,
+      "acknowledge:401": 2,
+      "answer:200": 33,
+      "ask_now:201": 33,
+      "ask_now:401": 2,
+      "auth_refresh": 4,
+      "due:200": 1813,
+      "help:201": 16,
+      "help_replay:201": 16,
+      "report:200": 1813,
+      "resolve:200": 16
+    },
+    "latency_ms": {
+      "max": 4985.53,
+      "n": 3760,
+      "p50": 26.74,
+      "p95": 61.43,
+      "p99": 2720.23
+    },
+    "requests": 3760,
+    "server_errors": 0
+  },
+  "mode": "demo",
+  "open_alerts_at_end": 0,
+  "other_alerts_by_kind": {},
+  "planned_hours": 1.5,
+  "processes": {
+    "api": {
+      "cpu_mean_pct": 5.36,
+      "cpu_p95_pct": 17.0,
+      "rss_first_mb": 134.8,
+      "rss_growth_pct_per_hour": 3.02,
+      "rss_last_mb": 172.7,
+      "rss_max_mb": 173.2
+    },
+    "postgres": {
+      "cpu_mean_pct": 0.08,
+      "cpu_p95_pct": 0.5,
+      "rss_first_mb": 29.5,
+      "rss_growth_pct_per_hour": 0.0,
+      "rss_last_mb": 29.5,
+      "rss_max_mb": 29.5
+    }
+  },
+  "restarts": {
+    "api": 0,
+    "postgres": 0
+  },
+  "run_id": "287027ab338042838f5f72de15693952",
+  "samples": 180,
+  "schema": 1,
+  "stuck_outbox_rows": 0,
+  "verdict": "FAIL",
+  "wall_clock": {
+    "completed": true,
+    "duration_h": 1.5008,
+    "duration_s": 5403.1,
+    "end_reason": "completed",
+    "end_utc": "2026-11-26T18:18:05Z",
+    "gaps": [],
+    "observed_coverage": 1.0,
+    "planned_end_utc": "2026-11-26T18:18:02Z",
+    "resumes": 0,
+    "start_utc": "2026-11-26T16:48:02Z",
+    "unobserved_s": 0
+  },
+  "worker_heartbeat_age_s": {
+    "max": 35.4,
+    "n": 180
+  }
+}
