@@ -296,3 +296,16 @@ def test_smoke_retries_no_connection_but_not_a_refused_code():
     refused = script.index('find(nodes, text="That code was not recognised.")')
     assert script[refused:refused + 120].count("gone = False") == 1
     assert "no_connection_retries >= NO_CONNECTION_RETRIES" in script
+
+
+def test_phone_smoke_answers_another_apps_not_responding_dialog():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("phone_smoke2", ROOT / "scripts" / "emulator" / "phone_smoke.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    launcher = [{"text": "Pixel Launcher isn't responding"}, {"text": "Close app"}, {"text": "Wait"}]
+    assert mod.foreign_anr(launcher) == "Pixel Launcher isn't responding"
+    # Negative controls: our own app hanging is not waved through, and a normal screen has no dialog.
+    assert mod.foreign_anr([{"text": "IRA CARE isn't responding"}]) is None
+    assert mod.foreign_anr([{"text": mod.SIGN_IN_TEXT}]) is None
+    assert 1 <= mod.MAX_RECOVERIES <= 3

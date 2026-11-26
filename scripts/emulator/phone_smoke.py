@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from watch_smoke import app_crashes, find, parse_nodes, visible_text  # noqa: E402
+from watch_smoke import app_crashes, centre, find, parse_nodes, visible_text  # noqa: E402
 
 PACKAGE = "care.ira.family"
 #: What the sign-in screen must show (mobile/src/screens/LoginScreen.tsx).
@@ -40,6 +40,19 @@ def sign_in_screen_problems(nodes: list[dict]) -> list[str]:
     if not any("Sign in" == n.get("text") or n.get("content-desc", "").startswith("Sign in") for n in nodes):
         problems.append("no Sign in button")
     return problems
+
+
+#: How many times the smoke answers another app's dialog or brings the app back.
+MAX_RECOVERIES = 3
+
+
+def foreign_anr(nodes: list[dict]) -> str | None:
+    """The text of a "... isn't responding" dialog for an app other than ours, if one is shown."""
+    for n in nodes:
+        t = n.get("text", "")
+        if "isn't responding" in t and "IRA CARE" not in t:
+            return t
+    return None
 
 
 class PhoneSmoke:
@@ -67,6 +80,10 @@ class PhoneSmoke:
         self.last_xml = self.adb("exec-out", "cat", "/data/local/tmp/ui.xml", timeout=60)
         return parse_nodes(self.last_xml)
 
+    def app_in_front(self) -> bool:
+        focus = self.adb("shell", "dumpsys", "window", "displays", timeout=60)
+        return any(PACKAGE in ln for ln in focus.splitlines() if "mCurrentFocus" in ln)
+
     def shot(self, label: str) -> str:
         name = f"{len(self.steps) + 1:02d}_{label}.png"
         (self.out / name).write_bytes(self.adb("exec-out", "screencap", "-p", binary=True, timeout=120))
@@ -92,11 +109,24 @@ class PhoneSmoke:
 
         t0 = time.time()
         problems = ["not checked"]
+        recoveries = 0
         deadline = time.time() + a.ui_timeout
         while time.time() < deadline:
-            problems = sign_in_screen_problems(self.dump())
+            nodes = self.dump()
+            problems = sign_in_screen_problems(nodes)
             if not problems:
                 break
+            # A freshly booted emulator's own apps can hang ("Pixel Launcher isn't responding",
+            # run 45766023517) and their dialog covers the screen; answer Wait and bring the app
+            # back, at most MAX_RECOVERIES times, each noted.
+            other = foreign_anr(nodes)
+            if recoveries < MAX_RECOVERIES and (other or not self.app_in_front()):
+                recoveries += 1
+                wait = find(nodes, text="Wait")
+                if other and wait is not None:
+                    self.adb("shell", "input", "tap", *map(str, centre(wait)))
+                self.adb("shell", "monkey", "-p", PACKAGE, "-c", "android.intent.category.LAUNCHER", "1", timeout=120)
+                print(json.dumps({"note": f"recovered the screen ({recoveries})", "dialog": other}), flush=True)
             time.sleep(3)
         (self.out / "ui_sign_in.xml").write_text(self.last_xml)
         shot = self.shot("sign_in")
