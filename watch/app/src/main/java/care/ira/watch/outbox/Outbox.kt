@@ -53,9 +53,14 @@ class Outbox(
     @Synchronized
     fun size(): Int = readAll().size
 
-    /** Queue an event. Returns it (with its key) so the caller can show "Sending…" for it. */
+    /**
+     * Queue an event. Returns it (with its key) so the caller can show "Sending…" for it. An event
+     * whose key is already waiting is not queued twice: the one waiting is returned (a fall
+     * incident's keys are derived from its id, FallOutbox, so a repeat is the same event).
+     */
     @Synchronized
     fun enqueue(kind: String, path: String, body: String, idempotencyKey: String = UUID.randomUUID().toString()): UrgentEvent {
+        readAll().firstOrNull { it.idempotencyKey == idempotencyKey }?.let { return it }
         val event = UrgentEvent(idempotencyKey, kind, path, body, createdAt = clock.nowMillis())
         AtomicFiles.appendLine(fileFor(), line(event))
         return event
@@ -77,11 +82,17 @@ class Outbox(
         return LineCodec.PLAIN + json.encodeToString(minimised(event))
     }
 
-    /** The events whose next attempt is due now, oldest first. */
+    /**
+     * What to send now, oldest first: when any event is due, every waiting event, in order. An
+     * event backing off after a failed attempt is never overtaken by a newer one (a fall's
+     * "I'm OK" must reach the server before the next fall's start, D-092); the back-off delays
+     * the whole queue's next attempt, not one event's place in it.
+     */
     @Synchronized
     fun due(): List<UrgentEvent> {
         val now = clock.nowMillis()
-        return readAll().filter { it.nextAttemptAt <= now }
+        val all = readAll()
+        return if (all.any { it.nextAttemptAt <= now }) all else emptyList()
     }
 
     /** The server answered (success or a definite refusal): forget the event. */
@@ -90,16 +101,21 @@ class Outbox(
         writeAll(readAll().filter { it.idempotencyKey != idempotencyKey })
     }
 
-    /** The attempt failed for a reason worth retrying: back off. */
+    /**
+     * The attempt failed for a reason worth retrying: back off. The events behind it wait as long
+     * (they are sent after it, in order); an event queued later is due at once and brings the
+     * whole queue with it.
+     */
     @Synchronized
     fun failed(idempotencyKey: String, reason: String) {
         val now = clock.nowMillis()
-        writeAll(readAll().map { e ->
-            if (e.idempotencyKey != idempotencyKey) e else {
-                val attempts = e.attempts + 1
-                val wait = minOf(maxBackoffMs, 5_000L shl minOf(attempts - 1, 12))
-                e.copy(attempts = attempts, nextAttemptAt = now + wait, lastError = reason.take(80))
-            }
+        val events = readAll()
+        val failed = events.firstOrNull { it.idempotencyKey == idempotencyKey } ?: return
+        val attempts = failed.attempts + 1
+        val until = now + minOf(maxBackoffMs, 5_000L shl minOf(attempts - 1, 12))
+        writeAll(events.map { e ->
+            if (e.idempotencyKey == idempotencyKey) e.copy(attempts = attempts, nextAttemptAt = until, lastError = reason.take(80))
+            else e.copy(nextAttemptAt = maxOf(e.nextAttemptAt, until))
         })
     }
 

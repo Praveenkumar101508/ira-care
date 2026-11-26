@@ -12,8 +12,10 @@ package care.ira.watch.sensors
  *             peak at its middle as it was trained; at or above the threshold it is a suspected
  *             fall, without waiting for stillness (stillForSeconds = 0).
  *
- * Either path starts the same countdown, which asks "are you OK?" first, and the countdown
- * ignores a second detection while it is running. Off the wrist nothing is raised. If the model
+ * Either path starts the same countdown, which asks "are you OK?" first. A second detection while
+ * it runs is never dropped: the same impact seen twice is counted, a separate one is attached to the
+ * incident and asked about again, without moving the deadline (FallCountdown, D-092). Off the wrist
+ * nothing is raised. If the model
  * fails or is missing, only the rules run. Held out on BITS-2 (subject-grouped folds), the rules
  * caught 195 of 316 simulated falls with 52.84 alarms per hour of daily activity; this pipeline
  * caught 246 with at most 10.3. That is a measurement on young volunteers with a research band,
