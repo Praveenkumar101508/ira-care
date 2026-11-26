@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Declares the watch device type to the framework: PackageManager.hasSystemFeature
+  ("android.hardware.type.watch") is then true, the watch UI mode applies and the app's
+  uses-feature is satisfied. Installed to /product/etc/permissions/ by ira_watch_cf.mk.
+
+  Why this file is IRA's own: AOSP's frameworks/native/data/etc/ has no
+  android.hardware.type.watch.xml (checked against a public mirror on 26 November 2026,
+  os/reference/aosp_reference.json), and wearable_core_hardware.xml there does not declare the
+  type either; Wear devices declare it in their own device trees. A PRODUCT_COPY_FILES source
+  that does not exist stops the build, so the earlier reference to that path was a defect.
+
+  UNBUILT (docs/os/BUILD.md). Copyright 2026 IRA CARE. Licensed under the Apache License, Version 2.0.
+-->
+<permissions>
+    <feature name="android.hardware.type.watch" />
+</permissions>

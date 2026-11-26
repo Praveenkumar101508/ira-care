@@ -14,12 +14,16 @@ on such a machine.
 | `device/ira/ira_watch_cf/Android.bp` | the watch app as a privileged prebuilt, its permission files, the framework overlay |
 | `device/ira/ira_watch_cf/permissions/` | privileged-permission allowlist (empty, derived from the manifest) and proposed first-boot grants |
 | `device/ira/ira_watch_cf/overlays/IraFrameworkOverlay/` | round screen, no lock screen by default, emergency gesture and power menu kept |
-| `device/ira/ira_watch_cf/bootanimation/` | boot animation specification (`desc.txt`, README); no frames |
+| `device/ira/ira_watch_cf/bootanimation/` | boot animation specification (`desc.txt`, README); the frames and zip are rendered by `scripts/make_bootanimation.py`, never committed |
+| `device/ira/sensors_sim/` | simulated Sensors HAL for a simulated image only: signal model (built and tested on the host), AIDL service, init script and VINTF fragment (unbuilt) |
+| `reference/aosp_reference.json` | names and constants read from public AOSP mirrors by `scripts/aosp_reference.py`, which the host checks compare `os/` against (`docs/os/HOST_CHECKS.md`) |
 | `device/ira/ira_watch_cf/HOME_LAUNCHER.md` | why IRA is not yet the home app, and the app change that makes it one |
 | `device/ira/ira_watch_cf/EMERGENCY_UI.md` | how Help stays reachable from the lock screen |
 | `device/ira/ira_watch_cf/SETTINGS_POLICY.md` | developer options and factory reset behind an administrator |
 | `scripts/build_cuttlefish.sh` | resource preflight, then (only with `IRA_OS_I_HAVE_THE_RESOURCES=1`) sync and build |
 | `scripts/launch_cuttlefish.sh` | `launch_cvd` with a 454 x 454 display |
+| `scripts/make_bootanimation.py` | renders `bootanimation.zip` from the specification, deterministically (needs Pillow) |
+| `scripts/aosp_reference.py` | refreshes `reference/aosp_reference.json` from the public mirrors |
 
 The architecture (what is app, launcher, system image, firmware and production OS), the build
 steps and the supplier register are in `docs/os/`.

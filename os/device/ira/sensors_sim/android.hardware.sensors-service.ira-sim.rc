@@ -1,0 +1,9 @@
+# init script for the simulated Sensors HAL (sim image only, never a worn watch).
+# Same shape as the AOSP default service's sensors-default.rc, with the binary installed to
+# /vendor/bin/hw by Android.bp (relative_install_path: "hw") instead of an APEX.
+# UNBUILT (docs/os/BUILD.md). Copyright 2026 IRA CARE. Apache License, Version 2.0.
+service vendor.sensors-ira-sim /vendor/bin/hw/android.hardware.sensors-service.ira-sim
+    class hal
+    user system
+    group system
+    rlimit rtprio 10 10

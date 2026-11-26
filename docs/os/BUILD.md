@@ -78,7 +78,8 @@ The machine this repository is developed on has 4 cores, 15 GB RAM and about 55 
      `PRODUCT_DEVICE` with it);
    - the release config in the lunch name (`trunk_staging`): run `lunch` without an argument
      to see what the branch offers, and set `IRA_OS_LUNCH`;
-   - `frameworks/native/data/etc/android.hardware.type.watch.xml` alongside the phone's
+   - IRA's own `android.hardware.type.watch.xml` (in `permissions/`; AOSP ships none under
+     `frameworks/native/data/etc/`, checked against a public mirror) alongside the phone's
      handheld feature file;
    - Soong properties on `android_app_import` and `prebuilt_etc` in
      `os/device/ira/ira_watch_cf/Android.bp`.
@@ -128,9 +129,10 @@ Collected from the comments in `os/`, so the first build host knows where to loo
 - `TARGET_BOARD_INFO_FILE` with `config=phone`, and whether a `wear` host configuration exists.
 - Declaring `android.hardware.type.watch` on top of a phone product's handheld features.
 - The stock launcher module name (`Launcher3QuickStep`) in the `overrides` of `Android.bp`.
-- Framework overlay names: `config_mainBuiltInDisplayIsRound` (medium),
-  `config_disableLockscreenByDefault` (low), the numeric meaning of
-  `config_longPressOnPowerBehavior` in the target release.
+- Framework overlay names: all five exist in `frameworks/base` at `android16-release` with the
+  types the overlay uses (read from a public mirror, `os/reference/aosp_reference.json`); what
+  stays uncertain is the numeric meaning of `config_longPressOnPowerBehavior` in the target
+  release and whether `config_disableLockscreenByDefault` has the intended effect on it.
 - Whether the default-permission policy grants the hard-restricted `BODY_SENSORS_BACKGROUND`.
 - The `launch_cvd` display flag form the host package accepts.
 - Cuttlefish's virtual sensor types.

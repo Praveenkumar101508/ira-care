@@ -6,7 +6,8 @@
   UNBUILT: not yet read by any running system (docs/os/BUILD.md).
 
   This list is deliberately EMPTY, because the app's manifest
-  (watch/app/src/main/AndroidManifest.xml; the aosp flavour adds no manifest of its own)
+  (watch/app/src/main/AndroidManifest.xml; the aosp flavour's own manifest,
+  watch/app/src/aosp/AndroidManifest.xml, adds the HOME filter and no permission)
   requests no permission whose protection level includes "privileged". What it requests:
 
     normal:      INTERNET, FOREGROUND_SERVICE, FOREGROUND_SERVICE_HEALTH, VIBRATE,

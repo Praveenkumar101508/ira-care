@@ -17,12 +17,12 @@ treats an app as a home app only if one of its activities declares an intent fil
 `android.intent.action.MAIN` and the categories `android.intent.category.HOME` and
 `android.intent.category.DEFAULT`.
 
-`watch/app/src/main/AndroidManifest.xml` (checked 25 November 2026) declares `MainActivity`
-with `MAIN` and `LAUNCHER` only. There is no HOME filter in the main manifest, and the
-`aosp` flavour has no manifest of its own. So the image keeps the stock launcher for now:
-removing it without a replacement would leave the device with no home activity.
+`watch/app/src/main/AndroidManifest.xml` declares `MainActivity` with `MAIN` and `LAUNCHER`
+only; the HOME filter lives in the aosp flavour's manifest (since #60), so the merged aosp
+manifest has both. Removing the stock launcher is safe only while that holds, which
+`test_os_product_layer.py` checks on the merged manifest (`docs/os/HOST_CHECKS.md`).
 
-## The app change needed (follow-up, for the watch app's owner)
+## The app change that was needed (done in #60; kept as the record of why)
 
 1. In the **aosp flavour only** (a new `watch/app/src/aosp/AndroidManifest.xml`, merged by
    Gradle), add a second intent filter to `.ui.MainActivity`:
