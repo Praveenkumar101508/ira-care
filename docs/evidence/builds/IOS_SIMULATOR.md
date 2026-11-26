@@ -32,3 +32,23 @@ macOS runner. The repository is public, so this runner costs nothing
 
 The job runs by itself on any pull request that changes `mobile/**` (or the workflow files), and
 by hand from the Actions tab (`iOS simulator build`, "Run workflow").
+
+## Round 9: launch in the simulator — written, not yet run
+
+The build job now bundles the JavaScript into the Debug `.app` (`FORCE_BUNDLING=1`; the Debug
+configuration otherwise expects a development server), and the same job then picks an available
+iPhone simulator, boots it, installs `IRACARE.app`,
+launches it with its console attached and reads the app's **journey probe**: in development
+bundles only (`__DEV__`), `mobile/src/journeyProbe.ts` logs one line per screen change
+(`ira-journey {"screen":"sign-in","signedIn":false}`); a release bundle logs nothing
+(`mobile/src/__tests__/journey_probe.test.ts` pins both). The launch step records `simulator_booted`,
+`installed`, `launched`, `sign_in_screen_shown`, `still_running` and `no_crash_report`, with a
+screenshot, the console and the app's unified log (`scripts/simulator/ios_journey.py`;
+`supracloud-jarvis/ira/tests/readiness/test_ios_journey.py` covers the simulator choice, the probe
+parsing and the crash-report check).
+
+**Not run here**: this machine is Linux without Xcode. The pull request's `native checks` workflow
+runs the job on GitHub's standard macOS runner; the result is to be added here. What this job
+does not do yet: sign in against a backend (a PostgreSQL and Redis on the macOS runner, as the
+Android job has, is the next step), and nothing about a physical iPhone or signed distribution,
+which stay blocked on an Apple developer account (D2.i, D2.k).

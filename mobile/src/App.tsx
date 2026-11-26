@@ -8,6 +8,7 @@ import type { Alert, CircleMember, ConsentList, Person, PersonStatus, Reminder, 
 import { ThemeProvider } from './appearance/ThemeContext';
 import { DEFAULT_APPEARANCE, normaliseAppearance, type Appearance } from './appearance/theme';
 import { alertBadge, isWearerOf, pickPerson, type Experience, type Membership, type Tab } from './model/experience';
+import { probe } from './journeyProbe';
 import { registerForPush, unregisterForPush } from './push';
 import { AlertsScreen } from './screens/AlertsScreen';
 import { JoinScreen } from './screens/JoinScreen';
@@ -189,6 +190,7 @@ export default function App() {
       </ThemeProvider>
     );
   }
+  probe(session ? tab : 'sign-in', { signedIn: Boolean(session) });
   if (!session) return <ThemeProvider appearance={appearance}><StatusBar style="auto" /><LoginScreen defaultBaseUrl={DEFAULT_BASE_URL} onLoggedIn={onLoggedIn} onJoin={() => setJoining(true)} notice={signedOutBecause} /></ThemeProvider>;
 
   const c = client.current!;
