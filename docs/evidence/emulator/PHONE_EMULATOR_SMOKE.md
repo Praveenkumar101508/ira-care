@@ -98,3 +98,23 @@ as the watch's debug-only network security config (run 45758000634 above).
   (`npx expo prebuild --platform android`): inserts one line inside `react { }`, is idempotent, and
   the generated debug manifest carries `usesCleartextTraffic="true"` while the main manifest does
   not. The debug build itself was not compiled here (no Android SDK at the time of writing).
+
+### First emulator run of the authenticated journey (run 45910155640, 26 November 2026, 23:27 UTC)
+
+On GitHub's standard runner (Pixel 6 image, API 34, KVM), the debug build with its JavaScript
+bundled: **11 of 16 steps passed** on the first run. Passed: install, launch, the sign-in screen
+on the release build (the smoke) and on the debug build; `family_signed_in` (23 s); `plan_shown`
+(the two seeded medicines and the care plan card); `help_alert_shown` (the watch's Help reached the
+urgent banner in 16.5 s); `acknowledged_in_app` (the alert `acknowledged` on the server 3.6 s after
+"I'm on my way"); `appearance_kept_across_restart` (dark mode kept after `am force-stop`);
+`offline_state_shown` and `connectivity_recovered` (the out-of-date notice with Wi-Fi and data off,
+"No open alerts." back when restored); no app crash.
+
+Failed, all three for two journey-script faults and not for an app defect: `patient_selected` and
+`person_record_shown` looked for "Ada Hartley" where the app shows the preferred name "Ada" (the
+seed file carries only the display name; the record is now read for the preferred name);
+`secure_sign_out` never found the Sign out button, which lives inside the Account section of
+Settings and below the fold (the journey now opens that section and scrolls), so the session stayed
+live and the wearer's and the carer's sign-ins that follow could not start. The next run is the
+proof for those five steps.
+
