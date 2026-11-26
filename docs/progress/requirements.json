@@ -4051,18 +4051,22 @@
    "title": "Emulator runs of the watch and phone apps on integrated main",
    "area": "software",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "verified",
    "evidence": [
     {
      "kind": "emulator",
      "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
     },
     {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md"
+    },
+    {
      "kind": "config_check",
      "ref": ".github/workflows/native-checks.yml"
     }
    ],
-   "note": "The watch half passes on a KVM runner (D1.i). Still to do: the family phone app on an Android emulator, and a run on integrated main (native-checks runs on pull requests)."
+   "note": "Both apps run on emulators in native-checks.yml, on pull_request runs (the pull request merged into main): the watch through pairing and Help, the phone app to its sign-in screen (release builds refuse plain HTTP, so no sign-in on the emulator)."
   },
   {
    "id": "K.h",
