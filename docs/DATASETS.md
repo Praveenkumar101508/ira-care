@@ -28,6 +28,31 @@ How the cells are read (and checked by
   a verification date. A row used for a shipped model may not say `no`, and if it says
   `unclear` it must name the confirmation draft that is waiting to be sent.
 
+## What changed on 26 November 2026
+
+Read at the original sources this time (publisher pages and PubMed Central):
+
+- **FallAllD**: the IEEE DataPort page (doi:10.21227/bnya-mn34) reads "License: Creative Commons
+  Attribution", linking to CC BY 4.0. Commercial use with attribution is therefore **permitted**.
+  Downloading the files needs a free IEEE DataPort login (owner action). Once downloaded, FallAllD
+  can serve as the second wrist dataset for the cross-dataset fall evaluation (F4.f). No author
+  email is printed on the page; the courtesy confirmation goes through DataPort's "Send Author a
+  Private Message".
+- **KFall**: the authors' page (<https://sites.google.com/view/kfalldataset>) confirms access by
+  request form after identity and affiliation checks, "© 2021. All Rights Reserved.", and "Readers
+  are not allowed to transfer the KFall dataset to any third-parties". The CC BY licence on the
+  Frontiers article covers the paper, not the data. Commercial use needs the authors' explicit
+  permission. Corresponding author, as printed by Frontiers: Shuping Xiong, KAIST.
+- **SisFall**: the paper (PMC5298771) is CC BY 4.0, but that covers the article only. The dataset
+  page at the University of Antioquia did not resolve. Corresponding author, as printed in the
+  paper: José David López. SisFall stays out of every build (D-077, D-082) whatever the answer.
+- **UMAFall**: the figshare page returned a browser challenge, so its licence field still could not
+  be read. Prof. Eduardo Casilari, University of Málaga, is the contact (as printed in a related
+  open-access paper, PMC7085732).
+
+Permission requests for all four are drafted in the founders' Gmail, unsent, awaiting the
+founders' review.
+
 ## What changed on 25 November 2026
 
 - **SisFall**: the Zenodo record 22212281 states CC BY 4.0, but it names no creator (the
