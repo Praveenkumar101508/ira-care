@@ -1820,3 +1820,141 @@ What it costs: fewer answers. Coverage falls by 12.6 percentage points on the 14
 subjects, 17.3 on S1, 4.4 on the GalaxyPPG E4 and 12.8 on the Galaxy Watch. In research mode
 "unavailable" is the honest answer there. What would change it: a better fallback shown on separate
 data (not S1 and not GalaxyPPG, which have now both been used to judge this one).
+
+## D-095 A deployment administrator must have proved who they are recently: `auth_time` and `amr` token claims, `POST /auth/step-up`, and a recent-authentication check on device instructions (closes the open part of D-089; security review S15, threat T43, 26 November 2026)
+
+D-089 left step-up authentication open because the session token carried no authentication time
+and a refresh re-stamped it. Decision: every access and refresh token now carries `auth_time`
+(Unix seconds of the holder's last proof with a credential) and `amr` (`pwd`, `otp`, `recovery`),
+set at `/auth/token` and `/auth/cloud/login` from what was actually checked, copied unchanged by
+`/auth/refresh`, and carried onto the Principal (`auth_time`, `amr`, `authentication_strength` =
+mfa, password or empty). A token from before the claims decodes and works everywhere except where
+recent authentication is asked for, where it counts as never recently authenticated.
+`POST /auth/step-up` (rate-limited as sign-in) re-checks the password of the token's own subject
+through `security/reauth.py`, requires a current code when a second factor is enabled, counts
+failures against the sign-in lockout, records an auth event and returns a new access token only
+(same `sub`, `tid`, `uid`, `ver`; `auth_time` now); no refresh token, so the proof cannot be kept
+alive by refreshing. `security/stepup.py` refuses (403, `error_code: step_up_required`, with
+`reason`, `max_age_seconds`, `auth_age_seconds`, `how`) unless the proof is at most
+`IRA_STEP_UP_MAX_AGE_SECONDS` old (60 to 3600, default 600, refused at start otherwise) and, when
+the account has an enabled factor, included `otp` or `recovery`; an unreadable enrolment is 503,
+never "no factor". Applied to issue, approve and revoke of device instructions after the grant
+check, so a non-administrator gets its old 403 and learns nothing; the history needs no step-up;
+`GET /care/deployment-admin/me` tells the dashboard what to offer. The two-person rule for a
+factory reset stays exactly as D-089 wrote it. What this does not do: tell a phished password and
+factor from the holder's; two administrators' credentials phished within the window can still
+reset a watch, and a step-up token stolen inside the window works for the rest of it. Audit events
+reuse the 061 vocabulary (`sign_in_refused` and `sign_in_succeeded` with a `step-up` detail), so no
+migration. Evidence: `tests/test_step_up_authentication.py` (31),
+`tests/tenancy/test_device_admin_step_up_db.py` (9), `tests/tenancy/test_step_up_endpoint_db.py`
+(7); `docs/security/STEP_UP_AUTHENTICATION.md`. Register E2.p. T43 is controlled; S15 fixed.
+
+## D-096 The deployment administration screen shows nothing to anyone without the grant, and confirms who you are only when the server asks (requirements E2.o and D3.l, 26 November 2026)
+
+D-085 left "a dashboard screen for deployment administrators" undecided. Decision: the dashboard
+gets `/admin/devices`, gated by one question to the server (`GET /care/deployment-admin/me`), not
+by the stored role. Without `deployment_admin: true` the page renders a one-line refusal and a link
+back, no field, button, watch or history, and the navigation shows no link; the answer is kept in
+memory for the sign-in, never in storage, so a revoked grant disappears on the next request. The
+screen offers exactly the three actions, 1 to 15 minutes, a reason, Approve only on a request
+awaiting approval and Revoke with a reason on live rows; a factory reset is explained as a
+two-person request and a 202 is shown as waiting for a second administrator; the server's refusals
+(self-approval among them) are shown verbatim. Step-up follows D-095's contract: any 403 whose body
+names `step_up_required` opens a panel for the password (and the authenticator code when enrolled),
+the returned access token replaces the stored one through the same path a renewal takes, and the
+one refused action is retried exactly once; a wrong password or a second refusal retries nothing.
+`dashboard/src/__tests__/device_admin.test.tsx` (22 tests; 160 in the dashboard suite);
+`docs/ops/DEPLOYMENT_ADMIN_SCREEN.md`; `e2e/deployment_admin.spec.ts` is written and type-checked,
+not yet run against a stack. What this does not decide: who holds the grant (D-085, the operator
+script) and the Playwright run on staging.
+
+## D-097 D-004 resolved: the published-credential table is rebuilt from this repository's own history and checked against it (26 November 2026)
+
+`tests/test_published_credentials.py::test_the_table_matches_a_fresh_scan_of_history` needed a
+scanner that was never carried over. Decision: `scripts/security/published_credential_digests.py`
+scans every committed version of every environment file on every ref (deleted versions and side
+branches included) for the six covered names, treats a value as published when it is not empty
+and not a placeholder in the sense of `core.runtime.environment.is_placeholder` (the start-up
+rule, so the CI test values are placeholders), digests each distinct value with the module's
+salted scrypt and prints provenance only. `--include-inherited` merges the module's table, which
+is the source project's provenance: IRA CARE's history (142 commits, 12 environment-file
+versions) publishes nothing, so the six digests the module ships are entirely inherited. The test
+proves the scanner on a synthetic repository with planted values and, on a full clone, that
+nothing this history publishes is missing from the refusal table and that the scan merged with
+the inherited provenance equals the table; it still skips on CI's shallow clone and runs in the
+integrated verification. Rejected: retiring the test (it is the control that keeps the table
+honest) and reading the source project's history (private). `docs/security/CREDENTIAL_HISTORY_SCAN.md`.
+
+## D-098 Environment-dependent backend tests run in CI; the inherited missing-file tests are recorded, not deleted (register K.a and K.b, 26 November 2026)
+
+CI's database job gains a Redis 7 service (`IRA_TEST_REDIS_URL`) and a password file for the three
+provisioned roles (with `PGPASSWORD` unset for the test step, because it took precedence over the
+roles' own passwords), so the two durable-logout tests and the six migration role-separation tests
+run there instead of skipping. The three PyAV exclusion tests gate on the installed faster-whisper
+distribution (`importlib.util.find_spec`) instead of importing it, which needed PyAV, so the proof
+that PyAV never ships runs wherever faster-whisper is installed. The unit job installs the OCR
+tools and names every skip (`-ra`). Running the logout tests found one stale locator in test 14b
+(it took the first `scope == "account"` block, which PR #22 had moved); the product was correct and
+the test now finds the guard nearest the token-version bump. The destructive failover test passed
+against a database of its own (5 passed) and stays opt-in. Seven inherited tests skip for files of
+the source project that IRA CARE does not have and does not need
+(`docs/progress/INHERITED_TEST_SKIPS.md`); retiring them is an owner decision in D-007's form.
+Remaining optional-dependency skips (livekit-agents, torch, scipy, Playwright, brain-affect, the
+Cortex gateway) are listed there for decision. The faster-whisper pin and its hashes were verified
+correct in four clean environments; the install failure seen once on the build machine did not
+reproduce and the pin is unchanged.
+
+## D-099 The OS product layer is checked on the host against an AOSP reference, and the defects a first build would hit are fixed (register E2.a to E2.e, E2.k, E3.a, E3.c to E3.e, E6.a, 26 November 2026)
+
+No build host exists (BUILD.md), so what can be checked without one is checked:
+`os/scripts/aosp_reference.py` reads names, types and constants (never code) from the public Git
+mirrors of `frameworks/base`, `build/make`, `hardware/interfaces` and `frameworks/native` into
+`os/reference/aosp_reference.json`, recording what it could not reach (`device/google/cuttlefish`
+and `packages/apps/Launcher3` have no reachable mirror; android.googlesource.com is refused by the
+build machine's network). `tests/readiness/test_os_product_layer.py` (73 tests) and
+`test_os_sensor_sim.py` (3) then check the merged aosp-flavour manifest against the privapp
+allowlist and AOSP's protection levels, the first-boot grants against the runtime permissions
+requested, every `PRODUCT_COPY_FILES` source and every `PRODUCT_PACKAGES` module, the product
+registration and lunch choices, every overlaid framework resource and its type, the launcher
+override and the HOME and lock-screen declarations, the boot animation (the generator run from the
+command line, the zip stored uncompressed, `desc.txt` matching the frames), the sensors HAL
+service against the contract (types, rates, modes, the AIDL version in `Android.bp`, the VINTF
+fragment and AOSP's default), the simulated signal model compiled and run on the host (heart rate,
+accelerometer and gyroscope, off-body), BUILD.md's commands against the scripts and variables that
+exist, and the supplier register's fourteen rows. Defects fixed: a `PRODUCT_COPY_FILES` source
+that does not exist in AOSP (`android.hardware.type.watch.xml` is now IRA's own file), the
+sensors HAL version and VINTF fragment, a one-shot flag value, and stale names in the documents
+(`docs/os/HOST_CHECKS.md` lists each). What none of this proves: that the image builds, boots, or
+that a person sees what the files describe; E2.h onwards stay blocked on the host, and E1.a stays
+a document.
+
+## D-100 The watch emulator journey grows from eleven steps to the care journey; a synthetic fall exists in the debug build only (register D1.i, 26 November 2026)
+
+`scripts/emulator/watch_smoke.py` keeps its eleven steps and continues through nine guarded groups
+(`--steps`, `--until`): medication reminder with an unclear answer not recorded and a two-step
+confirmation, a check-in answered by touch, a fall countdown with a second detection attached and
+not overlapped (D-092), Help during a fall, the offline queue delivered once, a reboot with the
+queue surviving, a sensor permission revoked and regranted, unpair and re-pair, and the
+accessibility of every dumped screen. The fall is injected by `am broadcast` to
+`SyntheticFallReceiver`, declared and present in `watch/app/src/debug` alone: `SyntheticFallReleaseTest`
+(4) and `tests/readiness/test_watch_synthetic_fall.py` (4) fail if any other source set names the
+receiver or its action, or if `main` calls `FallInjection.inject`. The pure helpers are tested with
+recorded dumps and fake transports (`test_watch_smoke_journey.py`, 12), and the API side of every
+group was played against the demo API (`--api-only`). The groups have not run on an emulator: the
+build machine has no KVM and the workflow dispatch is refused to the session's integration, so the
+owner runs `emulator.yml` (journey `care-journey`, steps `all`) from the Actions tab and the
+results are added to `docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md`. Until then D1.i keeps its
+eleven-step evidence and the groups are written, not proved.
+
+## D-101 Sign-out with a refresh token ends the session row; the phone app gains a Plan tab and never shows "all well" for an unreachable server (requirements C-14.a, D2.c, G2.i, 26 November 2026)
+
+Found while writing the phone journey's secure sign-out step: `/auth/logout` with a refresh token
+blocklisted the token but, in the cloud edition, left its session row live, so the person's
+session list still showed the device. Decision: the row is ended too (`revoke_session_by_jti`),
+best effort after the blocklist write and logged loudly if it fails, because the token is already
+dead (`tests/tenancy/test_logout_with_refresh_token_ends_session.py`). The phone app tells the
+server on sign-out before clearing its state, shows the person's medication and care plan on a
+Plan tab, and shows an unreachable server as such rather than as all well (`person_plan`,
+`app_signout`, `shell` and `client` tests; 91 in the suite). The authenticated Android journey
+itself (`phone_smoke.py` beyond the login screen) is not yet written; the HTTPS decision for the
+test backend is still to be taken when it is.
