@@ -12,6 +12,19 @@ threshold changed. Evidence: `docs/ai/fall/cross_dataset_weda.json`. Script:
 > J. Marques and P. Moreno, "Online Fall Detection Using Wrist Devices", *Sensors* 23(3):1146, 2023.
 > Only results are kept here; no WEDA-FALL data is in the repository.
 
+**Provenance caveat (26 November 2026).** The owner reports that a separate review of WEDA-FALL
+in a browser found no clear licence. The clone this run used (commit
+`9bf15151131644e26403eadd11ecd7949e917740`) does contain an ODC-By 1.0 `LICENSE` file and a README
+licence statement, both added by the author on 20 November 2026; the two observations have not
+been reconciled. Until the authors confirm permission:
+
+- the results on this page are kept as historical evidence of a run already made, and are not
+  re-run or extended;
+- no further commercial training or evaluation uses WEDA-FALL;
+- WEDA-FALL data is not redistributed, here or anywhere else.
+
+`docs/DATASETS.md` records commercial use for WEDA-FALL as `unclear` for the same reason.
+
 ## What was tested
 
 - **The shipped pipeline, unchanged** (D-080): the rule detector (2.5 g impact, then 20 s with at

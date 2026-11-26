@@ -141,3 +141,72 @@ mobile/.web-demo/
 # The film's raw scene recordings: remade by scripts/film/record_scenes.mjs, never committed (the film itself is).
 docs/film/raw/
 docs/evidence/INDEX.md
+
+# ── Public repository (docs/security/PUBLIC_REPOSITORY.md) ─────────────────────
+# The repository is public and history is never rewritten, so a file pushed once
+# stays public for good. Everything below stays on the machine that made it.
+# scripts/ci/check_staged_files.py refuses the same patterns before a commit, and
+# supracloud-jarvis/ira/tests/readiness/test_public_repository.py fails if a
+# tracked file matches them outside the allow-list there. A file that is meant to
+# be committed gets a `!path` line here AND an entry in ALLOWED in that script.
+
+# Downloaded datasets and their archives. Training and evaluation data is cloned
+# or downloaded outside the repository and deleted after the run (docs/DATASETS.md);
+# only results are committed.
+datasets/
+raw_data/
+data/raw/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.tar.bz2
+*.tar.xz
+*.7z
+*.rar
+*.csv
+*.tsv
+*.npz
+*.npy
+*.h5
+*.hdf5
+*.parquet
+*.feather
+*.arrow
+*.mat
+*.edf
+*.pkl
+*.pickle
+*.joblib
+# Recordings. No audio fixture is tracked today; add a `!path` line for one.
+*.wav
+*.flac
+
+# Model weights. Only the shipped watch model and the evaluated v2 candidate are
+# committed (docs/ai/MODEL_WEIGHTS.md); everything else is fetched or trained.
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.gguf
+*.onnx
+*.keras
+*.tflite
+!watch/app/src/main/assets/fall_model.tflite
+!docs/ai/fall/fall_model_v2.tflite
+
+# Environment files with real values. Only *.example files are committed.
+*.env
+.env.*
+!.env.example
+!.env.*.example
+!*.env.example
+
+# Private papers: investor material, contracts, anything confidential.
+private/
+confidential/
+investor/
+investors/
+# Source code, not a private paper: the product's "private" edition.
+!supracloud-jarvis/ira/editions/private/
