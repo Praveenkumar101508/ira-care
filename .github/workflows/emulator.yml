@@ -126,6 +126,9 @@ jobs:
           set -euo pipefail
           pip install -q -r requirements-test.txt
           pip install -q --no-deps --require-hashes -r requirements-nodeps.txt
+          # The demo starts the worker scheduler, whose security monitor needs psutil; the test
+          # requirements do not include it. Take the pinned version from the runtime requirements.
+          pip install -q "$(grep -E '^psutil==' requirements.txt)"
           psql -h 127.0.0.1 -U postgres -d ira_test -v ON_ERROR_STOP=1 -q -f ../postgres/provisioning/001_database_roles.sql
           psql -h 127.0.0.1 -U postgres -d ira_test -v ON_ERROR_STOP=1 -c \
             "ALTER ROLE ira_migrator PASSWORD 'ira_migrator'; ALTER ROLE ira_app PASSWORD 'ira_app'; ALTER ROLE ira_worker PASSWORD 'ira_worker';"

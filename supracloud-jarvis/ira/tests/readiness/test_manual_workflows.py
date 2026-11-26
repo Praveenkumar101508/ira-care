@@ -106,6 +106,35 @@ def test_emulator_enables_kvm_and_uploads_evidence():
     assert (ROOT / "scripts" / "emulator" / "watch_smoke.py").exists()
 
 
+# Runtime packages the demo backend needs (its worker scheduler imports them) that the test
+# requirements leave out. Run 45753366726 failed because psutil was missing.
+DEMO_RUNTIME_EXTRAS = ["psutil"]
+
+
+def demo_backend_missing(step_run: str, test_requirements: str) -> list[str]:
+    """Packages in DEMO_RUNTIME_EXTRAS that neither the test requirements nor the step install."""
+    have = {line.split("==")[0].strip().lower() for line in test_requirements.splitlines()}
+    return [p for p in DEMO_RUNTIME_EXTRAS
+            if p not in have and f"grep -E '^{p}==' requirements.txt" not in step_run]
+
+
+def _demo_step() -> str:
+    steps = _load("emulator.yml")["jobs"]["wear-emulator"]["steps"]
+    return next(s["run"] for s in steps if s.get("name", "").startswith("Start the demo backend"))
+
+
+def test_demo_backend_installs_its_runtime_extras():
+    reqs = (ROOT / "supracloud-jarvis" / "ira" / "requirements-test.txt").read_text(encoding="utf-8")
+    assert demo_backend_missing(_demo_step(), reqs) == []
+    pinned = (ROOT / "supracloud-jarvis" / "ira" / "requirements.txt").read_text(encoding="utf-8")
+    assert all(re.search(rf"^{p}==\S+", pinned, re.M) for p in DEMO_RUNTIME_EXTRAS)
+
+
+def test_negative_control_demo_backend_without_psutil_is_caught():
+    step = _demo_step().replace("pip install -q \"$(grep -E '^psutil==' requirements.txt)\"", "")
+    assert demo_backend_missing(step, "pytest==8.3.3\n") == ["psutil"]
+
+
 def test_generated_native_folders_are_not_tracked():
     ignore = (ROOT / "mobile" / ".gitignore").read_text(encoding="utf-8")
     assert re.search(r"^/ios/$", ignore, re.M) and re.search(r"^/android/$", ignore, re.M)
