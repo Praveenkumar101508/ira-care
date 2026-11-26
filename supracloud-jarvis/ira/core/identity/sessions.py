@@ -263,6 +263,37 @@ async def revoke_session(principal, session_id, *, reason: str = "revoked") -> b
     return ended is not None
 
 
+async def revoke_session_by_jti(principal, refresh_jti: str, *, reason: str = "signed out") -> bool:
+    """End the session a refresh token belongs to: the phone app's sign-out.
+
+    `/auth/logout` with the refresh token is how a device says "this sign-in is
+    over". Blocklisting the token's jti alone leaves the session row live, so
+    the person's session list keeps showing a sign-in that no longer exists
+    and cannot answer "did my sign-out work". Conditional on the row still
+    being live, as `revoke_session`; False for an unknown or already ended
+    session, which under RLS is the same answer as "not yours".
+    """
+    from core.identity.db_context import tenant_connection
+
+    async with tenant_connection(principal) as conn:
+        ended = await conn.fetchval(
+            """
+            UPDATE user_sessions
+               SET revoked_at = NOW(), revoked_reason = $2
+             WHERE token_hash = $1 AND NOT session_is_revoked
+            RETURNING id
+            """,
+            hash_session_token(refresh_jti), reason[:200],
+        )
+    if ended is not None:
+        logger.info("a session was ended by its own sign-out")
+        await auth_audit.record(auth_audit.SESSION_REVOKED,
+                                user_id=principal.user_id,
+                                tenant_id=principal.tenant_id,
+                                detail=reason[:200])
+    return ended is not None
+
+
 async def revoke_all_sessions(
     principal, *, except_jti: str | None = None, reason: str = "revoked all",
 ) -> int:
