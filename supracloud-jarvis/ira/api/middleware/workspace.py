@@ -189,9 +189,11 @@ async def principal_from_username(
     """
     from core.identity.resolver import AmbiguousTenant, TenantNotPermitted
 
+    from api.middleware.auth import current_authentication
+
     tenant = _parse_tenant_header(requested_tenant_id)
     try:
-        return await resolve_principal(username, tenant_id=tenant)
+        principal = await resolve_principal(username, tenant_id=tenant)
     except AmbiguousTenant as exc:
         raise TenantRequired(str(exc)) from exc
     except TenantNotPermitted as exc:
@@ -201,6 +203,11 @@ async def principal_from_username(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)
         ) from exc
+    # The token's own account of when and how its holder last authenticated
+    # (D-095). Facts about the session, not authority: nothing above was decided
+    # by them, and `security/stepup.py` is what reads them.
+    auth_time, amr = current_authentication()
+    return principal.with_authentication(auth_time, amr)
 
 
 async def resolve_workspace_principal(

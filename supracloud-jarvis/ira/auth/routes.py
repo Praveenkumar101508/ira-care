@@ -9,8 +9,9 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import Depends, FastAPI, Form, Request
+from fastapi import Depends, FastAPI, Form, Header, Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 # OAuth2PasswordRequestForm is imported at MODULE scope. Under
 # `from __future__ import annotations` FastAPI resolves the `form:` annotation as a
 # ForwardRef against module globals; a local import leaves it unresolved -> the
@@ -27,6 +28,13 @@ from utils.canary import check_canary_username
 logger = logging.getLogger("ira.auth.routes")
 
 _bearer_dep = _HTTPBearer(auto_error=False)
+
+
+class StepUpRequest(BaseModel):
+    """`POST /auth/step-up` (D-095): the account password, and a current code
+    when the account has a second factor. Never logged."""
+    password: str
+    totp_code: str | None = None
 
 
 def _public_base_url() -> str:
@@ -205,7 +213,10 @@ def register_auth_routes(app: FastAPI, limiter) -> None:
             await get_redis().set(LAST_LOGIN_KEY, datetime.now(timezone.utc).isoformat())
         except Exception:
             pass
-        return await create_login_tokens(_subject)
+        # What this login checked, stamped on the tokens (D-095): the password,
+        # and the one-time code when the factor was verified.
+        _amr = ("pwd", "otp") if _factor == "ok" else ("pwd",)
+        return await create_login_tokens(_subject, amr=_amr)
 
     @app.post("/auth/logout", tags=["auth"], summary="Revoke the current access token")
     async def logout(
@@ -385,14 +396,133 @@ def register_auth_routes(app: FastAPI, limiter) -> None:
         # authority: the new token's `tid` is re-verified against membership on
         # every request exactly as the old one's was, so refreshing cannot
         # preserve access that has since been revoked.
+        #
+        # `auth_time` and `amr` are COPIED from the refresh token, never
+        # re-stamped (D-095). A refresh proves possession of a refresh token,
+        # not that the person is still there; stamping the present moment would
+        # make a session kept alive for a week indistinguishable from a sign-in
+        # a minute ago, which is exactly what step-up has to tell apart. A
+        # refresh token issued before the claim existed carries none, and the
+        # new access token says so too.
         access_token, _, access_exp = _make_access_token(
-            payload.sub, ver=ver, tid=payload.tid, uid=payload.uid)
+            payload.sub, ver=ver, tid=payload.tid, uid=payload.uid,
+            auth_time=payload.auth_time, amr=payload.amr)
         now = datetime.now(timezone.utc)
         from api.middleware.auth import TokenResponse as _TR
         return _TR(
             access_token=access_token,
             expires_in=max(0, int((access_exp - now).total_seconds())),
         )
+
+    # ── Step-up authentication (D-095) ──────────────────────────────────────
+    #
+    # A session proves that somebody signed in once. For a deployment
+    # administrator about to issue, approve or revoke an instruction to a watch
+    # (care/deviceadmin.py), the server asks for proof that the person is still
+    # there NOW: the password of the token's own subject, and a current code
+    # when the account has a second factor. What comes back is a fresh ACCESS
+    # token for the same session with `auth_time` set to this moment; no refresh
+    # token, so the recent proof cannot be kept alive by refreshing it.
+
+    @app.post("/auth/step-up", tags=["auth"],
+              summary="Prove the account password (and second factor) again for a recent-authentication token")
+    @limiter.limit("5/minute")   # the same budget as /auth/token: this checks a password
+    async def step_up(
+        request: Request,
+        body: StepUpRequest,
+        user: str = Depends(require_auth),
+        x_tenant_id: str | None = Header(default=None, alias="X-Tenant-ID"),
+    ):
+        from datetime import datetime, timezone
+
+        from api.middleware.auth import (
+            TokenPayload, _make_access_token, current_token_payload,
+        )
+        from api.middleware.workspace import principal_from_username
+        from core.identity import auth_audit
+        from security.reauth import ReauthUnavailable, verify_account_password
+        from security.totp import (
+            FACTOR_BAD, FACTOR_OK, NOT_ENROLLED, TotpUnavailable, verify_active_factor,
+        )
+        from utils.account_lockout import clear_failures, is_locked, record_failure
+
+        def _refuse(status_code: int, detail: str, **extra):
+            return JSONResponse(status_code=status_code, content={"detail": detail, **extra})
+
+        current: TokenPayload | None = current_token_payload()
+        if current is None:
+            # No token was verified for this request (DEV_MODE answers without
+            # one). A step-up token is minted FROM a session token, so there is
+            # nothing to mint it from.
+            return _refuse(401, "Step-up needs a session token.")
+
+        # The account is the TOKEN'S subject. The body cannot name one, so a
+        # correct password for some other account proves nothing here.
+        principal = await principal_from_username(user, x_tenant_id)
+        lock_key = (user or "").strip().lower()
+
+        async def _count_failure(detail: str, **extra):
+            # The same Redis-backed counter and thresholds as /auth/token and
+            # /auth/totp/enroll, under the same key: one budget of guesses for
+            # the account, not a fresh one per endpoint. The attempt is logged
+            # without the password or the code.
+            _count, locked = await record_failure(lock_key)
+            logger.warning("step-up refused for user=%s reason=%s", principal.user_id, extra.get("reauth", "password"))
+            await auth_audit.record(auth_audit.SIGN_IN_REFUSED, user_id=principal.user_id,
+                                    tenant_id=principal.tenant_id, subject=user,
+                                    ip_address=request.client.host if request.client else None,
+                                    user_agent=request.headers.get("user-agent", ""),
+                                    detail="step-up refused: " + extra.get("reauth", "password"))
+            if locked:
+                return _refuse(429, "Account locked after too many failed attempts. Try again in 15 minutes.")
+            return _refuse(401, detail, **extra)
+
+        # Before bcrypt, as sign-in does: a locked account costs no hashing.
+        if await is_locked(lock_key):
+            return _refuse(429, "Account temporarily locked due to too many failed attempts. Try again later.")
+
+        try:
+            password_ok = await verify_account_password(user, body.password, principal=principal)
+        except ReauthUnavailable:
+            return _refuse(503, "Your password could not be checked right now. Try again shortly.")
+        if not password_ok:
+            return await _count_failure("Password not accepted.", reauth="password")
+
+        # A current code is REQUIRED when a factor is enabled: a password alone
+        # is what the factor exists to be more than. "Cannot tell whether a
+        # factor is enrolled" refuses (503), never skips the factor.
+        try:
+            verdict, _factor = await verify_active_factor(user, body.totp_code, principal=principal)
+        except TotpUnavailable:
+            return _refuse(503, "Your second factor could not be checked right now. Try again shortly.")
+        if verdict == FACTOR_BAD:
+            return await _count_failure("A current second-factor code is required.",
+                                        reauth="totp", second_factor="totp")
+        assert verdict in (NOT_ENROLLED, FACTOR_OK)
+        amr = ["pwd", "otp"] if verdict == FACTOR_OK else ["pwd"]
+
+        await clear_failures(lock_key)
+        now = datetime.now(timezone.utc)
+        auth_time = int(now.timestamp())
+        # Same subject, tenant selection, account id and version as the token
+        # presented: this is the same session, re-proven, not a new one. The
+        # expiry policy is the ordinary access-token one. No refresh token.
+        access_token, _, access_exp = _make_access_token(
+            current.sub, ver=current.ver, tid=current.tid, uid=current.uid,
+            auth_time=auth_time, amr=amr)
+        await auth_audit.record(auth_audit.SIGN_IN_SUCCEEDED, user_id=principal.user_id,
+                                tenant_id=principal.tenant_id, subject=user,
+                                ip_address=request.client.host if request.client else None,
+                                user_agent=request.headers.get("user-agent", ""),
+                                detail="step-up: " + ",".join(amr))
+        logger.info("step-up succeeded for user=%s amr=%s", principal.user_id, ",".join(amr))
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "expires_in": max(0, int((access_exp - now).total_seconds())),
+            "auth_time": auth_time,
+            "amr": amr,
+        }
 
     # ── Registration and email verification (Phase 2 batch 2) ───────────────
     #
@@ -539,7 +669,7 @@ def register_auth_routes(app: FastAPI, limiter) -> None:
         # string the caller typed. It becomes the token's `sub`, and therefore
         # the value every later request re-resolves — so what a token identifies
         # is what the identity register holds.
-        tokens = await create_login_tokens(outcome.subject)
+        tokens = await create_login_tokens(outcome.subject, amr=outcome.amr)
 
         # Batch 8. Record the refresh token as a session, so the person can see
         # where they are signed in and end one of those places.
