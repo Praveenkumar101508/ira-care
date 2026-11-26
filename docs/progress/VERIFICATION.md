@@ -1,3 +1,46 @@
+# Integrated verification on `main` (register K, round 8)
+
+Run on 26 November 2026 on `main` at `540c6e5` (PRs up to #122 merged; the unit suite ran on
+`cd20743`, which differs from `540c6e5` only by #122's workflow, smoke script and documents). The
+database for the run was created empty and migrated as `ira_migrator` (123 migrations). Every
+number below comes from a run whose output was read. The machine is the same shared Linux container
+as round 7 (4 CPUs, 15 GB RAM, no GPU, no `/dev/kvm`); Python 3.13.18 here, CI uses 3.12.
+
+| Suite | Result | Note |
+|---|---|---|
+| Backend unit and readiness (`tests`, without `tests/tenancy`) | **5,671 passed, 82 skipped, 2 failed** in 5 min 24 s | The same two failures as round 7, both explained below; nothing new |
+| Backend database suite (`tests/tenancy`) on the fresh database | **2,977 passed, 9 skipped** in 10 min 57 s | Includes the new fall-overlap (D-092) and push-settlement tests |
+| Readiness suite alone, on #122's tree | 512 passed, 38 skipped | |
+| Dashboard (`vitest`) | **138 passed** in 23 files | |
+| Family phone app (`jest`) | **83 passed** in 18 suites, after `npm ci` | A first run on a stale local `node_modules` failed one test (`tar` 6.2.1 where the override pins 7.5.23); a clean install passes. CI always installs clean |
+| `ruff` | clean | |
+| `check_docs_truth.py`, `completion_summary.py` | pass; 154 of 253 complete, 54 blocked | |
+| Wear OS emulator care journey | **passes**, 11 steps | On GitHub's KVM runner, five runs (`docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md`) |
+| Family app on an Android phone emulator | **passes**, 4 steps | Two runs (`docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md`) |
+| iOS simulator build | **compiles** | Free macOS runner, six runs (`docs/evidence/builds/IOS_SIMULATOR.md`) |
+
+### The two unit failures, unchanged from round 7
+
+- `test_prompt_injection_guard.py::test_public_url_allowed_by_egress_guard`: this container has no
+  outbound DNS, so the guard cannot resolve `example.com`. Environmental; passes in CI.
+- `test_published_credentials.py::test_the_table_matches_a_fresh_scan_of_history`: runs
+  `scripts/security/published_credential_digests.py`, which was never carried over (D-004). It
+  skips on CI's shallow clone and fails on a full clone. The owner's decision is still open.
+
+### Watched by CI rather than run here
+
+The watch's JVM tests (188 per flavour), the release builds and the AOSP dependency check ran in
+the `tests` workflow on every merged pull request; the emulator and simulator jobs ran in the
+`native checks` workflow on #119 and #122. All green at each merge.
+
+### Wall-clock soak
+
+The 1-hour soaks from #117 failed only the memory criterion (6.65 and 6.45 % an hour against 5 %).
+#123 fixes three causes with regression tests; its complete 1-hour run on the fixed code
+(`docs/evidence/soak/WALLCLOCK_1H_FIXED.md`) passed every criterion but memory, at 5.18 % an hour:
+lower, still a FAIL. The 24-hour run (G2.e) has not been started: this container restarted during
+the night.
+
 # Integrated verification on `main` (register K, round 7)
 
 Run on 25 November 2026 on `main` at `200533e` (PRs up to #111 merged; the same tree as #109's head

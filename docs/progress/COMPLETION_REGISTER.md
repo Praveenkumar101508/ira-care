@@ -41,42 +41,42 @@ dated record to `docs/progress/completion_history.json`, which is append-only.
 The numbers below are quoted from one dated snapshot, so they stay true when later pull requests
 change the requirements; run the script for the current figures.
 
-At snapshot **main after #113**, `5e03a2f` (recorded 2026-11-25, requirements 1.7.0):
+At snapshot **main after #123**, `83aaf48` (recorded 2026-11-26, requirements 1.7.0):
 
 | Measure | Done / total | % |
 |---|---|---|
-| Hardware-independent software implementation | 170 / 190 | 89.5 % |
-| Hardware-independent software acceptance | 149 / 190 | 78.4 % |
-| Software verification | 71 / 205 | 34.6 % |
-| AI development (accepted, area ai) | 34 / 46 | 73.9 % |
+| Hardware-independent software implementation | 174 / 190 | 91.6 % |
+| Hardware-independent software acceptance | 153 / 190 | 80.5 % |
+| Software verification | 74 / 205 | 36.1 % |
+| AI development (accepted, area ai) | 35 / 46 | 76.1 % |
 | OS development (accepted, area os, hardware-independent) | 5 / 28 | 17.9 % |
 | Hardware integration (accepted, area hardware) | 0 / 14 | 0.0 % |
 | External and commercial readiness (accepted, area external) | 1 / 34 | 2.9 % |
 
-150 of 253 requirements are accepted or better; 103 remain:
-- 58 are blocked by something outside the software, each with its blocker named by `completion_summary.py`;
+154 of 253 requirements are accepted or better; 99 remain:
+- 54 are blocked by something outside the software, each with its blocker named by `completion_summary.py`;
 - 44 are implemented as documents, plans or configuration whose acceptance needs a reviewer, a build host or a device;
 - 1 is not started: the 24-hour wall-clock soak (G2.e), which needs a machine that stays up for a day.
 
 None is device validated: no physical device has been used.
 
-Change since the previous snapshot, **main after #94** (`b78e6b5`, requirements 1.4.0). Eight
-requirements were added between the two (245 to 253), each new scope rather than a reworded item:
-- F7.f to F7.k, the activity integration (#102);
-- E2.o, the deployment-administrator route (#103);
-- F3.g, the heart research pipeline (#104).
+Change since the previous snapshot, **main after #113** (`5e03a2f`, requirements 1.7.0). No
+requirement was added or removed, so the denominators are the same. Four moved to complete: F4.f
+(cross-dataset evaluation, verified), D1.i (watch on a Wear OS emulator, verified), K.g (both apps on
+emulators, verified) and D2.h (iOS build, accepted); the blocked count fell from 58 to 54.
 
-None was removed. The denominators therefore differ.
-
-| Measure | main after #94 | main after #113 | Change |
+| Measure | main after #113 | main after #123 | Change |
 |---|---|---|---|
-| Hardware-independent software implementation | 87.4 % | 89.5 % | +2.1 points |
-| Hardware-independent software acceptance | 76.0 % | 78.4 % | +2.4 points |
-| Software verification | 32.5 % | 34.6 % | +2.1 points |
-| AI development (accepted, area ai) | 64.1 % | 73.9 % | +9.8 points |
-| OS development (accepted, area os, hardware-independent) | 14.8 % | 17.9 % | +3.1 points |
+| Hardware-independent software implementation | 89.5 % | 91.6 % | +2.1 points |
+| Hardware-independent software acceptance | 78.4 % | 80.5 % | +2.1 points |
+| Software verification | 34.6 % | 36.1 % | +1.5 points |
+| AI development (accepted, area ai) | 73.9 % | 76.1 % | +2.2 points |
+| OS development (accepted, area os, hardware-independent) | 17.9 % | 17.9 % | +0.0 points |
 | Hardware integration (accepted, area hardware) | 0.0 % | 0.0 % | +0.0 points |
 | External and commercial readiness (accepted, area external) | 2.9 % | 2.9 % | +0.0 points |
+
+The earlier change, main after #94 to main after #113 (eight requirements added, F7.f to F7.k,
+E2.o and F3.g), is in this file's history.
 
 The history's first entry recomputes the audit baseline (`1f41c5d`, before #44) as a lower bound,
 crediting only evidence present there verbatim (for example, software acceptance 32 / 177).
