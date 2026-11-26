@@ -106,7 +106,9 @@ founders' review.
   made; **no further commercial training or evaluation uses WEDA-FALL** until the authors confirm
   permission; and no WEDA-FALL data is redistributed (none is in the repository, and none may be
   added). Commercial use is therefore `unclear` in the row below, as this register's own rule
-  asks when sources conflict.
+  asks when sources conflict. A permission request was sent to the dataset's contact address on
+  26 November 2026 (`docs/legal/WEDA_FALL_PERMISSION_REQUEST_2026-11-26.md`); the caveat stays until
+  the reply is recorded here.
 - **GalaxyPPG** (heart table): CC BY 4.0 on the authors' Zenodo record. Used to evaluate the heart
   research pipeline independently, not to train anything.
 
