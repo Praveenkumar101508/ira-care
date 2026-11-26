@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Api } from '@/lib/api';
 import { loadSession, saveSession, type StoredSession } from '@/lib/session';
+import { cacheKey, cachedAdmin, rememberAdmin } from '@/lib/deviceAdmin';
 import type { OpsStatus } from '@/lib/types';
 
 /** The role in a person's words, not the workspace's. */
@@ -16,7 +17,21 @@ export function TopBar() {
   const pathname = usePathname();
   const [session, setSession] = useState<StoredSession | null>(null);
   const [ops, setOps] = useState<OpsStatus | null>(null);
+  const [deploymentAdmin, setDeploymentAdmin] = useState(false);
   useEffect(() => { setSession(loadSession()); }, []);
+  // Whether this account is a deployment administrator (D-085): asked once per sign-in and
+  // kept in memory only, so the link appears for administrators and for nobody else.
+  useEffect(() => {
+    if (!session) return;
+    const key = cacheKey(session.baseUrl, session.accessToken);
+    const known = cachedAdmin(key);
+    if (known !== undefined) { setDeploymentAdmin(known); return; }
+    let gone = false;
+    new Api(session).deploymentAdminMe()
+      .then((m) => { const yes = m?.deployment_admin === true; rememberAdmin(key, yes); if (!gone) setDeploymentAdmin(yes); })
+      .catch(() => { if (!gone) setDeploymentAdmin(false); });
+    return () => { gone = true; };
+  }, [session]);
   useEffect(() => {
     if (!session) return;
     const api = new Api(session);
@@ -46,6 +61,7 @@ export function TopBar() {
             <Link href="/search">Search</Link>
         {session.role === 'workspace_admin' ? <Link href="/billing">Plan</Link> : null}
         {session.role === 'workspace_admin' ? <Link href="/research/heart">Research</Link> : null}
+        {deploymentAdmin ? <Link href="/admin/devices" data-testid="nav-deployment">Deployment</Link> : null}
           </nav>
           <span className="muted who">{session.workspaceName} · {roleWords(session.role)}</span>
           <button className="grey" onClick={() => { saveSession(null); window.location.href = '/login'; }}>Sign out</button>

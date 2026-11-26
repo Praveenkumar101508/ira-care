@@ -3,9 +3,12 @@ import type { AlertOutcome,
   AccessNotes, HomeUpdate, InvitationOut, InvitationRow, Memory, PlanSummary, OpsStatus, PersonStatus, Reading, Reminder, Report, Routine, SafetySettings, SearchResponse, Transcript, Visit, VisitCreate, VisitDepart, WorkspaceList, CommunicationProfile, Overview, Capability, ActivitySummary, Permissions, CarePlan, CarePlanDraft, SearchHit, Caseload, PlannedVisit, StaffMember,
 } from './types';
 import type { ResearchResult, ResearchSample } from './research';
+import type { AdminMe, Instruction, StepUpResult } from './deviceAdmin';
 
+/** `body` is the server's answer as sent, when it was readable, so a screen can read a code
+ *  the message alone does not carry (a refusal that asks the person to confirm who they are). */
 export class ApiError extends Error {
-  constructor(public readonly status: number, message: string) { super(message); }
+  constructor(public readonly status: number, message: string, public readonly body?: unknown) { super(message); }
 }
 
 /** `refreshToken`, when present, lets an expired access token be renewed (POST /auth/refresh)
@@ -145,6 +148,45 @@ export class Api {
   forgetMemory(id: string, day: string) { return this.req<void>('DELETE', `/api/v1/care/people/${id}/memory/${day}`); }
   memory(id: string) { return this.req<{ memory: Memory[] }>('GET', `/api/v1/care/people/${id}/memory`).then((o) => o.memory); }
   accessLog(id: string) { return this.req<{ entries: AccessEntry[] }>('GET', `/api/v1/care/people/${id}/access-log?limit=200`).then((o) => o.entries); }
+  personDevices(id: string) { return this.req<{ devices: Device[]; count: number }>('GET', `/api/v1/care/people/${id}/devices`).then((o) => o.devices); }
+
+  /** Deployment administration (D-085, D-089): a grant the operator writes, never a care role. */
+  deploymentAdminMe() { return this.req<AdminMe>('GET', '/api/v1/care/deployment-admin/me'); }
+  deviceInstructions(tenantId: string, workspaceId: string, deviceId: string) {
+    const q = `tenant_id=${encodeURIComponent(tenantId)}&workspace_id=${encodeURIComponent(workspaceId)}&device_id=${encodeURIComponent(deviceId)}`;
+    return this.req<{ instructions: Instruction[] }>('GET', `/api/v1/care/deployment-admin/device-instructions?${q}`).then((o) => o.instructions);
+  }
+  issueDeviceInstruction(body: { tenant_id: string; workspace_id: string; device_id: string; action: string; minutes: number; reason: string }) {
+    return this.req<Instruction>('POST', '/api/v1/care/deployment-admin/device-instructions', body);
+  }
+  approveDeviceInstruction(id: string, target: { tenant_id: string; workspace_id: string }) {
+    return this.req<Instruction>('POST', `/api/v1/care/deployment-admin/device-instructions/${encodeURIComponent(id)}/approve`, target);
+  }
+  revokeDeviceInstruction(id: string, target: { tenant_id: string; workspace_id: string }, reason: string) {
+    return this.req<Instruction>('POST', `/api/v1/care/deployment-admin/device-instructions/${encodeURIComponent(id)}/revoke`, { ...target, reason });
+  }
+
+  /** Confirm who you are again (step-up). The access token the server answers with replaces
+   *  the stored one through the same path a renewal takes, so the next page keeps it. The
+   *  password is sent once and kept nowhere. */
+  async stepUp(password: string, totpCode?: string): Promise<StepUpResult> {
+    const body: { password: string; totp_code?: string } = { password };
+    if (totpCode) body.totp_code = totpCode;
+    let r: Response;
+    try {
+      r = await this.f(`${this.s.baseUrl}/auth/step-up`, { method: 'POST', headers: { Authorization: `Bearer ${this.s.accessToken}`, Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    } catch {
+      throw new ApiError(0, 'No connection to the server.');
+    }
+    if (r.status === 401) throw new ApiError(401, 'Wrong password or code.', await bodyOf(r));
+    if (r.status === 503) throw new ApiError(503, 'Confirming who you are is not possible right now: the sign-in service is unavailable. Try again shortly.', await bodyOf(r));
+    if (!r.ok) { const b = await bodyOf(r); throw new ApiError(r.status, detailOf(b, r.status), b); }
+    const out = (await r.json()) as StepUpResult;
+    if (!out.access_token) throw new ApiError(0, 'The server did not answer with a new sign-in.');
+    this.s.accessToken = out.access_token;
+    this.onRenewed?.(out.access_token);
+    return out;
+  }
 
   private async req<T>(method: string, path: string, body?: unknown, workspace = true): Promise<T> {
     const headers: Record<string, string> = { Authorization: `Bearer ${this.s.accessToken}`, Accept: 'application/json' };
@@ -170,17 +212,26 @@ export class Api {
       if (renewed === 'renewed') r = await once();
     }
     if (r.status === 401) throw new ApiError(401, 'Please sign in again.');
-    if (!r.ok) throw new ApiError(r.status, await detail(r));
+    if (!r.ok) { const b = await bodyOf(r); throw new ApiError(r.status, detailOf(b, r.status), b); }
     if (r.status === 204) return undefined as T;
     return (await r.json()) as T;
   }
 }
 
 async function detail(r: Response): Promise<string> {
-  try {
-    const d = (await r.json()) as { detail?: unknown };
-    return typeof d.detail === 'string' ? d.detail : `The server answered ${r.status}.`;
-  } catch { return `The server answered ${r.status}.`; }
+  return detailOf(await bodyOf(r), r.status);
+}
+
+async function bodyOf(r: Response): Promise<unknown> {
+  try { return await r.json(); } catch { return undefined; }
+}
+
+/** The server's message: `detail` as a string, or `detail.message` when it is an object. */
+function detailOf(body: unknown, status: number): string {
+  const d = body && typeof body === 'object' ? (body as { detail?: unknown }).detail : undefined;
+  if (typeof d === 'string') return d;
+  if (d && typeof d === 'object' && typeof (d as { message?: unknown }).message === 'string') return (d as { message: string }).message;
+  return `The server answered ${status}.`;
 }
 
 export type { Reading } from './types';
