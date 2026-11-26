@@ -170,6 +170,28 @@ class Smoke:
             time.sleep(3)
         return None
 
+    def app_in_front(self) -> bool:
+        focus = self.adb("shell", "dumpsys", "window", "displays", timeout=60, check=False)
+        return any(self.a.package in ln for ln in focus.splitlines() if "mCurrentFocus" in ln)
+
+    def wait_for_app_screen(self, timeout: float, max_relaunch: int = 3, **kw) -> dict | None:
+        """wait_for, but if Wear OS puts its own screen in front of the app (the watch face or
+        the charging clock, as runs 45755139976 and 45762586497 showed), bring the app back, at
+        most `max_relaunch` times, each one noted in the log."""
+        deadline = time.time() + timeout
+        relaunched = 0
+        while time.time() < deadline:
+            node = self.wait_for(min(30, max(1, deadline - time.time())), **kw)
+            if node is not None:
+                return node
+            if relaunched < max_relaunch and not self.app_in_front():
+                relaunched += 1
+                self.adb("shell", "am", "start", "-n", f"{self.a.package}/care.ira.watch.ui.MainActivity",
+                         timeout=120, check=False)
+                print(json.dumps({"note": f"another screen was in front of the app; brought it back ({relaunched})"}),
+                      flush=True)
+        return None
+
     def save_dump(self, label: str) -> None:
         (self.out / f"ui_{label}.xml").write_text(getattr(self, "last_xml", ""))
 
@@ -236,14 +258,7 @@ class Smoke:
                   total_time_ms=int(total.group(1)) if total else None, am_start=out.strip()[-300:])
 
         t0 = time.time()
-        title = self.wait_for(min(60, a.ui_timeout), text="Pair this watch")
-        if title is None and "ChargingActivity" in self.adb("shell", "dumpsys", "window", "displays",
-                                                              timeout=60, check=False):
-            # The charging clock came up anyway: bring the app to the front once, and say so.
-            self.adb("shell", "am", "start", "-n", f"{pkg}/care.ira.watch.ui.MainActivity", timeout=120, check=False)
-            print(json.dumps({"note": "charging screen was in front; app brought back"}), flush=True)
-        if title is None:
-            title = self.wait_for(a.ui_timeout, text="Pair this watch")
+        title = self.wait_for_app_screen(a.ui_timeout, text="Pair this watch")
         pair_btn = find(self.dump(), text="Pair") if title else None
         self.save_dump("pairing")
         shot = self.shot("pairing_screen")
@@ -324,7 +339,7 @@ class Smoke:
             r = subprocess.run([a.adb, "-s", a.serial, "shell", "pm", "grant", pkg, p], capture_output=True, text=True)
             granted.append({"permission": p, "ok": r.returncode == 0, "error": r.stderr.strip()[:160]})
         self.adb("shell", "am", "start", "-W", "-n", f"{pkg}/care.ira.watch.ui.MainActivity", timeout=300)
-        help_btn = self.wait_for(a.ui_timeout, desc_prefix="Help. Tells your family")
+        help_btn = self.wait_for_app_screen(a.ui_timeout, desc_prefix="Help. Tells your family")
         self.save_dump("home")
         shot = self.shot("home_help_button")
         if not self.step("home_help_button_visible", help_btn is not None, t0, screenshot=shot, permissions=granted):

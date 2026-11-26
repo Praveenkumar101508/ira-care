@@ -198,7 +198,7 @@ def test_smoke_failure_reports_what_is_on_screen():
 def test_smoke_reports_the_emulator_unplugged():
     # Wear OS puts its charging clock over every app while the emulator reports a charger.
     script = (ROOT / "scripts" / "emulator" / "watch_smoke.py").read_text(encoding="utf-8")
-    assert "dumpsys battery unplug" in script and "ChargingActivity" in script
+    assert "dumpsys battery unplug" in script and "wait_for_app_screen(" in script
 
 
 def test_smoke_taps_the_button_not_its_label():
@@ -226,3 +226,43 @@ def test_smoke_fails_when_the_app_crashed_on_the_way():
     assert smoke.app_crashes(other, "care.ira.watch.debug") == []
     assert smoke.app_crashes("", "care.ira.watch.debug") == []
     assert '"no_app_crash"' in (ROOT / "scripts" / "emulator" / "watch_smoke.py").read_text(encoding="utf-8")
+
+
+def test_smoke_brings_the_app_back_when_the_watch_face_covers_it(tmp_path):
+    smoke = _smoke_module()
+
+    class Args:
+        out, adb, serial, package = str(tmp_path), "adb", "emulator-5554", "care.ira.watch.debug"
+
+    s = smoke.Smoke(Args())
+    calls = []
+    screens = iter(["face", "face", "app"])
+    state = {"screen": "face"}
+
+    def fake_adb(*args, **kw):
+        calls.append(args)
+        if args[:2] == ("shell", "dumpsys"):
+            return f"  mCurrentFocus=Window{{1 u0 {'care.ira.watch.debug' if state['screen'] == 'app' else 'com.google.android.wearable.sysui'}/X}}"
+        if args[:3] == ("shell", "am", "start"):
+            state["screen"] = next(screens)
+        return ""
+
+    s.adb = fake_adb
+    s.wait_for = lambda timeout, **kw: {"text": "Pair this watch"} if state["screen"] == "app" else None
+    assert s.wait_for_app_screen(600, text="Pair this watch") == {"text": "Pair this watch"}
+    assert sum(1 for c in calls if c[:3] == ("shell", "am", "start")) == 3
+
+    # Negative control: a screen that never comes back stops after max_relaunch, returning None.
+    state["screen"] = "face"
+    screens = iter(["face"] * 10)
+    calls.clear()
+    s.wait_for = lambda timeout, **kw: None
+    import time as _t
+    real = _t.time
+    clock = [real()]
+    smoke.time.time = lambda: clock.__setitem__(0, clock[0] + 40) or clock[0]
+    try:
+        assert s.wait_for_app_screen(600, max_relaunch=2, text="Pair this watch") is None
+    finally:
+        smoke.time.time = real
+    assert sum(1 for c in calls if c[:3] == ("shell", "am", "start")) == 2

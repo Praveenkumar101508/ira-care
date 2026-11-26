@@ -37,7 +37,7 @@ The screenshots, UI dumps, logcat and `results.json` are uploaded as the run's a
 | Run | What stopped it | Fix |
 |---|---|---|
 | 45753366726 | The demo backend did not start: its worker scheduler imports `psutil`, which the test requirements leave out | The job installs the version pinned in `requirements.txt`; a test checks it |
-| 45755139976 | The app launched, but Wear OS's charging clock (sysui `ChargingActivity`) was on top, because the emulator reports a charger | The smoke reports the device unplugged before launch, and brings the app back once if the clock still appears |
+| 45755139976 | The app launched, but Wear OS's charging clock (sysui `ChargingActivity`) was on top, because the emulator reports a charger | The smoke reports the device unplugged before launch; if a Wear OS screen (the charging clock, or the watch face as in run 45762586497) still comes in front, the app is brought back, up to three times, each noted in the log |
 | 45757010887 | The code was typed, but the tap on Pair did nothing (the Wear keyboard was still over the screen, and the tap went to the label) | The keyboard is closed first, the tap goes to the button's clickable node, and it is repeated once if nothing changes |
 | 45758000634 | Pair answered "No connection. Try again.": the debug build's server is `http://10.0.2.2:8000`, and Android refuses cleartext HTTP unless the app allows it, so **the debug build could never reach a development server** | A debug-only network security config permits cleartext to 10.0.2.2, localhost and 127.0.0.1 only; release builds keep Android's default; guard tests (`test_watch_cleartext.py`) |
 
