@@ -20,7 +20,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[4]
 WORKFLOWS = ROOT / ".github" / "workflows"
-MANUAL = {"emulator.yml": 45, "ios-simulator.yml": 60}
+MANUAL = {"emulator.yml": 45, "ios-simulator.yml": 60, "phone-emulator.yml": 60}
 PINNED = re.compile(r"^[\w.-]+/[\w./-]+@[0-9a-f]{40}$")
 
 
@@ -144,7 +144,10 @@ def test_generated_native_folders_are_not_tracked():
 
 
 NATIVE_PATHS = {"watch/**", "mobile/**", "scripts/emulator/**", ".github/workflows/emulator.yml",
-                ".github/workflows/ios-simulator.yml", ".github/workflows/native-checks.yml"}
+                ".github/workflows/ios-simulator.yml", ".github/workflows/native-checks.yml",
+                ".github/workflows/phone-emulator.yml"}
+NATIVE_WORKFLOWS = {"./.github/workflows/emulator.yml", "./.github/workflows/ios-simulator.yml",
+                    "./.github/workflows/phone-emulator.yml"}
 
 
 def native_checks_problems(doc: dict) -> list[str]:
@@ -156,8 +159,8 @@ def native_checks_problems(doc: dict) -> list[str]:
     if not paths or not paths <= NATIVE_PATHS:
         problems.append(f"native-checks needs a path filter limited to the native apps, found {sorted(paths)}")
     called = {job.get("uses") for job in (doc.get("jobs") or {}).values()}
-    if called != {"./.github/workflows/emulator.yml", "./.github/workflows/ios-simulator.yml"}:
-        problems.append(f"native-checks must only call the two native workflows, found {sorted(map(str, called))}")
+    if called != NATIVE_WORKFLOWS:
+        problems.append(f"native-checks must call exactly the native workflows, found {sorted(map(str, called))}")
     return problems
 
 
@@ -266,3 +269,20 @@ def test_smoke_brings_the_app_back_when_the_watch_face_covers_it(tmp_path):
     finally:
         smoke.time.time = real
     assert sum(1 for c in calls if c[:3] == ("shell", "am", "start")) == 2
+
+
+def test_phone_smoke_checks_the_sign_in_screen():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("phone_smoke", ROOT / "scripts" / "emulator" / "phone_smoke.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    screen = [{"text": mod.SIGN_IN_TEXT}, {"text": "", "content-desc": "Username", "class": "android.widget.EditText"},
+              {"text": "", "content-desc": "Password", "class": "android.widget.EditText"}, {"text": "Sign in"}]
+    assert mod.sign_in_screen_problems(screen) == []
+    # Negative controls: a blank screen and a screen without the button are refused.
+    assert mod.sign_in_screen_problems([]) == ["no sign-in explanation", "no Username field", "no Password field",
+                                               "no Sign in button"]
+    assert mod.sign_in_screen_problems(screen[:3]) == ["no Sign in button"]
+    # The text the smoke waits for is the one the app shows.
+    login = (ROOT / "mobile" / "src" / "screens" / "LoginScreen.tsx").read_text(encoding="utf-8")
+    assert mod.SIGN_IN_TEXT in login

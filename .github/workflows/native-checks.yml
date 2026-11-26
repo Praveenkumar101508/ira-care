@@ -1,7 +1,8 @@
 # Native checks on pull requests that change the watch or phone apps.
 #
-# Runs the Wear OS emulator smoke journey and the unsigned iOS simulator build
-# (emulator.yml and ios-simulator.yml, both also runnable by hand). The
+# Runs the Wear OS emulator smoke journey, the family app on an Android phone
+# emulator and the unsigned iOS simulator build (emulator.yml, phone-emulator.yml
+# and ios-simulator.yml, all also runnable by hand). The
 # repository is public, so standard GitHub-hosted runners, Linux and macOS, are
 # free (docs/evidence/COMPUTE_RESOURCES.md). The path filter keeps these long jobs
 # to the pull requests that need them; tests/readiness/test_manual_workflows.py
@@ -17,6 +18,7 @@ on:
       - ".github/workflows/emulator.yml"
       - ".github/workflows/ios-simulator.yml"
       - ".github/workflows/native-checks.yml"
+      - ".github/workflows/phone-emulator.yml"
 
 permissions:
   contents: read
@@ -30,3 +32,7 @@ jobs:
       instrumented: false
   ios-simulator:
     uses: ./.github/workflows/ios-simulator.yml
+  phone-emulator:
+    uses: ./.github/workflows/phone-emulator.yml
+    with:
+      api_level: "34"
