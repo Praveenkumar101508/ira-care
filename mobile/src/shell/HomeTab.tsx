@@ -9,6 +9,9 @@ import { REMINDER_WORDS, reminderTitle } from '../model/reminders';
 import { visitTitle } from '../model/visits';
 import { BigButton, Body, Card, Muted, Screen, useColors } from '../ui';
 
+/** Shown in place of "No open alerts." while the server cannot be reached (G2.i). */
+export const STALE_WORDS = 'Cannot reach the care server. Alerts may be out of date.';
+
 export interface HomeData {
   experience: Experience; memberships: Membership[]; people: Person[]; person?: Person; device?: Device;
   alerts: Alert[]; visits: Visit[]; reminders: Reminder[]; lastCheckin?: { question_kind: string; status: string; scheduled_at: string; answer_summary: string } | null;
@@ -47,6 +50,9 @@ export function HomeTab({ d, a }: { d: HomeData; a: HomeActions }) {
         <BigButton label="I'm on my way" color="#FFFFFF" textColor={c.sos} testID="home-on-my-way" hint="Tells everyone you are going" onPress={() => a.onOnMyWay(urgent[0])} />
       ) : null}
     </Pressable>
+  ) : d.error ? (
+    // The last refresh failed: what is on screen may be out of date, so it is not called well.
+    <Card key="alerts-first" testID="card-stale"><Text style={{ color: c.urgent, fontSize: 16 }} maxFontSizeMultiplier={2}>{STALE_WORDS}</Text></Card>
   ) : (
     <Card key="alerts-first" testID="card-alerts"><Text style={{ color: c.ok, fontSize: 16 }} maxFontSizeMultiplier={2}>No open alerts.</Text></Card>
   );

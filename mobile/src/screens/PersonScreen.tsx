@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Linking, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { CareClient } from '../api/client';
 import { ApiError } from '../api/client';
-import type { Checkin, CircleMember, CommunicationProfile, ConsentList, Device, Memory, Person, PersonStatus, Reminder, Report, Visit, VisitOutcome } from '../api/types';
+import type { CarePlan, Checkin, CircleMember, CommunicationProfile, ConsentList, Device, Medication, Memory, Person, PersonStatus, Reminder, Report, Visit, VisitOutcome } from '../api/types';
 import { REMINDER_WORDS, reminderActions, reminderTitle } from '../model/reminders';
 import { VISIT_OUTCOMES, VISIT_OUTCOME_WORDS, currentVisit, visitActions, visitTitle } from '../model/visits';
 import { alertTitle } from '../model/alerts';
 import { deviceSummary, readingLabel, telLink, timeAgo } from '../model/format';
 import { BigButton, Card, Muted, Screen , useColors, type Palette } from '../ui';
 
-type Tab = 'status' | 'visits' | 'ira' | 'history' | 'reports' | 'contacts' | 'consent';
+type Tab = 'status' | 'plan' | 'visits' | 'ira' | 'history' | 'reports' | 'contacts' | 'consent';
 
 export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair }: {
   client: CareClient; person: Person; canManage: boolean; onBack: () => void; onTalk?: () => void; onPair?: () => void;
@@ -28,6 +28,8 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
   const [profile, setProfile] = useState<CommunicationProfile | null>(null);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [memory, setMemory] = useState<Memory[]>([]);
+  const [medications, setMedications] = useState<Medication[]>([]);
+  const [plan, setPlan] = useState<CarePlan | null>(null);
   const [editingDay, setEditingDay] = useState<string | null>(null);
   const [memoryText, setMemoryText] = useState('');
   const [handover, setHandover] = useState('');
@@ -37,12 +39,13 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
   const load = async () => {
     setError('');
     try {
-      const [s, c, m, k, rp, vs, pr, rm, me] = await Promise.all([
+      const [s, c, m, k, rp, vs, pr, rm, me, md, pl] = await Promise.all([
         client.status(person.id), client.checkins(person.id), client.circle(person.id), client.consents(person.id), client.reports(person.id),
         client.visits(person.id), client.profile(person.id), client.reminders(person.id), client.memory(person.id),
+        client.medications(person.id), client.plan(person.id),
       ]);
       setStatus(s); setCheckins(c.checkins); setAnswersIncluded(c.answers_included); setCircle(m); setConsents(k); setReports(rp); setVisits(vs);
-      setProfile(pr); setReminders(rm); setMemory(me);
+      setProfile(pr); setReminders(rm); setMemory(me); setMedications(md); setPlan(pl);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Could not load.');
     }
@@ -57,7 +60,7 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
   return (
     <Screen title={name}>
       <View style={styles.tabs}>
-        {(['status', 'visits', 'ira', 'history', 'reports', 'contacts', 'consent'] as Tab[]).map((t) => (
+        {(['status', 'plan', 'visits', 'ira', 'history', 'reports', 'contacts', 'consent'] as Tab[]).map((t) => (
           <Text key={t} onPress={() => setTab(t)} style={[styles.tab, tab === t && styles.tabOn]} testID={`tab-${t}`}>
             {t === 'ira' ? 'IRA' : t[0].toUpperCase() + t.slice(1)}
           </Text>
@@ -105,6 +108,30 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
                 <Text selectable style={styles.code}>{pairing.pairing_code}</Text>
               </Card>
             ) : null}
+          </>
+        )}
+        {tab === 'plan' && (
+          <>
+            <Card testID="medication-card">
+              <Text style={styles.h}>Medication</Text>
+              {medications.filter((m) => m.active).map((m) => (
+                <Text key={m.id} style={styles.line} testID={`medication-${m.id}`}>{medicationLine(m)}</Text>
+              ))}
+              {medications.filter((m) => m.active).length === 0 ? <Muted>No medication recorded. The care team records it from the dashboard.</Muted> : null}
+            </Card>
+            <Card testID="care-plan-card">
+              <Text style={styles.h}>Care plan</Text>
+              {plan ? (
+                <>
+                  <Muted>{`Version ${plan.version}${plan.review_on ? ` · review on ${plan.review_on}` : ''}`}</Muted>
+                  {plan.goals ? <Text style={styles.line} testID="plan-goals">{`Goals: ${plan.goals}`}</Text> : null}
+                  {plan.support ? <Text style={styles.line} testID="plan-support">{`Support: ${plan.support}`}</Text> : null}
+                  {plan.routine.map((r, i) => <Text key={i} style={styles.line} testID={`plan-routine-${i}`}>{`${r.when ? `${r.when} · ` : ''}${r.what} (${r.who.replace(/_/g, ' ')})`}</Text>)}
+                  {plan.risks ? <Text style={styles.line}>{`Risks: ${plan.risks}`}</Text> : null}
+                  {plan.emergency ? <Text style={styles.line}>{`In an emergency: ${plan.emergency}`}</Text> : null}
+                </>
+              ) : <Muted>No care plan written yet. The care team writes it from the dashboard.</Muted>}
+            </Card>
           </>
         )}
         {tab === 'visits' && (
@@ -269,6 +296,12 @@ export function PersonScreen({ client, person, canManage, onBack, onTalk, onPair
       <BigButton label="Back" color={colors.muted} onPress={onBack} />
     </Screen>
   );
+}
+
+/** One line per medicine: name, dose and the times of day, as the care team recorded them. */
+export function medicationLine(m: Medication): string {
+  const times = m.times.map((t) => t.slice(0, 5)).join(', ');
+  return `${m.name}${m.dose ? ` · ${m.dose}` : ''}${times ? ` · ${times}` : ''}`;
 }
 
 const makeStyles = (colors: Palette) => StyleSheet.create({

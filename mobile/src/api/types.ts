@@ -113,6 +113,12 @@ export interface Reminder {
   id: string; person_id: string; kind: 'reminder' | 'medication' | 'hydration'; text: string; medication_id: string | null;
   due_at: string; status: ReminderStatus; snoozed_until: string | null; source: string; asked_count: number; done_at: string | null;
 }
+export interface Medication { id: string; person_id: string; name: string; dose: string; times: string[]; notes: string; active: boolean }
+export interface PlanRoutineItem { what: string; when: string; who: string }
+export interface CarePlan {
+  id: string; person_id: string; version: number; goals: string; support: string; routine: PlanRoutineItem[];
+  risks: string; emergency: string; review_on: string | null; reason: string; author_name?: string; created_at?: string;
+}
 export interface Memory { day: string; summary: string; exchanges: number; updated_at: string; edited_at?: string | null; edited_by?: string }
 
 export interface PersonStatus {

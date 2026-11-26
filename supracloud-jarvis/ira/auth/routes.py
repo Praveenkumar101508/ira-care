@@ -247,6 +247,26 @@ def register_auth_routes(app: FastAPI, limiter) -> None:
                     status_code=503,
                     content={"detail": "Sign-out could not be completed. Please try again."},
                 )
+            # A refresh token is a device's sign-in. In the cloud edition its
+            # session row is ended too, so the person's session list says what
+            # happened and `/auth/refresh` is refused for the row as well as for
+            # the jti. Best effort after the blocklist write: the token is
+            # already dead, so a failure here leaves a stale list, not a live
+            # credential, and is logged loudly rather than reported as a failed
+            # sign-out.
+            if payload.tok == "refresh":
+                from core.editions import EDITION_CLOUD, current_edition
+
+                if current_edition() == EDITION_CLOUD:
+                    try:
+                        from core.identity.resolver import resolve_principal
+                        from core.identity.sessions import revoke_session_by_jti
+
+                        await revoke_session_by_jti(
+                            await resolve_principal(payload.sub, edition="cloud"),
+                            payload.jti, reason="signed out")
+                    except Exception:  # noqa: BLE001
+                        logger.exception("logout: the session row could not be ended")
         return {"message": "Logged out"}
 
     @app.post("/auth/logout/all", tags=["auth"], summary="Revoke ALL tokens for the current user")
