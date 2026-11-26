@@ -60,6 +60,17 @@ def find(nodes: list[dict], *, text: str | None = None, desc_prefix: str | None 
     return None
 
 
+def visible_text(nodes: list[dict]) -> list[str]:
+    """The texts and descriptions on screen, in order, without blanks or repeats."""
+    seen: list[str] = []
+    for n in nodes:
+        for key in ("text", "content-desc"):
+            v = n.get(key, "").strip()
+            if v and v not in seen:
+                seen.append(v)
+    return seen
+
+
 def centre(node: dict) -> tuple[int, int]:
     x1, y1, x2, y2 = map(int, re.findall(r"\d+", node["bounds"]))
     return (x1 + x2) // 2, (y1 + y2) // 2
@@ -93,10 +104,31 @@ class Smoke:
 
     def dump(self) -> list[dict]:
         # /data/local/tmp, not /sdcard: a watch image has no shared storage the shell can read back.
-        self.adb("shell", "uiautomator", "dump", "/data/local/tmp/ui.xml", timeout=180, check=False)
+        self.last_dump_output = self.adb("shell", "uiautomator", "dump", "/data/local/tmp/ui.xml",
+                                         timeout=180, check=False).strip()
         xml = self.adb("exec-out", "cat", "/data/local/tmp/ui.xml", timeout=60, check=False)
         self.last_xml = xml
         return parse_nodes(xml)
+
+    def diagnose(self, label: str) -> dict:
+        """What the device shows when a UI step fails, printed into the job log as well as saved,
+        because the uploaded artefacts are not always reachable by whoever reads the result."""
+        nodes = parse_nodes(getattr(self, "last_xml", ""))
+        focus = self.adb("shell", "dumpsys", "window", "displays", timeout=60, check=False)
+        crash = self.adb("logcat", "-d", "-b", "crash", timeout=60, check=False)
+        app_log = self.adb("logcat", "-d", "-t", "400", timeout=60, check=False)
+        info = {
+            "label": label,
+            "uiautomator": getattr(self, "last_dump_output", "")[-300:],
+            "visible_text": visible_text(nodes)[:40],
+            "packages_on_screen": sorted({n.get("package", "") for n in nodes} - {""}),
+            "focus": [ln.strip() for ln in focus.splitlines() if "mCurrentFocus" in ln or "mFocusedApp" in ln][:4],
+            "crash": crash.strip().splitlines()[-25:],
+            "app_errors": [ln for ln in app_log.splitlines() if " E " in ln or "FATAL" in ln][-25:],
+        }
+        (self.out / f"diagnosis_{label}.json").write_text(json.dumps(info, indent=2) + "\n")
+        print(json.dumps({"diagnosis": info}), flush=True)
+        return info
 
     def wait_for(self, timeout: float, **kw) -> dict | None:
         deadline = time.time() + timeout
@@ -260,6 +292,12 @@ class Smoke:
         except Exception as exc:   # the results still matter without the log
             print(f"logcat not saved: {exc}", file=sys.stderr)
         ok = bool(self.steps) and all(s["ok"] for s in self.steps)
+        if not ok:
+            try:
+                self.dump()
+                self.diagnose(self.steps[-1]["step"] if self.steps else "start")
+            except Exception as exc:   # a device that stopped answering still gets its results written
+                print(f"diagnosis not taken: {exc}", file=sys.stderr)
         (self.out / "results.json").write_text(json.dumps({"ok": ok, "steps": self.steps}, indent=2) + "\n")
         print(json.dumps({"ok": ok, "steps": len(self.steps)}))
         return 0 if ok else 1

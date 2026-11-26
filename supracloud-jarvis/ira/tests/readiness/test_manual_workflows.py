@@ -174,3 +174,22 @@ def test_negative_control_native_checks_widened_is_refused(mutate):
     doc = copy.deepcopy(_load("native-checks.yml"))
     mutate(doc.get("on", doc.get(True)))
     assert native_checks_problems(doc) != []
+
+
+def _smoke_module():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("watch_smoke", ROOT / "scripts" / "emulator" / "watch_smoke.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_smoke_failure_reports_what_is_on_screen():
+    smoke = _smoke_module()
+    xml = ('<hierarchy><node text="Pair this watch" content-desc="" package="care.ira.watch.debug"/>'
+           '<node text="" content-desc="Allow" package="com.google.android.permissioncontroller"/>'
+           '<node text="Pair this watch" package="care.ira.watch.debug"/></hierarchy>')
+    assert smoke.visible_text(smoke.parse_nodes(xml)) == ["Pair this watch", "Allow"]
+    # Negative control: an empty dump (uiautomator failed) shows nothing, rather than raising.
+    assert smoke.visible_text(smoke.parse_nodes("")) == []
+    assert "self.diagnose(" in (ROOT / "scripts" / "emulator" / "watch_smoke.py").read_text(encoding="utf-8")
