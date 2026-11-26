@@ -1774,3 +1774,49 @@ behaviour for that re-run. Tests: `FallCountdownOverlapTest.kt` (written against
 the fix: five of its seven tests fail on the old code), `FallCountdownIncidentTest.kt`,
 `tests/tenancy/test_care_fall_overlap_db.py` (all six fail on the old server),
 `tests/readiness/test_cross_dataset_eval.py`.
+
+## D-094 Heart research mode: when the learned selector is unsure, the window is unavailable, not answered by the classical estimator (requirement F3.g, 26 November 2026)
+
+The research pipeline (`care/heart_research.py`, D-086) reported the classical estimate whenever
+the learned selector's probability was below 0.5 and the classical confidence was at least 0.3. Two
+evaluations found those answers poor: on held-out PPG-DaLiA subject S1 they were 16.23 bpm out
+(against 4.59 for the confident learned answers), and on the independent GalaxyPPG data 29.27 bpm
+on the Empatica E4 and 39.44 bpm on the Galaxy Watch 5 (against 2.19 and 1.63).
+
+Decision: **when the learned selector has run and is unsure, the window is unavailable** with the
+reason `learned_low_confidence` (or `learned_no_candidates` if it found no candidate peak), and no
+number. The classical candidate is still shown in the window's detail, as a candidate, never as the
+answer. The classical estimate is still reported, labelled as a fallback with why, only where the
+learned selector cannot run at all: no model (`no_model`) or no accelerometer (`no_accelerometer`).
+Nothing else changes: thresholds, the motion gate, the provenance, and the flags
+(`is_measurement: false`, `may_alert: false`, `stored: false`).
+
+**An agreement check was considered and rejected.** The alternative was to keep the classical
+answer when it is within 5 bpm of the learned candidate (5 bpm being the selector's own definition
+of a correct candidate, fixed in advance). The rule for choosing was fixed before running: adopt it
+only if, pooled over the 14 PPG-DaLiA subjects other than S1 (leave-one-subject-out fold models;
+S1 was not used to decide, and GalaxyPPG was not used at all), the windows it would add score no
+worse than the confident learned answers. They did not: 13.68 bpm on 3,377 windows, against 3.31
+bpm on 39,632. When the two methods agree while the selector is unsure, they are often both
+following the same wrong peak (a motion harmonic). Record: `docs/ai/heart/fallback_rule_analysis.json`,
+`scripts/training/heart_fallback_rule.py`.
+
+| 14 subjects without S1 (LOSO) | MAE (bpm) | Coverage | Reported windows over 10 bpm out |
+| --- | --- | --- | --- |
+| Previous rule (classical fallback) | 7.09 | 78.6% | 16.1% |
+| Agreement within 5 bpm (rejected) | 4.12 | 71.6% | 9.2% |
+| Unavailable (adopted) | 3.31 | 66.0% | 6.3% |
+
+**Re-measured on held-out S1** (`docs/ai/heart/research_pipeline_eval.json`, same fold model,
+SHA-256 `31670471ecfc…`): reported 7.19 bpm on 3,565 windows (77.5%) before, 4.59 bpm on 2,768
+(60.1%) after; the 797 windows no longer answered (16.23 bpm) are now `learned_low_confidence`.
+**On GalaxyPPG** (not re-run, because the change only relabels windows and does not change what the
+estimators compute, so the "learned" rows of the existing run are exactly the new rule's output):
+on the E4, 3.56 bpm on 86.4% of the windows with a reference before, 2.19 bpm on 82.0% after; on
+the Galaxy Watch 5, 7.75 bpm on 78.8% before, 1.63 bpm on 66.0% after
+(`docs/ai/heart/CROSS_DATASET_GALAXYPPG.md`).
+
+What it costs: fewer answers. Coverage falls by 12.6 percentage points on the 14 PPG-DaLiA
+subjects, 17.3 on S1, 4.4 on the GalaxyPPG E4 and 12.8 on the Galaxy Watch. In research mode
+"unavailable" is the honest answer there. What would change it: a better fallback shown on separate
+data (not S1 and not GalaxyPPG, which have now both been used to judge this one).

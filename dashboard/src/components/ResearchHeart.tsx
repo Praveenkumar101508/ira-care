@@ -1,5 +1,5 @@
 import {
-  FALLBACK_WORDS, RESEARCH_BANNER, SOURCE_WORDS, answerWords, boxOf, confidenceWords, estimateSeries, isResearchResult,
+  FALLBACK_WORDS, LEARNED_UNSURE_WORDS, RESEARCH_BANNER, SOURCE_WORDS, answerWords, boxOf, confidenceWords, estimateSeries, isResearchResult,
   scaledPolyline, seriesPoints, type ResearchResult, type ResearchSource,
 } from '@/lib/research';
 
@@ -99,7 +99,8 @@ export function ResearchView({ result }: { result: unknown }) {
           <li>Recording: {SOURCE_WORDS[r.source as ResearchSource]}{rec.sample ? `, sample “${rec.sample}”` : ', uploaded'}.{rec.reference_kind ? ` Reference: ${rec.reference_kind}.` : ''}</li>
           {rec.attribution ? <li className="muted">{rec.attribution}</li> : null}
         </ul>
-        <p className="muted">A fallback to the classical estimator happens when {Object.values(FALLBACK_WORDS).join(', or ')}.</p>
+        <p className="muted">A fallback to the classical estimator happens only when {Object.values(FALLBACK_WORDS).join(', or ')}.</p>
+        <p className="muted" data-testid="research-learned-unsure">{LEARNED_UNSURE_WORDS}</p>
       </div>
     </section>
   );

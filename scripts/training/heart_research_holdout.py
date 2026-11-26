@@ -117,6 +117,11 @@ def summarise(result: hr.ResearchResult, label) -> dict:
     rep = np.array([np.nan if x.bpm is None else x.bpm for x in w[:n]])
     rep_learned = np.array([x.bpm if x.method == "learned" else np.nan for x in w[:n]], float)
     rep_classical = np.array([x.bpm if x.method == "classical" else np.nan for x in w[:n]], float)
+    # What the rule before D-094 reported in the windows where the learned selector ran but was
+    # unsure: the classical estimate, when it was reliable. Computed from the same run.
+    held_back = np.array([x.classical["bpm"] if x.reason in hr.LEARNED_UNSURE.values() and x.classical
+                          and x.classical.get("bpm") is not None else np.nan for x in w[:n]], float)
+    previous = np.where(np.isfinite(rep), rep, held_back)
     s = result.summary()
     return {
         "windows": n,
@@ -126,6 +131,9 @@ def summarise(result: hr.ResearchResult, label) -> dict:
         "reported_share_of_windows": round(float(np.isfinite(rep).mean()), 4),
         "reported_learned": dict(zip(("mae_bpm", "windows"), mae(rep_learned, label))),
         "reported_classical_fallback": dict(zip(("mae_bpm", "windows"), mae(rep_classical, label))),
+        "previous_rule_reported": dict(zip(("mae_bpm", "windows"), mae(previous, label))),
+        "previous_rule_reported_share_of_windows": round(float(np.isfinite(previous).mean()), 4),
+        "previous_rule_classical_fallback": dict(zip(("mae_bpm", "windows"), mae(held_back, label))),
         "unavailable_by_reason": s["unavailable_by_reason"],
         "resources": result.resources,
     }
