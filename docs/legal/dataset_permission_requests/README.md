@@ -1,8 +1,11 @@
 # Dataset permission requests (drafts)
 
-**Drafts for the founders to send.** Four (KFall, FallAllD, SisFall, UMAFall) have not been sent and
-nobody has been contacted about them. The fifth, WEDA-FALL, **was sent on 26 November 2026** to the
-contact address its README gives ([`WEDA_FALL_PERMISSION_REQUEST_2026-11-26.md`](../WEDA_FALL_PERMISSION_REQUEST_2026-11-26.md)); a reply is awaited.
+**Drafts for the founders to send.** Three (KFall, FallAllD, UMAFall) have not been sent and nobody
+has been contacted about them. Two **were sent on 26 November 2026** at the founders' instruction,
+and replies are awaited: SisFall, to the corresponding author
+([`SISFALL_PERMISSION_REQUEST_2026-11-26.md`](../SISFALL_PERMISSION_REQUEST_2026-11-26.md)), and
+WEDA-FALL, to the contact address its README gives
+([`WEDA_FALL_PERMISSION_REQUEST_2026-11-26.md`](../WEDA_FALL_PERMISSION_REQUEST_2026-11-26.md)).
 
 Each file is one request, written from the licence register in `docs/DATASETS.md` (re-verified
 on 25 November 2026). Before sending one:
@@ -20,7 +23,7 @@ on 25 November 2026). Before sending one:
 | --- | --- | --- |
 | [`KFALL.md`](KFALL.md) | KFall | Restricted: access by request and approval; commercial use needs the authors' permission |
 | [`FALLALLD.md`](FALLALLD.md) | FallAllD | No licence for the dataset could be read; commercial use unclear |
-| [`SISFALL.md`](SISFALL.md) | SisFall | The first watch fall model (v1) was trained on a re-upload whose licence comes from an unnamed uploader; it is in no build (D-077, D-082), and the authors' terms decide any future use |
+| [`SISFALL_PERMISSION_REQUEST_2026-11-26.md`](../SISFALL_PERMISSION_REQUEST_2026-11-26.md) | SisFall | **Sent 26 November 2026.** The first watch fall model (v1) was trained on a re-upload whose licence comes from an unnamed uploader; it is in no build (D-077, D-082), and the authors' terms decide any future use |
 | [`UMAFALL.md`](UMAFALL.md) | UMAFall | The owner reports CC BY 4.0 for version 8; another record suggests a non-commercial licence; a short confirmation |
 | [`WEDA_FALL_PERMISSION_REQUEST_2026-11-26.md`](../WEDA_FALL_PERMISSION_REQUEST_2026-11-26.md) | WEDA-FALL | **Sent 26 November 2026.** The README and LICENSE say ODC-By 1.0; a separate browser check found no clear licence; confirmation of commercial use asked for |
 

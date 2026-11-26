@@ -60,8 +60,9 @@ founders' review.
   re-upload by an unnamed account, **not** demonstrably the authors' record, as this file said
   before. The authors' own terms (Universidad de Antioquia, SISTEMIC) could not be read from
   here. Commercial use is therefore `unclear`. The shipped watch fall model was trained on it,
-  so a confirmation request to the authors is drafted
-  ([`SISFALL.md`](legal/dataset_permission_requests/SISFALL.md)) and the owner must decide
+  so a confirmation request to the authors was drafted and, on 26 November 2026, **sent**
+  ([`SISFALL_PERMISSION_REQUEST_2026-11-26.md`](legal/SISFALL_PERMISSION_REQUEST_2026-11-26.md)); a
+  reply is awaited, and the owner had to decide
   whether to keep shipping that model until the answer arrives. *(Later the same day the owner
   decided: the SisFall-trained model is in no build of any kind, debug included (D-077, D-082);
   every build carries fall model v3, trained only on BITS-2 and UCI HAR (D-080).)*

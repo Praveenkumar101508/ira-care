@@ -1,6 +1,12 @@
-# Confirmation of the SisFall terms for a commercial care product (draft)
+# Confirmation of the SisFall terms for a commercial care product (sent)
 
-**Draft, not sent.** For the founders to review, complete and send.
+**Sent on 26 November 2026 at about 13:39 UTC** from the founders' Gmail account, at the founders'
+instruction, to the corresponding author at the address printed in the *Sensors* 2017 paper, asking
+for it to be passed to the two co-authors. **Awaiting a reply.** This record is kept outside
+`dataset_permission_requests/`, which holds only unsent drafts. The message as sent is the one in
+the founders' Gmail; the request below is its text. When a reply arrives, record it in
+`docs/DATASETS.md` (licence, date, who confirmed, any conditions) and keep the reply itself with the
+company's legal records, not in this repository.
 
 Why this is still worth sending: the first IRA watch fall model (v1) was trained on SisFall,
 downloaded from Zenodo record 22212281. That record states CC BY 4.0, but its creator field is

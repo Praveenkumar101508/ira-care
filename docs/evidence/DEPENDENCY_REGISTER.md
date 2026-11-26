@@ -151,8 +151,8 @@ section M.
   **was sent to its authors on 26 November 2026** (`docs/legal/WEDA_FALL_PERMISSION_REQUEST_2026-11-26.md`);
   no further use until they reply.
 - **Why external:** only the authors can grant or clarify their terms.
-- **Software preparation complete:** four request drafts and one sent request (`docs/legal/dataset_permission_requests/README.md`
-  and the files beside it); the shipped fall model uses only CC BY 4.0 data (D-080); SisFall is in
+- **Software preparation complete:** three request drafts and two sent requests, SisFall and WEDA-FALL on
+  26 November 2026 (`docs/legal/dataset_permission_requests/README.md` and the files beside it); the shipped fall model uses only CC BY 4.0 data (D-080); SisFall is in
   no build (D-082).
 - **Needed:** the founders send the requests.
 - **Next action:** see owner item O2 below: the recipients are not yet verified.
@@ -255,7 +255,7 @@ section M.
 | # | Action | State | Next action |
 | --- | --- | --- | --- |
 | O1 | Delete merged branches on GitHub | Pending the owner's permission: the session's access cannot delete branches (`docs/progress/FINAL_REPORT.md`, `docs/progress/NEXT.md`) | The owner deletes them from the GitHub branches page, or grants permission |
-| O2 | Send the dataset permission requests (KFall, FallAllD, SisFall, UMAFall; WEDA-FALL **sent** 26 November 2026, reply awaited) | Four drafted, **not sent**. The recipients are **not verified**: the publishers' sites were unreachable from the build environment when the drafts were written, so no address was copied into them (`docs/legal/dataset_permission_requests/README.md`) | The founders open each official page, confirm the addressee and route, and send |
+| O2 | Send the dataset permission requests (KFall, FallAllD, UMAFall; SisFall and WEDA-FALL **sent** 26 November 2026, replies awaited) | Three drafted, **not sent**. The recipients are **not verified**: the publishers' sites were unreachable from the build environment when the drafts were written, so no address was copied into them (`docs/legal/dataset_permission_requests/README.md`) | The founders open each official page, confirm the addressee and route, and send |
 | O3 | Create the signing keys | Not created (group E) | Founders, per `docs/security/SIGNING_KEYS.md` |
 | O4 | Mozilla Data Collective account | Not opened (group I) | Owner |
 | O5 | Apple and Google developer accounts; a Mac | Not opened (group F) | Owner |
