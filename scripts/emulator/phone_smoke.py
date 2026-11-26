@@ -200,9 +200,18 @@ class PhoneSmoke:
         self.creds = json.loads(Path(self.a.credentials).read_text())
         by_key = {l["key"]: l for l in self.creds["logins"]}
         self.family, self.wearer, self.coordinator = by_key["family"], by_key["wearer"], by_key["coordinator"]
-        self.person = self.creds["people"][0]
+        self.person = dict(self.creds["people"][0])
         self.h_coord = self.sign_in_api(self.coordinator)
         self.h_family = self.sign_in_api(self.family)
+        # The app shows the person's preferred name (PersonScreen, HomeTab); the seed file carries
+        # only the display name, so the record is read for it (run 45910155640: "Ada" was shown and
+        # "Ada Hartley" looked for).
+        try:
+            record = self.api("GET", f"/api/v1/care/people/{self.person['id']}", None, self.h_coord)
+            self.person.setdefault("preferred_name", record.get("preferred_name") or "")
+        except RuntimeError:
+            pass
+        self.shown_name = self.person.get("preferred_name") or self.person["display_name"].split()[0]
 
     def person_path(self, tail: str) -> str:
         return f"/api/v1/care/people/{self.person['id']}/{tail}"
@@ -269,20 +278,31 @@ class PhoneSmoke:
         return self.step(f"{label}_signed_in", ok, t0, screenshot=self.shot(f"{label}_home"),
                          visible_text=visible_text(parse_nodes(self.last_xml))[:12])
 
+    def scroll_to_id(self, rid: str, swipes: int = 4) -> bool:
+        """Scroll a list until a test id is on screen (uiautomator dumps only what is drawn)."""
+        for _ in range(swipes + 1):
+            if find_id(self.dump(), rid) is not None:
+                return True
+            self.adb("shell", "input", "swipe", "540", "1900", "540", "700", "300")
+            time.sleep(1.5)
+        return find_id(self.dump(), rid) is not None
+
     def sign_out_app(self) -> list[dict]:
+        """Settings, the Account section, Sign out (run 45910155640: the button lives inside the
+        Account section and below the fold, so it was never found)."""
         self.tap_id("tab-settings")
         time.sleep(2)
-        nodes = self.dump()
-        if find_id(nodes, "sign-out") is None:
-            self.adb("shell", "input", "swipe", "500", "1800", "500", "600")
-            time.sleep(1)
-        self.tap_id("sign-out")
+        if self.scroll_to_id("settings-account"):
+            self.tap_id("settings-account")
+            time.sleep(2)
+        if self.scroll_to_id("sign-out"):
+            self.tap_id("sign-out")
         return self.wait_for(lambda n: find_id(n, "sign-in") is not None, self.a.ui_timeout)
 
     def journey(self) -> None:
         a = self.a
         self.load_credentials()
-        name = self.person.get("preferred_name") or self.person["display_name"]
+        name = self.shown_name
 
         # 1. The family member signs in and the person is on the home screen.
         if not self.sign_in_app(self.family, "family"):
@@ -298,9 +318,7 @@ class PhoneSmoke:
         status = self.api("GET", self.person_path("status"), None, self.h_coord)
         self.tap_id("home-care")
         nodes = self.wait_for(lambda n: find_id(n, "tab-plan") is not None, a.ui_timeout)
-        problems = person_record_problems(nodes, self.person["display_name"], status)
-        if problems and problems[0].startswith("title") and has_text(nodes, name):
-            problems = problems[1:]
+        problems = person_record_problems(nodes, name, status)
         self.step("person_record_shown", not problems, t0, missing=problems, screenshot=self.shot("person_record"),
                   readings=status.get("latest_readings"))
 
@@ -346,7 +364,8 @@ class PhoneSmoke:
         t0 = time.time()
         self.tap_id("tab-settings")
         time.sleep(2)
-        self.tap_id("settings-appearance")
+        if self.scroll_to_id("settings-appearance"):
+            self.tap_id("settings-appearance")
         nodes = self.wait_for(lambda n: find_id(n, "mode-dark") is not None, a.ui_timeout)
         self.tap_id("mode-dark", nodes)
         time.sleep(2)
