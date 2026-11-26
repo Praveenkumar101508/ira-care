@@ -1002,6 +1002,8 @@ class Smoke:
         """`fn()`'s first true-ish value within `timeout` seconds, else None."""
         deadline = time.time() + timeout
         while True:
+            if isinstance(self.wrist, ApiWrist):
+                self.wrist.refresh()   # the app polls the server by itself; the API-only wrist only when asked
             v = fn()
             if v:
                 return v
@@ -1044,6 +1046,14 @@ class Smoke:
                   previous={k: current.get(k) for k in ("quiet_start", "quiet_end", "checkin_min_minutes", "checkin_max_minutes")},
                   fall_countdown_s=after.get("fall_countdown_s"), fall_detection_enabled=after.get("fall_detection_enabled"))
         self.countdown_s = int(after.get("fall_countdown_s") or 30)
+        # A question left open by an earlier run would hide a reminder's buttons: answer it first.
+        stray = [c for c in self.checkins() if c.get("status") in ("scheduled", "asked", "repeated") and not c.get("reminder_id")]
+        if stray:
+            t0 = time.time()
+            shown = self.wrist.wait_text("I'm OK", self.a.reminder_timeout)
+            tapped = self.wrist.tap("I'm OK") if shown else None
+            left = self.wait_until(lambda: not [c for c in self.checkins() if c.get("status") in ("asked", "repeated")] or None, 60)
+            self.step("journey_stray_question_answered", tapped is not None and left is not None, t0, stray=[c.get("id") for c in stray])
 
     def journey_medication(self) -> None:
         """A medicine due now, answered unclearly (nothing recorded, C-1), then confirmed in two steps."""
