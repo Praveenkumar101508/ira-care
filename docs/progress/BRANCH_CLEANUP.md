@@ -1,5 +1,12 @@
 # Branch clean-up (owner action)
 
+**Status, 26 November 2026 (later):** the owner deleted the obsolete branches. Remaining on GitHub:
+- `main`;
+- `docs/business-research`, whose content is merged through the founder-actions pull request and can be deleted once that merges;
+- `praveen/tender-carson-8yjrj4`, still safe to delete for the reason below.
+
+The list is kept as the record of what was checked.
+
 Checked on 26 November 2026: every branch below belongs to a pull request that was merged
 into `main`, and the branch's last commit is exactly the commit that pull request merged, so no
 unmerged work is lost by deleting it. The one exception, `praveen/tender-carson-8yjrj4`, has no
