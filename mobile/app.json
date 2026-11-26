@@ -43,7 +43,19 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "IRA CARE opens your photos only when you choose one of your own pictures as the app's background.",
+          "cameraPermission": false
+        }
+      ],
       [
         "expo-notifications",
         {
