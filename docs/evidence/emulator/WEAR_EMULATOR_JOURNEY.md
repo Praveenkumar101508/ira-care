@@ -72,3 +72,61 @@ result.
 
 The job runs by itself on any pull request that changes `watch/**`, `mobile/**`, `scripts/emulator/**`
 or the three workflow files. It also runs by hand from the Actions tab (`Wear OS emulator`, "Run workflow").
+
+## Round 9: extended journey — written, not yet run on the emulator
+
+The eleven core steps above are unchanged. `scripts/emulator/watch_smoke.py` now continues past
+them through nine groups, chosen with `--steps` (default `all`; the workflow's `steps` input)
+and cut short with `--until`. Each group is guarded: a failure records its steps, takes the
+device diagnosis, and the next group still runs. Evidence goes to `--out` as before
+(screenshots, `ui_<screen>.xml` dumps, server JSON in `results.json`, logcat). **This section
+records what is written and proved without a device. No emulator run of these groups has
+happened yet**: the build machine has no KVM, so the coordinator runs the workflow on GitHub's
+standard runner (`emulator.yml`, "Run workflow", journey `care-journey`, steps `all`) and the
+results of that run are to be added here.
+
+| Group | Steps | What a pass proves |
+|---|---|---|
+| `medication` | `medication_reminder_created`, `medication_reminder_shown`, `medication_unclear_not_recorded`, `medication_confirm_asked`, `medication_taken_two_step` | A medicine due now reaches the wrist as a reminder with Done / Later / Not today. "Later" (the touch alternative to an unclear spoken answer such as "maybe later" or "I think so") snoozes the reminder and **records no taken dose** (C-1). A second reminder answered "Done" makes the server ask once more ("you've taken X. Is that right?") before anything is written; the second "Done" records one dose: `status taken`, `confirmed_via checkin`, `source self_report`, `checkin_id` the confirmation check-in, both check-ins `answered_via button`. The server's provenance for the wrist is `confirmed_via = checkin` (the dose came through the watch's own check-in); there is no `source = watch` value in the schema (`care/repository.py DOSE_SOURCES`). Every step records `voice_exercised: false`: speech is not exercised on the emulator |
+| `checkin` | `checkin_requested`, `checkin_shown`, `checkin_answered_by_touch` | A family member's "ask now" becomes the question on the wrist within the watch's 60 s poll; "I'm OK" answers it (`answered_via button`) |
+| `fall` | `fall_countdown_shown`, `fall_second_detection_attached`, `fall_alert_after_countdown`, `fall_alert_resolved` | A synthetic fall (`am broadcast` to the debug build's `SyntheticFallReceiver`, which hands a `FallEvent.SuspectedFall` to the care service through `FallInjection`, the same method the detectors' events go through) starts the countdown ("Help in N s") and an `asking` `suspected_fall` alert. A second synthetic fall 5 s later during the countdown is **attached** to that alert (`details.detections` has two entries) and there is still exactly one unresolved SOS alert (D-092). When the countdown lapses the wrist shows "Help request received." and the same alert is `open` with `outcome no_answer` |
+| `help_during_fall` | `help_during_fall_countdown_shown`, `help_during_fall_one_alert`, `responder_status_on_wrist`, `help_during_fall_resolved` | Help pressed during a fall countdown opens the fall's own alert, not a second one (one unresolved SOS alert, kind `suspected_fall`). The family member acknowledges "on my way" through the API and the wrist shows "`<name>` is on the way." (the server's word over the SOS stream) |
+| `offline` | `offline_help_queued_offline`, `offline_queue_delivered_once` | With `svc wifi disable && svc data disable` the face shows "Offline: saving for later"; Help pressed shows "Waiting for connection. Help request saved." and **nothing reaches the server**; with connectivity back the request arrives **exactly once** (`help_requested`) and the wrist shows it was received |
+| `reboot` | `reboot_help_queued_offline`, `reboot_monitoring_resumed`, `reboot_home_screen`, `reboot_queue_delivered_once` | A Help queued offline survives `adb reboot`: after `sys.boot_completed` the care service is running again (`BootReceiver`), the paired home screen is shown, and the queued request arrives once when connectivity returns |
+| `permission` | `permission_revoked_shown`, `permission_revoked_reported`, `permission_regranted_recovered` | `pm revoke` of `BODY_SENSORS_BACKGROUND` and `BODY_SENSORS` shows the "Background sensors" permission screen, and the server's device row reports `background_sensor_permission: false` on the next sync (D1.g); granting them again brings the home screen back and the row reports `true` |
+| `unpair` | `unpair_warning_shown`, `unpaired_on_server`, `old_token_refused`, `repair_type_code`, `repair_paired`, `repaired_isolated` | "Unpair watch…" shows the warning ("Unpair this watch? IRA will stop watching over you…") with "Keep paired" first; "Unpair" returns the pairing screen, the server row is `revoked` and a `watch_unpaired` notice is opened. The dead token is proved with a scratch device of the journey's own (paired by code, unpaired, then `GET /devices/me` and `POST /devices/me/help` answer 401), because the watch's own token is sealed on the device. Pairing again with a new code gives a new `paired` row while the old stays `revoked`. The Unpair button appears only once the server stops reporting the closed SOS (ten minutes), so this group waits up to `--sos-idle-timeout` |
+| `accessibility` | `accessibility_labels`, `accessibility_touch_targets` | On every dumped app screen (home, reminder, confirmation, check-in, fall, Help, responder, permission, unpair) every clickable node has text or a content description, and none is smaller than 44 dp (the rule `AccessibilityTest.kt` keeps on the source) in pixels at the device's `wm density`, with a 48 px floor |
+
+A `journey_settings` step runs first: quiet hours off and the routine check-ins pushed to every
+240 minutes for the demo person, so the journey's own questions are the only ones asked whatever
+hour the runner is in; any question left open is answered first (`journey_stray_question_answered`).
+Every alert a group opens is resolved by the coordinator at the end of the group. The journey
+ends with `no_app_crash_after_journey`.
+
+### Proved without a device
+
+- **Pure helpers, with recorded dumps and fake adb and API transports**:
+  `supracloud-jarvis/ira/tests/readiness/test_watch_smoke_journey.py` (12 tests): group selection,
+  the accessibility checks on a recorded 454 × 454 home dump, the dose checks (a carer-written dose
+  is never the wrist's), reminder check-ins, one fall alert with two detections, the wrist's words
+  matched against the Kotlin sources, boot and service checks, the broadcast arguments, the adb
+  wrist tapping the button's centre, and the API-only wrist holding Help offline, sending it once
+  with its key, attaching a second detection, and answering a reminder by button. Negative controls
+  were run by breaking the code (an unknown group accepted; a carer-written dose accepted; height
+  ignored in the touch-target check; Help sent twice; the receiver declared in the main manifest;
+  the workflow without the `--steps` flag): each made exactly its test fail, and the code was restored.
+- **The synthetic fall trigger is debug-only**: `watch/app/src/test/.../SyntheticFallReleaseTest.kt`
+  (4 JVM tests, run here with a scratch SDK: pass) and `tests/readiness/test_watch_synthetic_fall.py`
+  (4 tests) scan every source set: the receiver and its manifest entry exist in `src/debug` alone,
+  the main manifest declares only `BootReceiver`, and nothing in `main` calls `FallInjection.inject`.
+  Negative control: a copy of the receiver in `src/release` made `no other source set names the
+  receiver or its action` fail (`expected:<[]> but was:<[src/release/java/.../SyntheticFallReceiver.kt]>`);
+  the copy was removed. `FallInjectionTest.kt` (3 tests) covers the extras parsing (Float, Int, Long
+  and String extras; refused peaks and still times) and the flow to the service.
+- **The API side of every group, against the demo API** (`--api-only`): the watch's calls played
+  over HTTP with a device token (`ApiWrist`), on this machine, database `ira_watchjourney`
+  (provisioned, migrated to 123, seeded with `scripts/demo/seed_demo.py`), `scripts/demo/api.py` on
+  port 8791, the worker scheduler running. See the record below.
+
+### The API-only dry run (26 November 2026, this machine)
+
