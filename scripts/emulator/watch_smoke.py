@@ -175,9 +175,13 @@ class Smoke:
         print(json.dumps({"device": props}), flush=True)
 
         # A fresh emulator: mark setup done (the Wear setup wizard otherwise holds
-        # the app's task back), keep the screen on and wake it.
+        # the app's task back), keep the screen on and wake it. The emulator reports that
+        # it is on a charger, and Wear OS then puts its charging clock (sysui
+        # ChargingActivity) over every app (run 45755139976); report it unplugged, as a
+        # watch on a wrist is. `stayon true` keeps the screen on without a charger.
         t0 = time.time()
         for cmd in ("settings put secure user_setup_complete 1", "settings put global device_provisioned 1",
+                    "dumpsys battery unplug", "dumpsys battery set status 3",
                     "svc power stayon true", "settings put system screen_off_timeout 2147483647",
                     "input keyevent KEYCODE_WAKEUP"):
             self.adb("shell", cmd, timeout=120, check=False)
@@ -201,7 +205,14 @@ class Smoke:
                   total_time_ms=int(total.group(1)) if total else None, am_start=out.strip()[-300:])
 
         t0 = time.time()
-        title = self.wait_for(a.ui_timeout, text="Pair this watch")
+        title = self.wait_for(min(60, a.ui_timeout), text="Pair this watch")
+        if title is None and "ChargingActivity" in self.adb("shell", "dumpsys", "window", "displays",
+                                                              timeout=60, check=False):
+            # The charging clock came up anyway: bring the app to the front once, and say so.
+            self.adb("shell", "am", "start", "-n", f"{pkg}/care.ira.watch.ui.MainActivity", timeout=120, check=False)
+            print(json.dumps({"note": "charging screen was in front; app brought back"}), flush=True)
+        if title is None:
+            title = self.wait_for(a.ui_timeout, text="Pair this watch")
         pair_btn = find(self.dump(), text="Pair") if title else None
         self.save_dump("pairing")
         shot = self.shot("pairing_screen")

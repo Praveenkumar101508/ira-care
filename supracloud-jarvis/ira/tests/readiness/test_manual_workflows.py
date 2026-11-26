@@ -193,3 +193,9 @@ def test_smoke_failure_reports_what_is_on_screen():
     # Negative control: an empty dump (uiautomator failed) shows nothing, rather than raising.
     assert smoke.visible_text(smoke.parse_nodes("")) == []
     assert "self.diagnose(" in (ROOT / "scripts" / "emulator" / "watch_smoke.py").read_text(encoding="utf-8")
+
+
+def test_smoke_reports_the_emulator_unplugged():
+    # Wear OS puts its charging clock over every app while the emulator reports a charger.
+    script = (ROOT / "scripts" / "emulator" / "watch_smoke.py").read_text(encoding="utf-8")
+    assert "dumpsys battery unplug" in script and "ChargingActivity" in script
