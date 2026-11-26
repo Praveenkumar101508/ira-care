@@ -60,6 +60,12 @@ def find(nodes: list[dict], *, text: str | None = None, desc_prefix: str | None 
     return None
 
 
+def app_crashes(crash_log: str, package: str) -> list[str]:
+    """The crash-buffer lines that start a crash of this app's process."""
+    return [ln.strip() for ln in crash_log.splitlines()
+            if ("FATAL EXCEPTION" in ln or "Process: " in ln) and package in ln]
+
+
 def visible_text(nodes: list[dict]) -> list[str]:
     """The texts and descriptions on screen, in order, without blanks or repeats."""
     seen: list[str] = []
@@ -341,6 +347,13 @@ class Smoke:
         mine = [x for x in alerts if x.get("person_id") == person["id"] and x.get("kind") == "help_requested"]
         self.step("help_received_on_wrist", received is not None, t0, screenshot=shot)
         self.step("help_alert_on_server", len(mine) == 1, t0, alerts=[{k: x.get(k) for k in ("id", "kind", "status", "opened_at", "details")} for x in mine])
+
+        # A journey can pass while the app crashed and restarted on the way (run 45760714043's
+        # crash after pairing was hidden that way in an earlier pass), so read the crash buffer.
+        t0 = time.time()
+        crash = self.adb("logcat", "-d", "-b", "crash", timeout=60, check=False)
+        mine_crashes = app_crashes(crash, pkg)
+        self.step("no_app_crash", not mine_crashes, t0, crashes=mine_crashes[:5])
         return self.finish()
 
     def finish(self, _=None) -> int:

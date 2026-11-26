@@ -10,24 +10,24 @@ without KVM, is in [`NO_KVM_ATTEMPT.md`](NO_KVM_ATTEMPT.md).
 | | |
 |---|---|
 | Workflow | `.github/workflows/native-checks.yml`, which calls `.github/workflows/emulator.yml` (pull request #119) |
-| Run and job | run 45758552085, job 139702865144, commit `ed7ac60` |
+| Run and job | run 45761957903, job 139713814067, commit `04f34c8` (with the fix for the crash after pairing). Run 45758552085 (`ed7ac60`) passed earlier, before that crash was found |
 | Runner | `ubuntu-latest` (standard), `/dev/kvm` enabled by a udev rule |
 | Image | `google/sdk_gwear_x86_64`, Wear OS on Android 14 (API 34), `wearos_large_round` (454 × 454), userdebug |
 | Backend | the demo API (`scripts/demo/api.py`) on the runner, fictional seed data, log-only message providers, PostgreSQL and Redis service containers |
-| Job time | 04:58:35 to 05:03:10 UTC (4 min 35 s), including the APK build; the emulator booted in 31.4 s |
+| Job time | 05:29:47 to 05:34:13 UTC (4 min 26 s), including the APK build; the emulator booted in 28.5 s |
 
 | Step | Result | Time |
 |---|---|---|
-| Prepare the device (setup done, reported unplugged, screen kept on) | pass | 2.5 s |
-| Install the debug APK | pass ("Success") | 9.9 s |
-| Launch (cold start) | pass, 2,969 ms | 3.1 s |
-| Pairing screen shown, with its Pair button | pass | 23.8 s |
+| Prepare the device (setup done, reported unplugged, screen kept on) | pass | 1.9 s |
+| Install the debug APK | pass ("Success") | 6.6 s |
+| Launch (cold start) | pass, 2,099 ms | 2.3 s |
+| Pairing screen shown, with its Pair button | pass | 28.7 s |
 | Pairing code created on the server, as the coordinator | pass | — |
-| Code typed on the watch | pass | 17.0 s |
-| Paired: the pairing screen gives way, and the server records the device `paired`, app version 0.1.0 | pass | 3.4 s |
-| Home screen with the Help button (after the runtime permissions are granted) | pass | 4.9 s |
-| Help tapped: "Help request received" on the wrist | pass | 8.1 s |
-| Exactly one open `help_requested` alert for that person on the server, `via: button`, from that device | pass | 8.1 s |
+| Code typed on the watch | pass | 14.3 s |
+| Paired: the pairing screen gives way, and the server records the device `paired`, app version 0.1.0 | pass | 2.3 s |
+| Home screen with the Help button (after the runtime permissions are granted) | pass | 2.5 s |
+| Help tapped: "Help request received" on the wrist | pass | 7.6 s |
+| Exactly one open `help_requested` alert for that person on the server, `via: button`, from that device | pass | 7.6 s |
 
 The screenshots, UI dumps, logcat and `results.json` are uploaded as the run's artefact
 `wear-emulator-smoke-api34` (kept 14 days).
@@ -47,6 +47,9 @@ The last two are product defects, not test-harness problems. Without the clearte
 debug watch build with a local server, on an emulator or a real watch. Release builds were never
 affected by the cleartext one: they use HTTPS. The crash after pairing affected every build: a
 wearer who paired before allowing the sensors lost the app until it was opened again.
+
+Since that crash was hidden by a passing journey once, the journey now ends with an eleventh step,
+`no_app_crash`, which fails if the device's crash buffer shows a crash of the app.
 
 When a step fails, the smoke script now prints what the device shows into the job log: the visible
 text, the packages and focused window, the clickable nodes with their bounds, the keyboard state,

@@ -211,3 +211,18 @@ def test_smoke_taps_the_button_not_its_label():
     assert smoke.clickable_ancestor(xml, label)["bounds"] == "[150,300][300,360]"
     # Negative control: no label, nothing to tap.
     assert smoke.clickable_ancestor(xml, None) is None
+
+
+def test_smoke_fails_when_the_app_crashed_on_the_way():
+    smoke = _smoke_module()
+    # The crash from run 45760714043, as the crash buffer prints it.
+    log = ("11-26 05:22:33.830  3802  3802 E AndroidRuntime: FATAL EXCEPTION: main\n"
+           "11-26 05:22:33.830  3802  3802 E AndroidRuntime: Process: care.ira.watch.debug, PID: 3802\n"
+           "11-26 05:22:33.834  3802  3802 E AndroidRuntime: Caused by: java.lang.SecurityException: Starting FGS\n")
+    assert smoke.app_crashes(log, "care.ira.watch.debug") == [
+        "11-26 05:22:33.830  3802  3802 E AndroidRuntime: Process: care.ira.watch.debug, PID: 3802"]
+    # Negative controls: another app's crash, and an empty buffer, are not this app's.
+    other = log.replace("care.ira.watch.debug", "com.google.android.wearable.sysui")
+    assert smoke.app_crashes(other, "care.ira.watch.debug") == []
+    assert smoke.app_crashes("", "care.ira.watch.debug") == []
+    assert '"no_app_crash"' in (ROOT / "scripts" / "emulator" / "watch_smoke.py").read_text(encoding="utf-8")
