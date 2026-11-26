@@ -23,7 +23,11 @@ Check the [S] and [NV] items before relying on them.
 | 24-hour wall-clock soak | Any host that stays up 24 h; about 4 cores, 8–16 GB | G2.e |
 | Occasional GPU evaluation | A T4-class GPU for a few hours | none outstanding |
 
-## GitHub Actions (this repository is private, on a personal account)
+## GitHub Actions
+
+**Update, 26 November 2026 (later): the owner made the repository public (Apache 2.0).** Standard GitHub-hosted runners are free for public repositories [V] <https://docs.github.com/en/billing/concepts/product-billing/github-actions>, including macOS. Larger runners are still charged. Everything below about private-repository allowances applies only to the period before the change, and to any private repository.
+
+### Before the change (private repository, personal account)
 
 - **Included usage:** now given as money, not minutes: **Free US$12 a month, Pro US$18 a month**. [V] <https://docs.github.com/en/billing/concepts/product-billing/github-actions>
 - **Rates:** Linux 2-core US$0.006/min; macOS US$0.062/min [V] <https://docs.github.com/en/billing/reference/actions-runner-pricing>. So Free buys about 2,000 Linux minutes or about 193 macOS minutes a month.
@@ -69,8 +73,8 @@ Check the [S] and [NV] items before relying on them.
 
 ## Recommended route, cheapest first
 
-1. **Emulators:** run `.github/workflows/emulator.yml` (manual) on GitHub's Linux runner once billing is confirmed. About 45 minutes, so about US$0.27.
-2. **iOS simulator build:** run `.github/workflows/ios-simulator.yml` (manual) once billing is confirmed. Up to 60 macOS minutes, so about US$3.70.
+1. **Emulators:** run `.github/workflows/emulator.yml` (manual) on GitHub's standard Linux runner. Free now that the repository is public.
+2. **iOS simulator build:** run `.github/workflows/ios-simulator.yml` (manual) on the standard macOS runner. Free now that the repository is public.
 3. **24-hour soak:** a founder laptop or desktop left on for a day, following `docs/evidence/soak/HOW_TO_RUN_24H.md`. Alternatively, a few dollars of GCP or AWS credits on a 4 vCPU instance.
 4. **OS build and boot:** apply for Google for Startups Start (or AWS Activate), then use an Intel 64 GB / 500 GB VM with nested virtualisation, stopped between builds. Ask Essex Startups about a sponsor and partner credits first.
 5. **GPU evaluation:** nothing is outstanding.
