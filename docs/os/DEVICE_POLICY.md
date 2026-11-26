@@ -62,9 +62,26 @@ the watch and puts its nonce on the revocation list. A reset signed on one perso
 before migration 123 is withheld the same way. The table refuses the same things as the code
 (trigger and CHECK constraints in migration 123), so a bug cannot sign a reset for one person.
 
-**Not asked for: step-up authentication.** The session token carries no authentication time,
-so the server cannot require that an administrator signed in recently, or with a second factor,
-before requesting or approving a reset. That stays open (security review S15, threat T43).
+## A recent sign-in, every time (D-095)
+
+Issuing, approving and revoking an instruction need a session whose holder proved who they are
+within the last `IRA_STEP_UP_MAX_AGE_SECONDS` (60 to 3600; default 600, ten minutes) and, when the
+account has a second factor, showed it. The session token records when and how (`auth_time`,
+`amr`); a refresh copies both and never re-stamps them, so a session kept alive by refreshes is
+refused until the person types their password (and code) again:
+
+    POST /auth/step-up
+    Authorization: Bearer <current access token>
+    {"password": "...", "totp_code": "123456"}        # the code is required when a factor is on
+
+The answer is a new access token for the same session (no refresh token) with `auth_time` now.
+The refusal is 403 with `error_code: step_up_required` and, in `safe_details`, the session's
+`auth_age_seconds`, the `max_age_seconds` and `how: POST /auth/step-up`. The grant is checked
+first: an account that is not a deployment administrator gets the 403 it always got and learns
+nothing about step-up. Reading the history needs no step-up. The dashboard asks
+`GET /api/v1/care/deployment-admin/me` (`deployment_admin`, `auth_age_seconds`, `step_up_required`,
+`max_age_seconds`, `mfa_enrolled`; a non-administrator gets only `deployment_admin: false`) before
+it offers the controls. Details: `docs/security/STEP_UP_AUTHENTICATION.md`.
 
 ## The flow
 
@@ -110,6 +127,8 @@ before requesting or approving a reset. That stays open (security review S15, th
 | Another tenant's or workspace's watch cannot be named, reached or reported on; a second watch never sees another's instruction | same |
 | Unknown actions and windows over 15 minutes refused by the API and by the table | same |
 | Revocation, a revoked administrator, an expired instruction, no key, an unpaired watch | same |
+| A stale or claim-less session is refused on issue, approve and revoke with `step_up_required` and still reads the history; a non-administrator with a fresh session gets the administrator refusal; an enrolled second factor must have been shown; the two-person rule and the lapse are unchanged by a fresh session; the window is the configured one | `supracloud-jarvis/ira/tests/tenancy/test_device_admin_step_up_db.py` |
+| Sign-in stamps `auth_time`; a refresh carries it unchanged; `POST /auth/step-up` with the right password (and code) mints a recent token for the same account, refuses a wrong password, a missing or wrong code, another account's password, a refresh token and a signed-out-everywhere session, and spends the sign-in lockout | `supracloud-jarvis/ira/tests/tenancy/test_step_up_endpoint_db.py`, `supracloud-jarvis/ira/tests/test_step_up_authentication.py` |
 | The runtime cannot grant, even after `GRANT ALL`; it cannot list live administrators | same |
 | A factory reset is signed only after a different, live administrator approves it within 30 minutes; self-approval, a lapsed, withdrawn or revoked-requester request refused and audited; revoking either administrator withdraws a signed reset; a pre-123 one-person reset is withheld; the table refuses a one-person reset on its own; the 123 rollback refuses while a request exists | same (`test_a_factory_reset_is_signed_only_when_a_second_administrator_approves` and the six tests after it) |
 | Forged, altered, foreign, expired, early, over-long, replayed, revoked and unknown-action instructions refused on the watch; the window closes at expiry, early and at a start | `watch/app/src/test/java/care/ira/watch/devicepolicy/DevicePolicyTest.kt` |
