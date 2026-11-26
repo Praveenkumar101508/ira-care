@@ -33,13 +33,14 @@ jest.mock('../api/client', () => {
     status(id: string) { return Promise.resolve({ person: mockPerson(id, id), devices: [], latest_readings: [], open_alerts: [], last_checkin: null }); }
     visits() { return Promise.resolve([]); } reminders() { return Promise.resolve([]); } circle() { return Promise.resolve([]); }
     consents() { return Promise.resolve({ consents: [] }); } putPreferences() { return Promise.resolve(); }
+    logout() { mockEvents.push(`server signed out ${this.mockToken}`); return Promise.resolve(true); }
     workspaces() { return Promise.resolve({ workspaces: [{ id: 'wsB', name: 'B', role: 'member', slug: 'b', is_default: true, status: 'active' }] }); }
     static login() { return Promise.resolve({ access_token: 'B', refresh_token: 'rB', token_type: 'bearer', expires_in: 900 }); }
   }
   return { ...actual, CareClient: FakeClient };
 });
 
-import App from '../App';
+import App, { signOutOnServer } from '../App';
 
 type Node = { props: Record<string, unknown>; children?: (Node | string)[] | null };
 const all = (n: unknown, out: Node[] = []): Node[] => {
@@ -65,8 +66,16 @@ test('signing out unregisters push, forgets the look and the session on this pho
   await tick();
   await act(async () => { press(r, 'sign-out'); });
   await tick();
-  expect(mockEvents).toEqual(expect.arrayContaining(['push unregistered', 'appearance cleared', 'session cleared']));
+  expect(mockEvents).toEqual(expect.arrayContaining(['push unregistered', 'appearance cleared', 'session cleared', 'server signed out A']));
   await act(async () => { r.unmount(); });
+});
+
+test('a server that never answers does not hold up the sign-out', async () => {
+  const hung = { logout: () => new Promise<boolean>(() => {}) } as unknown as import('../api/client').CareClient;
+  const t0 = Date.now();
+  await signOutOnServer(hung, 30);
+  expect(Date.now() - t0).toBeLessThan(2000);
+  await signOutOnServer(null);
 });
 
 test('a slow answer for the account that signed out never reaches the next account', async () => {

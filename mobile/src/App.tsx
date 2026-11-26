@@ -29,6 +29,19 @@ export const REFRESH_MS = 30_000;
 
 type Overlay = { name: 'talk' } | { name: 'pair' } | null;
 
+/** Tell the server the sign-in is over, so the refresh token cannot be used again. Bounded, like
+ *  push: a phone with no connection still signs out at once. */
+export async function signOutOnServer(c: CareClient | null, timeoutMs = 3000): Promise<void> {
+  if (!c || typeof c.logout !== 'function') return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const limit = new Promise<void>((r) => { timer = setTimeout(r, timeoutMs); });
+  try {
+    await Promise.race([c.logout().then(() => undefined, () => undefined), limit]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export default function App() {
   const [session, setSession] = useState<StoredSession | null | undefined>(undefined);
   const [joining, setJoining] = useState(false);
@@ -86,7 +99,7 @@ export default function App() {
   const signOut = useCallback(async (because = '') => {
     const c = client.current;
     forgetAccount();
-    await unregisterForPush(c);
+    await Promise.all([unregisterForPush(c), signOutOnServer(c)]);
     await clearAppearance();
     await saveSession(null);
     setSignedOutBecause(because);
