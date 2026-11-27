@@ -93,6 +93,10 @@ jobs:
           set -o pipefail
           xcrun simctl list devices available | head -40
           app=$(find mobile/ios/build/Build/Products/Debug-iphonesimulator -maxdepth 1 -name '*.app' | head -1)
+          # Is the JavaScript in the app? Without it the Debug build has nothing to fall back to
+          # once it finds no development server (run 45984425019: no JavaScript ran at all).
+          ls -la "$app"/main.jsbundle "$app"/*.jsbundle 2>&1 | head -5 || true
+          grep -E "Skipping bundling|FORCE_BUNDLING|main.jsbundle|react-native-xcode" mobile/ios/xcodebuild.log | tail -8 || true
           python3 scripts/simulator/ios_journey.py --app "$app" --out build/ios-journey --seconds 90
       - name: Upload the screenshot, console, app log and results
         if: always()

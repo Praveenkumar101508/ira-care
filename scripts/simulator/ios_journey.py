@@ -120,7 +120,7 @@ def screens(console: str) -> list[str]:
 
 #: Lines of the app's unified log worth showing in the job's own log when the screen was not seen:
 #: React Native's JavaScript log and its errors (run 45980371196: no probe on either channel).
-_DIAGNOSTIC = ("[javascript]", "ira-journey", "Unhandled", "Exception", "error", "Error", "bundle", "Bundle",
+_DIAGNOSTIC = ("[javascript]", ":javascript]", "com.facebook.react", "ira-journey", "Unhandled", "Exception", "error", "Error", "bundle", "Bundle",
                "RCTFatal", "Invariant", "Unable to", "metro", "Metro")
 
 
