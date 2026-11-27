@@ -146,6 +146,22 @@ async def test_the_ok_button_and_a_clear_spoken_ok_resolve_the_safety_check(clie
     assert (await _alert(p, alert2["id"]))["status"] == "resolved"
 
 
+# ── C-1.b: all 18 mandatory answers, through the real check-in cycle ───────────
+# The unit test reads each with the rules alone; this one records each as the answer to a real
+# medication question against PostgreSQL and checks what was written (round 10, verification).
+
+from tests.care.test_care_safety_answers import MANDATORY  # noqa: E402
+
+
+@pytest.mark.parametrize("words,expected", MANDATORY, ids=[w or "empty" for w, _ in MANDATORY])
+async def test_each_mandatory_answer_is_recorded_as_the_rules_read_it(client, families, words, expected):
+    p = await _setup(client, families["a"])
+    cid = await _ask(p, "medication", "Hello Tess. Have you taken your blue tablet yet?")
+    out = await cycle.record_answer(p["jp"], p["device"], cid, words, now=NOW + dt.timedelta(minutes=2))
+    taken = out["said"] == "yes" and out["structured"]["medication_taken"] == "yes"
+    assert taken == (expected == "yes"), (words, out["said"], out["structured"]["medication_taken"])
+
+
 # ── A1–A3: doses ─────────────────────────────────────────────────────────────
 
 @pytest.mark.parametrize("words", [

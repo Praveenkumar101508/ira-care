@@ -30,8 +30,12 @@
    "title": "The 18 mandatory ambiguous answers (doubt, other time, other medicine, bare 'okay') are never read as taken",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_safety_answers_db.py"
+    },
     {
      "kind": "unit_test",
      "ref": "supracloud-jarvis/ira/tests/care/test_care_safety_answers.py"
@@ -804,8 +808,16 @@
    "title": "Every person-scoped route is guarded (static check, D-076)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_api_db.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_isolation_rls.py"
+    },
     {
      "kind": "unit_test",
      "ref": "supracloud-jarvis/ira/tests/care/test_care_person_guard.py"
@@ -1543,8 +1555,16 @@
    "title": "Audit trail of care actions",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_plans_db.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_isolation_rls.py"
+    },
     {
      "kind": "unit_test",
      "ref": "supracloud-jarvis/ira/tests/care/test_care_audit_coverage.py"
@@ -2534,8 +2554,12 @@
    "title": "Product conversation evaluation runner",
    "area": "ai",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/eval/round10/holdout_fake.json"
+    },
     {
      "kind": "unit_test",
      "ref": "supracloud-jarvis/ira/tests/care/test_care_eval_runner.py"
@@ -2642,8 +2666,12 @@
    "title": "Classical heart-rate estimator with accelerometer suppression shipped in the backend",
    "area": "ai",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/heart/results.json"
+    },
     {
      "kind": "unit_test",
      "ref": "supracloud-jarvis/ira/tests/care/test_heart_estimate.py"
@@ -2776,8 +2804,12 @@
    "title": "Rule-based fall detector on the watch",
    "area": "ai",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/fall/results_v3.json"
+    },
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/sensors/FallDetectorTest.kt"
@@ -3024,7 +3056,7 @@
    "title": "Round 9 scenario families (false reassurance, ambiguous and interrupted dose answers, repetition, help in an older person's idiom, disguised injection, privacy requests) with a hold-out set run once; the red-flag and dose rules extended for every development MUST case",
    "area": "ai",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -3698,7 +3730,7 @@
    "title": "API resident memory grows no more than 5 % an hour over a complete 1-hour wall-clock soak with every other soak criterion met (the precondition of the 24-hour soak G2.e)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "db_test",
