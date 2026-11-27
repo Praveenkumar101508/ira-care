@@ -21,9 +21,18 @@ for _k in ("IRA_SECRET_KEY", "IRA_ADMIN_PASSWORD", "POSTGRES_PASSWORD", "REDIS_P
 
 pytest.importorskip("fastapi")
 
+#: The edition before this module imports the demo API, which sets IRA_EDITION=cloud by default.
+EDITION_BEFORE = os.environ.get("IRA_EDITION")
+
 
 @pytest.fixture(scope="module")
 def demo_app():
+    # Importing the demo API sets IRA_EDITION=cloud and other defaults in os.environ and fills the
+    # settings cache; both are put back afterwards, or every later test in the process would run
+    # as the cloud edition (CI run 46032445487: 73 unrelated failures until this was restored).
+    from config import get_settings
+    saved_env = dict(os.environ)
+    get_settings.cache_clear()
     spec = importlib.util.spec_from_file_location("care_demo_api_under_test", ROOT / "scripts" / "demo" / "api.py")
     mod = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = mod
@@ -35,7 +44,16 @@ def demo_app():
     async def refuse():
         raise IRAError(STEP_UP_REQUIRED, safe_details={"reason": "authentication_too_old"})
 
-    return app
+    yield app
+    os.environ.clear()
+    os.environ.update(saved_env)
+    get_settings.cache_clear()
+    sys.modules.pop(spec.name, None)
+
+
+def test_the_environment_is_put_back_afterwards():
+    """Runs after the module's tests in file order: the import's cloud default is gone again."""
+    assert os.environ.get("IRA_EDITION") == EDITION_BEFORE
 
 
 def test_the_care_api_installs_the_shared_error_handlers(demo_app):
