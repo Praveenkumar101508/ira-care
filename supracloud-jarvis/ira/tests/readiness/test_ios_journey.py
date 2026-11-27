@@ -99,3 +99,9 @@ def test_the_probe_is_read_from_the_unified_log_and_errors_are_picked_out(journe
     assert journey.screens(log) == ["sign-in"]
     picked = journey.diagnostic_lines(log)
     assert len(picked) == 2 and "chatter" not in " ".join(picked)
+
+
+def test_the_pid_is_read_from_simctl_launch(journey):
+    assert journey.launch_pid("care.ira.family: 4321\n", "care.ira.family") == 4321
+    assert journey.launch_pid("An error was encountered processing the command", "care.ira.family") is None
+    assert journey.launch_pid("", "care.ira.family") is None
