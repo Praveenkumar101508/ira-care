@@ -23,7 +23,7 @@ WORKFLOWS = ROOT / ".github" / "workflows"
 # emulator.yml: 60 since round 9, when the extended journey's two ten-minute quiet-face waits took the
 # run to about 50 minutes (run 45910155640 hit 45).
 # soak.yml: 355, just under the 6-hour job limit of a standard runner (5.5-hour soak).
-MANUAL = {"emulator.yml": 60, "ios-simulator.yml": 60, "phone-emulator.yml": 60, "soak.yml": 355}
+MANUAL = {"emulator.yml": 60, "ios-simulator.yml": 90, "phone-emulator.yml": 60, "soak.yml": 355}
 PINNED = re.compile(r"^[\w.-]+/[\w./-]+@[0-9a-f]{40}$")
 
 
@@ -146,7 +146,8 @@ def test_generated_native_folders_are_not_tracked():
     assert tracked == []
 
 
-NATIVE_PATHS = {"watch/**", "mobile/**", "scripts/emulator/**", ".github/workflows/emulator.yml",
+# scripts/simulator/**: the iOS simulator journeys (round 10), native-only like scripts/emulator/**.
+NATIVE_PATHS = {"watch/**", "mobile/**", "scripts/emulator/**", "scripts/simulator/**", ".github/workflows/emulator.yml",
                 ".github/workflows/ios-simulator.yml", ".github/workflows/native-checks.yml",
                 ".github/workflows/phone-emulator.yml"}
 NATIVE_WORKFLOWS = {"./.github/workflows/emulator.yml", "./.github/workflows/ios-simulator.yml",
