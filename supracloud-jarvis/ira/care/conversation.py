@@ -477,7 +477,11 @@ _ADVICE_ASK = re.compile(
     r"\b(should i (take|stop|have|skip|go|see|call|ring|double|miss)|is it (safe|normal|ok|okay) to|can i (take|skip|miss|stop|have)|"
     r"how (much|many) (\w+ )?(should|can|could|may) i|what('s| is) wrong with me|do i (have|need)|do you think i('ve| have| am| might)|"
     r"what should i do about|is (this|it|that) .{0,30}(normal|serious|dangerous)|dose|dosage|"
-    r"what (tablet|pill|medicine|medication) (should|can)|(go|get) to (the )?hospital|see (a|the|my) (doctor|gp|nurse))\b", re.I)
+    r"what (tablet|pill|medicine|medication) (should|can)|(go|get) to (the )?hospital|see (a|the|my) (doctor|gp|nurse)|"
+    # Round 10 hold-out B: "Do you think my mole is cancer?" Only with a health word, so "do you think
+    # my roses need water?" is an ordinary question.
+    r"(do you think|is it|could it be|might it be) (my|this|that|it)\b.{0,30}\b(cancer|serious|broken|infect\w*|stroke|"
+    r"heart attack|tumou?r|lump|mole|rash|fracture|clot|diabet\w*|dementia))\b", re.I)
 _URL = re.compile(r"https?://|www\.", re.I)
 
 FALLBACK_LINE = "I'm here with you, {name}. Shall I let {carer} know you'd like a word?"

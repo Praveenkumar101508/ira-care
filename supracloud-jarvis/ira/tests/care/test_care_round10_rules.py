@@ -114,3 +114,15 @@ def test_their_negative_controls_stay_ordinary(text):
 ])
 def test_low_mood_is_heard(text, low):
     assert bool(rules._LOW.search(rules.normalise_answer(text))) == low
+
+
+@pytest.mark.parametrize("text, advice", [
+    ("Do you think my mole is cancer?", True),
+    ("Could it be a stroke?", False),            # a red flag, escalated, not an advice refusal
+    ("Do you think this rash is serious?", True),
+    ("Do you think my roses need water?", False),
+    ("Is it raining today?", False),
+])
+def test_a_health_question_about_my_body_is_not_answered_as_advice(text, advice):
+    from care.conversation import _ADVICE_ASK
+    assert bool(_ADVICE_ASK.search(text)) == advice
