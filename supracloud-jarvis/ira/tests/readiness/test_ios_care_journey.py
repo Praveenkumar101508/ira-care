@@ -61,6 +61,11 @@ def test_flows_are_valid_yaml_with_the_app_id_and_quoted_text(j):
     assert {"inputText": 'a"b: c#d'} in cmds, "awkward characters survive quoting"
     assert {"scrollUntilVisible": {"element": {"id": "sign-out"}, "direction": "DOWN", "timeout": 15000}} in cmds
     assert cmds[-1] == "stopApp"
+    # every tap and every typed field is scrolled into view first (run 46032445452)
+    i = cmds.index({"tapOn": {"id": "advanced"}})
+    assert cmds[i - 1] == {"scrollUntilVisible": {"element": {"id": "advanced"}, "direction": "DOWN", "timeout": 10000}}
+    up = yaml.safe_load(j.flow([{"tap": "sign-in", "up": True}]).split("---\n")[1])
+    assert up[0]["scrollUntilVisible"]["direction"] == "UP" and up[1] == {"tapOn": {"id": "sign-in"}}
 
 
 def test_an_unknown_step_is_refused(j):

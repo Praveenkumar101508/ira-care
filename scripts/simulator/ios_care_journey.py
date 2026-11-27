@@ -75,17 +75,23 @@ def _q(s: str) -> str:
 
 
 def flow(steps: list[dict], bundle_id: str = BUNDLE_ID) -> str:
-    """A Maestro flow from steps: {"tap": id}, {"type": [id, text]}, {"launch": True},
+    """A Maestro flow from steps: {"tap": id} (with "up": True to scroll up to it), {"type": [id, text]}, {"launch": True},
     {"stop": True}, {"back": True}, {"scroll_to": id}, {"tap_text": text}."""
     lines = [f"appId: {bundle_id}", "---"]
+
+    def into_view(rid: str, direction: str = "DOWN") -> list[str]:
+        # Maestro taps only what is on screen: on a small iPhone the sign-in fields sit below the
+        # fold once "Advanced" is open (run 46032445452), so every element is scrolled to first.
+        return ["- scrollUntilVisible:", "    element:", f"      id: {_q(rid)}", f"    direction: {direction}", "    timeout: 10000"]
+
     for s in steps:
         if "tap" in s:
-            lines += ["- tapOn:", f"    id: {_q(s['tap'])}"]
+            lines += into_view(s["tap"], "UP" if s.get("up") else "DOWN") + ["- tapOn:", f"    id: {_q(s['tap'])}"]
         elif "tap_text" in s:
             lines += ["- tapOn:", f"    text: {_q(s['tap_text'])}"]
         elif "type" in s:
             rid, text = s["type"]
-            lines += ["- tapOn:", f"    id: {_q(rid)}", f"- inputText: {_q(text)}", "- hideKeyboard"]
+            lines += into_view(rid) + ["- tapOn:", f"    id: {_q(rid)}", f"- inputText: {_q(text)}", "- hideKeyboard"]
         elif "launch" in s:
             lines += ["- launchApp:", "    stopApp: false"]
         elif "stop" in s:
@@ -187,9 +193,11 @@ class Journey:
     def sign_in(self, login: dict, label: str) -> bool:
         t0 = time.time()
         nodes = self.wait_for(lambda n: find_id(n, "sign-in") is not None, self.a.ui_timeout)
-        steps = [] if find_id(nodes, "server") is not None else [{"tap": "advanced"}]
-        steps += [{"type": ["server", self.a.api]}, {"type": ["username", login["email"]]},
-                  {"type": ["password", login["password"]]}, {"tap": "sign-in"}]
+        # Username and password first, then the server behind "Advanced" (below them on screen).
+        steps = [{"type": ["username", login["email"]]}, {"type": ["password", login["password"]]}]
+        steps += [] if find_id(nodes, "server") is not None else [{"tap": "advanced"}]
+        # On screen: username, password, Sign in, then Advanced and the server; so back up to Sign in.
+        steps += [{"type": ["server", self.a.api]}, {"tap": "sign-in", "up": True}]
         ok = self.run(steps)
         ws = "workspace-" + self.server.creds["workspace_id"]
         nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)
