@@ -427,6 +427,17 @@ class AdbWrist:
         self.s.adb("shell", "am", "start", "-n", f"{self.a.package}/care.ira.watch.ui.MainActivity", timeout=300, check=False)
         return self.s.wait_for_app_screen(timeout, desc_prefix=HELP_DESC) is not None
 
+    def scroll_to_text(self, part: str, swipes: int = 3) -> dict | None:
+        """Scroll the face until a text is drawn (uiautomator dumps only what is on screen; the
+        home column's last rows, Unpair watch and About, sit below the fold: run 45910155640)."""
+        for _ in range(swipes + 1):
+            n = contains_text(self.s.dump(), part)
+            if n is not None:
+                return n
+            self.s.adb("shell", "input", "swipe", "227", "400", "227", "120", "300")
+            time.sleep(1.5)
+        return contains_text(self.s.dump(), part)
+
     def inject_fall(self, peak_g: float, still_seconds: int, impact_at_ms: int) -> bool:
         out = self.s.adb(*fall_broadcast(self.a.package, peak_g, still_seconds, impact_at_ms), timeout=120, check=False)
         return "Broadcast completed" in out
@@ -1377,8 +1388,13 @@ class Smoke:
         w, pid = self.wrist, self.person["id"]
         self.quiet_face("before_unpair")
         t0 = time.time()
-        # The Unpair button waits for a quiet face: the server reports a closed SOS for ten minutes.
-        btn = w.wait_text("Unpair watch", self.a.sos_idle_timeout)
+        # The Unpair button waits for a quiet face (the server reports a closed SOS for ten minutes,
+        # which quiet_face has already waited out) and sits below the fold of the home column.
+        btn = w.scroll_to_text("Unpair watch") if hasattr(w, "scroll_to_text") else w.wait_text("Unpair watch", 30)
+        if btn is None:
+            btn = w.wait_text("Unpair watch", min(self.a.sos_idle_timeout, 300))
+            if btn is not None and hasattr(w, "scroll_to_text"):
+                btn = w.scroll_to_text("Unpair watch")
         tapped = w.tap("Unpair watch…", "Unpair this watch") if btn else None
         warning = w.wait_text(UNPAIR_WARNING, self.a.ui_timeout) if tapped else None
         keep = w.wait_text("Keep paired", 30) if warning else None

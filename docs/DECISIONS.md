@@ -2020,3 +2020,27 @@ test); `scripts/simulator/ios_journey.py` boots a simulator, installs and launch
 console attached and records the sign-in screen, that the process still runs and that no crash
 report appeared. Neither journey ran on the build machine (no KVM, no Xcode): the pull request's
 native checks run both on GitHub's standard runners, and the evidence pages record their results.
+
+## D-102 The database pool keeps its connections and prepared statements; the API's memory growth was reconnect churn, not a leak in the server's code (requirement G2.j, the precondition of G2.e, 26 to 27 November 2026)
+
+After #123 the complete 1-hour soak still failed on memory alone (5.18 % an hour). A 90-minute
+profiling run with the tracer left alone found the cause (`MEMORY_INVESTIGATION_ROUND9.md`):
+asyncpg closed any connection idle for 300 seconds and did not keep `min_size`, so between bursts
+the pool shrank to one or two connections and then reopened four or five at once about every ten
+minutes (ten bursts in 90 minutes); each reopening cost a TLS handshake, a 256 KB read buffer and a
+refilled statement cache, and the closed connections' memory stayed in glibc as free-but-kept heap
+(3.9 to 14.7 MB), so resident memory stepped up per burst and never came down. Prepared statements
+expired on the same timer and were re-prepared, each expiry leaving the small reference cycle that
+forced collections kept finding; freeing it returned no resident memory, so the "garbage waiting
+for a collection" hypothesis of #123 does not hold. Nothing in the server's own code grew.
+Decision: `utils/db.py` creates the pool with `max_inactive_connection_lifetime=0` (a connection,
+once opened, is kept for the life of the process, bounded by `max_size=20`; asyncpg still
+reconnects on acquire when one has been lost) and `max_cached_statement_lifetime=0` (a statement
+stays until the cache's LRU bound of 100 evicts it; the server's SQL is a fixed set of texts).
+Regression tests: `tests/runtime/test_db_pool_keeps_connections.py` (the arguments; a real pool
+keeping its server process and its statement across an idle; the control with a short lifetime
+closing it). Not changed: collector thresholds and `gc.freeze` (forced collections freed objects
+and no memory), `MALLOC_ARENA_MAX` (two threads, one arena), `max_queries` (a rare, bounded
+reconnect). The complete 1-hour soak on the fix: **PASS, 1.996 % an hour**, every other criterion
+met (`WALLCLOCK_1H_ROUND9.md`). G2.e, the 24-hour run, stays not started: the build container stops
+its daemons when the session is idle, so a day-long run needs the owner's machine.

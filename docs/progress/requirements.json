@@ -1,5 +1,5 @@
 {
- "version": "1.9.0",
+ "version": "1.10.0",
  "methodology": "A fixed, versioned list of atomic requirements for the owner's master directive. Each item is one measurable deliverable with one state. States: not_started; implemented (code or document merged); accepted (functional evidence: unit_test, db_test, build, browser, emulator, model_eval or device; docs_only and config_check never count); verified (integration-level evidence: db_test, browser, emulator, model_eval or device); device_validated (device evidence); blocked_external (cannot progress without something outside the software; blocked_by says what). Every file ref must exist and a PR ref must be #44 or later; acceptance and verification need a qualifying evidence item that names a file, not only a PR. Items are never removed to raise a percentage: blocked and not-started items stay in every denominator. A requirement that changes scope gets a new id and the version is raised. scripts/completion_summary.py enforces these rules and computes the seven measures.",
  "requirements": [
   {
@@ -3590,6 +3590,28 @@
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/shell.test.tsx"
+    }
+   ]
+  },
+  {
+   "id": "G2.j",
+   "parent": "G2",
+   "title": "API resident memory grows no more than 5 % an hour over a complete 1-hour wall-clock soak with every other soak criterion met (the precondition of the 24-hour soak G2.e)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/runtime/test_db_pool_keeps_connections.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/soak/WALLCLOCK_1H_ROUND9.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/soak/MEMORY_INVESTIGATION_ROUND9.md"
     }
    ]
   },

@@ -308,7 +308,7 @@ def test_workflow_passes_the_steps_input_and_uploads_evidence():
     emu = next(s for s in steps if "android-emulator-runner" in s.get("uses", ""))
     assert "--steps" in emu["with"]["script"] and "inputs.steps" in emu["with"]["script"]
     assert any("upload-artifact" in s.get("uses", "") for s in steps)
-    assert json.dumps(doc["jobs"]["wear-emulator"]["timeout-minutes"]) == "45"
+    assert json.dumps(doc["jobs"]["wear-emulator"]["timeout-minutes"]) == "60"
 
 
 # --------------------------------------------------------------------------- host network wait

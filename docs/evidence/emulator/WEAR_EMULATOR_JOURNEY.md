@@ -130,3 +130,23 @@ ends with `no_app_crash_after_journey`.
 
 ### The API-only dry run (26 November 2026, this machine)
 
+
+### Second emulator run of the extended journey (run 45910155640, 26 to 27 November 2026, 23:21 to 00:03 UTC)
+
+With the quiet-face waits and the safer tap in place: **43 of 44 steps passed** on GitHub's
+standard runner. Every core step (the host reached after 6 s of waiting, pairing in 2.3 s, Help on
+the wrist and on the server), then: the medication reminder shown in 52 s, "Later" recorded as
+nothing (reminder `snoozed`, zero taken doses), the second reminder's "Done" answered with the
+confirmation question and the dose written only after it (`taken`, `confirmed_via: checkin`);
+the family's check-in shown in 52 s and answered by touch; the synthetic fall countdown, a second
+detection attached to the same incident (2 detections, 1 alert), the alert open with `no_answer`
+after the countdown and resolved; Help during a fall countdown kept to the one alert and
+"Sravani Perni is on the way." on the wrist after the acknowledgement; a Help queued offline
+delivered exactly once when the network came back, and again across `adb reboot` with the service
+running again 26 s after boot; the background sensor permission revoked, reported by the watch
+(`background_sensor_permission: false`) and recovered when regranted; every clickable node on the
+eleven dumped screens labelled (a card's words on its child count) and every button at least
+44 dp; no crash. The one failure: `unpair_warning_shown`, because the "Unpair watch…" button sits
+below the fold of the home column and the journey never scrolled to it (it now does), and the job
+reached its 45-minute timeout while waiting (the two ten-minute quiet-face waits; the timeout is
+now 60 minutes). The next run is the proof for that step and for the re-pairing that follows it.

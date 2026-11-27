@@ -1,0 +1,155 @@
+{
+  "alerts": {
+    "duplicates": 0,
+    "issued": 11,
+    "lost": 0,
+    "lost_ids": [],
+    "observed": 11,
+    "replay_mismatches": 0,
+    "unexpected_ids": []
+  },
+  "availability": {
+    "health_ok": 720,
+    "health_total": 720,
+    "ratio": 1.0
+  },
+  "checkins_by_status": {
+    "answered": 21,
+    "cancelled": 21,
+    "scheduled": 2
+  },
+  "checks": {
+    "alerts_closed": true,
+    "availability": true,
+    "client_errors": true,
+    "duplicate_alerts": true,
+    "lost_alerts": true,
+    "observed_coverage": true,
+    "outbox_drained": true,
+    "p95_latency": true,
+    "restarts": true,
+    "rss_growth": true,
+    "server_errors": true,
+    "worker_heartbeat": true
+  },
+  "criteria": {
+    "max_client_errors": 0,
+    "max_duplicate_alerts": 0,
+    "max_heartbeat_age_s": 180.0,
+    "max_lost_alerts": 0,
+    "max_open_alerts_at_end": 0,
+    "max_p95_latency_ms": 1000.0,
+    "max_restarts": 0,
+    "max_rss_growth_pct_per_hour": 5.0,
+    "max_server_errors": 0,
+    "max_stuck_outbox_rows": 0,
+    "min_availability": 0.999,
+    "min_observed_coverage": 0.99,
+    "rss_warmup_s": 600.0,
+    "stuck_outbox_after_s": 300.0
+  },
+  "db": {
+    "dispatch_retries_last": 0,
+    "growth_mb_per_hour": 0.354,
+    "outbox_pending_max": 0,
+    "rows_first": {
+      "care_acknowledgements": 0,
+      "care_alert_attempt_events": 0,
+      "care_alert_attempts": 0,
+      "care_alert_dispatch": 0,
+      "care_alerts": 2,
+      "care_checkins": 70,
+      "care_device_events": 0,
+      "care_transcripts": 0,
+      "care_vitals": 1284
+    },
+    "rows_last": {
+      "care_acknowledgements": 10,
+      "care_alert_attempt_events": 66,
+      "care_alert_attempts": 66,
+      "care_alert_dispatch": 66,
+      "care_alerts": 13,
+      "care_checkins": 114,
+      "care_device_events": 32,
+      "care_transcripts": 42,
+      "care_vitals": 3762
+    },
+    "size_first_mb": 23.2,
+    "size_last_mb": 23.58
+  },
+  "label": "round 9: 1-hour wall-clock soak on the pool fix",
+  "load": {
+    "client_errors": 0,
+    "connection_errors": 0,
+    "counts": {
+      "acknowledge:200": 10,
+      "acknowledge:401": 1,
+      "answer:200": 21,
+      "ask_now:201": 21,
+      "ask_now:401": 1,
+      "auth_refresh": 2,
+      "due:200": 1251,
+      "help:201": 11,
+      "help_replay:201": 11,
+      "report:200": 1251,
+      "resolve:200": 10
+    },
+    "latency_ms": {
+      "max": 324.6,
+      "n": 2588,
+      "p50": 9.48,
+      "p95": 15.9,
+      "p99": 24.09
+    },
+    "requests": 2588,
+    "server_errors": 0
+  },
+  "mode": "demo",
+  "open_alerts_at_end": 0,
+  "other_alerts_by_kind": {},
+  "planned_hours": 1.0,
+  "processes": {
+    "api": {
+      "cpu_mean_pct": 0.55,
+      "cpu_p95_pct": 0.7,
+      "rss_first_mb": 128.2,
+      "rss_growth_pct_per_hour": 1.996,
+      "rss_last_mb": 134.1,
+      "rss_max_mb": 134.1
+    },
+    "postgres": {
+      "cpu_mean_pct": 0.0,
+      "cpu_p95_pct": 0.0,
+      "rss_first_mb": 29.6,
+      "rss_growth_pct_per_hour": 0.0,
+      "rss_last_mb": 29.6,
+      "rss_max_mb": 29.6
+    }
+  },
+  "restarts": {
+    "api": 0,
+    "postgres": 0
+  },
+  "run_id": "be9ee4487ec242edb0aec044cbffab13",
+  "samples": 120,
+  "schema": 1,
+  "stuck_outbox_rows": 0,
+  "verdict": "PASS",
+  "wall_clock": {
+    "completed": true,
+    "duration_h": 1.0005,
+    "duration_s": 3601.8,
+    "end_reason": "completed",
+    "end_utc": "2026-11-27T00:03:39Z",
+    "gaps": [],
+    "observed_coverage": 1.0,
+    "planned_end_utc": "2026-11-27T00:03:37Z",
+    "resumes": 0,
+    "start_utc": "2026-11-26T23:03:37Z",
+    "unobserved_s": 0
+  },
+  "worker_heartbeat_age_s": {
+    "max": 32.7,
+    "n": 120
+  }
+}

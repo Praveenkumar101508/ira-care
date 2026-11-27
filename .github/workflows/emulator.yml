@@ -84,7 +84,9 @@ jobs:
   wear-emulator:
     name: Wear OS emulator smoke journey
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # Round 9: the extended journey waits twice for the face to go quiet (the server shows a closed
+    # SOS for ten minutes), so the whole run is about 50 minutes; standard runners are free here.
+    timeout-minutes: 60
     services:
       postgres:
         image: pgvector/pgvector:pg16
