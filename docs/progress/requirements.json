@@ -2651,8 +2651,12 @@
    "title": "Heart model card",
    "area": "ai",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/heart/results.json"
+    },
     {
      "kind": "docs_only",
      "ref": "docs/ai/heart/MODEL_CARD.md"
@@ -3097,8 +3101,12 @@
    "title": "Wrist IMU activity dataset with a licence that allows commercial use selected",
    "area": "ai",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/activity/results.json"
+    },
     {
      "kind": "docs_only",
      "ref": "docs/DATASETS.md"
@@ -3173,8 +3181,12 @@
    "title": "Activity model card",
    "area": "ai",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/activity/results.json"
+    },
     {
      "kind": "docs_only",
      "ref": "docs/ai/activity/MODEL_CARD.md"
@@ -3308,8 +3320,12 @@
    "title": "Speech engine licences reviewed (OmniVoice is CC BY-NC)",
    "area": "ai",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/architecture/test_no_pyav.py"
+    },
     {
      "kind": "docs_only",
      "ref": "docs/ai/MODEL_WEIGHTS.md"

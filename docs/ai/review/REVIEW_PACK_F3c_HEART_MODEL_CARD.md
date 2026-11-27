@@ -52,7 +52,7 @@ and reproduced with the command the card gives.
 
 | | |
 |---|---|
-| Reviewer | |
-| Date | |
-| Decision | |
-| Changes needed | |
+| Reviewer | Sravani Perni ([sravaniperni](https://github.com/sravaniperni)) |
+| Date | 27 November 2026 |
+| Decision | accept (recorded by the owner, Praveen Kamineti, on Sravani Perni's behalf after her review) |
+| Changes needed | none recorded |

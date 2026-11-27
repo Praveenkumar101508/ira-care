@@ -3,8 +3,8 @@
 Four register items are documents or selections whose acceptance is a technical reviewer's
 decision, not a test's. Each pack below gives the reviewer the requirement, the evidence as it
 stands, the acceptance criterion, the known limitations, the questions to answer and a line to
-record the decision. Nothing here is pre-decided: the register keeps each item at `implemented`
-until the reviewer writes `accept` and the register cites this file.
+record the decision. On 27 November 2026 the owner recorded that Sravani Perni had reviewed all four and accepted them;
+each pack's decision table says so, and the four items are `accepted` in the register.
 
 | Item | Pack | Reviewer |
 |---|---|---|

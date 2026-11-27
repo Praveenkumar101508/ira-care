@@ -40,7 +40,7 @@ the card should make clear is by design; battery cost unmeasured (F7.k, blocked 
 
 | | |
 |---|---|
-| Reviewer | |
-| Date | |
-| Decision (accept / changes needed) | |
-| Changes needed | |
+| Reviewer | Sravani Perni ([sravaniperni](https://github.com/sravaniperni)) |
+| Date | 27 November 2026 |
+| Decision (accept / changes needed) | accept (recorded by the owner, Praveen Kamineti, on Sravani Perni's behalf after her review) |
+| Changes needed | none recorded |
