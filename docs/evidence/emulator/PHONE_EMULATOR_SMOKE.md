@@ -118,3 +118,14 @@ Settings and below the fold (the journey now opens that section and scrolls), so
 live and the wearer's and the carer's sign-ins that follow could not start. The next run is the
 proof for those five steps.
 
+### Second emulator run (run 45974160883, 27 November 2026, 09:39 UTC)
+
+**16 of 17 steps passed.** With the two script faults fixed: `patient_selected` and
+`person_record_shown` (the preferred name and both latest readings), `secure_sign_out` (one live
+app session before Sign out, none after; Back shows nothing; a relaunch shows the sign-in screen),
+`wearer_signed_in` and `wearer_talked_to_ira` (the wearer's home, Talk, one line sent and IRA's
+streamed reply shown, C-7.b) all passed, beside everything that passed before. The one failure,
+`carer_signed_in`: the journey began the carer's sign-in while still on the wearer's Talk screen,
+which hides the tab bar, so Sign out was never reached. The journey now goes back until the tab bar
+shows. No app defect was found by either run.
+

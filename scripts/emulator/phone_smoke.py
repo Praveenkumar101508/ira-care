@@ -290,6 +290,13 @@ class PhoneSmoke:
     def sign_out_app(self) -> list[dict]:
         """Settings, the Account section, Sign out (run 45910155640: the button lives inside the
         Account section and below the fold, so it was never found)."""
+        # An overlay (Talk, the pairing guide) hides the tab bar: go back until it shows
+        # (run 45974160883: the carer's sign-in started on the wearer's Talk screen).
+        for _ in range(4):
+            if find_id(self.dump(), "tab-settings") is not None:
+                break
+            self.adb("shell", "input", "keyevent", "KEYCODE_BACK")
+            time.sleep(1.5)
         self.tap_id("tab-settings")
         time.sleep(2)
         if self.scroll_to_id("settings-account"):
