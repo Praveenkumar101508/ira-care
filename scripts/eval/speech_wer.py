@@ -5,7 +5,11 @@
     # score transcripts that already exist (a watch's or a phone's platform recogniser)
     python3 scripts/eval/speech_wer.py score MANIFEST --out RESULTS.json
 
-MANIFEST is JSON lines: {"id", "reference", "group", "audio"?, "hypothesis"?, "speaker"?}.
+MANIFEST is JSON lines: {"id", "reference", "group", "audio"?, "hypothesis"?, "speaker"?, "age"?}.
+`age` is a number of years or a Common Voice age label ("sixties", "seventies", ...). With
+`--by-age`, the results add a WER per age bucket (`age_bucket`) and for 60 and over against under 60,
+the comparison the older-adult evaluation needs (docs/ai/speech/OLDER_ADULT_EVAL_PLAN.md); a row with
+no age, or one that cannot be read, is counted as "unknown", never guessed.
 `transcribe` runs `voice/stt.py`'s own path: the pinned faster-whisper checkpoint
 (`core/models/artefacts.py`), the same decoder, beam size, voice-activity filter and automatic
 language detection the product uses.
@@ -32,6 +36,40 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "supracloud-jarvis" / "ira"))
 
 from voice.wer import by_group, corpus, score  # noqa: E402
+
+
+#: Common Voice's `age` column (validated.tsv) and the bucket each label falls in.
+_CV_AGES = {"teens": "under 60", "twenties": "under 60", "thirties": "under 60", "fourties": "under 60",
+            "forties": "under 60", "fifties": "under 60", "sixties": "60-69", "seventies": "70-79",
+            "eighties": "80+", "nineties": "80+"}
+AGE_BUCKETS = ("under 60", "60-69", "70-79", "80+", "unknown")
+
+
+def age_bucket(age) -> str:
+    """The bucket of a row's `age`: years (int, float or a numeric string) or a Common Voice label."""
+    if age is None or isinstance(age, bool):
+        return "unknown"
+    if isinstance(age, str):
+        label = age.strip().lower()
+        if label in _CV_AGES:
+            return _CV_AGES[label]
+        try:
+            age = float(label)
+        except ValueError:
+            return "unknown"
+    if not isinstance(age, (int, float)) or age != age or age < 0 or age > 120:
+        return "unknown"
+    if age < 60:
+        return "under 60"
+    if age < 70:
+        return "60-69"
+    if age < 80:
+        return "70-79"
+    return "80+"
+
+
+def older_band(bucket: str) -> str:
+    return "unknown" if bucket == "unknown" else ("under 60" if bucket == "under 60" else "60 and over")
 
 
 def _rows(manifest: str) -> list[dict]:
@@ -87,14 +125,14 @@ def transcribe(rows: list[dict], model_name: str) -> dict:
             "peak_rss_mib": _peak_rss_mib()}
 
 
-def results(rows: list[dict], about: dict) -> dict:
+def results(rows: list[dict], about: dict, *, by_age: bool = False) -> dict:
     groups = by_group((r["group"], r["reference"], r.get("hypothesis", "")) for r in rows)
     total = corpus((r["reference"], r.get("hypothesis", "")) for r in rows)
 
     def as_dict(c):
         return {"words": c.words, "substitutions": c.substitutions, "deletions": c.deletions,
                 "insertions": c.insertions, "wer": None if c.wer is None else round(c.wer, 4)}
-    return {
+    out = {
         "about": about,
         "machine": f"{platform.machine()}, {platform.system()} {platform.release()}",
         "utterances": len(rows),
@@ -106,6 +144,17 @@ def results(rows: list[dict], about: dict) -> dict:
                            "errors": score(r["reference"], r.get("hypothesis", "")).errors}
                           for r in rows],
     }
+    if by_age:
+        def grouped(key):
+            g = by_group((key(r), r["reference"], r.get("hypothesis", "")) for r in rows)
+            return {k: {**as_dict(c), "utterances": sum(key(r) == k for r in rows),
+                        "speakers": len({r.get("speaker") for r in rows if key(r) == k})} for k, c in g.items()}
+        buckets = grouped(lambda r: age_bucket(r.get("age")))
+        out["age_buckets"] = {b: buckets[b] for b in AGE_BUCKETS if b in buckets}
+        out["older_vs_younger"] = grouped(lambda r: older_band(age_bucket(r.get("age"))))
+        for u, r in zip(out["per_utterance"], rows):
+            u["age_bucket"] = age_bucket(r.get("age"))
+    return out
 
 
 def main() -> int:
@@ -114,6 +163,7 @@ def main() -> int:
     ap.add_argument("manifest")
     ap.add_argument("--out", required=True)
     ap.add_argument("--model", default="small")
+    ap.add_argument("--by-age", action="store_true", help="add WER per age bucket and 60 and over against under 60")
     a = ap.parse_args()
     rows = _rows(a.manifest)
     if a.mode == "transcribe":
@@ -124,9 +174,9 @@ def main() -> int:
             print(f"refused: {len(missing)} rows have no hypothesis (first: {missing[0]})", file=sys.stderr)
             return 2
         about = {"recogniser": "external transcripts (score mode)"}
-    out = results(rows, about)
+    out = results(rows, about, by_age=a.by_age)
     Path(a.out).write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(json.dumps({k: out[k] for k in ("utterances", "speakers", "overall", "groups")}, indent=1))
+    print(json.dumps({k: out[k] for k in ("utterances", "speakers", "overall", "groups", "age_buckets", "older_vs_younger") if k in out}, indent=1))
     return 0
 
 
