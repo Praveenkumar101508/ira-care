@@ -1,0 +1,374 @@
+{
+ "about": "Where each licence-register row's licence is stated at its source, and what the register says it is (scripts/legal/verify_licence_sources.py).",
+ "sources": [
+  {
+   "register": "DATASETS.md",
+   "row": "SisFall",
+   "kind": "zenodo",
+   "url": "https://zenodo.org/api/records/22212281",
+   "expected": "cc-by-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "SisFall",
+   "kind": "text",
+   "url": "http://sistemic.udea.edu.co/en/investigacion/proyectos/english-falls/",
+   "pattern": "licen[cs]e.{0,120}",
+   "expected": "cc-by-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "BITS-2 Dataset for Fall Detection",
+   "kind": "zenodo",
+   "url": "https://zenodo.org/api/records/10013090",
+   "expected": "cc-by-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "BITS-2 Dataset for Fall Detection",
+   "kind": "zenodo",
+   "url": "https://zenodo.org/api/records/8082667",
+   "expected": "cc-by-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "WEDA-FALL",
+   "kind": "text",
+   "url": "https://raw.githubusercontent.com/joaojtmarques/WEDA-FALL/main/LICENSE",
+   "pattern": "Open Data Commons Attribution License",
+   "expected": "odc-by-1.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "KFall",
+   "kind": "text",
+   "url": "https://sites.google.com/view/kfalldataset",
+   "pattern": "fill in the form below\\. The KFall team will review your request",
+   "expected": "by-request"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "MobiFall v2.0",
+   "kind": "text",
+   "url": "https://bmi.hmu.gr/?p=1642",
+   "pattern": "non-commercial.{0,80}",
+   "expected": "by-request"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "UMAFall",
+   "kind": "text",
+   "url": "https://figshare.com/articles/dataset/UMA_ADL_FALL_Dataset_zip/4214283",
+   "pattern": "CC BY[- ]?4\\.0|Creative Commons Attribution 4\\.0",
+   "expected": "cc-by-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "FallAllD",
+   "kind": "text",
+   "url": "https://ieee-dataport.org/open-access/fallalld-comprehensive-dataset-human-falls-and-activities-daily-living",
+   "pattern": "Creative Commons Attribution[^<]{0,20}",
+   "expected": "cc-by"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "UCI HAR",
+   "kind": "text",
+   "url": "https://archive.ics.uci.edu/dataset/240/human+activity+recognition+using+smartphones",
+   "pattern": "Creative Commons Attribution 4\\.0 International|CC BY 4\\.0",
+   "expected": "cc-by-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "WISDM",
+   "kind": "text",
+   "url": "https://archive.ics.uci.edu/dataset/507/wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset",
+   "pattern": "Creative Commons Attribution 4\\.0 International|CC BY 4\\.0",
+   "expected": "cc-by-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "HARTH",
+   "kind": "text",
+   "url": "https://archive.ics.uci.edu/dataset/779/harth",
+   "pattern": "Creative Commons Attribution 4\\.0 International|CC BY 4\\.0",
+   "expected": "cc-by-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "PPG-DaLiA",
+   "kind": "text",
+   "url": "https://archive.ics.uci.edu/dataset/495/ppg+dalia",
+   "pattern": "Creative Commons Attribution 4\\.0 International|CC BY 4\\.0",
+   "expected": "cc-by-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "GalaxyPPG",
+   "kind": "zenodo",
+   "url": "https://zenodo.org/api/records/14635823",
+   "expected": "cc-by-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "MIMIC-III waveform",
+   "kind": "text",
+   "url": "https://physionet.org/content/mimic3wdb-matched/1.0/",
+   "pattern": "Open Data Commons Open Database License",
+   "expected": "odbl-1.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "Sleep-EDF Expanded",
+   "kind": "text",
+   "url": "https://physionet.org/content/sleep-edfx/1.0.0/",
+   "pattern": "Open Data Commons Attribution License",
+   "expected": "odc-by-1.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "BIDSleep",
+   "kind": "text",
+   "url": "https://physionet.org/content/bidsleep-dataset/1.0.1/",
+   "pattern": "Open Data Commons Attribution License",
+   "expected": "odc-by-1.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "EmpatheticDialogues",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/datasets/facebook/empathetic_dialogues",
+   "expected": "cc-by-nc-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "LibriSpeech test-clean",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/datasets/openslr/librispeech_asr",
+   "expected": "cc-by-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "LibriSpeech test-clean",
+   "kind": "text",
+   "url": "https://www.openslr.org/12",
+   "pattern": "CC BY 4\\.0|Creative Commons Attribution 4\\.0",
+   "expected": "cc-by-4.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "Mozilla Common Voice",
+   "kind": "text",
+   "url": "https://datacollective.mozillafoundation.org",
+   "pattern": "CC0",
+   "expected": "cc0-1.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`gemma4:e4b`",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/google/gemma-4-E4B-it",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`gemma4:e2b`",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/google/gemma-4-E2B-it",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`gemma4:12b`",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/google/gemma-4-12B-it",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`gemma4:e4b`",
+   "kind": "text",
+   "url": "https://ai.google.dev/gemma/docs/gemma_4_license",
+   "pattern": "Apache License,? Version 2\\.0",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`sentence-transformers/all-MiniLM-L6-v2`",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`sentence-transformers/all-MiniLM-L6-v2`",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/nreimers/MiniLM-L6-H384-uncased",
+   "expected": "mit"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "Silero VAD v6",
+   "kind": "text",
+   "url": "https://raw.githubusercontent.com/snakers4/silero-vad/master/LICENSE",
+   "pattern": "MIT License",
+   "expected": "mit"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3.5:2b`",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen3.5-2B",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3.5:2b`",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen3.5-4B",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3.5:2b`",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen3.5-9B",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "Piper and the `en_GB-cori-high` voice",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/rhasspy/piper-voices",
+   "expected": "mit"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "Piper and the `en_GB-cori-high` voice",
+   "kind": "text",
+   "url": "https://raw.githubusercontent.com/rhasspy/piper/master/LICENSE.md",
+   "pattern": "MIT License",
+   "expected": "mit"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "OmniVoice",
+   "kind": "text",
+   "url": "https://huggingface.co/k2-fsa/OmniVoice/raw/main/README.md",
+   "pattern": "CC[- ]BY[- ]NC[^ .,)]*",
+   "expected": "cc-by-nc"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "Supertonic 3",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/Supertone/supertonic-3",
+   "expected": "openrail"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "faster-whisper",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/Systran/faster-whisper-base",
+   "expected": "mit"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "faster-whisper",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/Systran/faster-whisper-small",
+   "expected": "mit"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "faster-whisper",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/Systran/faster-whisper-large-v3",
+   "expected": "mit"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "faster-whisper",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/Systran/faster-distil-whisper-large-v3",
+   "expected": "mit"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "bge-large-en-v1.5",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/BAAI/bge-large-en-v1.5",
+   "expected": "mit"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "bge-large-en-v1.5",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/BAAI/bge-m3",
+   "expected": "mit"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "bge-reranker-v2-m3",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/BAAI/bge-reranker-v2-m3",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "ECAPA speaker embeddings",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/speechbrain/spkrec-ecapa-voxceleb",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "pyannote speaker-diarization-3.1",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/pyannote/speaker-diarization-3.1",
+   "expected": "mit"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "Indic Parler-TTS",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/ai4bharat/indic-parler-tts",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "Kokoro-82M",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/hexgrad/Kokoro-82M",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3:14b`",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen3-14B",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3:14b`",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen3-8B",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3:14b`",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen2.5-VL-7B-Instruct",
+   "expected": "apache-2.0"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3:14b`",
+   "kind": "huggingface",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen2.5-Coder-14B-Instruct",
+   "expected": "apache-2.0"
+  }
+ ]
+}

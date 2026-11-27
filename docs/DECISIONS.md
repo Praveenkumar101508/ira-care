@@ -2071,3 +2071,14 @@ each with its functional evidence: the heart and activity evaluations (`results.
 model cards describe) and, for the licences, the test that keeps the GPL decoder out
 (`test_no_pyav.py`). Still open: the owner's choice for OmniVoice (keep it off with the prohibition
 recorded, as now, or remove its artefact entry).
+
+## D-108 The licence registers are re-read at their sources by a script whose record is kept (requirements F1.a, F1.b, 27 November 2026)
+
+`scripts/legal/verify_licence_sources.py` reads, for each register row with a published source,
+the place where its licence is stated (the Zenodo or Hugging Face record through its API, or the
+page itself) and compares it with the register; `docs/legal/LICENCE_SOURCE_CHECK.json` and `.md`
+keep the result. On 27 November 2026: 44 sources agree, none differ, 6 could not be reached from
+the build machine. A source that cannot be reached is recorded as such and never counted as
+agreeing; the test fails if the record ever holds a disagreement or stops covering the list.
+F1.b (models) is accepted; F1.a (datasets) stays implemented until the unreachable sources are
+read in a browser and recorded.

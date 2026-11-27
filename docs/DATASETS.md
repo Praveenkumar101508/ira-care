@@ -199,3 +199,5 @@ terms (Gemma 4, Apache 2.0) are recorded in [`docs/ai/MODEL_WEIGHTS.md`](ai/MODE
   build carries fall model v3, trained only on BITS-2 and UCI HAR (D-080). SisFall stays out of
   every build until its original rights are established; the confirmation request to the
   authors was drafted, and sent on 26 November 2026.
+
+**Re-read at source, 27 November 2026.** Every row with a published source was read again where its licence is stated, by `scripts/legal/verify_licence_sources.py`; the results, and the sources that could not be reached from the build machine, are in `docs/legal/LICENCE_SOURCE_CHECK.md`. No row disagreed with its source.
