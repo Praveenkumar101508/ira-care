@@ -45,6 +45,8 @@ from adbkit import (  # noqa: E402
 )
 
 BUNDLE_ID = "care.ira.family"
+#: Log words that say why the secure store kept nothing (-34018: a required entitlement is missing).
+STORAGE_WORDS = ("ira-storage", "SecureStore", "-34018", "errSecMissingEntitlement", "keychain", "Keychain")
 
 
 # ── pure parts ───────────────────────────────────────────────────────────────
@@ -194,6 +196,14 @@ class Journey:
         subprocess.run(["xcrun", "simctl", "io", self.a.udid, "screenshot", str(path)], capture_output=True, timeout=60)
         return path.name
 
+    def storage_log(self, minutes: int = 15) -> list[str]:
+        """What the app and the keychain said about keeping data on the phone (mobile/src/storage.ts
+        logs every secure-store failure): why a session or appearance was not kept across a restart."""
+        r = subprocess.run(["xcrun", "simctl", "spawn", self.a.udid, "log", "show", "--last", f"{minutes}m", "--style", "compact",
+                            "--predicate", 'process == "IRACARE" OR process == "securityd"'],
+                           capture_output=True, text=True, timeout=600)
+        return [ln.strip()[:300] for ln in r.stdout.splitlines() if any(k in ln for k in STORAGE_WORDS)][-40:]
+
     def relaunch(self) -> None:
         self.run([{"stop": True}, {"launch": True}])
 
@@ -328,8 +338,9 @@ class Journey:
         self.run([{"tap": "tab-settings"}, {"scroll_to": "settings-appearance"}, {"tap": "settings-appearance"}])
         nodes = self.wait_for(lambda n: find_id(n, "mode-dark") is not None, a.ui_timeout)
         kept = is_selected(find_id(nodes, "mode-dark"))
+        extra = {} if kept else {"storage_log": self.storage_log()}
         self.step("appearance_kept_across_restart", chosen and kept, t0, chosen=chosen, kept=kept,
-                  screenshot=self.shot("appearance_after_restart"))
+                  screenshot=self.shot("appearance_after_restart"), **extra)
         self.run([{"tap": "mode-system"}, {"tap": "settings-back"}])
 
         # 6. The care server unreachable (stopped: a simulator's network cannot be switched off), then back.

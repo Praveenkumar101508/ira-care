@@ -15,7 +15,8 @@ export async function loadSession(): Promise<StoredSession | null> {
   try {
     const raw = await SecureStore.getItemAsync(KEY);
     return raw ? (JSON.parse(raw) as StoredSession) : null;
-  } catch {
+  } catch (e) {
+    console.warn('ira-storage: the session could not be read on this phone', String(e));
     return null;
   }
 }
@@ -24,8 +25,10 @@ export async function saveSession(session: StoredSession | null): Promise<void> 
   try {
     if (session) await SecureStore.setItemAsync(KEY, JSON.stringify(session));
     else await SecureStore.deleteItemAsync(KEY);
-  } catch {
-    // Storage failures are not fatal: the person signs in again next time.
+  } catch (e) {
+    // Storage failures are not fatal: the person signs in again next time. Logged (no session
+    // contents) so a phone that keeps forgetting its sign-in can be diagnosed.
+    console.warn('ira-storage: the session could not be kept on this phone', String(e));
   }
 }
 
