@@ -102,8 +102,12 @@ def flow(steps: list[dict], bundle_id: str = BUNDLE_ID) -> str:
             # keyboard is dismissed by tapping the screen's heading, which has no action.
             # Cleared first: Maestro types after what a field holds, and the server field holds the
             # app's default address (run 46057616511 signed in to "http://10.0.2.2:8000http://...").
+            # The keyboard is closed with Return: a single-line React Native field ends editing on it,
+            # and the sign-in fields submit nothing on Return. Tapping the heading did not close it, so
+            # the next tap landed on the keyboard (run 46060791832: the server address went into the
+            # password field).
             lines += into_view(rid) + ["- tapOn:", f"    id: {_q(rid)}", "- eraseText: 80", f"- inputText: {_q(text)}",
-                                       "- tapOn:", "    point: \"50%,7%\""]
+                                       "- pressKey: Enter"]
         elif "launch" in s:
             lines += ["- launchApp:", "    stopApp: false"]
         elif "stop" in s:
@@ -215,9 +219,14 @@ class Journey:
         nodes = self.wait_for(lambda n: find_id(n, "sign-in") is not None, self.a.ui_timeout)
         # Username and password first, then the server behind "Advanced" (below them on screen).
         steps = [{"type": ["username", login["email"]]}, {"type": ["password", login["password"]]}]
-        steps += [] if find_id(nodes, "server") is not None else [{"tap": "advanced"}]
+        # The test build's default server is this one (the workflow sets it, as the Android test build's
+        # is the emulator's host), so the server field is typed only when it holds something else.
+        server = find_id(nodes, "server")
+        if server is None or server.get("text") != self.a.api:
+            steps += [] if server is not None else [{"tap": "advanced"}]
+            steps += [{"type": ["server", self.a.api]}]
         # On screen: username, password, Sign in, then Advanced and the server; so back up to Sign in.
-        steps += [{"type": ["server", self.a.api]}, {"tap": "sign-in", "up": True}]
+        steps += [{"tap": "sign-in", "up": True}]
         ok = self.run(steps)
         ws = "workspace-" + self.server.creds["workspace_id"]
         nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)

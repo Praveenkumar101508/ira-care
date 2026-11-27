@@ -60,7 +60,7 @@ def test_flows_are_valid_yaml_with_the_app_id_and_quoted_text(j):
     assert {"tapOn": {"id": "advanced"}} in cmds
     assert {"inputText": 'a"b: c#d'} in cmds, "awkward characters survive quoting"
     # the keyboard is dismissed on the heading, never with hideKeyboard (run 46053932767)
-    assert "hideKeyboard" not in cmds and {"tapOn": {"point": "50%,7%"}} in cmds
+    assert "hideKeyboard" not in cmds and {"pressKey": "Enter"} in cmds
     # a field is cleared before typing, so the server field's default address is replaced (run 46057616511)
     i = cmds.index({"inputText": 'a"b: c#d'})
     assert cmds[i - 1] == {"eraseText": 80} and cmds[i - 2] == {"tapOn": {"id": "password"}}

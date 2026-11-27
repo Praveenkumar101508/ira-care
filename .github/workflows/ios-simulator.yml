@@ -47,6 +47,11 @@ jobs:
           cache-dependency-path: mobile/package-lock.json
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
+      - name: Point the test build at the journey's care server
+        # The Android test build's default server is the emulator's host (10.0.2.2, app.json); the iOS
+        # simulator shares the Mac's loopback, so its test build defaults to 127.0.0.1:8000. Only this
+        # job's copy changes; nothing is committed and the release builds keep app.json as it is.
+        run: node -e "const f='app.json';const j=JSON.parse(require('fs').readFileSync(f));j.expo.extra.careApiBaseUrl='http://127.0.0.1:8000';require('fs').writeFileSync(f,JSON.stringify(j,null,2))"
       - name: Generate the iOS project
         env:
           CI: "1"
