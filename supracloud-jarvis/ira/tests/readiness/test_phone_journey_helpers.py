@@ -143,3 +143,30 @@ def test_a_screenshot_pixel_tells_a_dark_wallpaper_from_the_cream(kit):
         kit.png_pixel(_png(4, 3, (0, 0, 0)), 9, 9)
     with pytest.raises(ValueError):
         kit.png_pixel(b"not a png", 0, 0)
+
+
+def test_an_empty_screen_reading_is_tried_again_and_never_stale(monkeypatch, tmp_path):
+    """Runs 46040834373 and 46045629293: one empty uiautomator reading ended the sign-in step.
+    The reading is now tried again, and the old file is removed before each try."""
+    import argparse
+    import importlib.util
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts" / "emulator"))
+    spec = importlib.util.spec_from_file_location("phone_smoke_under_test", ROOT / "scripts" / "emulator" / "phone_smoke.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    monkeypatch.setattr(mod.time, "sleep", lambda *_: None)
+    s = mod.PhoneSmoke(argparse.Namespace(out=str(tmp_path)))
+    xml = '<hierarchy><node resource-id="username" text="" content-desc="Username" bounds="[0,0][10,10]"/></hierarchy>'
+    answers, calls = iter(["", "", xml]), []
+
+    def fake_adb(*args, **kw):
+        calls.append(args)
+        return next(answers) if args[:2] == ("exec-out", "cat") else ""
+
+    s.adb = fake_adb
+    assert s.dump(), "the third reading is used"
+    assert sum(1 for c in calls if c[:3] == ("shell", "rm", "-f")) == 3
+    # negative control: three empty readings give an empty screen, not an old one
+    answers = iter(["", "", ""])
+    assert s.dump() == []

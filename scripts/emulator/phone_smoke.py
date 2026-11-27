@@ -107,10 +107,23 @@ class PhoneSmoke:
         print(json.dumps(rec), flush=True)
         return ok
 
+    #: How often an empty screen reading is tried again. uiautomator sometimes answers with nothing
+    #: under load ("could not get idle state"); runs 46040834373 and 46045629293 failed sign-in on
+    #: one such reading right after the sign-in screen had been read.
+    DUMP_TRIES = 3
+
     def dump(self) -> list[dict]:
-        self.adb("shell", "uiautomator", "dump", "/data/local/tmp/ui.xml", timeout=180)
-        self.last_xml = self.adb("exec-out", "cat", "/data/local/tmp/ui.xml", timeout=60)
-        return parse_nodes(self.last_xml)
+        nodes: list[dict] = []
+        for attempt in range(self.DUMP_TRIES):
+            # The old file is removed first, so a failed dump can never hand back a stale screen.
+            self.adb("shell", "rm", "-f", "/data/local/tmp/ui.xml", timeout=60)
+            self.adb("shell", "uiautomator", "dump", "/data/local/tmp/ui.xml", timeout=180)
+            self.last_xml = self.adb("exec-out", "cat", "/data/local/tmp/ui.xml", timeout=60)
+            nodes = parse_nodes(self.last_xml)
+            if nodes:
+                return nodes
+            time.sleep(2)
+        return nodes
 
     def app_in_front(self) -> bool:
         focus = self.adb("shell", "dumpsys", "window", "displays", timeout=60)
