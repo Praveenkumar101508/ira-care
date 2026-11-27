@@ -113,6 +113,11 @@ type Pending = { label: string; run: () => Promise<void> } | null;
 /** The deployment administrator's screen: choose a watch, see every instruction sent to it, send one. */
 export function DeviceAdminScreen({ api, session, me, onMe }: { api: Api; session: StoredSession; me: AdminMe; onMe?: (me: AdminMe) => void }) {
   const [target, setTarget] = useState<Target>({ tenantId: '', workspaceId: session.workspaceId ?? '', deviceId: '' });
+  // How long ago `me` was read: the step-up line counts on from it (stepUpWords).
+  const [meReadAt, setMeReadAt] = useState(() => Date.now());
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => { setMeReadAt(Date.now()); setNowMs(Date.now()); }, [me]);
+  useEffect(() => { const t = setInterval(() => setNowMs(Date.now()), 5000); return () => clearInterval(t); }, []);
   const [people, setPeople] = useState<Person[]>([]);
   const [peopleError, setPeopleError] = useState('');
   const [personId, setPersonId] = useState('');
@@ -244,7 +249,7 @@ export function DeviceAdminScreen({ api, session, me, onMe }: { api: Api; sessio
     <div data-testid="device-admin">
       <h2>Deployment administration</h2>
       <p className="muted">Signed in as {session.username}. Three actions, one watch, at most {MAX_MINUTES} minutes; everything here is audited.</p>
-      <p className="muted" data-testid="step-up-state">{stepUpWords(me)}</p>
+      <p className="muted" data-testid="step-up-state">{stepUpWords(me, (nowMs - meReadAt) / 1000)}</p>
 
       <section className="card" aria-labelledby="target-title">
         <h3 id="target-title">Which watch</h3>

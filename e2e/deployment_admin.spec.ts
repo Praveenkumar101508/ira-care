@@ -7,6 +7,12 @@ import { Api, DASH, dashboardSignIn, info, login, type Login } from './helpers';
  * 1. A care account that holds no deployment administrator grant (the demo coordinator, a care
  *    manager, holds none: the grant is never a care role) opens /admin/devices and sees the
  *    refusal, with no field, button or watch anywhere on the page, and no "Deployment" link.
+ * 3. With E2E_DEPLOYMENT_ADMIN_SECOND_KEY too (a second granted account), the two-person factory
+ *    reset: the first administrator requests it, cannot approve their own request, and the second
+ *    approves it; the audit trail on the row shows the request and the approval.
+ * 4. With E2E_STEP_UP_WAIT_SECONDS (more than the server's IRA_STEP_UP_MAX_AGE_SECONDS), the
+ *    administrator waits until their sign-in is no longer recent, and the screen asks them to
+ *    confirm who they are before anything is signed.
  * 2. With E2E_DEPLOYMENT_ADMIN=1 and an account the operator has granted
  *    (scripts/deployment_admin.py), named by E2E_DEPLOYMENT_ADMIN_EMAIL and
  *    E2E_DEPLOYMENT_ADMIN_PASSWORD (or E2E_DEPLOYMENT_ADMIN_KEY, a login key in the demo
@@ -95,3 +101,113 @@ test.describe('a deployment administrator', () => {
     await expect(page.getByTestId('instruction-row').filter({ hasText: reason }).first().getByTestId('status')).toHaveText('Revoked');
   });
 });
+
+/** Choose the first seeded person's paired watch, as the ordinary care routes list it. */
+async function pairedWatch(): Promise<string> {
+  const api = await Api.signIn(i, carer);
+  for (const p of i.people) {
+    const { devices } = await api.req<{ devices: { id: string; status: string }[] }>('GET', `/api/v1/care/people/${p.id}/devices`);
+    const paired = devices.find((d) => d.status === 'paired');
+    if (paired) return paired.id;
+  }
+  throw new Error('no seeded person has a paired watch');
+}
+
+async function openForWatch(page: import('@playwright/test').Page, who: Login, deviceId: string) {
+  await dashboardSignIn(page, who);
+  await page.goto(`${DASH}/admin/devices`); await page.waitForLoadState('networkidle');
+  await expect(page.getByTestId('device-admin')).toBeVisible();
+  await page.getByLabel('Watch id').fill(deviceId);
+  await expect(page.getByTestId('live')).toContainText(/Live: updated/, { timeout: 15_000 });
+}
+
+async function confirmIfAsked(page: import('@playwright/test').Page, who: Login) {
+  const stepUp = page.getByTestId('step-up');
+  if (await stepUp.isVisible({ timeout: 3_000 }).catch(() => false)) {
+    await stepUp.getByLabel('Password').fill(who.password);
+    await stepUp.getByRole('button', { name: 'Confirm and continue' }).click();
+  }
+}
+
+const SECOND = process.env.E2E_DEPLOYMENT_ADMIN_SECOND_KEY;
+test.describe('two deployment administrators', () => {
+  test.skip(!ADMIN_ON || !SECOND, 'set E2E_DEPLOYMENT_ADMIN_SECOND_KEY to a second granted account');
+
+  test('a factory reset needs a second, different administrator, and the audit trail shows both', async ({ browser }) => {
+    const first = adminLogin(); const second = login(i, SECOND!);
+    expect(second.email).not.toBe(first.email);
+    const deviceId = await pairedWatch();
+    const reason = `End-to-end two-person reset ${Date.now()}`;
+
+    const a = await (await browser.newContext()).newPage();
+    await openForWatch(a, first, deviceId);
+    await a.getByLabel('Action').selectOption('FACTORY_RESET');
+    await expect(a.getByTestId('two-person')).toBeVisible();
+    await a.getByLabel('Reason').fill(reason);
+    await a.getByRole('button', { name: 'Request a factory reset' }).click();
+    await confirmIfAsked(a, first);
+    const rowA = a.getByTestId('instruction-row').filter({ hasText: reason }).first();
+    await expect(rowA.getByTestId('status')).toHaveText('Waiting for a second administrator', { timeout: 15_000 });
+    // The requester may not approve their own request: the server refuses and says so.
+    await rowA.getByRole('button', { name: 'Approve' }).click();
+    await confirmIfAsked(a, first);
+    await expect(a.getByTestId('action-error')).toBeVisible({ timeout: 15_000 });
+    await expect(rowA.getByTestId('status')).toHaveText('Waiting for a second administrator');
+
+    const b = await (await browser.newContext()).newPage();
+    await openForWatch(b, second, deviceId);
+    const rowB = b.getByTestId('instruction-row').filter({ hasText: reason }).first();
+    await expect(rowB.getByTestId('status')).toHaveText('Waiting for a second administrator');
+    await rowB.getByRole('button', { name: 'Approve' }).click();
+    await confirmIfAsked(b, second);
+    await expect(rowB.getByTestId('status')).toHaveText(/Signed|Collected/, { timeout: 15_000 });
+    await expect(rowB.getByRole('cell').nth(3)).not.toHaveText('—');
+    await rowB.locator('summary').click();
+    const trail = rowB.getByTestId('audit-trail');
+    await expect(trail).toContainText('Requested');
+    await expect(trail).toContainText('Approved');
+    await expect(trail).toContainText('Approval refused');
+
+    // Clean up: revoke the signed reset so the seeded watch is not left with it.
+    await rowB.getByRole('button', { name: 'Revoke' }).click();
+    await rowB.getByLabel('Why revoke').fill('End-to-end check finished');
+    await rowB.getByRole('button', { name: 'Confirm revoke' }).click();
+    await expect(b.getByTestId('notice')).toContainText('Revoked', { timeout: 15_000 });
+  });
+});
+
+const WAIT = Number(process.env.E2E_STEP_UP_WAIT_SECONDS ?? 0);
+test.describe('step-up after a sign-in that is no longer recent', () => {
+  test.skip(!ADMIN_ON || !WAIT, 'set E2E_STEP_UP_WAIT_SECONDS above the server\'s IRA_STEP_UP_MAX_AGE_SECONDS');
+  test.setTimeout((WAIT + 120) * 1000);
+
+  test('the screen asks the administrator to confirm who they are before signing', async ({ browser }) => {
+    // A fresh browser and a fresh sign-in, then a wait past the server's limit.
+    const admin = adminLogin();
+    const deviceId = await pairedWatch();
+    const page = await (await browser.newContext()).newPage();
+    await page.goto(`${DASH}/login`); await page.waitForLoadState('networkidle');
+    await openForWatch(page, admin, deviceId);
+    await page.waitForTimeout(WAIT * 1000);
+    const reason = `End-to-end step-up ${Date.now()}`;
+    await page.getByLabel('Minutes').fill('1');
+    await page.getByLabel('Reason').fill(reason);
+    await page.getByRole('button', { name: 'Send to the watch' }).click();
+    const stepUp = page.getByTestId('step-up');
+    await expect(stepUp).toBeVisible({ timeout: 15_000 });
+    // A wrong password is refused and nothing is signed.
+    await stepUp.getByLabel('Password').fill('not-the-password');
+    await stepUp.getByRole('button', { name: 'Confirm and continue' }).click();
+    await expect(page.getByTestId('step-up-error')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('instruction-row').filter({ hasText: reason })).toHaveCount(0);
+    await stepUp.getByLabel('Password').fill(admin.password);
+    await stepUp.getByRole('button', { name: 'Confirm and continue' }).click();
+    await expect(page.getByTestId('notice')).toContainText(/^Signed\./, { timeout: 15_000 });
+    const row = page.getByTestId('instruction-row').filter({ hasText: reason }).first();
+    await row.getByRole('button', { name: 'Revoke' }).click();
+    await row.getByLabel('Why revoke').fill('End-to-end check finished');
+    await row.getByRole('button', { name: 'Confirm revoke' }).click();
+    await expect(page.getByTestId('notice')).toContainText('Revoked', { timeout: 15_000 });
+  });
+});
+

@@ -1651,8 +1651,12 @@
    "title": "Deployment administration screen in the dashboard: refusal for anyone without the grant, instruction history with audit trail, the three actions, the two-person reset, step-up confirmation",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/DEPLOYMENT_ADMIN_BROWSER.md"
+    },
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/device_admin.test.tsx"
@@ -2040,6 +2044,10 @@
    "hardware_independent": true,
    "state": "verified",
    "evidence": [
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/DEPLOYMENT_ADMIN_BROWSER.md"
+    },
     {
      "kind": "unit_test",
      "ref": "supracloud-jarvis/ira/tests/test_step_up_authentication.py"

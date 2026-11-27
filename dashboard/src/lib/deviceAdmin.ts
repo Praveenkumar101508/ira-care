@@ -156,12 +156,19 @@ export function refusalMessage(body: unknown, fallback: string): string {
 }
 
 /** The step-up standing as the screen states it before any action is tried. */
-export function stepUpWords(me: AdminMe): string {
-  if (!me.step_up_required) {
-    if (me.auth_age_seconds === null) return 'You will not be asked to confirm who you are for the next action.';
-    return `You confirmed who you are ${agoWords(me.auth_age_seconds)}; actions need a confirmation under ${Math.round(me.max_age_seconds / 60)} minutes old.`;
-  }
-  return `Before an action is carried out you will be asked to confirm who you are${me.mfa_enrolled ? ' with your password and your authenticator code' : ' with your password'}.`;
+/**
+ * What the administrator is told about confirming who they are. `elapsedSeconds` is the time since
+ * `me` was read from the server: the confirmation keeps ageing while the page is open, so the line
+ * counts on and, once it passes the server's limit, says the next action will ask (round 10: it had
+ * said "6 s ago" a minute and more later, while the server was about to refuse).
+ */
+export function stepUpWords(me: AdminMe, elapsedSeconds = 0): string {
+  const ask = `Before an action is carried out you will be asked to confirm who you are${me.mfa_enrolled ? ' with your password and your authenticator code' : ' with your password'}.`;
+  if (me.step_up_required) return ask;
+  if (me.auth_age_seconds === null) return 'You will not be asked to confirm who you are for the next action.';
+  const age = me.auth_age_seconds + Math.max(0, elapsedSeconds);
+  if (me.max_age_seconds > 0 && age >= me.max_age_seconds) return ask;
+  return `You confirmed who you are ${agoWords(age)}; actions need a confirmation under ${Math.round(me.max_age_seconds / 60)} minutes old.`;
 }
 
 export function agoWords(seconds: number): string {

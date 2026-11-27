@@ -2120,3 +2120,14 @@ no longer a hold-out; a new one, `round10_holdout.jsonl` (32 turns), was written
 and run once: 31 of 32. Its one miss (chest tightness in other words) is a safety gap, so it was
 fixed after the result was recorded, and the hold-out figure stays as measured. The 162-turn set is
 unchanged turn for turn. Details: `docs/ai/conversation/ROUND10_CONVERSATION.md`.
+
+## D-112 The care API installs the shared error handlers; the step-up line counts on (requirements D3.l, E2.p, 27 November 2026)
+
+The deployment administrator journey ran in a real browser for the first time
+(`docs/evidence/browser/DEPLOYMENT_ADMIN_BROWSER.md`) and found two defects. The care API
+(`scripts/demo/api.py`) did not install `core.runtime.errors.install_error_handlers`, so a
+structured refusal, "step-up required" among them, reached the browser as a 500 and the dashboard
+never asked for the password; it now installs them, as the full server does. The dashboard's line
+saying how recently the administrator confirmed who they are was computed once at page load; it now
+counts on and says the next action will ask once the server's limit has passed. With both fixed,
+the four browser tests pass, including the two-person factory reset and the step-up prompt.
