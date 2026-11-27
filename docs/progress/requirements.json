@@ -1372,8 +1372,12 @@
    "title": "iOS build of the phone app",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/builds/IOS_SIMULATOR.md"
+    },
     {
      "kind": "build",
      "ref": "docs/evidence/builds/IOS_SIMULATOR.md"

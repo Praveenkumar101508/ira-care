@@ -150,3 +150,15 @@ eleven dumped screens labelled (a card's words on its child count) and every but
 below the fold of the home column and the journey never scrolled to it (it now does), and the job
 reached its 45-minute timeout while waiting (the two ten-minute quiet-face waits; the timeout is
 now 60 minutes). The next run is the proof for that step and for the re-pairing that follows it.
+
+### Third emulator run of the extended journey (run 45994124214, job 140489106512, commit `fdfa92b`, 27 November 2026)
+
+43 of 44 steps passed again, with the host-network wait, the quiet face before the groups and the
+scroll to the bottom of the home column in place. The one failure was `unpair_warning_shown`, and it
+was the script's, not the app's: the screen dump that step saved shows the Unpair button on screen,
+but Compose had merged the button's text ("Unpair watch…") into its description ("Unpair this watch.
+Asks before doing anything."), and the script searched for the text alone, so it scrolled, waited
+five minutes and gave up without tapping. The search now accepts the text or the description
+(`UNPAIR_BUTTON` in `scripts/emulator/watch_smoke.py`), with a test that fails on the old search
+(`test_the_unpair_button_is_found_by_its_description_when_compose_hides_its_text`). The next run is
+the proof for the unpair steps.

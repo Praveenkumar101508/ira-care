@@ -347,3 +347,29 @@ def test_both_ping_wordings_count_as_reachable(smoke):
     assert smoke.host_reachable("1 packets transmitted, 1 packets received")
     assert not smoke.host_reachable("1 packets transmitted, 0 received, 100% packet loss")
     assert not smoke.host_reachable("")
+
+
+def test_the_unpair_button_is_found_by_its_description_when_compose_hides_its_text(smoke, tmp_path, monkeypatch):
+    """Run 45994124214: the Unpair button's text was merged into its description, so a search for
+    "Unpair watch" alone scrolled, waited five minutes and failed. Either label finds it now."""
+    class Args:
+        out, adb, serial, package, api_only = str(tmp_path), "adb", "emulator-5554", PKG, False
+
+    desc_only = HOME_DUMP.replace('text="Unpair watch…"', 'text=""')
+    assert 'text=""' in desc_only and "Unpair this watch" in desc_only
+    s = smoke.Smoke(Args())
+    swipes = []
+
+    def fake_adb(*args, **kw):
+        if args[:2] == ("exec-out", "cat"):
+            return desc_only
+        if args[:3] == ("shell", "input", "swipe"):
+            swipes.append(args)
+        return ""
+
+    s.adb = fake_adb
+    w = smoke.AdbWrist(s)
+    monkeypatch.setattr(smoke.time, "sleep", lambda *_: None)
+    assert w.scroll_to_text(*smoke.UNPAIR_BUTTON) is not None and swipes == []
+    assert w.scroll_to_text("Unpair watch") is None and len(swipes) == 4, "the text alone is not on screen"
+    assert w.tap("Unpair watch…", "Unpair this watch") == "Unpair this watch"
