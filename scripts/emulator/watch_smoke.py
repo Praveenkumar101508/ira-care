@@ -701,6 +701,15 @@ class ApiWrist:
 
 
 class Smoke:
+    def reset_network(self, wait_s: float = 60) -> dict:
+        """Airplane mode on, then off, then wait (up to `wait_s`) for the host to answer a ping."""
+        self.adb("shell", "cmd", "connectivity", "airplane-mode", "enable", timeout=60, check=False)
+        time.sleep(3)
+        self.adb("shell", "cmd", "connectivity", "airplane-mode", "disable", timeout=60, check=False)
+        ok, waited = wait_for_host_network(
+            lambda: self.adb("shell", "ping", "-c", "1", "-W", "2", HOST_ADDRESS, timeout=30, check=False), timeout_s=wait_s)
+        return {"host_back": ok, "seconds": round(waited, 1)}
+
     def __init__(self, a):
         self.a = a
         self.out = Path(a.out)
@@ -1035,8 +1044,14 @@ class Smoke:
                     break
                 no_connection_retries += 1
                 probe = self.adb("shell", "ping", "-c", "1", "-W", "2", HOST_ADDRESS, timeout=30, check=False)
-                print(json.dumps({"note": f"watch said No connection; pressing Pair again ({no_connection_retries})",
-                                  "host_ping": host_reachable(probe)}), flush=True)
+                reachable = host_reachable(probe)
+                note = {"note": f"watch said No connection; pressing Pair again ({no_connection_retries})", "host_ping": reachable}
+                if not reachable:
+                    # The emulator's virtual network itself is down (runs 46045629293 and 46068431030:
+                    # no ping to the host for the whole retry window). Airplane mode on and off resets
+                    # it, as a person would; then wait for the host before pressing Pair again.
+                    note["network_reset"] = self.reset_network()
+                print(json.dumps(note), flush=True)
                 time.sleep(10)
                 again = find(self.dump(), text="Pair")
                 if again is not None:

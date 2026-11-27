@@ -373,3 +373,28 @@ def test_the_unpair_button_is_found_by_its_description_when_compose_hides_its_te
     assert w.scroll_to_text(*smoke.UNPAIR_BUTTON) is not None and swipes == []
     assert w.scroll_to_text("Unpair watch") is None and len(swipes) == 4, "the text alone is not on screen"
     assert w.tap("Unpair watch…", "Unpair this watch") == "Unpair this watch"
+
+
+def test_a_dead_emulator_network_is_reset_with_airplane_mode_then_the_host_is_awaited(smoke, tmp_path, monkeypatch):
+    """Runs 46045629293 and 46068431030: the watch emulator could not ping the host for the whole
+    pairing retry window. The journey now resets its network and waits for the host."""
+    class Args:
+        out, adb, serial, package, api_only = str(tmp_path), "adb", "emulator-5554", PKG, False
+
+    s = smoke.Smoke(Args())
+    calls, pings = [], iter(["", "1 packets transmitted, 1 received"])
+    monkeypatch.setattr(smoke.time, "sleep", lambda *_: None)
+
+    def fake_adb(*args, **kw):
+        calls.append(args)
+        if args[:2] == ("shell", "ping"):
+            return next(pings, "1 received")
+        return ""
+
+    s.adb = fake_adb
+    out = s.reset_network(wait_s=30)
+    assert out["host_back"] is True
+    assert ("shell", "cmd", "connectivity", "airplane-mode", "enable") in calls
+    assert ("shell", "cmd", "connectivity", "airplane-mode", "disable") in calls
+    assert calls.index(("shell", "cmd", "connectivity", "airplane-mode", "enable")) < \
+        calls.index(("shell", "cmd", "connectivity", "airplane-mode", "disable"))
