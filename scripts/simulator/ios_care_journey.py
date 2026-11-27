@@ -221,8 +221,11 @@ class Journey:
         steps = [{"type": ["username", login["email"]]}, {"type": ["password", login["password"]]}]
         # The test build's default server is this one (the workflow sets it, as the Android test build's
         # is the emulator's host), so the server field is typed only when it holds something else.
-        server = find_id(nodes, "server")
-        if server is None or server.get("text") != self.a.api:
+        # Typed only with --type-server: on iOS the field could not be cleared reliably (run 46064671882
+        # signed in to "http://127.0.0.1:8000http://127.0.0.1"), and the test build's default is already
+        # this server.
+        if self.a.type_server:
+            server = find_id(nodes, "server")
             steps += [] if server is not None else [{"tap": "advanced"}]
             steps += [{"type": ["server", self.a.api]}]
         # On screen: username, password, Sign in, then Advanced and the server; so back up to Sign in.
@@ -382,6 +385,8 @@ def main(argv=None) -> int:
     ap.add_argument("--credentials", required=True, help="the demo seed file (fictional logins)")
     ap.add_argument("--out", default="build/ios-care-journey")
     ap.add_argument("--api-cmd", default="", help="starts the care server; the journey stops and restarts it")
+    ap.add_argument("--type-server", action="store_true",
+                    help="type the care server's address on the sign-in screen (default: use the build's default)")
     ap.add_argument("--maestro", default=os.path.expanduser("~/.maestro/bin/maestro"))
     ap.add_argument("--ui-timeout", type=float, default=45.0)
     return Journey(ap.parse_args(argv)).main()
