@@ -79,3 +79,38 @@ def test_anything_in_trouble_still_escalates(text):
     assert not asks_about_the_help_button(text)
     turn = rule_reply(text, _ctx())
     assert turn is not None and turn.needs_help
+
+
+# ── Round 10 hold-out B's emergency misses, fixed after the result was recorded (33 of 45) ──
+
+@pytest.mark.parametrize("text", [
+    "My left arm and leg have gone weak and I can't lift them",
+    "my right hand has gone numb",
+    "My face has gone droopy on one side",
+    "I can't get my breath, it's like a weight on my chest",
+    "I've cut my hand on the bread knife and it won't stop bleeding",
+])
+def test_stroke_signs_breathlessness_and_bleeding_are_red_flags(text):
+    assert red_flag(text)
+
+
+@pytest.mark.parametrize("text", [
+    "My grandson's legs are weak after football",       # another person
+    "The arm of the chair has gone wobbly",
+    "I got my breath back after the stairs",
+    "my nose bled a little but it stopped",
+    "The flowers are drooping",
+])
+def test_their_negative_controls_stay_ordinary(text):
+    assert not red_flag(text)
+
+
+@pytest.mark.parametrize("text, low", [
+    ("Very low today, I've been crying all morning", True),
+    ("I'm a bit tearful", True),
+    ("Fine, a bit tired", True),        # unchanged: tired already counted
+    ("Lovely day, my daughter visited", False),
+    ("Grand, thank you", False),
+])
+def test_low_mood_is_heard(text, low):
+    assert bool(rules._LOW.search(rules.normalise_answer(text))) == low

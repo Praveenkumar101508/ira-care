@@ -64,7 +64,7 @@ def test_flows_are_valid_yaml_with_the_app_id_and_quoted_text(j):
     # every tap and every typed field is scrolled into view first (run 46032445452)
     i = cmds.index({"tapOn": {"id": "advanced"}})
     assert cmds[i - 1] == {"scrollUntilVisible": {"element": {"id": "advanced"}, "direction": "DOWN", "timeout": 10000,
-                                         "visibilityPercentage": 50, "centerElement": True}}
+                                         "visibilityPercentage": 50, "centerElement": True, "optional": True}}
     up = yaml.safe_load(j.flow([{"tap": "sign-in", "up": True}]).split("---\n")[1])
     assert up[0]["scrollUntilVisible"]["direction"] == "UP" and up[1] == {"tapOn": {"id": "sign-in"}}
 

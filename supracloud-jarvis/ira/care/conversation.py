@@ -693,7 +693,14 @@ RED_FLAGS = re.compile(
     # says they are fine. "went down" alone is not added: "I went down to the shop" is ordinary.
     r"(hit|banged|bumped|knocked|cracked|smacked) (my|me) head|head injury|hurt my head|"
     # Round 10 hold-out (r10-r10-5, recorded as a miss before this line): chest tightness in other words.
-    r"chest (has )?(gone|going|feels?|felt|is getting) (all )?(tight|heavy)|tight(ness)? (in|across) my chest)\b", re.I)
+    r"chest (has )?(gone|going|feels?|felt|is getting) (all )?(tight|heavy)|tight(ness)? (in|across) my chest|"
+    # Round 10 hold-out B (recorded as misses before these lines): stroke signs, breathlessness and
+    # bleeding in other words. Each needs "my" or "I", so another person's weak legs stay ordinary.
+    r"my (left |right )?(arm|leg|hand)s?( and (my )?(left |right )?(arm|leg|hand)s?)? (has|have|is|are) (gone |going |feeling |all )?(weak|numb|dead|floppy|heavy)|"
+    r"i can'?t lift my (arm|leg|hand)s?|i can'?t lift them|"
+    r"my face.{0,15}droop|droop(y|ing) on one side|one side of my face|"
+    r"can'?t get my breath|cannot get my breath|(like a )?weight on my chest|"
+    r"won'?t stop bleeding|will not stop bleeding|bleeding won'?t stop)\b", re.I)
 
 
 def red_flag(text: str) -> bool:

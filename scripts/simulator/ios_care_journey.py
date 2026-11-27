@@ -84,8 +84,11 @@ def flow(steps: list[dict], bundle_id: str = BUNDLE_ID) -> str:
         # fold once "Advanced" is open (run 46032445452), so every element is scrolled to first.
         # Half visible is enough (the keyboard can cover the lower part of a field), and the element
         # is centred so the tap that follows lands on it (run 46040834373).
+        # Optional: when the scroll cannot confirm the element (iOS secure fields report their
+        # visibility oddly: run 46045629293 stopped at the password field), the tap that follows
+        # still tries it, and a truly absent element fails there.
         return ["- scrollUntilVisible:", "    element:", f"      id: {_q(rid)}", f"    direction: {direction}", "    timeout: 10000",
-                "    visibilityPercentage: 50", "    centerElement: true"]
+                "    visibilityPercentage: 50", "    centerElement: true", "    optional: true"]
 
     for s in steps:
         if "tap" in s:
@@ -147,8 +150,12 @@ class Journey:
             # Which command failed, the screen as it was, and Maestro's own record of it.
             said = [ln.strip() for ln in (r.stdout + r.stderr).splitlines() if "COMPLETED" in ln or "FAILED" in ln]
             n = len(self.steps)
-            (self.out / f"failed_{n:02d}_screen.json").write_text(json.dumps(self.nodes(), indent=1))
-            print(json.dumps({"maestro_failed": steps, "commands": said[-20:], "screenshot": self.shot("failed")}), flush=True)
+            screen = self.nodes()
+            (self.out / f"failed_{n:02d}_screen.json").write_text(json.dumps(screen, indent=1))
+            # The screen goes into the job log too: artifacts cannot always be fetched.
+            print(json.dumps({"maestro_failed": steps, "commands": said[-20:], "screenshot": self.shot("failed"),
+                              "screen": [{k: x[k] for k in ("resource-id", "text", "content-desc") if x.get(k)} for x in screen][:60]}),
+                  flush=True)
         return r.returncode == 0
 
     def nodes(self) -> list[dict]:
