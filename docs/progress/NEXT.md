@@ -1,5 +1,38 @@
 # IRA CARE: next step
 
+**Round 9 is on pull request 128** (`praveen/vigilant-tesla-bhe022`): the independently achievable
+software, AI and OS work that remained after #127, as one squash merge once every check is green.
+What was built, measured and left is in `ROUND9_REPORT.md`; the verification record is in
+`VERIFICATION.md` ("Round 9"); the decisions are D-095 to D-105 (D-102 to D-104 among them).
+
+Owner actions, in order of use:
+
+1. **Merge pull request 128** once its checks are green (the watch, phone and iOS journeys run on
+   the standard runners on every push to it; the last results are in
+   `docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md`, `PHONE_EMULATOR_SMOKE.md` and
+   `docs/evidence/builds/IOS_SIMULATOR.md`).
+2. **The 24-hour soak (G2.e)** on your Mac or another machine you control, exactly as
+   `docs/evidence/soak/HOW_TO_RUN_24H.md` says; the memory criterion is now met on a 1-hour run
+   (`WALLCLOCK_1H_ROUND9.md`). The build container cannot hold a process for a day.
+3. **The four technical reviews** in `docs/ai/review/` (heart model card, activity dataset and
+   model card, speech licences): Sravani records a decision in each pack; the register moves only
+   on an `accept`.
+4. **The fall confirmation stage** stays off until the permitted recorded falls have been run with
+   it on the machine that holds BITS-2 and UCI HAR (`docs/ai/fall/FALSE_ALARM_INVESTIGATION.md`,
+   "the next step"); then `fall_confirm_before_asking` can be set per person.
+5. **The AOSP build host** (E2.h onwards): the host checks have fixed what could be found without
+   one (`docs/os/HOST_CHECKS.md`); the build itself needs the machine `docs/os/BUILD.md` describes.
+6. Dataset permissions (F1), the older-adult speech set (F8.c), devices, keys, reviewers and
+   accounts: unchanged from `READINESS.md`.
+
+To continue in a new session: read `STATUS.md` ("Round 9"), this file, `docs/BUILD_RULES.md` and
+`docs/DECISIONS.md`, then carry on with the same rules.
+
+---
+
+## Round 4 record (kept for history)
+
+
 **Round 4 (the polish) is complete** once pull request 40 merges: pull requests 37 to 40,
 each squash-merged on green CI from the latest `main`. What was built and measured, and what
 is left for the owner, is in `FINAL_REPORT.md` (section "Round 4"). The four phases:

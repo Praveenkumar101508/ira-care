@@ -89,6 +89,27 @@ Round 5 (the master directive, pull requests 63 to 80; the remediation programme
 
 Round 5 is merged to `main` (`eec19a0`). Verification: `VERIFICATION.md`; the GO / NO-GO decision: `FINAL_REPORT.md`.
 
+## Round 9 (26 to 27 November 2026), one pull request
+
+| Workstream | Branch and pull request | State |
+| --- | --- | --- |
+| Credential history scanner (D-004 resolved, D-097) | `praveen/vigilant-tesla-bhe022`, pull request 128 | Merged into the branch; 20 tests |
+| Step-up authentication for deployment administrators (D-095) | the same | 47 tests; T43 controlled, S15 fixed |
+| Deployment administration screen (D-096) | the same | 22 dashboard tests (160 in all), build green; browser run pending on staging |
+| Environment-dependent tests run in CI; inherited skips recorded (D-098) | the same | Redis, role-separation, PyAV and failover tests run; one stale test fixed |
+| OS host checks against an AOSP reference (D-099) | the same | 76 tests; four product-layer defects fixed; 13 OS items accepted |
+| Watch emulator journey, 11 to 44 steps (D-100) | the same | 43 of 44 passed on the emulator (run 45910155640); the Unpair scroll fix awaits its run |
+| Phone app and the authenticated Android journey (D-101, D-105) | the same | 11 of 16 steps passed on the emulator (run 45910155640); two script faults fixed, run pending |
+| iOS simulator launch (D-105) | the same | built with its JavaScript bundled, launched, no crash; the screen probe's second channel awaits its run |
+| API memory: pool churn found and fixed; 1-hour soak PASS at 1.996 % an hour (D-102) | the same | G2.j accepted; G2.e (24 hours) needs the owner's machine |
+| Fall confirmation stage, off by default (D-103) | the same | 8 JVM and 9 Python tests; synthetic: 154 of 160 falls kept, alarms 88 to 62 |
+| Round 9 conversation scenarios and rule fixes (D-104) | the same | development 129 of 129; hold-out 37 of 41, misses recorded |
+| Review packs for the technical reviewer (F3.c, F7.a, F7.e, F8.a) | the same | written; decisions are the reviewer's |
+
+The verification record of the final tree is `VERIFICATION.md` ("Round 9"); the completion
+measures are in `completion_history.json` ("round 9"). The founder actions that remain are in
+`NEXT.md`.
+
 ## Round 4, phases 2 to 4 (24 November 2026)
 
 - **Phase 2 (pull request 38).** One look (graphite case `#2B2E33`, coral Help button
