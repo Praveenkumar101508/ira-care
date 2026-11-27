@@ -28,7 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 IRA = ROOT / "supracloud-jarvis" / "ira"
 OUT = ROOT / "docs" / "ai" / "conversation" / "dataset"
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 SEED = 20261125
 SOURCE = "synthetic:ira-care-templates"
 LICENCE = "IRA CARE proprietary; written for this repository, no third-party content"

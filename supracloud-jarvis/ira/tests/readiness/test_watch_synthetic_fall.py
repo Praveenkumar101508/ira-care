@@ -54,7 +54,11 @@ def test_the_receiver_feeds_the_detector_path_and_nothing_in_main_feeds_it():
     service = (APP / "main/java/care/ira/watch/service/CareForegroundService.kt").read_text(encoding="utf-8")
     assert "FallInjection.events.collect { onSuspectedFall(it) }" in service
     # The detector's own events go through the same method, so an injected fall proves that path.
-    assert "is FallEvent.SuspectedFall -> onSuspectedFall(event)" in service
+    # A detector's suspected fall reaches onSuspectedFall: at once, or after the confirmation stage
+    # when the carer has turned it on (round 9, FallConfirmation).
+    assert "is FallEvent.SuspectedFall -> {" in service
+    assert "if (deps.fallSettings.confirmBeforeAsking) pending = pending ?: event else onSuspectedFall(event)" in service
+    assert "if (decision.confirm) onSuspectedFall(held)" in service
 
 
 def test_negative_control_a_receiver_in_release_is_caught(tmp_path):

@@ -1,4 +1,4 @@
-# IRA CARE care-conversation dataset, version 1.1.0 (datasheet)
+# IRA CARE care-conversation dataset, version 1.1.1 (datasheet)
 
 Requirement F2.d. Files: `docs/ai/conversation/dataset/{train,validation,test}.jsonl` and
 `MANIFEST.json` (version, seed, SHA-256 and counts per split). Built and checked by
@@ -129,3 +129,13 @@ because that set must stay unseen by a fine-tune.
 
 Written for this repository; no third-party content. Licence field on every example:
 "IRA CARE proprietary; written for this repository, no third-party content".
+
+## Version 1.1.1 (27 November 2026)
+
+Rebuilt with the same seed and templates after the red-flag rule learned the older person's idiom
+(D-104). Same 522 examples with the same ids; the only label change is three `safety_answer`
+examples whose answer places the person on the floor ("...on the floor"), now `red_flag: true`
+(they were already `safety: help`, `escalate: true`). The labels follow the rules by design
+(`conversation_dataset.problems` fails when they disagree), so a rule change is a dataset version.
+The fine-tune of D-090 was trained and judged on 1.1.0; nothing about that record changes.
+
