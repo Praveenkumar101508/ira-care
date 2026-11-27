@@ -1,0 +1,43 @@
+# Record a figshare dataset version's licence and checksums on a standard runner. Manual only.
+#
+# figshare refuses automated clients on the build machine, so UMAFall version 8 (register F1.g)
+# is checked here: scripts/legal/dataset_provenance.py reads the version's record from figshare's
+# API, downloads each file to a temporary folder, checks it against figshare's MD5, records SHA-256
+# and deletes it. Only the record is uploaded; no data is kept or committed.
+# Runs only by hand: tests/readiness/test_manual_workflows.py fails if any other trigger is added.
+name: dataset provenance (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      article:
+        description: "figshare article id"
+        default: "4214283"
+      version:
+        description: "figshare version"
+        default: "8"
+      licence:
+        description: "the licence the record must state"
+        default: "CC BY 4.0"
+
+permissions:
+  contents: read
+
+jobs:
+  provenance:
+    name: Record the dataset's licence and checksums
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Read the record, download, check and delete
+        run: |
+          python3 scripts/legal/dataset_provenance.py --article "${{ inputs.article }}" --version "${{ inputs.version }}" \
+            --expect-licence "${{ inputs.licence }}" --out provenance.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: dataset-provenance
+          path: provenance.json
+          if-no-files-found: warn
+          retention-days: 90
