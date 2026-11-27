@@ -62,11 +62,24 @@ jobs:
           # FORCE_BUNDLING: the Debug configuration otherwise leaves the JavaScript to a development
           # server; bundling it makes the .app launch on its own in the simulator (the launch job
           # below). It is still the Debug configuration (__DEV__ true), which the journey probe needs.
+          # Passed as a build setting, which Xcode exports to the build's scripts; set only in the
+          # environment it never reached react-native-xcode.sh (run 45988252843: no main.jsbundle).
           FORCE_BUNDLING=1 xcodebuild -workspace IRACARE.xcworkspace -scheme IRACARE \
             -sdk iphonesimulator -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO build | tee xcodebuild.log | tail -n 200
+            CODE_SIGNING_ALLOWED=NO FORCE_BUNDLING=1 build | tee xcodebuild.log | tail -n 200
+      - name: Make sure the JavaScript is inside the app
+        working-directory: mobile
+        run: |
+          set -euo pipefail
+          app=$(find ios/build/Build/Products/Debug-iphonesimulator -maxdepth 1 -name '*.app' | head -1)
+          if [ ! -f "$app/main.jsbundle" ]; then
+            echo "main.jsbundle missing after the build: writing it with Expo's own bundler (development bundle)"
+            npx expo export:embed --platform ios --dev true --entry-file index.ts \
+              --bundle-output "$app/main.jsbundle" --assets-dest "$app"
+          fi
+          ls -la "$app/main.jsbundle"
       - name: Package the .app
         working-directory: mobile/ios
         run: |
@@ -95,8 +108,6 @@ jobs:
           app=$(find mobile/ios/build/Build/Products/Debug-iphonesimulator -maxdepth 1 -name '*.app' | head -1)
           # Is the JavaScript in the app? Without it the Debug build has nothing to fall back to
           # once it finds no development server (run 45984425019: no JavaScript ran at all).
-          ls -la "$app"/main.jsbundle "$app"/*.jsbundle 2>&1 | head -5 || true
-          grep -E "Skipping bundling|FORCE_BUNDLING|main.jsbundle|react-native-xcode" mobile/ios/xcodebuild.log | tail -8 || true
           python3 scripts/simulator/ios_journey.py --app "$app" --out build/ios-journey --seconds 90
       - name: Upload the screenshot, console, app log and results
         if: always()
