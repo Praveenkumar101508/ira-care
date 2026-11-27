@@ -3010,6 +3010,10 @@
     {
      "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_memory_db.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_memory_reports_db.py"
     }
    ]
   },
@@ -3028,6 +3032,10 @@
     {
      "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_memory_db.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_memory_reports_db.py"
     }
    ]
   },

@@ -2044,3 +2044,19 @@ and no memory), `MALLOC_ARENA_MAX` (two threads, one arena), `max_queries` (a ra
 reconnect). The complete 1-hour soak on the fix: **PASS, 1.996 % an hour**, every other criterion
 met (`WALLCLOCK_1H_ROUND9.md`). G2.e, the 24-hour run, stays not started: the build container stops
 its daemons when the session is idle, so a day-long run needs the owner's machine.
+
+## D-106 Forgetting or correcting a day of memory rebuilds the stored reports that cover it (requirements F6.b, F6.c, 27 November 2026)
+
+Reports are generated once per person and period and stored in `care_reports`; the daily carer
+report copies that day's memory summary into its text and body. Forgetting a day removed it from
+what IRA reads (`talk.memory_summary` reads the table on every turn, so no cache held it) but not
+from a report generated before the forget, which the family and carers would go on reading; a
+correction left the corrected-away text there in the same way. Decision: `personal.forget_day` and
+`personal.edit_memory` call `reports.rebuild_covering`, which deletes every stored report of the
+person whose period covers the day and generates it again from what is stored now, on the same
+connection and in the same transaction as the memory change, so both commit or neither does.
+Reports for other periods are untouched. Nothing references a report row by foreign key, so
+rebuilding gives the report a new id; a link to the old id answers 404 rather than showing what was
+deleted. `tests/tenancy/test_care_memory_reports_db.py` fails on the earlier code (the corrected text
+and the forgotten summary are both still in the stored report) and passes now, and checks that a
+second session afterwards sees nothing of the forgotten day in the reports or the memory.
