@@ -137,3 +137,28 @@ reason: the system Back key on the Talk screen left the app, so the carer's sign
 phone's home screen. The journey now taps the app's own Back button and brings the app to the front
 if it has left. Still no app defect found.
 
+### Fourth emulator run: the whole journey passes (run 45990580023, 27 November 2026, 11:36 UTC)
+
+**Smoke 4 of 4 and journey 18 of 18**, on GitHub's standard runner (Pixel 6 image, API 34, KVM),
+the debug build with its JavaScript bundled against the demo backend:
+
+| Step | Time |
+|---|---|
+| install, launch, sign-in screen, no crash (release build) | 21 s |
+| install, launch, sign-in screen (debug build) | 18 s |
+| `family_signed_in` | 21.9 s |
+| `patient_selected`, `person_record_shown` (preferred name, both latest readings) | 7.8 s |
+| `plan_shown` (both medicines, the care plan card) | 4.9 s |
+| `help_alert_shown` (the watch's Help as the urgent banner, one open alert) | 16.2 s |
+| `acknowledged_in_app` ("I'm on my way": `acknowledged` on the server) | 3.3 s |
+| `appearance_kept_across_restart` (dark mode after `am force-stop`) | 29.1 s |
+| `offline_state_shown`, `connectivity_recovered` (never "No open alerts." offline) | 53.1 s |
+| `secure_sign_out` (the app's session revoked on the server, nothing on screen, sign-in after relaunch) | 29.9 s |
+| `wearer_signed_in`, `wearer_talked_to_ira` (Talk only for the wearer, IRA's reply shown) | 31.2 s |
+| `carer_signed_in`, `carer_home_isolated` (the carer's cards, none of the family's) | 17.6 s |
+| no app crash after the journey | |
+
+This is the native, authenticated Android journey the directive asked for, run on an emulator. It
+is not a physical phone (D2.i stays blocked on a device) and not the release build over HTTPS
+(the release build's own smoke proves it starts and draws sign-in; D-105).
+
