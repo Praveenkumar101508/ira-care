@@ -45,7 +45,7 @@ the prohibition recorded (as now) and add a start-up refusal when a commercial e
 
 | | |
 |---|---|
-| Reviewer | |
-| Date | |
-| Decision (accept / changes needed) | |
-| OmniVoice option chosen (owner) | |
+| Reviewer | Sravani Perni ([sravaniperni](https://github.com/sravaniperni)) |
+| Date | 27 November 2026 |
+| Decision (accept / changes needed) | accept (recorded by the owner, Praveen Kamineti, on Sravani Perni's behalf after her review) |
+| OmniVoice option chosen (owner) | not yet chosen: OmniVoice stays off and listed as "must not be enabled in a commercial deployment" (option (a) as it stands today) until the owner decides between (a) and (b) |

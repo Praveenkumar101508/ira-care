@@ -2060,3 +2060,14 @@ rebuilding gives the report a new id; a link to the old id answers 404 rather th
 deleted. `tests/tenancy/test_care_memory_reports_db.py` fails on the earlier code (the corrected text
 and the forgotten summary are both still in the stored report) and passes now, and checks that a
 second session afterwards sees nothing of the forgotten day in the reports or the memory.
+
+## D-107 The four technical review packs are accepted on Sravani Perni's review (requirements F3.c, F7.a, F7.e, F8.a, 27 November 2026)
+
+The owner recorded that Sravani Perni, the project's technical reviewer, has reviewed the heart
+model card, the activity dataset selection, the activity model card and the speech engine licences
+(`docs/ai/review/`), and accepted them with no changes. Each pack's decision table records the
+reviewer, the date and that the owner entered it on her behalf. The four items move to `accepted`,
+each with its functional evidence: the heart and activity evaluations (`results.json`, the files the
+model cards describe) and, for the licences, the test that keeps the GPL decoder out
+(`test_no_pyav.py`). Still open: the owner's choice for OmniVoice (keep it off with the prohibition
+recorded, as now, or remove its artefact entry).

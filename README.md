@@ -83,6 +83,7 @@ monitoring-centre contract for tier 3; regulatory advice before sale. See
 
 - Praveen Kamineti ([Praveenkumar101508](https://github.com/Praveenkumar101508))
 - Sravani Perni ([sravaniperni](https://github.com/sravaniperni))
+- Uday Kumar Dandaveni ([UdayKumar08](https://github.com/UdayKumar08))
 
 ## Licence
 
