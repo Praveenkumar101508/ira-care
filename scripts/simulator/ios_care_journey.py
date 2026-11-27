@@ -97,7 +97,11 @@ def flow(steps: list[dict], bundle_id: str = BUNDLE_ID) -> str:
             lines += ["- tapOn:", f"    text: {_q(s['tap_text'])}"]
         elif "type" in s:
             rid, text = s["type"]
-            lines += into_view(rid) + ["- tapOn:", f"    id: {_q(rid)}", f"- inputText: {_q(text)}", "- hideKeyboard"]
+            # Not Maestro's hideKeyboard: on iOS it taps elsewhere on the screen, and on the sign-in
+            # screen it hit "I have an invitation link" (run 46053932767 showed the Join screen). The
+            # keyboard is dismissed by tapping the screen's heading, which has no action.
+            lines += into_view(rid) + ["- tapOn:", f"    id: {_q(rid)}", f"- inputText: {_q(text)}",
+                                       "- tapOn:", "    point: \"50%,7%\""]
         elif "launch" in s:
             lines += ["- launchApp:", "    stopApp: false"]
         elif "stop" in s:

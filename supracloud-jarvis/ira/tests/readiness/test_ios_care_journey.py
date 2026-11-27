@@ -59,6 +59,8 @@ def test_flows_are_valid_yaml_with_the_app_id_and_quoted_text(j):
     assert cmds[0] == {"launchApp": {"stopApp": False}}
     assert {"tapOn": {"id": "advanced"}} in cmds
     assert {"inputText": 'a"b: c#d'} in cmds, "awkward characters survive quoting"
+    # the keyboard is dismissed on the heading, never with hideKeyboard (run 46053932767)
+    assert "hideKeyboard" not in cmds and {"tapOn": {"point": "50%,7%"}} in cmds
     assert {"scrollUntilVisible": {"element": {"id": "sign-out"}, "direction": "DOWN", "timeout": 15000}} in cmds
     assert cmds[-1] == "stopApp"
     # every tap and every typed field is scrolled into view first (run 46032445452)
