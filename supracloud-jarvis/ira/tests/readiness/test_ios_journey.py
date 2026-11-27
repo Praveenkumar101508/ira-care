@@ -105,3 +105,31 @@ def test_the_pid_is_read_from_simctl_launch(journey):
     assert journey.launch_pid("care.ira.family: 4321\n", "care.ira.family") == 4321
     assert journey.launch_pid("An error was encountered processing the command", "care.ira.family") is None
     assert journey.launch_pid("", "care.ira.family") is None
+
+
+def test_a_launch_that_hangs_is_tried_again_and_then_reported_not_raised(journey, monkeypatch, tmp_path):
+    """Run 46049868520: simctl launch hung for 300 s and the script crashed. It now tries again once
+    and, if that hangs too, reports a failed launch instead of raising."""
+    import argparse
+    import subprocess
+    calls = []
+
+    def fake_run(cmd, **kw):
+        calls.append(cmd[2])
+        if cmd[2] == "launch" and calls.count("launch") == 1:
+            raise subprocess.TimeoutExpired(cmd, 300)
+        return subprocess.CompletedProcess(cmd, 0, "care.ira.family: 99\n", "")
+
+    monkeypatch.setattr(journey.subprocess, "run", fake_run)
+    j = journey.Journey(argparse.Namespace(out=str(tmp_path)))
+    r = j.launch("UDID", "care.ira.family")
+    assert journey.launch_pid(r.stdout, "care.ira.family") == 99 and calls == ["launch", "terminate", "launch"]
+
+    def always_hang(cmd, **kw):
+        if cmd[2] == "launch":
+            raise subprocess.TimeoutExpired(cmd, 300)
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(journey.subprocess, "run", always_hang)
+    r = j.launch("UDID", "care.ira.family")
+    assert r.returncode == 1 and journey.launch_pid(r.stdout, "care.ira.family") is None

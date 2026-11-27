@@ -162,6 +162,18 @@ class Journey:
         print(json.dumps(rec), flush=True)
         return ok
 
+    def launch(self, udid: str, bundle_id: str, tries: int = 2) -> subprocess.CompletedProcess:
+        """`simctl launch`, tried again once if the simulator does not answer in time (run 46049868520:
+        it hung for five minutes on a runner where four earlier runs launched in seconds)."""
+        for attempt in range(1, tries + 1):
+            try:
+                return subprocess.run(["xcrun", "simctl", "launch", udid, bundle_id], capture_output=True, text=True, timeout=300)
+            except subprocess.TimeoutExpired:
+                print(json.dumps({"note": f"simctl launch did not answer in 300 s (attempt {attempt}); stopping the app and trying again"}),
+                      flush=True)
+                subprocess.run(["xcrun", "simctl", "terminate", udid, bundle_id], capture_output=True, timeout=120)
+        return subprocess.CompletedProcess(["xcrun", "simctl", "launch"], 1, "", f"simctl launch did not answer in {tries} attempts")
+
     def finish(self) -> int:
         ok = bool(self.steps) and all(s["ok"] for s in self.steps)
         (self.out / "results.json").write_text(json.dumps({"ok": ok, "steps": self.steps}, indent=2) + "\n")
@@ -193,7 +205,7 @@ class Journey:
         listener = ProbeListener(a.probe_port).start()
         # A plain launch answers "<bundle id>: <pid>" or an error, so the step reports what happened
         # (run 45990580023: the attached-console launch was marked passed while the app never ran).
-        launch = subprocess.run(["xcrun", "simctl", "launch", udid, a.bundle_id], capture_output=True, text=True, timeout=300)
+        launch = self.launch(udid, a.bundle_id)
         pid = launch_pid(launch.stdout, a.bundle_id)
         self.step("launched", launch.returncode == 0 and pid is not None, t0, bundle_id=a.bundle_id, pid=pid,
                   output=(launch.stdout + launch.stderr).strip()[-300:], probe_listener=f"127.0.0.1:{a.probe_port}")
