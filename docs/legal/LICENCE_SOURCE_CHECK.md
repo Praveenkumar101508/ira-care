@@ -79,6 +79,23 @@ fails if the record stops covering the list or ever records a disagreement.
 - `hermes-agent` is not a published model the name identifies; the register already says to
   identify it before any use.
 
+## Read in a browser by the owner, 27 November 2026
+
+The six sources the script could not reach were opened in a browser. What each page said:
+
+| Source | Result | What the page says |
+|---|---|---|
+| SisFall laboratory page (<http://sistemic.udea.edu.co/en/investigacion/proyectos/english-falls/>) | **not confirmed** | The page did not load on http or https in three attempts; the server appears to be down. The Zenodo copy (CC BY 4.0) is still the only licence read. The confirmation request sent on 26 November is unanswered. SisFall is in no build. |
+| MobiFall and MobiAct (now <https://bmi.hmu.gr/el/the-mobifall-and-mobiact-datasets/>) | **agrees** (no open licence) | Data on request by email to bmi@hmu.gr, for non-commercial, research and educational purposes only, after a signed database usage agreement. The register already says commercial use "no"; MobiFall is not used. |
+| UMAFall on figshare (DOI 10.6084/m9.figshare.4214283) | **confirmed: CC BY 4.0** | Version 8, posted 1 December 2025. Publications that use it must cite the figshare page and either Santoyo-Ramón et al. (2018) or Casilari et al. (2017). The register row is updated from "unclear" to CC BY 4.0. UMAFall is not used. |
+| LibriSpeech on OpenSLR (now <https://openslr.org/12/>) | **agrees: CC BY 4.0** | Audio from LibriVox public-domain audiobooks; cite Panayotov et al., ICASSP 2015. The original and the Hugging Face copy used agree. |
+| Mozilla Data Collective (now <https://mozilladatacollective.com/>) | **not stated on the homepage** | Each dataset has its own terms, set by its uploader (open, community-governed or paid). The Common Voice release's own page must be read before it is used; it is not used yet (F8.c). |
+| Gemma licence page (now <https://gemma.ai/resources/apache-2/>) | **agrees: Apache 2.0** | Google's link redirects to this page, which shows the standard Apache License 2.0 text. The new address is recorded in the model register. |
+
+After this, F1.a still has two rows not confirmed at their original source: SisFall (the server
+is down) and the Common Voice release (its own page is yet to be read). Neither is used in
+anything that ships. F1.a stays `implemented` until both are read.
+
 ## What it means for the register
 
 - **F1.b, the model-weight register: accepted.** Every published model in the register was read at
@@ -86,5 +103,5 @@ fails if the record stops covering the list or ever records a disagreement.
   Supertonic licence.
 - **F1.a, the dataset register: still implemented.** Every dataset used for anything that ships
   (BITS-2, UCI HAR, WISDM, PPG-DaLiA) and every evaluation set (WEDA-FALL, GalaxyPPG, LibriSpeech)
-  agrees at its source, but the row-by-row check is not complete while the sources above remain
-  unread. The item moves when they are read in a browser and recorded here.
+  agrees at its source. After the browser check, two rows remain unconfirmed at their original
+  source: SisFall and the Common Voice release.
