@@ -688,7 +688,12 @@ RED_FLAGS = re.compile(
     r"(i'?ve |i have |i )?(come|came) over (all )?(funny|faint|dizzy|queer)|i'?ve gone all (funny|faint|dizzy)|"
     r"can'?t catch my breath|cannot catch my breath|face.{0,12}drooping|went down (like a sack|with a bang)|"
     r"blood everywhere|words (are )?coming out wrong|my (arm|leg) won'?t work|gone over in the|"
-    r"i'?m still down|fallen out of bed)\b", re.I)
+    r"i'?m still down|fallen out of bed|"
+    # Round 10 (the round 9 hold-out's misses): a head injury is a red flag even when the person
+    # says they are fine. "went down" alone is not added: "I went down to the shop" is ordinary.
+    r"(hit|banged|bumped|knocked|cracked|smacked) (my|me) head|head injury|hurt my head|"
+    # Round 10 hold-out (r10-r10-5, recorded as a miss before this line): chest tightness in other words.
+    r"chest (has )?(gone|going|feels?|felt|is getting) (all )?(tight|heavy)|tight(ness)? (in|across) my chest)\b", re.I)
 
 
 def red_flag(text: str) -> bool:
@@ -947,10 +952,31 @@ def mentions_avoided_topic(sentence: str, topics: Sequence[str]) -> bool:
     return any(t and t.lower() in low for t in topics)
 
 
+_HELP_BUTTON = re.compile(r"\b(press(ing|ed)?|push(ing|ed)?|touch(ing|ed)?) (the )?help\b|\bhelp button\b", re.I)
+_QUESTION = re.compile(r"^\s*(what|what's|whats|how|who|which|where|when|why|does|do|is|can|could|would|will)\b|\?\s*$", re.I)
+
+
+def asks_about_the_help_button(text: str) -> bool:
+    """A question about the Help button itself ("what number do you ring when I press Help?"),
+    with no sign of trouble. Anything with a distress word, an urgent word or a red flag is not
+    one, so "how do I press Help, I've fallen" still escalates."""
+    t = (text or "").strip()
+    if not (_HELP_BUTTON.search(t) and _QUESTION.search(t)):
+        return False
+    low = rules.normalise_answer(t)
+    return not (rules._SAFE_DISTRESS.search(low.replace("help", "")) or
+                re.search(r"\b(now|quick|quickly|please help|help me|emergency|ambulance|urgent)\b", low))
+
+
 def rule_reply(text: str, ctx: TalkContext) -> Optional[Turn]:
     """The things IRA answers from the record, before any model: a call, the
     day's plan, the tablets, a reminder, and advice requests."""
     t = (text or "").strip()
+    if not red_flag(t) and asks_about_the_help_button(t):
+        # Round 10: a question ABOUT the Help button is not a call for help (round 9 hold-out).
+        who = ctx.carer_name or "your family"
+        return Turn([f"When you press Help, I tell {who} and the people looking after you straight away, {ctx.name}.",
+                     "If you ever need them, press it, or just tell me, and I'll get help."], source="rules")
     if red_flag(t) or rules._HELP.search(t.lower()):
         return Turn([f"I'm getting help for you now, {ctx.name}. Stay where you are."], source="rules",
                     red_flag=red_flag(t), needs_help=True)

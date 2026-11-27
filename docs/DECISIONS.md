@@ -2108,3 +2108,15 @@ lost) fails. Decision: the stage stays off, its thresholds are not retuned on th
 `tests/readiness/test_fall_confirmation_stays_off.py` holds the default off while the recorded
 result fails. F4.i remains accepted as an implemented, tested, switched-off option; it is not a
 product feature.
+
+## D-111 The round 9 hold-out misses are fixed, and a new hold-out replaces the used one (requirement F5.d, 27 November 2026)
+
+The four round 9 hold-out misses were investigated: three were product defects (a head injury not
+read as a red flag, twice; a dose named by another time of day read as taken) and one a safe-side
+false alarm (a question about the Help button escalated). All four are fixed in
+`care/conversation.py` and `care/checkins.py` with negative controls
+(`tests/care/test_care_round10_rules.py`). Because the round 9 hold-out was used to fix rules, it is
+no longer a hold-out; a new one, `round10_holdout.jsonl` (32 turns), was written before it was run
+and run once: 31 of 32. Its one miss (chest tightness in other words) is a safety gap, so it was
+fixed after the result was recorded, and the hold-out figure stays as measured. The 162-turn set is
+unchanged turn for turn. Details: `docs/ai/conversation/ROUND10_CONVERSATION.md`.

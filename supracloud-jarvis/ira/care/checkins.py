@@ -315,6 +315,26 @@ _DOSE_YES = re.compile(
     r"had (it|them|mine|my)|already|all done|done that|just now|that is right|that is correct|correct)\b")
 
 
+#: A time of day used as the NAME of a dose ("the evening ones", "my night tablets"), as against
+#: when it was taken ("this evening"). Round 10: the round 9 hold-out's "I took the evening ones",
+#: asked about the morning tablets, was read as "yes".
+_DOSE_TIME_NAMED = re.compile(
+    r"\b(morning|afternoon|evening|night|nighttime|bedtime|lunchtime|lunch|breakfast|teatime|supper|dinner)"
+    r"( ?time)? (ones?|tablets?|pills?|doses?|medicines?|meds|medication|capsules?|lot)\b")
+_TIME_FAMILIES = {"morning": "morning", "breakfast": "morning", "afternoon": "afternoon", "lunch": "afternoon",
+                  "lunchtime": "afternoon", "evening": "evening", "teatime": "evening", "supper": "evening",
+                  "dinner": "evening", "night": "night", "nighttime": "night", "bedtime": "night"}
+
+
+def _names_another_dose_time(t: str, subject: str) -> bool:
+    """True when the answer names a dose by a time of day the question's medicine does not have."""
+    asked = {f for w, f in _TIME_FAMILIES.items() if re.search(rf"\b{w}\b", subject)}
+    if not asked:
+        return False   # the medicine has no time in its name: nothing to compare
+    named = {_TIME_FAMILIES[m.group(1)] for m in _DOSE_TIME_NAMED.finditer(t)}
+    return bool(named - asked)
+
+
 def read_dose_answer(text: str, *, subject: Optional[str] = None,
                      other_medications: Sequence[str] = ()) -> str:
     """yes | later | skip | unclear for "Have you taken your X?". Conservative:
@@ -327,6 +347,8 @@ def read_dose_answer(text: str, *, subject: Optional[str] = None,
     if _DOSE_UNSURE.search(t) or _DOSE_INTERRUPTED.search(t) or _DOSE_INDEFINITE.search(t):
         return "unclear"
     own_words = normalise_answer(subject or "")
+    if _names_another_dose_time(t, own_words):
+        return "unclear"  # "the evening ones" when asked about the morning tablets
     for m in _DOSE_MEDICINE_WORDS.finditer(t):
         if m.group(0) not in own_words:
             return "unclear"  # the answer names a medicine that is not the one asked about
