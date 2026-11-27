@@ -82,7 +82,10 @@ def flow(steps: list[dict], bundle_id: str = BUNDLE_ID) -> str:
     def into_view(rid: str, direction: str = "DOWN") -> list[str]:
         # Maestro taps only what is on screen: on a small iPhone the sign-in fields sit below the
         # fold once "Advanced" is open (run 46032445452), so every element is scrolled to first.
-        return ["- scrollUntilVisible:", "    element:", f"      id: {_q(rid)}", f"    direction: {direction}", "    timeout: 10000"]
+        # Half visible is enough (the keyboard can cover the lower part of a field), and the element
+        # is centred so the tap that follows lands on it (run 46040834373).
+        return ["- scrollUntilVisible:", "    element:", f"      id: {_q(rid)}", f"    direction: {direction}", "    timeout: 10000",
+                "    visibilityPercentage: 50", "    centerElement: true"]
 
     for s in steps:
         if "tap" in s:
@@ -141,7 +144,11 @@ class Journey:
         r = self.maestro("test", f.name)
         os.unlink(f.name)
         if r.returncode != 0:
-            print(json.dumps({"maestro_failed": steps, "tail": (r.stdout + r.stderr)[-600:]}), flush=True)
+            # Which command failed, the screen as it was, and Maestro's own record of it.
+            said = [ln.strip() for ln in (r.stdout + r.stderr).splitlines() if "COMPLETED" in ln or "FAILED" in ln]
+            n = len(self.steps)
+            (self.out / f"failed_{n:02d}_screen.json").write_text(json.dumps(self.nodes(), indent=1))
+            print(json.dumps({"maestro_failed": steps, "commands": said[-20:], "screenshot": self.shot("failed")}), flush=True)
         return r.returncode == 0
 
     def nodes(self) -> list[dict]:

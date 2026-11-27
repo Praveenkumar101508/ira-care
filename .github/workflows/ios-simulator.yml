@@ -179,6 +179,10 @@ jobs:
           python3 scripts/simulator/ios_care_journey.py --udid "$udid" --api http://127.0.0.1:8000 \
             --credentials "$RUNNER_TEMP/seed.json" --out build/ios-care-journey \
             --api-cmd "python3 scripts/demo/api.py"
+      - name: Keep Maestro's own debug record with the results
+        if: always()
+        working-directory: ${{ github.workspace }}
+        run: cp -R "$HOME/.maestro/tests" build/ios-care-journey/maestro-debug 2>/dev/null || true
       - name: Upload the care journey's screenshots and results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
