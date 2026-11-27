@@ -69,6 +69,12 @@ ALLOWED = {
     "docs/evidence/soak/wallclock_1h_fixed_checkpoint.jsonl.gz":
         "our own 1-hour soak measurements on the memory fixes (fictional data, no logins; "
         "docs/evidence/soak/WALLCLOCK_1H_FIXED.md)",
+    "docs/evidence/soak/round9_profiling_90min_memtrace.jsonl.gz":
+        "our own memory-tracing records of the demo API under soak load (allocation sites, object counts, "
+        "heap figures; no logins; docs/evidence/soak/MEMORY_INVESTIGATION_ROUND9.md)",
+    "docs/evidence/soak/wallclock_1h_round9_checkpoint.jsonl.gz":
+        "our own 1-hour soak measurements on the pool fix (fictional data, no logins; "
+        "docs/evidence/soak/WALLCLOCK_1H_ROUND9.md)",
     "supracloud-jarvis/ira/editions/private/__init__.py":
         "source code: the 'private' edition of the product, not a private document",
 }

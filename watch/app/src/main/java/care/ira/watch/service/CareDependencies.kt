@@ -125,6 +125,8 @@ class CareDependencies private constructor(context: Context) {
         care.ira.watch.sensors.TfLiteInference.load(context)
     /** The carer's fall settings, refreshed from the server after each sync. */
     @Volatile var fallSettings: FallSettingsDto = FallSettingsDto()
+    /** What the confirmation stage last decided about a suspected fall (FallConfirmation), for the record. */
+    @Volatile var lastFallConfirmation: care.ira.watch.sensors.FallConfirmation.Decision? = null
     /** The carer's heart-rate range and the upload interval, refreshed the same way. */
     @Volatile var readingSettings: ReadingSettingsDto = ReadingSettingsDto()
     /** How IRA speaks to this person (pace, prompting, channels), from the server. */

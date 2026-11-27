@@ -152,6 +152,10 @@ class CloudLoginOutcome:
     #: later request re-resolves. The database's stored normalised form, never
     #: the string the caller typed.
     subject: str
+    #: The credentials this login checked, OIDC `amr` names (D-095): "pwd",
+    #: plus "otp" when a one-time code was verified or "recovery" when a
+    #: recovery code was consumed. Stamped on the tokens as `amr`.
+    amr: tuple[str, ...] = ("pwd",)
 
 
 async def _locate_credential(email: str) -> tuple[Optional[uuid.UUID], Optional[str], Optional[str]]:
@@ -434,7 +438,8 @@ async def authenticate_cloud_user(
                 await _audit(auth_audit.RECOVERY_CODE_USED, principal, subject)
                 await _audit(auth_audit.SIGN_IN_SUCCEEDED, principal, subject,
                              detail="second factor satisfied by a recovery code")
-                return CloudLoginOutcome(principal=principal, subject=subject)
+                return CloudLoginOutcome(principal=principal, subject=subject,
+                                         amr=("pwd", "recovery"))
         except RecoveryUnavailable as exc:
             # Fail CLOSED, and as unavailable rather than as a bad code: "I
             # could not check" must not read as "that code was wrong", which
@@ -459,7 +464,8 @@ async def authenticate_cloud_user(
 
     logger.info("cloud login succeeded for a resolved principal")
     await _audit(auth_audit.SIGN_IN_SUCCEEDED, principal, subject)
-    return CloudLoginOutcome(principal=principal, subject=subject)
+    return CloudLoginOutcome(principal=principal, subject=subject,
+                             amr=("pwd", "otp") if factor == "ok" else ("pwd",))
 
 
 async def verify_cloud_password(subject: str, password: str, *, user_id) -> bool:

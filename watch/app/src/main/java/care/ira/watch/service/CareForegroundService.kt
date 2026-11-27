@@ -23,8 +23,10 @@ import care.ira.watch.checkin.CheckinController
 import care.ira.watch.checkin.FallCountdown
 import care.ira.watch.checkin.ReminderButtons
 import care.ira.watch.checkin.ReminderChoice
+import care.ira.watch.sensors.FallConfirmation
 import care.ira.watch.sensors.FallDetector
 import care.ira.watch.sensors.FallEvent
+import care.ira.watch.sensors.FallInjection
 import care.ira.watch.sensors.FallSettings
 import care.ira.watch.sensors.ReadingKinds
 import care.ira.watch.ui.MainActivity
@@ -66,6 +68,9 @@ class CareForegroundService : LifecycleService() {
         startForeground(NOTIFICATION_ID, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
         lifecycleScope.launch(Dispatchers.IO) { collectReadings() }
         lifecycleScope.launch(Dispatchers.IO) { watchForFalls() }
+        // A synthetic fall (FallInjection; fed only by the debug build's synthetic-fall receiver)
+        // goes down the same path as a detector's event from here on.
+        lifecycleScope.launch(Dispatchers.IO) { FallInjection.events.collect { onSuspectedFall(it) } }
         deps.activity?.let { monitor ->
             lifecycleScope.launch(Dispatchers.Default) { watchActivity(monitor) }
         }
@@ -140,19 +145,41 @@ class CareForegroundService : LifecycleService() {
     private suspend fun watchForFalls() {
         var configured = fallSettings()
         var detector = newFallDetector(configured)
+        val confirmation = FallConfirmation()
+        var pending: FallEvent.SuspectedFall? = null
         deps.accelerometer.samples().onEach { sample ->
             val wanted = fallSettings()
             if (wanted != configured) { configured = wanted; detector = newFallDetector(wanted) }
             if (!deps.fallSettings.enabled) return@onEach
+            confirmation.add(sample)
             detector.onWrist = deps.lastOnWrist
             when (val event = detector.feed(sample)) {
-                // The impact time lets the countdown tell the same impact seen twice from a separate
-                // detection; a separate one during a countdown is never dropped (D-092).
-                is FallEvent.SuspectedFall -> performFall(
-                    fallCountdown.suspectedFall(event.peakG, event.stillForSeconds, deps.fallSettings.countdownS, event.impactAtMillis))
+                is FallEvent.SuspectedFall -> {
+                    // With the confirmation stage on, the question waits until the seconds after
+                    // the impact have been seen; otherwise, as before, it is asked at once.
+                    if (deps.fallSettings.confirmBeforeAsking) pending = pending ?: event else onSuspectedFall(event)
+                }
                 else -> {}
             }
+            val held = pending
+            if (held != null && confirmation.ready(held.impactAtMillis, sample.atMillis)) {
+                pending = null
+                val decision = confirmation.decide(held.impactAtMillis)
+                deps.lastFallConfirmation = decision
+                if (decision.confirm) onSuspectedFall(held)
+            }
         }.collect()
+    }
+
+    /**
+     * A suspected fall, from a detector or injected (FallInjection): the countdown starts, or the
+     * detection joins the countdown already running. The impact time lets the countdown tell the
+     * same impact seen twice from a separate detection; a separate one during a countdown is never
+     * dropped (D-092). Nothing happens while the carer has fall detection off.
+     */
+    private suspend fun onSuspectedFall(event: FallEvent.SuspectedFall) {
+        if (!deps.fallSettings.enabled) return
+        performFall(fallCountdown.suspectedFall(event.peakG, event.stillForSeconds, deps.fallSettings.countdownS, event.impactAtMillis))
     }
 
     /**

@@ -294,6 +294,21 @@ _DOSE_OTHER = re.compile(
     r"\b(yesterday|last night|last week|the day before|other day|tomorrow|earlier this week|"
     r"different|another|other|wrong|someone elses|instead|extra|double|twice|two|three|four|two lots)\b")
 _DOSE_NEG = re.compile(r"\b(no|not|never|nope|nah)\b")
+#: An answer that broke off or was interrupted (round 9): a dash in the raw words, or the person
+#: turning to something else. "Yes I took the— hang on, the door" confirms nothing.
+_DOSE_BROKEN_RAW = re.compile(r"[\u2014\u2013]|\s-\s*$|\w-$")
+_DOSE_INTERRUPTED = re.compile(
+    r"\b(hang on|hold on|wait|just a (minute|second|moment|sec)|one (minute|second|moment)|"
+    r"someone(s| is)? at the door|the door|the phone|the kettle|let me look|where did i put|what did you say|"
+    r"pardon|sorry what|i mean)\b")
+#: An indefinite object ("I took something") or a medicine that is not the one asked about
+#: (round 9). The subject's own words are allowed; "the painkillers yes" to a question about the
+#: morning tablets is not a confirmation of the morning tablets.
+_DOSE_INDEFINITE = re.compile(r"\b(something|some of them|one of them|a couple|a few|whatever|the usual)\b")
+_DOSE_MEDICINE_WORDS = re.compile(
+    r"\b(painkillers?|paracetamol|ibuprofen|aspirin|codeine|antibiotics?|inhaler|insulin|drops|cream|ointment|"
+    r"statins?|water tablets?|blood pressure (tablets?|pills?)|heart (tablets?|pills?)|sleeping (tablets?|pills?)|"
+    r"(blue|white|red|yellow|pink|little|big|small|round) (ones?|tablets?|pills?))\b")
 _DOSE_BARE_NO = re.compile(r"^(no|nope|nah|no no|no no no|no sorry|sorry no|no i am afraid)$")
 _DOSE_YES = re.compile(
     r"\b(yes|yeah|yep|yup|aye|i have|i did|i took|took (it|them|that|those|mine|my)|taken|have had|"
@@ -304,11 +319,17 @@ def read_dose_answer(text: str, *, subject: Optional[str] = None,
                      other_medications: Sequence[str] = ()) -> str:
     """yes | later | skip | unclear for "Have you taken your X?". Conservative:
     when in doubt the answer is never "yes"."""
+    if _DOSE_BROKEN_RAW.search(text or ""):
+        return "unclear"
     t = normalise_answer(text)
     if not t:
         return "unclear"
-    if _DOSE_UNSURE.search(t):
+    if _DOSE_UNSURE.search(t) or _DOSE_INTERRUPTED.search(t) or _DOSE_INDEFINITE.search(t):
         return "unclear"
+    own_words = normalise_answer(subject or "")
+    for m in _DOSE_MEDICINE_WORDS.finditer(t):
+        if m.group(0) not in own_words:
+            return "unclear"  # the answer names a medicine that is not the one asked about
     if _DOSE_SKIP.search(t):
         return "skip"
     if _DOSE_LATER.search(t):

@@ -381,6 +381,22 @@ async def generate(conn, person: dict, kind: str, day: dt.date) -> Optional[dict
     return _public(row) if row else None
 
 
+async def rebuild_covering(conn, person: dict, day: dt.date) -> int:
+    """Rebuild every stored report whose period covers `day`, from what is stored now.
+
+    Called when the person or their representative forgets or corrects a day of memory
+    (register F6.b, F6.c; D-106): a report generated before the change copied the old summary,
+    and the family and carers would otherwise go on reading what was deleted. Runs on the
+    caller's connection, inside its transaction, so the memory change and the rebuilt reports
+    commit together. Returns the number of reports rebuilt.
+    """
+    rows = await conn.fetch("DELETE FROM care_reports WHERE person_id = $1 AND period_start <= $2 AND period_end >= $2 "
+                            "RETURNING kind, period_start", person["id"], day)
+    for r in rows:
+        await generate(conn, person, r["kind"], r["period_start"])
+    return len(rows)
+
+
 def _public(row) -> dict:
     d = dict(row)
     if isinstance(d.get("body"), str):

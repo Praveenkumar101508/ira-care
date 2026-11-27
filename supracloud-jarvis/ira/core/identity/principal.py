@@ -108,9 +108,21 @@ class Principal:
     workspace_role: Optional[str] = None
 
     #: How strongly this session was authenticated — `password`, `mfa`,
-    #: `biometric`, `token`. Recorded so a later phase can require step-up for
-    #: destructive workspace actions without inventing the field then.
+    #: `biometric`, `token`. Filled by `with_authentication` from the token's
+    #: `amr` claim (D-095): "mfa" when a one-time or recovery code was checked,
+    #: "password" when only a password was, "" when the token predates the claim.
     authentication_strength: str = ""
+
+    #: When the holder of this session last proved who they are with a
+    #: credential (the token's `auth_time`, Unix seconds). None for a token
+    #: issued before the claim existed; `security/stepup.py` reads None as
+    #: "never recently authenticated", so such a session can still do ordinary
+    #: work but nothing that asks for a recent sign-in.
+    auth_time: Optional[int] = None
+
+    #: The methods used at that moment (the token's `amr`, OIDC names): "pwd",
+    #: "otp", "recovery". Empty when unknown.
+    amr: tuple[str, ...] = ()
 
     #: The account name this principal was resolved from.
     #:
@@ -135,6 +147,20 @@ class Principal:
             raise ValueError("Principal requires a user_id")
 
     # ── Derivation ───────────────────────────────────────────────────────────
+
+    def with_authentication(self, auth_time: Optional[int], amr) -> "Principal":
+        """A copy carrying the session's authentication time and methods, with
+        `authentication_strength` derived from them. Carries facts the token
+        asserted and nothing more: it grants no role, scope or workspace."""
+        methods = tuple(str(m) for m in (amr or ()))
+        if auth_time is None:
+            strength = ""
+        elif "otp" in methods or "recovery" in methods:
+            strength = "mfa"
+        else:
+            strength = "password"
+        return replace(self, auth_time=int(auth_time) if auth_time is not None else None,
+                       amr=methods, authentication_strength=strength)
 
     def with_scopes(self, scopes: frozenset[str] | set[str]) -> "Principal":
         """A copy narrowed to `scopes`. Cannot widen beyond what it already has

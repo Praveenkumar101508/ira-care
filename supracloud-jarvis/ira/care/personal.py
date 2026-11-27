@@ -38,6 +38,7 @@ from core.identity.db_context import workspace_connection
 from core.identity.principal import Principal
 
 from . import checkins as rules
+from . import reports
 
 logger = logging.getLogger("ira.care.personal")
 
@@ -463,13 +464,25 @@ async def edit_memory(principal: Principal, person_id: uuid.UUID, day: dt.date, 
                                                       edited_by = EXCLUDED.edited_by
             RETURNING day, summary, exchanges, updated_at, edited_at, edited_by
             """, person_id, day, summary.strip()[:4000], role)
+        await _rebuild_reports(conn, person_id, day)
         return _public(row)
 
 
 async def forget_day(principal: Principal, person_id: uuid.UUID, day: dt.date) -> bool:
     async with workspace_connection(principal) as conn:
+        # One transaction (workspace_connection): the forget and the rebuilt reports commit together.
         res = await conn.execute("DELETE FROM care_conversation_memory WHERE person_id = $1 AND day = $2", person_id, day)
-        return res.endswith("1")
+        forgotten = res.endswith("1")
+        if forgotten:
+            await _rebuild_reports(conn, person_id, day)
+        return forgotten
+
+
+async def _rebuild_reports(conn, person_id: uuid.UUID, day: dt.date) -> None:
+    """A forgotten or corrected day must not live on in a stored report (D-106)."""
+    person = await conn.fetchrow("SELECT * FROM care_people WHERE id = $1", person_id)
+    if person is not None:
+        await reports.rebuild_covering(conn, dict(person), day)
 
 
 # ── Concern summaries: labelled, linked to their source ──────────────────────

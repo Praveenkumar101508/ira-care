@@ -139,29 +139,151 @@ def test_only_the_owner_sees_which_credential_is_published():
             f"a non-owner would be told that {name} is the published value")
 
 
-# ── the owner's check script ───────────────────────────────────────────────
+# ── the history scanner (D-004) ───────────────────────────────────────────────
 
-def _script():
-    path = ROOT / "scripts" / "security" / "check_credential_rotation.py"
-    spec = importlib.util.spec_from_file_location("check_credential_rotation", path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
+SCANNER = ROOT / "scripts" / "security" / "published_credential_digests.py"
+VALUE_SHAPE = re.compile(r"[0-9a-f]{64}")
 
+
+def _run_scanner(repo: pathlib.Path, out: pathlib.Path, *extra: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["python3", "-I", str(SCANNER), str(out), "--repo", str(repo), *extra],
+                          cwd=ROOT, capture_output=True, text=True, timeout=300)
+
+
+def _read(out: pathlib.Path) -> dict[str, frozenset[str]]:
+    import json
+
+    return {name: frozenset(d) for name, d in json.loads(out.read_text()).items()}
+
+
+def _git(repo: pathlib.Path, *args: str) -> None:
+    subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True,
+                   env={"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@example.com",
+                        "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@example.com",
+                        "HOME": str(repo), "PATH": "/usr/bin:/bin"})
+
+
+def _commit(repo: pathlib.Path, path: str, text: str | None, message: str) -> None:
+    target = repo / path
+    if text is None:
+        target.unlink()
+    else:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", message)
+
+
+# Planted values, assembled at run time so no credential-shaped literal sits in the file.
+PLANTED_KEY = "planted-" + "signing-key-" + "for-the-scanner-test-" + "0001"
+PLANTED_HOOK = "planted-" + "webhook-secret-" + "on-a-side-branch-" + "0002"
+PLANTED_GONE = "planted-" + "admin-password-" + "deleted-later-" + "0003"
+
+
+@pytest.fixture
+def synthetic_repo(tmp_path):
+    """A small history with values in a deleted version, on a side branch, and placeholders."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q", "-b", "main")
+    _commit(repo, "supracloud-jarvis/.env.example",
+            f"IRA_SECRET_KEY={PLANTED_KEY}\nIRA_ADMIN_PASSWORD={PLANTED_GONE}\n"
+            "WEBHOOK_SECRET=\nIRA_CORTEX_KEY=CHANGE_ME_cortex\nIRA_CANARY_TOKEN=<your-token>\n"
+            "IRA_CANARY_USERNAME=ci-test\nOTHER=not-one-of-the-six\n", "first")
+    _commit(repo, "supracloud-jarvis/.env.example",
+            "IRA_SECRET_KEY=change-me\nIRA_ADMIN_PASSWORD=\nWEBHOOK_SECRET=\n", "values removed")
+    _git(repo, "checkout", "-q", "-b", "side")
+    _commit(repo, "deploy/.env.cloud.example", f'WEBHOOK_SECRET="{PLANTED_HOOK}"  # trailing\n',
+            "side branch value")
+    _commit(repo, "deploy/.env.cloud.example", None, "side branch file deleted")
+    _git(repo, "checkout", "-q", "main")
+    return repo
+
+
+def test_the_scanner_finds_values_in_deleted_versions_and_on_other_branches(synthetic_repo, tmp_path):
+    out = tmp_path / "d.json"
+    r = _run_scanner(synthetic_repo, out)
+    assert r.returncode == 0, r.stderr
+    fresh = _read(out)
+    assert fresh["IRA_SECRET_KEY"] == {pc.digest("IRA_SECRET_KEY", PLANTED_KEY)}
+    assert fresh["IRA_ADMIN_PASSWORD"] == {pc.digest("IRA_ADMIN_PASSWORD", PLANTED_GONE)}
+    assert fresh["WEBHOOK_SECRET"] == {pc.digest("WEBHOOK_SECRET", PLANTED_HOOK)}, "quotes and comment stripped"
+
+
+def test_the_scanner_ignores_placeholders_and_names_outside_the_six(synthetic_repo, tmp_path):
+    out = tmp_path / "d.json"
+    assert _run_scanner(synthetic_repo, out).returncode == 0
+    fresh = _read(out)
+    assert fresh["IRA_CORTEX_KEY"] == frozenset()          # CHANGE_ME_...
+    assert fresh["IRA_CANARY_TOKEN"] == frozenset()        # <your-token>
+    assert fresh["IRA_CANARY_USERNAME"] == frozenset()     # ci-test, a known test placeholder
+    assert "OTHER" not in fresh
+    assert set(fresh) == {*pc.REFUSED, *pc.WARNED}
+
+
+def test_the_scanner_prints_provenance_and_never_a_value_or_digest(synthetic_repo, tmp_path):
+    out = tmp_path / "d.json"
+    r = _run_scanner(synthetic_repo, out)
+    text = r.stdout + r.stderr
+    for planted in (PLANTED_KEY, PLANTED_HOOK, PLANTED_GONE):
+        assert planted not in text
+        assert planted[8:30] not in text, "not even part of a value"
+    assert not VALUE_SHAPE.search(text), "no digest on the terminal"
+    assert "supracloud-jarvis/.env.example" in r.stdout and "deploy/.env.cloud.example" in r.stdout
+    assert "PUBLISHED IRA_SECRET_KEY,IRA_ADMIN_PASSWORD" in r.stdout
+    assert "placeholders only" in r.stdout
+
+
+def test_a_history_of_placeholders_alone_publishes_nothing(tmp_path):
+    repo = tmp_path / "clean"
+    repo.mkdir()
+    _git(repo, "init", "-q", "-b", "main")
+    _commit(repo, ".env.example", "IRA_SECRET_KEY=\nIRA_ADMIN_PASSWORD=change-me\n"
+            "WEBHOOK_SECRET=ci-test-secret-key\n", "placeholders")
+    out = tmp_path / "d.json"
+    assert _run_scanner(repo, out).returncode == 0
+    assert all(d == frozenset() for d in _read(out).values())
+
+
+def test_include_inherited_merges_the_written_table(synthetic_repo, tmp_path):
+    out = tmp_path / "d.json"
+    assert _run_scanner(synthetic_repo, out, "--include-inherited").returncode == 0
+    fresh = _read(out)
+    for name, known in pc.PUBLISHED_DIGESTS.items():
+        assert known <= fresh[name], name
+    assert pc.digest("IRA_SECRET_KEY", PLANTED_KEY) in fresh["IRA_SECRET_KEY"]
+
+
+def missing_from_table(fresh: dict[str, frozenset[str]]) -> dict[str, frozenset[str]]:
+    """Digests the history publishes that the refusal table does not know: must be empty."""
+    return {name: d - pc.PUBLISHED_DIGESTS.get(name, frozenset())
+            for name, d in fresh.items() if d - pc.PUBLISHED_DIGESTS.get(name, frozenset())}
+
+
+def test_the_comparison_fails_when_a_published_value_is_not_in_the_table(synthetic_repo, tmp_path):
+    """Negative control for the check below: the planted values are, by design, not in the table."""
+    out = tmp_path / "d.json"
+    assert _run_scanner(synthetic_repo, out).returncode == 0
+    gaps = missing_from_table(_read(out))
+    assert set(gaps) == {"IRA_SECRET_KEY", "IRA_ADMIN_PASSWORD", "WEBHOOK_SECRET"}
 
 
 def test_the_table_matches_a_fresh_scan_of_history(tmp_path):
-    """The digests are what the rebuild script finds, on a full clone."""
+    """On a full clone: nothing this repository's history publishes is missing from the table,
+    and the table equals the scan merged with the inherited provenance (D-004)."""
     shallow = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--is-shallow-repository"],
                              capture_output=True, text=True).stdout.strip()
     if shallow != "false":
-        pytest.skip("needs a full clone: the published values are in history")
-    out = tmp_path / "digests.json"
-    r = subprocess.run(["python3", str(ROOT / "scripts" / "security" /
-                                       "published_credential_digests.py"), str(out)],
-                       cwd=ROOT, capture_output=True, text=True, timeout=300)
+        pytest.skip("needs a full clone: published values are found in history")
+    own = tmp_path / "own.json"
+    r = subprocess.run(["python3", "-I", str(SCANNER), str(own)], cwd=ROOT, capture_output=True,
+                       text=True, timeout=300)
     assert r.returncode == 0, r.stderr
-    import json
-
-    fresh = {name: frozenset(d) for name, d in json.loads(out.read_text()).items()}
-    assert fresh == pc.PUBLISHED_DIGESTS
+    assert not VALUE_SHAPE.search(r.stdout + r.stderr), "a digest reached the terminal"
+    assert "scanned " in r.stdout
+    assert missing_from_table(_read(own)) == {}, "a value published in this history is not refused"
+    full = tmp_path / "full.json"
+    r = subprocess.run(["python3", "-I", str(SCANNER), str(full), "--include-inherited"], cwd=ROOT,
+                       capture_output=True, text=True, timeout=300)
+    assert r.returncode == 0, r.stderr
+    assert _read(full) == pc.PUBLISHED_DIGESTS

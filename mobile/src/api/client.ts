@@ -1,4 +1,4 @@
-import type { AlertOutcome, AccessNotes, TalkLine, TalkReply,
+import type { AlertOutcome, AccessNotes, CarePlan, Medication, TalkLine, TalkReply,
   Alert, Checkin, CircleMember, CommunicationProfile, ConsentList, Device, LoginResponse, Memory, Person, PersonStatus, Reminder, Report, Visit, VisitOutcome, WorkspaceList,
 } from './types';
 import type { Appearance } from '../appearance/theme';
@@ -123,6 +123,23 @@ export class CareClient {
     return (await r.json()) as { tenant_id: string; workspace_id: string | null; person_id: string | null };
   }
 
+  /** Tell the server this sign-in is over: the refresh token first (the device's sign-in; in the
+   *  cloud edition its session row is ended too), then the access token. Each is best effort:
+   *  a phone that cannot reach the server still signs out locally, and nothing here throws. */
+  async logout(): Promise<boolean> {
+    let ok = true;
+    for (const token of [this.session.refreshToken, this.session.accessToken]) {
+      if (!token) continue;
+      try {
+        const r = await this.fetchImpl(`${this.session.baseUrl}/auth/logout`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
+        if (!r.ok) ok = false;
+      } catch {
+        ok = false;
+      }
+    }
+    return ok;
+  }
+
   async workspaces(): Promise<WorkspaceList> {
     return this.request<WorkspaceList>('GET', '/api/v1/workspaces', undefined, false);
   }
@@ -187,6 +204,18 @@ export class CareClient {
   async putProfile(personId: string, body: CommunicationProfile): Promise<CommunicationProfile> {
     const { person_id: _p, redirect_name: _n, topics_consented: _c, updated_by_role: _r, updated_at: _u, ...rest } = body;
     return this.request<CommunicationProfile>('PUT', `/api/v1/care/people/${personId}/profile`, rest);
+  }
+
+  /** What the person takes, as the care team recorded it. */
+  async medications(personId: string): Promise<Medication[]> {
+    const out = await this.request<{ medications: Medication[] }>('GET', `/api/v1/care/people/${personId}/medications`);
+    return out.medications;
+  }
+
+  /** The current care plan, or null when none has been written yet. */
+  async plan(personId: string): Promise<CarePlan | null> {
+    const out = await this.request<{ plan: CarePlan | null }>('GET', `/api/v1/care/people/${personId}/plan`);
+    return out.plan;
   }
 
   async reminders(personId: string, openOnly = false): Promise<Reminder[]> {

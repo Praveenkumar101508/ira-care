@@ -43,6 +43,29 @@ jobs:
     name: Family app on an Android phone emulator
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ira_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ira_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+    env:
+      PYTHON_VERSION: "3.12"
+      IRA_CARE_MODEL: fake
+      HF_HUB_OFFLINE: "1"
+      PGPASSWORD: postgres
+      IRA_TEST_DATABASE_DSN: postgresql://ira_app:ira_app@127.0.0.1:5432/ira_test
+      IRA_TEST_ADMIN_DSN: postgresql://postgres:postgres@127.0.0.1:5432/ira_test
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
@@ -64,13 +87,43 @@ jobs:
           java-version: "17"
       - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
 
-      - name: Build the family app release APK for x86_64 (debug signing)
+      - name: Build the family app for x86_64, release (debug signing) and debug with its JavaScript bundled
         working-directory: mobile
         run: |
           npm ci --no-audit --no-fund
           npx expo prebuild --platform android --no-install
-          (cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon --console=plain)
-          ls -l android/app/build/outputs/apk/release/
+          # The release build keeps Android's refusal of cleartext HTTP, so it cannot reach the demo
+          # server on 10.0.2.2; it is built to prove it compiles and for the sign-in-screen smoke.
+          # The authenticated journey runs on the DEBUG build, whose generated manifest allows
+          # cleartext (android/app/src/debug/AndroidManifest.xml, Expo's template); its JavaScript is
+          # bundled by emptying debuggableVariants, so no development server is needed. The release
+          # policy is not changed anywhere (docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md).
+          bash ../scripts/emulator/android_bundle_debug.sh android/app/build.gradle
+          (cd android && ./gradlew assembleRelease assembleDebug -PreactNativeArchitectures=x86_64 --no-daemon --console=plain)
+          ls -l android/app/build/outputs/apk/release/ android/app/build/outputs/apk/debug/
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: supracloud-jarvis/ira/requirements-test.txt
+
+      - name: Start the demo backend on port 8000 (fictional data, log-only providers)
+        working-directory: supracloud-jarvis/ira
+        run: |
+          set -euo pipefail
+          pip install -q -r requirements-test.txt
+          pip install -q --no-deps --require-hashes -r requirements-nodeps.txt
+          pip install -q "$(grep -E '^psutil==' requirements.txt)"
+          psql -h 127.0.0.1 -U postgres -d ira_test -v ON_ERROR_STOP=1 -q -f ../postgres/provisioning/001_database_roles.sql
+          psql -h 127.0.0.1 -U postgres -d ira_test -v ON_ERROR_STOP=1 -c \
+            "ALTER ROLE ira_migrator PASSWORD 'ira_migrator'; ALTER ROLE ira_app PASSWORD 'ira_app'; ALTER ROLE ira_worker PASSWORD 'ira_worker';"
+          python -m scripts.migrate apply --dsn postgresql://ira_migrator:ira_migrator@127.0.0.1:5432/ira_test
+          cd "$GITHUB_WORKSPACE"
+          python scripts/demo/seed_demo.py --out "$RUNNER_TEMP/seed.json" > /dev/null
+          IRA_CARE_DEMO_PORT=8000 nohup python scripts/demo/api.py > "$RUNNER_TEMP/api.log" 2>&1 &
+          for _ in $(seq 1 60); do curl -fsS http://127.0.0.1:8000/health && exit 0; sleep 2; done
+          cat "$RUNNER_TEMP/api.log"; exit 1
 
       - name: Boot a phone emulator and run the smoke
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
@@ -83,13 +136,19 @@ jobs:
           disable-animations: true
           emulator-boot-timeout: 900
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: python3 scripts/emulator/phone_smoke.py --apk mobile/android/app/build/outputs/apk/release/app-release.apk --out build/phone-smoke
+          script: python3 scripts/emulator/phone_smoke.py --apk mobile/android/app/build/outputs/apk/release/app-release.apk --out build/phone-smoke && python3 scripts/emulator/phone_smoke.py --apk mobile/android/app/build/outputs/apk/debug/app-debug.apk --out build/phone-journey --api http://127.0.0.1:8000 --credentials "$RUNNER_TEMP/seed.json"
+
+      - name: Show the end of the demo API log (on failure)
+        if: failure()
+        run: tail -n 60 "$RUNNER_TEMP/api.log" || true
 
       - name: Upload screenshots, UI dump, logcat and results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: phone-emulator-smoke-api${{ inputs.api_level || '34' }}
-          path: build/phone-smoke/
+          path: |
+            build/phone-smoke/
+            build/phone-journey/
           if-no-files-found: warn
           retention-days: 14

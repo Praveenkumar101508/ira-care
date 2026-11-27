@@ -100,8 +100,17 @@ jobs:
         run: |
           pip install -r requirements-test.txt
           pip install --no-deps --require-hashes -r requirements-nodeps.txt
+      # The scanned-PDF test (tests/test_chat_scanned_pdf.py) renders a page with pdftoppm and
+      # reads it with tesseract; without them it skips. Both are in Ubuntu's own repositories.
+      - name: Install the OCR tools the scanned-PDF test needs
+        # The runner image lists third-party apt repositories; one answering 403 (run 45980167244:
+        # packages.microsoft.com) must not stop the job. Ubuntu's own lists carry both tools.
+        run: |
+          sudo apt-get update -qq -o Dir::Etc::sourceparts=- -o APT::Get::List-Cleanup=0 >/dev/null || sudo apt-get update -qq >/dev/null || true
+          sudo apt-get install -y -q poppler-utils tesseract-ocr >/dev/null
+      # -ra names every skip in the log, so a test that stops running is visible.
       - name: Run the suite (database tests skip here; they run in backend-database)
-        run: python -m pytest -q -p no:cacheprovider tests
+        run: python -m pytest -q -ra -p no:cacheprovider tests
 
   backend-database:
     name: Backend database tests
@@ -126,6 +135,17 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
+      # The durable "log out everywhere" tests (tests/tenancy/test_global_logout_durable.py)
+      # produce Redis failures by their effect on a real Redis: a deleted key, a lost
+      # key set, an older snapshot. Without this service they skipped.
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     env:
       PGPASSWORD: postgres
       # The application role: everything that asserts "the other tenant cannot
@@ -136,6 +156,8 @@ jobs:
       # Declares that this job must reach a database: a missing DSN is a
       # failure here, not a skip (tests/tenancy/test_harness_is_configured.py).
       IRA_REQUIRE_DB_HARNESS: "1"
+      # Database 9 of the service above; each test clears what it writes.
+      IRA_TEST_REDIS_URL: redis://localhost:6379/9
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -164,11 +186,25 @@ jobs:
             -c "SELECT pg_reload_conf()"
       - name: Apply the migration chain as ira_migrator
         run: python -m scripts.migrate apply --dsn postgresql://ira_migrator:ira_migrator@localhost:5432/iratest
+      # The passwords of the three provisioned roles, for the tests that connect by role name
+      # alone (postgresql://ira_migrator@...): tests/runtime/test_migration_runner_separation.py and
+      # tests/tenancy/test_rls_by_role.py. The service authenticates every TCP connection with a
+      # password, so without this file those tests skipped with "cannot connect as". It goes to
+      # libpq's and asyncpg's default place, ~/.pgpass (the `runner` context is not allowed in a
+      # job's env, so no PGPASSFILE variable).
+      - name: Role passwords for the tests that connect by role name
+        run: |
+          printf '%s\n' 'localhost:5432:*:ira_app:ira_app' 'localhost:5432:*:ira_worker:ira_worker' \
+            'localhost:5432:*:ira_migrator:ira_migrator' > "$HOME/.pgpass"
+          chmod 600 "$HOME/.pgpass"
       - name: Applied migrations are unchanged
         run: python -m scripts.check_migration_integrity
       - name: Run the database suites
+        # PGPASSWORD takes precedence over the passfile in asyncpg and libpq alike, and the
+        # job's value is the superuser's; the suites carry their passwords in the DSNs.
         run: |
           set -o pipefail
+          unset PGPASSWORD
           python -m pytest -q -ra -p no:cacheprovider \
             tests/tenancy tests/readiness tests/architecture \
             tests/callers tests/idempotency tests/runtime 2>&1 | tee database-tests.log

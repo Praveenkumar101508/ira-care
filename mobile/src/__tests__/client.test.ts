@@ -62,6 +62,32 @@ test('acknowledging sends on_my_way and 401 asks to sign in again', async () => 
   await expect(c.alerts()).rejects.toThrow('Please sign in again.');
 });
 
+test('signing out tells the server with the refresh token first, then the access token', async () => {
+  const { f, calls } = fakeFetch(() => ({ status: 200, body: { message: 'Logged out' } }));
+  const ok = await new CareClient({ ...session, refreshToken: 'ref' }, f).logout();
+  expect(ok).toBe(true);
+  expect(calls.map((c) => c.url)).toEqual(['http://care.invalid/auth/logout', 'http://care.invalid/auth/logout']);
+  expect(calls.map((c) => (c.init?.headers as Record<string, string>).Authorization)).toEqual(['Bearer ref', 'Bearer tok']);
+  expect(calls.every((c) => c.init?.method === 'POST')).toBe(true);
+});
+
+test('signing out never throws: an unreachable server is reported as not confirmed', async () => {
+  const f = (async () => { throw new TypeError('Network request failed'); }) as unknown as typeof fetch;
+  await expect(new CareClient({ ...session, refreshToken: 'ref' }, f).logout()).resolves.toBe(false);
+  const { f: refused } = fakeFetch(() => ({ status: 503, body: { detail: 'later' } }));
+  await expect(new CareClient(session, refused).logout()).resolves.toBe(false);
+});
+
+test('medication and the care plan are read for the person record', async () => {
+  const { f, calls } = fakeFetch((url) => url.endsWith('/medications')
+    ? { status: 200, body: { medications: [{ id: 'm1', name: 'the morning tablets', dose: 'one', times: ['08:00:00'], notes: '', active: true }], count: 1 } }
+    : { status: 200, body: { plan: null } });
+  const c = new CareClient(session, f);
+  expect((await c.medications('p1'))[0].name).toBe('the morning tablets');
+  expect(await c.plan('p1')).toBeNull();
+  expect(calls.map((x) => x.url)).toEqual(['http://care.invalid/api/v1/care/people/p1/medications', 'http://care.invalid/api/v1/care/people/p1/plan']);
+});
+
 test('a dead network becomes an offline message', async () => {
   const f = (async () => { throw new TypeError('Network request failed'); }) as unknown as typeof fetch;
   await expect(new CareClient(session, f).people()).rejects.toThrow('No connection');

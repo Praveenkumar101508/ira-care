@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import io
 import math
+import re
 import sys
 import zipfile
 from pathlib import Path
@@ -37,12 +38,22 @@ SUPERSAMPLE = 4
 
 
 def parse_desc(text: str) -> tuple[int, int, int, list[tuple[str, int, int, str]]]:
+    """desc.txt as frameworks/base/cmds/bootanimation/FORMAT.md defines it (the parts this
+    animation uses: `WIDTH HEIGHT FPS`, then `TYPE COUNT PAUSE PATH` with TYPE c, p or f)."""
     lines = [ln for ln in text.splitlines() if ln.strip()]
-    width, height, fps = (int(v) for v in lines[0].split())
+    if not lines or not re.fullmatch(r"\d+ \d+ \d+( \d+)?", lines[0]):
+        raise SystemExit(f"desc.txt line 1 must be 'WIDTH HEIGHT FPS': {lines[:1]}")
+    width, height, fps = (int(v) for v in lines[0].split()[:3])
+    if fps <= 0 or width <= 0 or height <= 0:
+        raise SystemExit("desc.txt: width, height and fps must be positive")
     parts = []
     for ln in lines[1:]:
-        kind, count, pause, name = ln.split()
-        parts.append((kind, int(count), int(pause), name))
+        m = re.fullmatch(r"([cpf]) (\d+) (\d+) (part\d+)", ln)
+        if not m:
+            raise SystemExit(f"desc.txt part line must be 'TYPE COUNT PAUSE PATH' with TYPE c, p or f: {ln!r}")
+        parts.append((m.group(1), int(m.group(2)), int(m.group(3)), m.group(4)))
+    if not parts:
+        raise SystemExit("desc.txt names no parts")
     return width, height, fps, parts
 
 

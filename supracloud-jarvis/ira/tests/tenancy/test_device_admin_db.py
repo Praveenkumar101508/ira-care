@@ -75,12 +75,16 @@ async def admins(client, families):
         await conn.close()
 
 
-def act_as_admin(client, families, uid: uuid.UUID):
+def act_as_admin(client, families, uid: uuid.UUID, *, auth_age: int = 0, amr=("pwd",)):
+    """Signed in as an ordinary account of its own tenant, with no workspace and no roles, whose
+    session proved its password `auth_age` seconds ago (D-095: the step-up check reads these
+    from the session token; here they are put on the Principal as `principal_from_username`
+    would). The default is an administrator who has just signed in."""
     from core.editions import EDITION_CLOUD
     from core.identity import Principal
-    # Signed in as an ordinary account of its own tenant, with no workspace and no roles.
+    import time
     client.principal = Principal(user_id=uid, tenant_id=families["b"]["tenant_id"], session_id=uuid.uuid4(),
-                                 edition=EDITION_CLOUD)
+                                 edition=EDITION_CLOUD).with_authentication(int(time.time()) - auth_age, amr)
     return client
 
 

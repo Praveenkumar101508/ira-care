@@ -20,6 +20,7 @@ AST-based, so a mention in a comment or a string is not an import.
 from __future__ import annotations
 
 import ast
+import importlib.util
 import re
 import subprocess
 import sys
@@ -154,6 +155,17 @@ _BLOCK_AV = textwrap.dedent("""
 """)
 
 
+def _faster_whisper_or_skip() -> None:
+    """Skip when faster-whisper is not installed, found without importing it.
+
+    `pytest.importorskip("faster_whisper")` would run `import faster_whisper`, which asks for
+    PyAV: the very import these tests show the product never makes. Where `av` is absent, as
+    it is in CI and in every honest install, that gate skipped the three tests that prove the
+    exclusion works. Whether the distribution is present is what decides here."""
+    if importlib.util.find_spec("faster_whisper") is None:
+        pytest.skip("faster-whisper is not installed")
+
+
 def _run(code: str) -> subprocess.CompletedProcess:
     env = {"IRA_SECRET_KEY": "test-placeholder", "PATH": "/usr/bin:/bin", "HF_HUB_OFFLINE": "1"}
     return subprocess.run([sys.executable, "-c", _BLOCK_AV + textwrap.dedent(code)],
@@ -161,7 +173,7 @@ def _run(code: str) -> subprocess.CompletedProcess:
 
 
 def test_the_recogniser_loads_without_av():
-    pytest.importorskip("faster_whisper")
+    _faster_whisper_or_skip()
     r = _run("""
         import voice.stt as stt
         import faster_whisper.transcribe as t
@@ -175,7 +187,7 @@ def test_the_recogniser_loads_without_av():
 
 def test_control_without_the_engine_module_faster_whisper_needs_av():
     """Shows the blocker above is effective: the plain import asks for PyAV and fails."""
-    pytest.importorskip("faster_whisper")
+    _faster_whisper_or_skip()
     r = _run("""
         try:
             import faster_whisper
@@ -190,9 +202,8 @@ def test_control_without_the_engine_module_faster_whisper_needs_av():
 def test_the_substitute_covers_what_faster_whisper_imports_from_its_audio_module():
     """Read from the installed faster-whisper's source, so an upgrade that imports something
     new from its audio module fails here, not at the first transcription."""
-    pytest.importorskip("faster_whisper")
+    _faster_whisper_or_skip()
     import importlib.metadata as md
-    import importlib.util
 
     from voice import audio_decode, whisper_engine
 

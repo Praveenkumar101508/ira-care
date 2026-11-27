@@ -25,9 +25,14 @@ request, approval and refused approval is an audit row. The table enforces the s
 (trigger and CHECKs in 123), so a bug here cannot sign a reset on one person's say-so.
 `MAINTENANCE_WINDOW` and `RESTORE_RESTRICTIONS` are signed at once, as before.
 
-Step-up authentication is NOT asked for: the session token carries no authentication time (no
-`iat` or `auth_time` claim, and a refresh re-stamps it), so the server cannot tell a session
-signed in a minute ago from one refreshed for a week. That stays open (S15, T43).
+Step-up authentication (D-095, security/stepup.py, closes the open part of S15 and T43): issuing,
+approving and revoking an instruction need a session whose holder proved who they are within
+`IRA_STEP_UP_MAX_AGE_SECONDS` (default ten minutes) and, when the account has a second factor,
+showed it. The session token records when and how (`auth_time`, `amr`), set at sign-in and at
+`POST /auth/step-up` and copied unchanged by a refresh, so a session kept alive by refreshes for
+a week is refused (403 `step_up_required`) until the person types their password (and code)
+again. The grant is checked first: an account without one learns nothing about step-up. Reading
+the history does not need it.
 
 Where: the administrator names the watch by its tenant, workspace and device id (from the
 care organisation's support request; the device id is in the workspace's device list,

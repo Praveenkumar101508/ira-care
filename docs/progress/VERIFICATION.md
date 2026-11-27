@@ -1,3 +1,40 @@
+# Integrated verification of round 9 (pull request 128, 27 November 2026)
+
+Run on the round 9 branch (`praveen/vigilant-tesla-bhe022`) after every round 9 change was in it.
+Machine: one Linux container, 4 CPUs, 15 GB RAM, no GPU, no `/dev/kvm`; Python 3.13.18 (CI uses
+3.12); PostgreSQL 16.15 with pgvector built from source, Redis 7; Node 22; OpenJDK 21 with a local
+Android SDK (platform 35, build tools 34 and 35). Every number below is from a run whose output was
+read. Overlapping runs are not added together.
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| Backend unit suite, as CI's unit job (`pytest -ra tests --ignore tests/tenancy`, no database) | **5,831 passed, 85 skipped, 1 failed** in 5 min 45 s | The one failure is the egress-guard test that needs outbound DNS (`example.com`); environmental, passes in CI. The D-004 failure of every earlier round is gone (D-097) |
+| Backend database suites, as CI's database job (`tests/tenancy tests/readiness tests/architecture tests/callers tests/idempotency tests/runtime`, as `ira_app`, Redis db 9, role passfile, `PGPASSWORD` unset) | **4,511 passed, 7 skipped, 3 failed** in 14 min 44 s | The three failures were the conversation dataset's labels after the red-flag rule changed (two tests) and one source-reading test of the fall wiring; both fixed after the run (dataset 1.1.1, the test reading the confirmation-stage wiring), and those three files plus the journey tests then **71 passed**. Skips: the six inherited missing-file tests (`INHERITED_TEST_SKIPS.md`) and the destructive failover test, which passed separately against its own database (5 passed, D-098) |
+| Backend lint (`ruff check .`) | **0 findings** | |
+| Secret scan (`scripts/ci/gitleaks.sh`, whole history to HEAD) | **no leaks found** | |
+| Register rules (`scripts/completion_summary.py`) and documents (`scripts/check_docs_truth.py`) | **pass** | register 1.10.0, 258 items |
+| Dashboard (`npm ci`, `typecheck`, `vitest`, `build`) | **160 passed** in 24 files; typecheck clean; build exit 0 with `/admin/devices` | 138 before the round |
+| Phone app (`tsc --noEmit`, `jest --ci`) | **94 passed** in 20 suites; typecheck clean | 83 before the round |
+| Watch app, both flavours (`./gradlew testWearosDebugUnitTest testAospDebugUnitTest`) | **207 passed per flavour**, 0 failed, 0 skipped | includes `FallConfirmationTest` (8), `FallInjectionTest` (3), `SyntheticFallReleaseTest` (4) |
+| 1-hour wall-clock soak (`scripts/soak_wallclock.py --start-demo --no-quiet-hours --hours 1`) | **PASS on every criterion; API memory 1.996 % an hour** | `docs/evidence/soak/WALLCLOCK_1H_ROUND9.md`; not the 24-hour run (G2.e) |
+| Encrypted backup and restore round trip | 169 tables and 120 migrations before and after | `docs/evidence/ops/DRILLS_ROUND9.md` |
+| The 22-step care journey, deterministic model | 1 passed | the same page |
+| Conversation evaluation, deterministic model | the 162-turn set unchanged turn for turn (red-flag recall 1.0); round 9 development set 129 of 129; hold-out 37 of 41 | `docs/evidence/eval/round9/` |
+| Fall pipeline on the synthetic scenarios, shipped model through LiteRT | 154 of 160 falls caught with and without the confirmation stage; alarms 88 to 62 | `docs/ai/fall/synthetic_confirmation.json` |
+
+## Native journeys on GitHub's standard runners (the pull request's `native checks`)
+
+| Journey | Latest completed run | Result | Fix since, awaiting its run |
+| --- | --- | --- | --- |
+| Wear OS, 44 steps | 45910155640 | **43 of 44**: everything but `unpair_warning_shown` | the journey scrolls to the Unpair button; the job has 60 minutes |
+| Android phone, sign-in smoke plus 17 journey steps | 45974160883 | **smoke 4 of 4; journey 16 of 17**: everything but `carer_signed_in` | the journey leaves the Talk screen before signing out |
+| iOS simulator | 45910155640 | built with its JavaScript bundled, booted, installed, launched, **still running, no crash report**; `sign_in_screen_shown` failed (the console probe line went unseen) | the probe also posts to a loopback listener |
+
+No run found a defect in the apps themselves; every failure was the journey script's or the
+runner's (its network after boot, a launcher hang, the timeout). The results of the runs that carry
+the fixes are recorded on the evidence pages (`WEAR_EMULATOR_JOURNEY.md`, `PHONE_EMULATOR_SMOKE.md`,
+`IOS_SIMULATOR.md`) as they complete.
+
 # Integrated verification on `main` (register K, round 8)
 
 Run on 26 November 2026 on `main` at `540c6e5` (PRs up to #122 merged; the unit suite ran on

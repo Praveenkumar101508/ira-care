@@ -60,6 +60,21 @@ test('family see the alert that needs someone first, with I\'m on my way, and ca
   expect(byId(tree, 'card-watch')).toBeTruthy();
 });
 
+test('while the server cannot be reached, family are not told "No open alerts."', () => {
+  const offline = render(<HomeTab d={data({ experience: 'family', alerts: [], error: 'No connection. Check the network and try again.' })} a={actions()} />);
+  expect(byId(offline, 'card-stale')).toBeTruthy();
+  expect(text(byId(offline, 'card-stale'))).toContain('Alerts may be out of date');
+  expect(byId(offline, 'card-alerts')).toBeUndefined();
+  expect(text(offline as Node)).not.toContain('No open alerts.');
+  // Negative controls: with the connection back the plain card returns, and an alert that needs
+  // someone is still drawn first even while offline.
+  const online = render(<HomeTab d={data({ experience: 'family', alerts: [] })} a={actions()} />);
+  expect(text(byId(online, 'card-alerts'))).toContain('No open alerts.');
+  const both = render(<HomeTab d={data({ experience: 'family', alerts: [open], error: 'No connection.' })} a={actions()} />);
+  expect(byId(both, 'urgent-banner')).toBeTruthy();
+  expect(byId(both, 'card-stale')).toBeUndefined();
+});
+
 test("the urgent banner's I'm on my way button has readable words, and the banner names the alert", () => {
   const r = mount(<HomeTab d={data({ experience: 'family', alerts: [open] })} a={actions()} />);
   const tree = r.toJSON() as Node;

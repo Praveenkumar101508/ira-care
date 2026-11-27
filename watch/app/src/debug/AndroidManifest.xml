@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Debug builds only: lets the watch reach a development server over plain HTTP at the
      emulator's host address (see res/xml/network_security_config.xml). Release builds have no
-     such file and keep Android's default, which refuses cleartext traffic. -->
+     such file and keep Android's default, which refuses cleartext traffic.
+     Also debug only: SyntheticFallReceiver, a synthetic suspected fall for the emulator journey
+     (`am broadcast`), exported so the shell can reach it. No release build carries it. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:networkSecurityConfig="@xml/network_security_config" />
+    <application android:networkSecurityConfig="@xml/network_security_config">
+        <receiver
+            android:name="care.ira.watch.debug.SyntheticFallReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="care.ira.watch.debug.SYNTHETIC_FALL" />
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>

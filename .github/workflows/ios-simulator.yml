@@ -59,11 +59,27 @@ jobs:
         working-directory: mobile/ios
         run: |
           set -o pipefail
-          xcodebuild -workspace IRACARE.xcworkspace -scheme IRACARE \
+          # FORCE_BUNDLING: the Debug configuration otherwise leaves the JavaScript to a development
+          # server; bundling it makes the .app launch on its own in the simulator (the launch job
+          # below). It is still the Debug configuration (__DEV__ true), which the journey probe needs.
+          # Passed as a build setting, which Xcode exports to the build's scripts; set only in the
+          # environment it never reached react-native-xcode.sh (run 45988252843: no main.jsbundle).
+          FORCE_BUNDLING=1 xcodebuild -workspace IRACARE.xcworkspace -scheme IRACARE \
             -sdk iphonesimulator -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO build | tee xcodebuild.log | tail -n 200
+            CODE_SIGNING_ALLOWED=NO FORCE_BUNDLING=1 build | tee xcodebuild.log | tail -n 200
+      - name: Make sure the JavaScript is inside the app
+        working-directory: mobile
+        run: |
+          set -euo pipefail
+          app=$(find ios/build/Build/Products/Debug-iphonesimulator -maxdepth 1 -name '*.app' | head -1)
+          if [ ! -f "$app/main.jsbundle" ]; then
+            echo "main.jsbundle missing after the build: writing it with Expo's own bundler (development bundle)"
+            npx expo export:embed --platform ios --dev true --entry-file index.ts \
+              --bundle-output "$app/main.jsbundle" --assets-dest "$app"
+          fi
+          ls -la "$app/main.jsbundle"
       - name: Package the .app
         working-directory: mobile/ios
         run: |
@@ -81,3 +97,24 @@ jobs:
             mobile/ios/xcodebuild.log
           if-no-files-found: warn
           retention-days: 14
+      # Round 9: the same runner then launches what it built. An available iPhone simulator is
+      # booted, the .app installed and started with its console attached, and the development
+      # bundle's journey probe says which screen is showing (scripts/simulator/ios_journey.py).
+      - name: Launch the app in the simulator and read its screens
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -o pipefail
+          xcrun simctl list devices available | head -40
+          app=$(find mobile/ios/build/Build/Products/Debug-iphonesimulator -maxdepth 1 -name '*.app' | head -1)
+          # Is the JavaScript in the app? Without it the Debug build has nothing to fall back to
+          # once it finds no development server (run 45984425019: no JavaScript ran at all).
+          python3 scripts/simulator/ios_journey.py --app "$app" --out build/ios-journey --seconds 90
+      - name: Upload the screenshot, console, app log and results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ios-simulator-journey
+          path: build/ios-journey/
+          if-no-files-found: warn
+          retention-days: 14
+

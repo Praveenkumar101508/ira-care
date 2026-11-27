@@ -561,11 +561,25 @@ async def device_admin_instruction_outcome(instruction_id: uuid.UUID, body: sche
 
 
 async def _deployment_admin(p: Principal = Depends(require_tenant_principal)) -> uuid.UUID:
+    """The caller's account id if it holds a live deployment-administrator grant; 403 otherwise.
+    Reading only (the history)."""
     from . import deviceadmin
     try:
         return await deviceadmin.require_deployment_admin(p)
     except deviceadmin.NotDeploymentAdmin:
         raise HTTPException(status_code=403, detail=deviceadmin.REFUSED)
+
+
+async def _deployment_admin_recent(p: Principal = Depends(require_tenant_principal)) -> uuid.UUID:
+    """A deployment administrator who proved who they are recently (D-095, security/stepup.py):
+    for issuing, approving and revoking instructions. The grant is checked FIRST, so an account
+    without one gets the same 403 as before and learns nothing about step-up; then the session
+    must carry an `auth_time` within the window and, when the account has a second factor, show
+    it (403 `step_up_required`, with `max_age_seconds` and `auth_age_seconds`)."""
+    from security import stepup
+    admin_id = await _deployment_admin(p)
+    await stepup.assert_recent_authentication(p)
+    return admin_id
 
 
 def _device_policy_key():
@@ -576,13 +590,32 @@ def _device_policy_key():
         raise HTTPException(status_code=503, detail="Device instructions are not configured on this server.")
 
 
+@router.get("/deployment-admin/me")
+async def deployment_admin_me(p: Principal = Depends(require_tenant_principal)):
+    """What the dashboard needs before it offers the administrator's controls: whether this
+    account is a deployment administrator and, if so, whether its session is recent enough to
+    act (D-095). An account without a grant gets `deployment_admin: false` and nothing else."""
+    from security import stepup
+
+    from . import deviceadmin
+    try:
+        await deviceadmin.require_deployment_admin(p)
+    except deviceadmin.NotDeploymentAdmin:
+        return {"deployment_admin": False}
+    verdict = await stepup.check(p)
+    return {"deployment_admin": True, "auth_age_seconds": verdict.auth_age_seconds,
+            "step_up_required": not verdict.ok, "max_age_seconds": verdict.max_age_seconds,
+            "mfa_enrolled": verdict.mfa_enrolled}
+
+
 @router.post("/deployment-admin/device-instructions", status_code=201)
 async def issue_device_instruction(body: schemas.DeviceInstructionCreate, response: Response,
-                                   admin_id: uuid.UUID = Depends(_deployment_admin)):
+                                   admin_id: uuid.UUID = Depends(_deployment_admin_recent)):
     """Issue one signed instruction from the closed list to one paired watch (E2.o). A deployment
-    administrator only; at most 15 minutes; audited. No device-policy key configured means 503.
-    A FACTORY_RESET is not signed yet: it is a request (202, `state: pending_approval`) that a
-    second deployment administrator must approve within 30 minutes (D-089)."""
+    administrator only, with a recent sign-in (D-095); at most 15 minutes; audited. No
+    device-policy key configured means 503. A FACTORY_RESET is not signed yet: it is a request
+    (202, `state: pending_approval`) that a second deployment administrator must approve within
+    30 minutes (D-089)."""
     from . import deviceadmin
     key = _device_policy_key()
     try:
@@ -600,10 +633,11 @@ async def issue_device_instruction(body: schemas.DeviceInstructionCreate, respon
 
 @router.post("/deployment-admin/device-instructions/{instruction_id}/approve")
 async def approve_device_instruction(instruction_id: uuid.UUID, body: schemas.DeviceTarget,
-                                     admin_id: uuid.UUID = Depends(_deployment_admin)):
-    """A second, different deployment administrator approves a factory-reset request, which is
-    signed only now (D-089). The requester (403), a lapsed, withdrawn or already signed request,
-    or one whose requester has since been revoked (409) are refused; each refusal is audited."""
+                                     admin_id: uuid.UUID = Depends(_deployment_admin_recent)):
+    """A second, different deployment administrator, recently signed in (D-095), approves a
+    factory-reset request, which is signed only now (D-089). The requester (403), a lapsed,
+    withdrawn or already signed request, or one whose requester has since been revoked (409)
+    are refused; each refusal is audited."""
     from . import deviceadmin
     key = _device_policy_key()
     try:
@@ -619,7 +653,7 @@ async def approve_device_instruction(instruction_id: uuid.UUID, body: schemas.De
 
 @router.post("/deployment-admin/device-instructions/{instruction_id}/revoke")
 async def revoke_device_instruction(instruction_id: uuid.UUID, body: schemas.DeviceInstructionRevoke,
-                                    admin_id: uuid.UUID = Depends(_deployment_admin)):
+                                    admin_id: uuid.UUID = Depends(_deployment_admin_recent)):
     from . import deviceadmin
     try:
         return await deviceadmin.revoke(admin_id=admin_id, tenant_id=body.tenant_id, workspace_id=body.workspace_id,

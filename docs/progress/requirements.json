@@ -1,5 +1,5 @@
 {
- "version": "1.7.0",
+ "version": "1.10.0",
  "methodology": "A fixed, versioned list of atomic requirements for the owner's master directive. Each item is one measurable deliverable with one state. States: not_started; implemented (code or document merged); accepted (functional evidence: unit_test, db_test, build, browser, emulator, model_eval or device; docs_only and config_check never count); verified (integration-level evidence: db_test, browser, emulator, model_eval or device); device_validated (device evidence); blocked_external (cannot progress without something outside the software; blocked_by says what). Every file ref must exist and a PR ref must be #44 or later; acceptance and verification need a qualifying evidence item that names a file, not only a PR. Items are never removed to raise a percentage: blocked and not-started items stay in every denominator. A requirement that changes scope gets a new id and the version is raised. scripts/completion_summary.py enforces these rules and computes the seven measures.",
  "requirements": [
   {
@@ -35,6 +35,10 @@
     {
      "kind": "unit_test",
      "ref": "supracloud-jarvis/ira/tests/care/test_care_safety_answers.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_round9_scenarios.py"
     }
    ]
   },
@@ -544,7 +548,7 @@
    "title": "Sign-out clears every account's state; a late reply for account A never reaches account B (C3)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -553,6 +557,14 @@
     {
      "kind": "unit_test",
      "ref": "#47"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_logout_with_refresh_token_ends_session.py"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md"
     }
    ]
   },
@@ -912,8 +924,12 @@
    "title": "Automated accessibility checks on the watch app",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/ui/AccessibilityTest.kt"
@@ -1050,8 +1066,12 @@
    "title": "Watch fall detection (rules) feeding the countdown",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/sensors/FallDetectorTest.kt"
@@ -1064,8 +1084,12 @@
    "title": "Watch Help / SOS state, with delivery and responder status shown",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/outbox/SosStateTest.kt"
@@ -1114,8 +1138,12 @@
    "title": "Watch reminders and routines shown and answered on the wrist",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/checkin/ReminderButtonsTest.kt"
@@ -1149,6 +1177,14 @@
     {
      "kind": "docs_only",
      "ref": "docs/evidence/emulator/NO_KVM_ATTEMPT.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_watch_smoke_journey.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_watch_synthetic_fall.py"
     }
    ]
   },
@@ -1251,6 +1287,10 @@
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/reminders.test.ts"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/person_plan.test.tsx"
     }
    ]
   },
@@ -1287,6 +1327,10 @@
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/model.test.ts"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md"
     }
    ]
   },
@@ -1310,7 +1354,7 @@
    "title": "Android native build of the phone app (APK / AAB)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "build",
@@ -1319,6 +1363,22 @@
     {
      "kind": "build",
      "ref": "docs/evidence/builds/ANDROID.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_phone_journey_helpers.py"
+    },
+    {
+     "kind": "config_check",
+     "ref": ".github/workflows/phone-emulator.yml"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md"
     }
    ]
   },
@@ -1328,8 +1388,12 @@
    "title": "iOS build of the phone app",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/builds/IOS_SIMULATOR.md"
+    },
     {
      "kind": "build",
      "ref": "docs/evidence/builds/IOS_SIMULATOR.md"
@@ -1337,6 +1401,22 @@
     {
      "kind": "build",
      "ref": ".github/workflows/ios-simulator.yml"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_ios_journey.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/journey_probe.test.ts"
+    },
+    {
+     "kind": "config_check",
+     "ref": ".github/workflows/ios-simulator.yml"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/builds/IOS_SIMULATOR.md"
     }
    ]
   },
@@ -1566,6 +1646,32 @@
    ]
   },
   {
+   "id": "D3.l",
+   "parent": "D3",
+   "title": "Deployment administration screen in the dashboard: refusal for anyone without the grant, instruction history with audit trail, the three actions, the two-person reset, step-up confirmation",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "dashboard/src/__tests__/device_admin.test.tsx"
+    },
+    {
+     "kind": "build",
+     "ref": "dashboard/src/app/admin/devices/page.tsx"
+    },
+    {
+     "kind": "config_check",
+     "ref": "e2e/deployment_admin.spec.ts"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ops/DEPLOYMENT_ADMIN_SCREEN.md"
+    }
+   ]
+  },
+  {
    "id": "D4.a",
    "parent": "D4",
    "title": "One capability list held by backend, watch and dashboard",
@@ -1622,6 +1728,10 @@
     {
      "kind": "docs_only",
      "ref": "#59"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/os/HOST_CHECKS.md"
     }
    ]
   },
@@ -1631,7 +1741,7 @@
    "title": "Cuttlefish product makefile and product registration",
    "area": "os",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "config_check",
@@ -1644,6 +1754,18 @@
     {
      "kind": "config_check",
      "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_product_registration_is_consistent"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_product_copy_files_sources_all_resolve"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_product_packages_and_overrides_resolve_to_known_modules"
     }
    ]
   },
@@ -1653,7 +1775,7 @@
    "title": "Privileged prebuilt watch app with a privapp allowlist that matches the manifest",
    "area": "os",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "config_check",
@@ -1666,6 +1788,10 @@
     {
      "kind": "config_check",
      "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_privileged_allowlist_matches_the_merged_aosp_manifest"
     }
    ]
   },
@@ -1675,11 +1801,15 @@
    "title": "First-boot permission grants (proposal)",
    "area": "os",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "config_check",
      "ref": "os/device/ira/ira_watch_cf/permissions/default-permissions-care.ira.watch.xml"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_first_boot_grants_are_exactly_the_runtime_permissions_requested_and_revocable"
     }
    ]
   },
@@ -1689,11 +1819,15 @@
    "title": "Framework overlay",
    "area": "os",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "config_check",
      "ref": "os/device/ira/ira_watch_cf/overlays/IraFrameworkOverlay/res/values/config.xml"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_every_overlaid_resource_exists_in_the_framework_with_its_type"
     }
    ]
   },
@@ -1703,7 +1837,7 @@
    "title": "Boot animation specification",
    "area": "os",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "docs_only",
@@ -1712,6 +1846,14 @@
     {
      "kind": "config_check",
      "ref": "os/device/ira/ira_watch_cf/bootanimation/desc.txt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_boot_animation_generator_run_from_the_command_line_matches_the_specification"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_the_boot_animation_zip_follows_the_platform_format"
     }
    ]
   },
@@ -1730,6 +1872,10 @@
     {
      "kind": "config_check",
      "ref": "os/scripts/make_bootanimation.py"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_the_boot_animation_is_deterministic"
     }
    ]
   },
@@ -1800,7 +1946,7 @@
    "title": "Launcher: stock AOSP launcher removed from the image (overrides)",
    "area": "os",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "config_check",
@@ -1809,6 +1955,14 @@
     {
      "kind": "docs_only",
      "ref": "os/device/ira/ira_watch_cf/HOME_LAUNCHER.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_the_merged_aosp_manifest_makes_the_app_the_home_screen_and_help_reachable_when_locked"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_the_stock_launcher_is_overridden_and_the_app_is_a_home_app"
     }
    ]
   },
@@ -1871,6 +2025,36 @@
     {
      "kind": "docs_only",
      "ref": "docs/os/DEVICE_POLICY.md"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_device_admin_step_up_db.py"
+    }
+   ]
+  },
+  {
+   "id": "E2.p",
+   "parent": "E2",
+   "title": "Deployment administrators must have proved who they are recently (auth_time and amr token claims, POST /auth/step-up, step-up required to issue, approve or revoke a device instruction; a refresh never re-stamps the proof)",
+   "area": "os",
+   "hardware_independent": true,
+   "state": "verified",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/test_step_up_authentication.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_device_admin_step_up_db.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_step_up_endpoint_db.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/security/STEP_UP_AUTHENTICATION.md"
     }
    ]
   },
@@ -1895,11 +2079,19 @@
    "title": "Sensor HAL contract (types, units, rates, batching, wake)",
    "area": "os",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "docs_only",
      "ref": "docs/hardware/SENSOR_HAL.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_the_hal_service_declares_the_contract_sensors_with_the_contract_rates_and_modes"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_sensor_sim.py::test_the_simulated_signals_meet_the_sensor_contract"
     }
    ]
   },
@@ -1927,7 +2119,7 @@
    "title": "Simulated sensors HAL driver: heart rate",
    "area": "os",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "unit_test",
@@ -1936,6 +2128,14 @@
     {
      "kind": "config_check",
      "ref": "os/device/ira/sensors_sim/SimSensorsHal.cpp"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_sensor_sim.py::test_the_simulated_signals_meet_the_sensor_contract"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_the_sensors_hal_version_agrees_between_android_bp_vintf_and_the_aosp_default"
     }
    ]
   },
@@ -1945,7 +2145,7 @@
    "title": "Simulated sensors HAL driver: accelerometer and gyroscope",
    "area": "os",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "unit_test",
@@ -1954,6 +2154,14 @@
     {
      "kind": "config_check",
      "ref": "os/device/ira/sensors_sim/SimSensorsHal.cpp"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_sensor_sim.py::test_the_simulated_signals_meet_the_sensor_contract"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_the_sensors_hal_version_agrees_between_android_bp_vintf_and_the_aosp_default"
     }
    ]
   },
@@ -1963,7 +2171,7 @@
    "title": "Simulated sensors HAL driver: off-body detection",
    "area": "os",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "unit_test",
@@ -1972,6 +2180,14 @@
     {
      "kind": "config_check",
      "ref": "os/device/ira/sensors_sim/SimSensorsHal.cpp"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_sensor_sim.py::test_the_simulated_signals_meet_the_sensor_contract"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_the_sensors_hal_version_agrees_between_android_bp_vintf_and_the_aosp_default"
     }
    ]
   },
@@ -2099,11 +2315,19 @@
    "title": "OS build instructions, every step marked as not run",
    "area": "os",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "docs_only",
      "ref": "docs/os/BUILD.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_build_doc_commands_name_scripts_and_variables_that_exist"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_build_doc_marks_every_step_as_not_run"
     }
    ]
   },
@@ -2118,6 +2342,10 @@
     {
      "kind": "docs_only",
      "ref": "docs/os/QUALCOMM_DEPENDENCIES.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_os_product_layer.py::test_supplier_register_has_fourteen_rows_each_with_a_status_from_the_fixed_set"
     }
    ]
   },
@@ -2428,6 +2656,10 @@
     {
      "kind": "docs_only",
      "ref": "docs/ai/heart/MODEL_CARD.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/review/REVIEW_PACK_F3c_HEART_MODEL_CARD.md"
     }
    ]
   },
@@ -2664,6 +2896,32 @@
    ]
   },
   {
+   "id": "F4.i",
+   "parent": "F4",
+   "title": "Confirmation stage after a suspected fall: a still wrist is always asked, a wrist that kept its orientation with the hand carrying on or a burst of impacts is not; off by default until run on the permitted recorded falls",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/sensors/FallConfirmationTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_fall_confirmation.py"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/fall/synthetic_confirmation.json"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/fall/FALSE_ALARM_INVESTIGATION.md"
+    }
+   ]
+  },
+  {
    "id": "F5.a",
    "parent": "F5",
    "title": "Deterministic safety rules measured on the conversation evaluation set",
@@ -2674,6 +2932,14 @@
     {
      "kind": "model_eval",
      "ref": "docs/evidence/eval/phase7_rules.json"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_round9_scenarios.py"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/eval/round9/set162_after_fake.json"
     }
    ]
   },
@@ -2714,6 +2980,32 @@
    ]
   },
   {
+   "id": "F5.d",
+   "parent": "F5",
+   "title": "Round 9 scenario families (false reassurance, ambiguous and interrupted dose answers, repetition, help in an older person's idiom, disguised injection, privacy requests) with a hold-out set run once; the red-flag and dose rules extended for every development MUST case",
+   "area": "ai",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/care/test_care_round9_scenarios.py"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/eval/round9/dev_fake.json"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/evidence/eval/round9/holdout_fake.json"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/conversation/ROUND9_SCENARIOS.md"
+    }
+   ]
+  },
+  {
    "id": "F6.a",
    "parent": "F6",
    "title": "A correction is kept and read back",
@@ -2738,6 +3030,10 @@
     {
      "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_memory_db.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_memory_reports_db.py"
     }
    ]
   },
@@ -2756,6 +3052,10 @@
     {
      "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_memory_db.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_memory_reports_db.py"
     }
    ]
   },
@@ -2802,6 +3102,10 @@
     {
      "kind": "docs_only",
      "ref": "docs/DATASETS.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/review/REVIEW_PACK_F7a_ACTIVITY_DATASET.md"
     }
    ]
   },
@@ -2874,6 +3178,10 @@
     {
      "kind": "docs_only",
      "ref": "docs/ai/activity/MODEL_CARD.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/review/REVIEW_PACK_F7e_ACTIVITY_MODEL_CARD.md"
     }
    ]
   },
@@ -3005,6 +3313,10 @@
     {
      "kind": "docs_only",
      "ref": "docs/ai/MODEL_WEIGHTS.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/review/REVIEW_PACK_F8a_SPEECH_LICENCES.md"
     }
    ]
   },
@@ -3314,6 +3626,32 @@
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/ui/FaceTextTest.kt"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "mobile/src/__tests__/shell.test.tsx"
+    }
+   ]
+  },
+  {
+   "id": "G2.j",
+   "parent": "G2",
+   "title": "API resident memory grows no more than 5 % an hour over a complete 1-hour wall-clock soak with every other soak criterion met (the precondition of the 24-hour soak G2.e)",
+   "area": "software",
+   "hardware_independent": true,
+   "state": "accepted",
+   "evidence": [
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/runtime/test_db_pool_keeps_connections.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/soak/WALLCLOCK_1H_ROUND9.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/soak/MEMORY_INVESTIGATION_ROUND9.md"
     }
    ]
   },
@@ -3456,6 +3794,10 @@
     {
      "kind": "unit_test",
      "ref": "supracloud-jarvis/ira/tests/readiness/test_runbooks.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/ops/DRILLS_ROUND9.md"
     }
    ]
   },
@@ -3850,6 +4192,10 @@
     {
      "kind": "docs_only",
      "ref": "docs/demo/CARE_JOURNEY_22.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/ops/DRILLS_ROUND9.md"
     }
    ]
   },
@@ -3936,6 +4282,14 @@
     {
      "kind": "unit_test",
      "ref": "docs/progress/VERIFICATION.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/architecture/test_no_pyav.py"
+    },
+    {
+     "kind": "config_check",
+     "ref": ".github/workflows/test.yml"
     }
    ]
   },
@@ -3950,6 +4304,22 @@
     {
      "kind": "db_test",
      "ref": "docs/progress/VERIFICATION.md"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_global_logout_durable.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/runtime/test_migration_runner_separation.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_concurrency_and_failover.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/progress/INHERITED_TEST_SKIPS.md"
     }
    ]
   },
@@ -4024,6 +4394,14 @@
     {
      "kind": "config_check",
      "ref": "scripts/ci/gitleaks.sh"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/test_published_credentials.py"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/security/CREDENTIAL_HISTORY_SCAN.md"
     }
    ]
   },

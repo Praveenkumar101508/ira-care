@@ -486,10 +486,14 @@ async def test_14b_erase_postgres_runs_the_step_for_the_account_scope():
     source = (pathlib.Path(__file__).resolve().parents[2] / "core" / "privacy" / "erasure.py"
               ).read_text(encoding="utf-8")
     body = source[source.index("async def erase_postgres"):source.index("async def _erase_checkpoints")]
-    step = body.index('if scope == "account":')
-    assert "token_versions.bump(principal.user_id)" in body[step:]
+    # `erase_postgres` has more than one `account`-only block (the care push-token
+    # pass inside the per-workspace loop came later), so the step is located by
+    # the bump itself: the nearest `account` guard before it.
+    bump = body.index("token_versions.bump(principal.user_id)")
+    step = body.rindex('if scope == "account":', 0, bump)
     assert "deleted_at = COALESCE(deleted_at, NOW())" in body[step:]
     assert body.index("_erase_checkpoints(principal)") < step
+    assert body.count("token_versions.bump(principal.user_id)") == 1
 
 
 async def test_14c_every_start_purges_a_counter_past_its_retention(acct):

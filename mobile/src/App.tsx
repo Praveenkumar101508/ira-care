@@ -8,6 +8,7 @@ import type { Alert, CircleMember, ConsentList, Person, PersonStatus, Reminder, 
 import { ThemeProvider } from './appearance/ThemeContext';
 import { DEFAULT_APPEARANCE, normaliseAppearance, type Appearance } from './appearance/theme';
 import { alertBadge, isWearerOf, pickPerson, type Experience, type Membership, type Tab } from './model/experience';
+import { probe } from './journeyProbe';
 import { registerForPush, unregisterForPush } from './push';
 import { AlertsScreen } from './screens/AlertsScreen';
 import { JoinScreen } from './screens/JoinScreen';
@@ -28,6 +29,19 @@ const DEFAULT_BASE_URL: string =
 export const REFRESH_MS = 30_000;
 
 type Overlay = { name: 'talk' } | { name: 'pair' } | null;
+
+/** Tell the server the sign-in is over, so the refresh token cannot be used again. Bounded, like
+ *  push: a phone with no connection still signs out at once. */
+export async function signOutOnServer(c: CareClient | null, timeoutMs = 3000): Promise<void> {
+  if (!c || typeof c.logout !== 'function') return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const limit = new Promise<void>((r) => { timer = setTimeout(r, timeoutMs); });
+  try {
+    await Promise.race([c.logout().then(() => undefined, () => undefined), limit]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 export default function App() {
   const [session, setSession] = useState<StoredSession | null | undefined>(undefined);
@@ -86,7 +100,7 @@ export default function App() {
   const signOut = useCallback(async (because = '') => {
     const c = client.current;
     forgetAccount();
-    await unregisterForPush(c);
+    await Promise.all([unregisterForPush(c), signOutOnServer(c)]);
     await clearAppearance();
     await saveSession(null);
     setSignedOutBecause(because);
@@ -176,6 +190,7 @@ export default function App() {
       </ThemeProvider>
     );
   }
+  probe(session ? tab : 'sign-in', { signedIn: Boolean(session) });
   if (!session) return <ThemeProvider appearance={appearance}><StatusBar style="auto" /><LoginScreen defaultBaseUrl={DEFAULT_BASE_URL} onLoggedIn={onLoggedIn} onJoin={() => setJoining(true)} notice={signedOutBecause} /></ThemeProvider>;
 
   const c = client.current!;
