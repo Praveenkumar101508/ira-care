@@ -101,7 +101,7 @@ Round 5 is merged to `main` (`eec19a0`). Verification: `VERIFICATION.md`; the GO
 | Watch emulator journey, 11 to 44 steps (D-100) | the same | 43 of 44 passed on the emulator (run 45910155640); the Unpair scroll fix awaits its run |
 | Phone app and the authenticated Android journey (D-101, D-105) | the same | 11 of 16 steps passed on the emulator (run 45910155640); two script faults fixed, run pending |
 | iOS simulator launch (D-105) | the same | built with its JavaScript bundled, launched, no crash; the screen probe's second channel awaits its run |
-| API memory: pool churn found and fixed; 1-hour soak PASS at 1.996 % an hour (D-102) | the same | G2.j accepted; G2.e (24 hours) needs the owner's machine |
+| API memory: pool churn found and fixed; 1-hour soak PASS at 1.996 % an hour (D-102) | the same | G2.j accepted; G2.e (24 hours) needs a remote server that stays up a day (never the owner's Mac) |
 | Fall confirmation stage, off by default (D-103) | the same | 8 JVM and 9 Python tests; synthetic: 154 of 160 falls kept, alarms 88 to 62 |
 | Round 9 conversation scenarios and rule fixes (D-104) | the same | development 129 of 129; hold-out 37 of 41, misses recorded |
 | Review packs for the technical reviewer (F3.c, F7.a, F7.e, F8.a) | the same | written; decisions are the reviewer's |

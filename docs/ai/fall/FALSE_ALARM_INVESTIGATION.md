@@ -88,15 +88,52 @@ start removing `fall_then_moves`; the thresholds were not tuned to this set.
 - **Real falls that keep the wrist's orientation while the person moves strongly afterwards**
   would be suppressed. None of the synthetic falls has that shape; whether real ones do is exactly
   what the permitted recorded datasets must answer before the stage is turned on.
-- **The permitted data was not run.** BITS-2 and UCI HAR (the v3 training and evaluation sets) are
-  not on this machine. The next step, on the machine that holds them: run
-  `scripts/eval/fall_synthetic_eval.py`'s `run_pipeline` and `confirm_all` over the v3 held-out
-  folds exactly as `fall_model_v3.py` scores them and record sensitivity before and after;
-  the gate is the one the model card uses: no held-out fall caught by the shipped pipeline may be
-  lost. WEDA-FALL is not re-run until its permission is confirmed (F1).
+- **The permitted data was run on 27 November 2026, and the stage failed its gate.** See the
+  next section.
 - **The battery and latency cost** on the watch: the stage keeps thirty seconds of samples (1,500
   samples) and does a few hundred floating-point operations once per suspected fall; measured on
   the JVM only.
 
 Evidence: `synthetic_confirmation.json` (every decision with its measures), `FallConfirmationTest`
 (8 JVM tests), `tests/readiness/test_fall_confirmation.py` (9).
+
+## On the permitted recorded datasets: the gate fails, the stage stays off (27 November 2026, D-110)
+
+`scripts/eval/fall_recorded_confirmation.py` ran the shipped pipeline (the rule detector and the
+shipped `fall_model.tflite` through LiteRT, unchanged) over every BITS-2 recording and every
+continuous UCI HAR segment, then the confirmation stage on each suspected fall, exactly as the
+watch would. Both datasets were fetched on the build machine (not the owner's computer) with the
+SHA-256 the training scripts pin, into a folder outside the repository, and deleted afterwards;
+only the results are kept (`recorded_confirmation.json`).
+
+| | Shipped pipeline | With the confirmation stage |
+|---|---|---|
+| BITS-2 fall recordings with a suspected fall raised (of 316) | 217 | 215 |
+| Suspected falls on BITS-2 daily activities (640 recordings, 2.233 h) | 10 | 10 |
+| Suspected falls on UCI HAR (857 segments, 3.967 h) | 0 | 0 |
+
+**The gate fails: the stage lost 2 real falls the pipeline caught** (`user4_fall3`, `user41_fall1`),
+and removed **none** of the false alarms on recorded daily activities. Both lost falls are the shape
+this page warned about: the wrist kept its orientation (8° and 15° turn) while the arm went on moving
+afterwards (motion SD 0.50 g and 1.05 g), so the stage read them as "the hand carried on". The
+recorded false alarms, by contrast, are nearly all followed by a still wrist, which the stage
+always asks about, so it cannot remove them.
+
+What this means:
+
+- **The stage stays off** (`fall_confirm_before_asking` defaults to false on the watch, and no
+  server code sets it). `tests/readiness/test_fall_confirmation_stays_off.py` fails if either
+  changes while this result stands.
+- **The thresholds were not retuned to pass.** Fitting them to these recordings would make the
+  next measurement meaningless; a redesign has to be specified first and then tested on data it
+  was not fitted to (for example the FallAllD or KFall recordings, once permission is granted).
+- The synthetic result (alarms 88 to 62) shows what the stage does to hand impacts; the recorded
+  result shows it does not reduce the false alarms real daily activities cause and costs real
+  falls. The recorded result decides.
+
+Limits, also in the JSON: the shipped model was trained on all BITS-2 subjects, so its own catch
+rate here (217 of 316) is in-sample and is not a sensitivity claim; the confirmation
+stage was not fitted to either dataset, so what it lost is an out-of-sample result. 39 decisions
+saw less than the full 30 s after the impact because the recording ended. UCI HAR is a waist-worn
+phone with no falls; it measures alarms only.
+

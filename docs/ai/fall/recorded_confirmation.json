@@ -1,0 +1,9573 @@
+{
+ "what": "the fall confirmation stage on BITS-2 and UCI HAR, shipped pipeline unchanged",
+ "data": {
+  "bits2": {
+   "source": "https://zenodo.org/api/records/10013090/files/full_dataset.zip/content",
+   "sha256": "346cd2748ffaa006e775d1876a674f531430dc0e090bf0766dffb4437e137785",
+   "licence": "CC BY 4.0",
+   "excluded_subjects": [
+    "user1"
+   ]
+  },
+  "uci_har": {
+   "source": "https://archive.ics.uci.edu/static/public/240/human+activity+recognition+using+smartphones.zip",
+   "sha256": "c00b803081a5c797cd5e4b83700a9810b38d53d9d84e01917e090e1fdbc81031",
+   "licence": "CC BY 4.0"
+  }
+ },
+ "model": {
+  "tflite_sha256": "2cab7c9bcbf60de51d7c42f5690ad549bcbf4f13eb6266c35bf5d0a59b063278",
+  "runtime": "ai-edge-litert"
+ },
+ "limits": [
+  "the shipped model was trained on all BITS-2 subjects: its catch rate here is in-sample, not a sensitivity claim",
+  "the confirmation stage was not fitted to BITS-2 or UCI HAR: what it keeps or removes here is out-of-sample",
+  "BITS-2 recordings often end soon after the fall: such decisions see less than 30 s afterwards and are counted",
+  "UCI HAR is a waist-worn phone, not a wrist, and holds no falls: it measures alarms only"
+ ],
+ "summary": {
+  "falls": {
+   "recordings": 316,
+   "caught_before": 217,
+   "caught_after": 215,
+   "lost_to_confirmation": 2,
+   "lost_ids": [
+    "user4_fall3",
+    "user41_fall1"
+   ],
+   "decisions_with_less_than_full_window_after": 39
+  },
+  "bits2_daily_activity": {
+   "recordings": 640,
+   "alarms_before": 10,
+   "alarms_after": 10,
+   "hours": 2.233
+  },
+  "uci_har": {
+   "segments": 857,
+   "alarms_before": 0,
+   "alarms_after": 0,
+   "hours": 3.967
+  },
+  "reasons": {
+   "orientation changed or arm not busy": 25,
+   "repeated impacts, same orientation, moving": 1,
+   "same orientation, hand carried on": 2,
+   "still afterwards": 207
+  },
+  "gate": {
+   "rule": "no fall the shipped pipeline catches may be lost to the confirmation stage",
+   "passed": false
+  }
+ },
+ "machine": "x86_64, Linux 6.18.44-fc-v880",
+ "seconds_to_run": 34.8,
+ "falls": [
+  {
+   "id": "user10_fall1",
+   "seconds": 11.8,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.637,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 20.4,
+     "post_motion_sd_g": 0.021,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 9.7
+    }
+   ]
+  },
+  {
+   "id": "user10_fall2",
+   "seconds": 30.38,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.462,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 96.0,
+     "post_motion_sd_g": 0.067,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 26.1
+    }
+   ]
+  },
+  {
+   "id": "user10_fall3",
+   "seconds": 19.8,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.694,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 85.8,
+     "post_motion_sd_g": 0.02,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 14.7
+    }
+   ]
+  },
+  {
+   "id": "user10_fall4",
+   "seconds": 48.74,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "rule",
+     "peak_g": 5.928,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 26.7,
+     "post_motion_sd_g": 0.044,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 44.2
+    }
+   ]
+  },
+  {
+   "id": "user10_fall5",
+   "seconds": 48.7,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.552,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 33.4,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 44.7
+    }
+   ]
+  },
+  {
+   "id": "user10_fall6",
+   "seconds": 11.04,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.474,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 8.9,
+     "post_motion_sd_g": 0.019,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 6.4
+    }
+   ]
+  },
+  {
+   "id": "user10_fall7",
+   "seconds": 7.84,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.737,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 48.4,
+     "post_motion_sd_g": 0.028,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 4.3
+    }
+   ]
+  },
+  {
+   "id": "user10_fall8",
+   "seconds": 7.12,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_fall1",
+   "seconds": 4.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_fall2",
+   "seconds": 6.24,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_fall3",
+   "seconds": 26.8,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 5.546,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 122.1,
+     "post_motion_sd_g": 0.127,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 24.3
+    }
+   ]
+  },
+  {
+   "id": "user11_fall4",
+   "seconds": 21.08,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.308,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 26.5,
+     "post_motion_sd_g": 0.063,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 12.2
+    }
+   ]
+  },
+  {
+   "id": "user11_fall5",
+   "seconds": 48.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.529,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 128.3,
+     "post_motion_sd_g": 0.119,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 44.6
+    }
+   ]
+  },
+  {
+   "id": "user11_fall6",
+   "seconds": 9.72,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.525,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 17.1,
+     "post_motion_sd_g": 0.019,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 4.8
+    }
+   ]
+  },
+  {
+   "id": "user11_fall7",
+   "seconds": 9.12,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_fall8",
+   "seconds": 6.24,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_fall1",
+   "seconds": 11.1,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.843,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 22.8,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 8.0
+    }
+   ]
+  },
+  {
+   "id": "user12_fall2",
+   "seconds": 14.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.543,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 91.8,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 10.9
+    }
+   ]
+  },
+  {
+   "id": "user12_fall3",
+   "seconds": 10.6,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.428,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 70.0,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 6.5
+    }
+   ]
+  },
+  {
+   "id": "user12_fall4",
+   "seconds": 13.9,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.984,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 87.3,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 10.9
+    }
+   ]
+  },
+  {
+   "id": "user12_fall5",
+   "seconds": 11.4,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.563,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 49.9,
+     "post_motion_sd_g": 0.006,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 8.0
+    }
+   ]
+  },
+  {
+   "id": "user12_fall6",
+   "seconds": 16.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.894,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 5.7,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 13.2
+    }
+   ]
+  },
+  {
+   "id": "user12_fall7",
+   "seconds": 14.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.264,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 58.6,
+     "post_motion_sd_g": 0.012,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 11.3
+    }
+   ]
+  },
+  {
+   "id": "user12_fall8",
+   "seconds": 14.06,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.128,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 45.2,
+     "post_motion_sd_g": 0.006,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 9.2
+    }
+   ]
+  },
+  {
+   "id": "user13_fall1",
+   "seconds": 5.16,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.086,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 15.8,
+     "post_motion_sd_g": 0.023,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 2.9
+    }
+   ]
+  },
+  {
+   "id": "user13_fall2",
+   "seconds": 15.5,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.708,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 54.9,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 10.4
+    }
+   ]
+  },
+  {
+   "id": "user13_fall3",
+   "seconds": 27.14,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.812,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 91.1,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 24.2
+    }
+   ]
+  },
+  {
+   "id": "user13_fall4",
+   "seconds": 20.92,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.523,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 56.1,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 18.9
+    }
+   ]
+  },
+  {
+   "id": "user13_fall5",
+   "seconds": 10.56,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.406,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 82.4,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 7.0
+    }
+   ]
+  },
+  {
+   "id": "user13_fall6",
+   "seconds": 3.08,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_fall7",
+   "seconds": 15.96,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.728,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 130.0,
+     "post_motion_sd_g": 0.003,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 12.4
+    }
+   ]
+  },
+  {
+   "id": "user13_fall8",
+   "seconds": 11.9,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.941,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 9.4,
+     "post_motion_sd_g": 0.014,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 8.1
+    }
+   ]
+  },
+  {
+   "id": "user14_fall1",
+   "seconds": 10.82,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_fall2",
+   "seconds": 16.36,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.498,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 62.8,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 11.8
+    }
+   ]
+  },
+  {
+   "id": "user14_fall3",
+   "seconds": 14.3,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_fall4",
+   "seconds": 17.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 5.417,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 64.9,
+     "post_motion_sd_g": 0.195,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 13.6
+    }
+   ]
+  },
+  {
+   "id": "user14_fall5",
+   "seconds": 14.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_fall6",
+   "seconds": 31.28,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.79,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 78.6,
+     "post_motion_sd_g": 0.134,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 25.4
+    }
+   ]
+  },
+  {
+   "id": "user14_fall7",
+   "seconds": 7.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_fall8",
+   "seconds": 16.72,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.902,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 103.2,
+     "post_motion_sd_g": 0.018,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 11.7
+    }
+   ]
+  },
+  {
+   "id": "user15_fall1",
+   "seconds": 4.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_fall2",
+   "seconds": 15.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_fall3",
+   "seconds": 31.42,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.624,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 76.6,
+     "post_motion_sd_g": 0.015,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 27.7
+    }
+   ]
+  },
+  {
+   "id": "user15_fall4",
+   "seconds": 30.64,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.79,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 55.6,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 27.2
+    }
+   ]
+  },
+  {
+   "id": "user15_fall5",
+   "seconds": 31.4,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.052,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 167.3,
+     "post_motion_sd_g": 0.038,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 27.7
+    }
+   ]
+  },
+  {
+   "id": "user15_fall6",
+   "seconds": 10.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.1,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 22.4,
+     "post_motion_sd_g": 0.017,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 7.1
+    }
+   ]
+  },
+  {
+   "id": "user15_fall7",
+   "seconds": 16.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.893,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 113.8,
+     "post_motion_sd_g": 0.014,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 12.7
+    }
+   ]
+  },
+  {
+   "id": "user15_fall8",
+   "seconds": 16.56,
+   "raised": 2,
+   "confirmed": 2,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 12.645,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 53.8,
+     "post_motion_sd_g": 0.709,
+     "impacts_in_window": 5,
+     "clipped": false,
+     "seconds_after_impact": 12.9
+    },
+    {
+     "path": "model",
+     "peak_g": 7.007,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 100.0,
+     "post_motion_sd_g": 0.017,
+     "impacts_in_window": 5,
+     "clipped": false,
+     "seconds_after_impact": 10.4
+    }
+   ]
+  },
+  {
+   "id": "user16_fall1",
+   "seconds": 3.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_fall2",
+   "seconds": 14.56,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.344,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 59.7,
+     "post_motion_sd_g": 0.053,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 10.9
+    }
+   ]
+  },
+  {
+   "id": "user16_fall3",
+   "seconds": 13.64,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.882,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 120.9,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 11.0
+    }
+   ]
+  },
+  {
+   "id": "user16_fall4",
+   "seconds": 24.64,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.019,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 71.5,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 22.4
+    }
+   ]
+  },
+  {
+   "id": "user16_fall5",
+   "seconds": 32.32,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_fall6",
+   "seconds": 13.98,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.454,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 61.8,
+     "post_motion_sd_g": 0.024,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 11.2
+    }
+   ]
+  },
+  {
+   "id": "user16_fall7",
+   "seconds": 16.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_fall8",
+   "seconds": 4.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_fall1",
+   "seconds": 3.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_fall2",
+   "seconds": 9.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.145,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 53.1,
+     "post_motion_sd_g": 0.212,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 8.6
+    }
+   ]
+  },
+  {
+   "id": "user17_fall3",
+   "seconds": 22.88,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.819,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 134.6,
+     "post_motion_sd_g": 0.031,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 21.9
+    }
+   ]
+  },
+  {
+   "id": "user17_fall4",
+   "seconds": 7.82,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 13.783,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 19.6,
+     "post_motion_sd_g": 0.027,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 6.5
+    }
+   ]
+  },
+  {
+   "id": "user17_fall5",
+   "seconds": 24.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_fall6",
+   "seconds": 14.06,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.248,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 47.8,
+     "post_motion_sd_g": 0.029,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 11.5
+    }
+   ]
+  },
+  {
+   "id": "user17_fall7",
+   "seconds": 6.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_fall8",
+   "seconds": 23.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.662,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 15.5,
+     "post_motion_sd_g": 0.038,
+     "impacts_in_window": 6,
+     "clipped": false,
+     "seconds_after_impact": 21.3
+    }
+   ]
+  },
+  {
+   "id": "user18_fall1",
+   "seconds": 13.86,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 6.286,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 13.8,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 11.3
+    }
+   ]
+  },
+  {
+   "id": "user18_fall2",
+   "seconds": 15.1,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 6.146,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 26.1,
+     "post_motion_sd_g": 0.014,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 13.1
+    }
+   ]
+  },
+  {
+   "id": "user18_fall3",
+   "seconds": 8.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.443,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 85.5,
+     "post_motion_sd_g": 0.017,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 6.8
+    }
+   ]
+  },
+  {
+   "id": "user18_fall4",
+   "seconds": 3.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_fall5",
+   "seconds": 4.78,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.385,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 92.2,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 3.0
+    }
+   ]
+  },
+  {
+   "id": "user18_fall6",
+   "seconds": 4.96,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.731,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 6.1,
+     "post_motion_sd_g": 0.014,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 3.1
+    }
+   ]
+  },
+  {
+   "id": "user18_fall7",
+   "seconds": 4.82,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.346,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 31.9,
+     "post_motion_sd_g": 0.015,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 2.6
+    }
+   ]
+  },
+  {
+   "id": "user18_fall8",
+   "seconds": 3.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_fall1",
+   "seconds": 9.0,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.492,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 55.9,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 6.0
+    }
+   ]
+  },
+  {
+   "id": "user19_fall2",
+   "seconds": 3.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_fall3",
+   "seconds": 3.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_fall4",
+   "seconds": 5.98,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 6.657,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 12.6,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 4.5
+    }
+   ]
+  },
+  {
+   "id": "user19_fall5",
+   "seconds": 6.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_fall6",
+   "seconds": 3.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_fall7",
+   "seconds": 3.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_fall8",
+   "seconds": 5.62,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.139,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 58.3,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 3.9
+    }
+   ]
+  },
+  {
+   "id": "user2_fall1",
+   "seconds": 14.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_fall2",
+   "seconds": 19.7,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.313,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 47.1,
+     "post_motion_sd_g": 0.035,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 18.6
+    }
+   ]
+  },
+  {
+   "id": "user2_fall3",
+   "seconds": 9.22,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.002,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 86.2,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 8.4
+    }
+   ]
+  },
+  {
+   "id": "user2_fall4",
+   "seconds": 5.76,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.387,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 16.6,
+     "post_motion_sd_g": 0.101,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 4.3
+    }
+   ]
+  },
+  {
+   "id": "user2_fall5",
+   "seconds": 11.18,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_fall6",
+   "seconds": 4.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.15,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 18.8,
+     "post_motion_sd_g": 0.294,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 2.9
+    }
+   ]
+  },
+  {
+   "id": "user2_fall7",
+   "seconds": 12.72,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.098,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 54.9,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 11.0
+    }
+   ]
+  },
+  {
+   "id": "user2_fall8",
+   "seconds": 8.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 5.672,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 58.1,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 7.6
+    }
+   ]
+  },
+  {
+   "id": "user20_fall1",
+   "seconds": 6.12,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.902,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 68.3,
+     "post_motion_sd_g": 0.021,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 4.2
+    }
+   ]
+  },
+  {
+   "id": "user20_fall2",
+   "seconds": 4.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_fall3",
+   "seconds": 13.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.296,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 49.1,
+     "post_motion_sd_g": 0.019,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 11.1
+    }
+   ]
+  },
+  {
+   "id": "user20_fall4",
+   "seconds": 6.86,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.765,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 76.7,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 4.2
+    }
+   ]
+  },
+  {
+   "id": "user20_fall5",
+   "seconds": 9.72,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.104,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 82.3,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 6.9
+    }
+   ]
+  },
+  {
+   "id": "user20_fall6",
+   "seconds": 4.22,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_fall7",
+   "seconds": 6.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_fall8",
+   "seconds": 13.96,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.191,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 69.5,
+     "post_motion_sd_g": 0.012,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 11.3
+    }
+   ]
+  },
+  {
+   "id": "user21_fall1",
+   "seconds": 14.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_fall2",
+   "seconds": 15.16,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.997,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 103.9,
+     "post_motion_sd_g": 0.028,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 12.2
+    }
+   ]
+  },
+  {
+   "id": "user21_fall3",
+   "seconds": 31.32,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.603,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 121.1,
+     "post_motion_sd_g": 0.092,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 28.4
+    }
+   ]
+  },
+  {
+   "id": "user21_fall4",
+   "seconds": 9.72,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.199,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 64.2,
+     "post_motion_sd_g": 0.013,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 6.3
+    }
+   ]
+  },
+  {
+   "id": "user21_fall5",
+   "seconds": 13.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_fall6",
+   "seconds": 3.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_fall7",
+   "seconds": 4.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_fall8",
+   "seconds": 6.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.302,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 47.7,
+     "post_motion_sd_g": 0.076,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 3.0
+    }
+   ]
+  },
+  {
+   "id": "user22_fall1",
+   "seconds": 14.2,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.576,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 100.1,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 10.7
+    }
+   ]
+  },
+  {
+   "id": "user22_fall2",
+   "seconds": 13.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_fall3",
+   "seconds": 15.86,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.579,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 82.0,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 12.2
+    }
+   ]
+  },
+  {
+   "id": "user22_fall4",
+   "seconds": 28.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 13.213,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 88.1,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 25.3
+    }
+   ]
+  },
+  {
+   "id": "user22_fall5",
+   "seconds": 14.9,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.637,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 100.8,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 10.9
+    }
+   ]
+  },
+  {
+   "id": "user22_fall6",
+   "seconds": 24.8,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.018,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 109.8,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 20.9
+    }
+   ]
+  },
+  {
+   "id": "user22_fall7",
+   "seconds": 9.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.737,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 91.2,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 5.6
+    }
+   ]
+  },
+  {
+   "id": "user22_fall8",
+   "seconds": 14.14,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.33,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 107.8,
+     "post_motion_sd_g": 0.006,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 11.1
+    }
+   ]
+  },
+  {
+   "id": "user23_fall1",
+   "seconds": 4.52,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.938,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 14.9,
+     "post_motion_sd_g": 0.045,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 2.6
+    }
+   ]
+  },
+  {
+   "id": "user23_fall2",
+   "seconds": 13.72,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.22,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 56.9,
+     "post_motion_sd_g": 0.008,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 11.0
+    }
+   ]
+  },
+  {
+   "id": "user23_fall3",
+   "seconds": 3.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_fall4",
+   "seconds": 6.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.17,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 39.1,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 2.7
+    }
+   ]
+  },
+  {
+   "id": "user23_fall5",
+   "seconds": 3.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_fall6",
+   "seconds": 16.8,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 13.731,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 15.3,
+     "post_motion_sd_g": 0.008,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 13.5
+    }
+   ]
+  },
+  {
+   "id": "user23_fall7",
+   "seconds": 4.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_fall8",
+   "seconds": 25.56,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.577,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 57.0,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 5,
+     "clipped": false,
+     "seconds_after_impact": 20.9
+    }
+   ]
+  },
+  {
+   "id": "user24_fall1",
+   "seconds": 6.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.1,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 74.1,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 2.6
+    }
+   ]
+  },
+  {
+   "id": "user24_fall2",
+   "seconds": 3.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_fall3",
+   "seconds": 15.6,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.111,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 80.0,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 11.4
+    }
+   ]
+  },
+  {
+   "id": "user24_fall4",
+   "seconds": 3.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_fall5",
+   "seconds": 13.6,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.855,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 58.0,
+     "post_motion_sd_g": 0.079,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 10.8
+    }
+   ]
+  },
+  {
+   "id": "user24_fall6",
+   "seconds": 5.56,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 12.514,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 17.9,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 2.1
+    }
+   ]
+  },
+  {
+   "id": "user24_fall7",
+   "seconds": 3.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_fall8",
+   "seconds": 13.92,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 13.264,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 20.4,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 6,
+     "clipped": false,
+     "seconds_after_impact": 10.1
+    }
+   ]
+  },
+  {
+   "id": "user25_fall1",
+   "seconds": 14.02,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.373,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 43.9,
+     "post_motion_sd_g": 0.049,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 11.9
+    }
+   ]
+  },
+  {
+   "id": "user25_fall2",
+   "seconds": 5.92,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 5.273,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 52.0,
+     "post_motion_sd_g": 0.018,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 3.8
+    }
+   ]
+  },
+  {
+   "id": "user25_fall3",
+   "seconds": 8.94,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.742,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 109.6,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 6.7
+    }
+   ]
+  },
+  {
+   "id": "user25_fall4",
+   "seconds": 3.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_fall5",
+   "seconds": 13.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.185,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 66.3,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 10.4
+    }
+   ]
+  },
+  {
+   "id": "user25_fall6",
+   "seconds": 3.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_fall7",
+   "seconds": 8.6,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.166,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 41.9,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 6.6
+    }
+   ]
+  },
+  {
+   "id": "user25_fall8",
+   "seconds": 15.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 13.851,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 15.5,
+     "post_motion_sd_g": 0.027,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 13.6
+    }
+   ]
+  },
+  {
+   "id": "user26_fall1",
+   "seconds": 13.56,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 6.472,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 15.1,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 11.1
+    }
+   ]
+  },
+  {
+   "id": "user26_fall2",
+   "seconds": 14.36,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 5.756,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 58.8,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 10.7
+    }
+   ]
+  },
+  {
+   "id": "user26_fall3",
+   "seconds": 10.52,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.702,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 79.2,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 7.9
+    }
+   ]
+  },
+  {
+   "id": "user26_fall4",
+   "seconds": 5.56,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.442,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 25.3,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 3.0
+    }
+   ]
+  },
+  {
+   "id": "user26_fall5",
+   "seconds": 12.52,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_fall6",
+   "seconds": 6.86,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.409,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 14.5,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 4.6
+    }
+   ]
+  },
+  {
+   "id": "user26_fall7",
+   "seconds": 12.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_fall8",
+   "seconds": 16.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.054,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 41.8,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 14.1
+    }
+   ]
+  },
+  {
+   "id": "user27_fall1",
+   "seconds": 3.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_fall2",
+   "seconds": 15.12,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.972,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 44.1,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 11.1
+    }
+   ]
+  },
+  {
+   "id": "user27_fall3",
+   "seconds": 10.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.509,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 104.3,
+     "post_motion_sd_g": 0.022,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 6.8
+    }
+   ]
+  },
+  {
+   "id": "user27_fall4",
+   "seconds": 4.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_fall5",
+   "seconds": 4.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_fall6",
+   "seconds": 5.56,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.218,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 7.3,
+     "post_motion_sd_g": 0.027,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 2.1
+    }
+   ]
+  },
+  {
+   "id": "user27_fall7",
+   "seconds": 4.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_fall8",
+   "seconds": 9.92,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 6.554,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 28.5,
+     "post_motion_sd_g": 0.006,
+     "impacts_in_window": 7,
+     "clipped": false,
+     "seconds_after_impact": 6.3
+    }
+   ]
+  },
+  {
+   "id": "user28_fall1",
+   "seconds": 12.64,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.375,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 63.6,
+     "post_motion_sd_g": 0.003,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 9.4
+    }
+   ]
+  },
+  {
+   "id": "user28_fall2",
+   "seconds": 4.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_fall3",
+   "seconds": 14.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 6.029,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 61.4,
+     "post_motion_sd_g": 0.018,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 11.3
+    }
+   ]
+  },
+  {
+   "id": "user28_fall4",
+   "seconds": 12.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.053,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 66.9,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 9.2
+    }
+   ]
+  },
+  {
+   "id": "user28_fall5",
+   "seconds": 6.56,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.857,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 96.3,
+     "post_motion_sd_g": 0.067,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 3.4
+    }
+   ]
+  },
+  {
+   "id": "user28_fall6",
+   "seconds": 5.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.214,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 54.5,
+     "post_motion_sd_g": 0.344,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 2.2
+    }
+   ]
+  },
+  {
+   "id": "user28_fall7",
+   "seconds": 8.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_fall8",
+   "seconds": 12.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.053,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 66.9,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 9.2
+    }
+   ]
+  },
+  {
+   "id": "user29_fall1",
+   "seconds": 25.0,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.352,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 65.5,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 21.0
+    }
+   ]
+  },
+  {
+   "id": "user29_fall2",
+   "seconds": 14.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.193,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 74.4,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 10.1
+    }
+   ]
+  },
+  {
+   "id": "user29_fall3",
+   "seconds": 14.52,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 12.886,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 109.0,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 11.1
+    }
+   ]
+  },
+  {
+   "id": "user29_fall4",
+   "seconds": 3.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_fall5",
+   "seconds": 10.92,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.825,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 99.6,
+     "post_motion_sd_g": 0.006,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 6.6
+    }
+   ]
+  },
+  {
+   "id": "user29_fall6",
+   "seconds": 11.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.959,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 56.1,
+     "post_motion_sd_g": 0.039,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 7.8
+    }
+   ]
+  },
+  {
+   "id": "user29_fall7",
+   "seconds": 26.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_fall8",
+   "seconds": 17.58,
+   "raised": 2,
+   "confirmed": 2,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 6.874,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 63.0,
+     "post_motion_sd_g": 0.45,
+     "impacts_in_window": 9,
+     "clipped": false,
+     "seconds_after_impact": 13.2
+    },
+    {
+     "path": "model",
+     "peak_g": 3.156,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 41.3,
+     "post_motion_sd_g": 0.02,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 10.4
+    }
+   ]
+  },
+  {
+   "id": "user3_fall1",
+   "seconds": 11.1,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.994,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 92.5,
+     "post_motion_sd_g": 0.05,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 10.3
+    }
+   ]
+  },
+  {
+   "id": "user3_fall2",
+   "seconds": 11.28,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.691,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 45.7,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 9.8
+    }
+   ]
+  },
+  {
+   "id": "user3_fall3",
+   "seconds": 11.36,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 5.113,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 116.1,
+     "post_motion_sd_g": 0.003,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 10.1
+    }
+   ]
+  },
+  {
+   "id": "user3_fall4",
+   "seconds": 11.28,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.038,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 111.6,
+     "post_motion_sd_g": 0.003,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 10.1
+    }
+   ]
+  },
+  {
+   "id": "user3_fall5",
+   "seconds": 8.82,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_fall6",
+   "seconds": 11.3,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 6.177,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 82.1,
+     "post_motion_sd_g": 0.124,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 10.4
+    }
+   ]
+  },
+  {
+   "id": "user3_fall7",
+   "seconds": 5.88,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.333,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 23.4,
+     "post_motion_sd_g": 0.003,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 3.0
+    }
+   ]
+  },
+  {
+   "id": "user3_fall8",
+   "seconds": 3.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_fall1",
+   "seconds": 16.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 5.689,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 83.2,
+     "post_motion_sd_g": 0.044,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 13.5
+    }
+   ]
+  },
+  {
+   "id": "user30_fall2",
+   "seconds": 24.66,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.866,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 61.6,
+     "post_motion_sd_g": 0.557,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 20.8
+    }
+   ]
+  },
+  {
+   "id": "user30_fall3",
+   "seconds": 15.38,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.234,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 119.2,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 11.8
+    }
+   ]
+  },
+  {
+   "id": "user30_fall4",
+   "seconds": 23.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.103,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 48.3,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 19.5
+    }
+   ]
+  },
+  {
+   "id": "user30_fall5",
+   "seconds": 15.84,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.808,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 129.3,
+     "post_motion_sd_g": 0.003,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 11.3
+    }
+   ]
+  },
+  {
+   "id": "user30_fall6",
+   "seconds": 3.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_fall7",
+   "seconds": 4.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_fall8",
+   "seconds": 4.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_fall2",
+   "seconds": 13.96,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.954,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 79.3,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 11.5
+    }
+   ]
+  },
+  {
+   "id": "user31_fall5",
+   "seconds": 9.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_fall7",
+   "seconds": 5.62,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.175,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 40.3,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 2.1
+    }
+   ]
+  },
+  {
+   "id": "user31_fall8",
+   "seconds": 5.56,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.879,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 71.5,
+     "post_motion_sd_g": 0.021,
+     "impacts_in_window": 5,
+     "clipped": false,
+     "seconds_after_impact": 2.7
+    }
+   ]
+  },
+  {
+   "id": "user32_fall1",
+   "seconds": 5.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_fall2",
+   "seconds": 18.32,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.068,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 76.8,
+     "post_motion_sd_g": 0.157,
+     "impacts_in_window": 5,
+     "clipped": false,
+     "seconds_after_impact": 14.0
+    }
+   ]
+  },
+  {
+   "id": "user32_fall3",
+   "seconds": 14.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_fall4",
+   "seconds": 14.86,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.504,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 68.3,
+     "post_motion_sd_g": 0.24,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 10.8
+    }
+   ]
+  },
+  {
+   "id": "user32_fall5",
+   "seconds": 7.86,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.813,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 119.9,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 3.7
+    }
+   ]
+  },
+  {
+   "id": "user32_fall6",
+   "seconds": 29.42,
+   "raised": 2,
+   "confirmed": 2,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.074,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 91.7,
+     "post_motion_sd_g": 0.338,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 25.4
+    },
+    {
+     "path": "rule",
+     "peak_g": 2.95,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 92.6,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 23.3
+    }
+   ]
+  },
+  {
+   "id": "user32_fall7",
+   "seconds": 4.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_fall8",
+   "seconds": 16.86,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.205,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 140.9,
+     "post_motion_sd_g": 0.497,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 12.4
+    }
+   ]
+  },
+  {
+   "id": "user33_fall1",
+   "seconds": 6.08,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.276,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 15.1,
+     "post_motion_sd_g": 0.013,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 2.1
+    }
+   ]
+  },
+  {
+   "id": "user33_fall2",
+   "seconds": 7.84,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.775,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 31.9,
+     "post_motion_sd_g": 0.015,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 3.9
+    }
+   ]
+  },
+  {
+   "id": "user33_fall3",
+   "seconds": 8.82,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 12.134,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 92.7,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 4.8
+    }
+   ]
+  },
+  {
+   "id": "user33_fall4",
+   "seconds": 18.16,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.293,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 18.9,
+     "post_motion_sd_g": 0.208,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 14.2
+    }
+   ]
+  },
+  {
+   "id": "user33_fall5",
+   "seconds": 14.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_fall6",
+   "seconds": 15.26,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.082,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 97.1,
+     "post_motion_sd_g": 0.003,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 11.1
+    }
+   ]
+  },
+  {
+   "id": "user33_fall7",
+   "seconds": 7.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_fall8",
+   "seconds": 25.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.855,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 48.7,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 20.6
+    }
+   ]
+  },
+  {
+   "id": "user34_fall1",
+   "seconds": 3.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_fall2",
+   "seconds": 4.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_fall3",
+   "seconds": 14.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 5.027,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 117.7,
+     "post_motion_sd_g": 0.068,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 11.2
+    }
+   ]
+  },
+  {
+   "id": "user34_fall4",
+   "seconds": 6.52,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.468,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 46.1,
+     "post_motion_sd_g": 0.14,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 2.4
+    }
+   ]
+  },
+  {
+   "id": "user34_fall5",
+   "seconds": 4.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_fall6",
+   "seconds": 5.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_fall7",
+   "seconds": 14.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_fall8",
+   "seconds": 6.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_fall1",
+   "seconds": 4.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_fall2",
+   "seconds": 14.56,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.126,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 74.0,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 10.9
+    }
+   ]
+  },
+  {
+   "id": "user35_fall3",
+   "seconds": 6.62,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 5.17,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 76.0,
+     "post_motion_sd_g": 0.219,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 3.5
+    }
+   ]
+  },
+  {
+   "id": "user35_fall4",
+   "seconds": 5.64,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.609,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 39.3,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 3.1
+    }
+   ]
+  },
+  {
+   "id": "user35_fall5",
+   "seconds": 30.82,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_fall6",
+   "seconds": 6.92,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.788,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 56.5,
+     "post_motion_sd_g": 0.093,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 4.6
+    }
+   ]
+  },
+  {
+   "id": "user35_fall7",
+   "seconds": 7.76,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.609,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 144.3,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 4.1
+    }
+   ]
+  },
+  {
+   "id": "user35_fall8",
+   "seconds": 6.76,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.052,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 31.8,
+     "post_motion_sd_g": 0.006,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 4.4
+    }
+   ]
+  },
+  {
+   "id": "user36_fall1",
+   "seconds": 3.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_fall2",
+   "seconds": 4.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_fall3",
+   "seconds": 7.22,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.317,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 121.8,
+     "post_motion_sd_g": 0.177,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 3.8
+    }
+   ]
+  },
+  {
+   "id": "user36_fall4",
+   "seconds": 4.44,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.365,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 13.8,
+     "post_motion_sd_g": 0.012,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 2.6
+    }
+   ]
+  },
+  {
+   "id": "user36_fall5",
+   "seconds": 25.0,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 6.773,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 133.0,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 21.4
+    }
+   ]
+  },
+  {
+   "id": "user36_fall6",
+   "seconds": 4.88,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.357,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 11.3,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 2.3
+    }
+   ]
+  },
+  {
+   "id": "user36_fall7",
+   "seconds": 10.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_fall8",
+   "seconds": 15.48,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 13.826,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 28.8,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 12.3
+    }
+   ]
+  },
+  {
+   "id": "user37_fall1",
+   "seconds": 14.78,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.744,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 26.6,
+     "post_motion_sd_g": 0.056,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 10.6
+    }
+   ]
+  },
+  {
+   "id": "user37_fall2",
+   "seconds": 6.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.024,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 31.8,
+     "post_motion_sd_g": 0.028,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 2.3
+    }
+   ]
+  },
+  {
+   "id": "user37_fall3",
+   "seconds": 25.92,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.806,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 103.9,
+     "post_motion_sd_g": 0.039,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 22.3
+    }
+   ]
+  },
+  {
+   "id": "user37_fall4",
+   "seconds": 5.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_fall5",
+   "seconds": 31.24,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.026,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 116.7,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 27.1
+    }
+   ]
+  },
+  {
+   "id": "user37_fall6",
+   "seconds": 6.52,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.007,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 17.6,
+     "post_motion_sd_g": 0.114,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 2.1
+    }
+   ]
+  },
+  {
+   "id": "user37_fall7",
+   "seconds": 13.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_fall8",
+   "seconds": 4.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_fall1",
+   "seconds": 12.56,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.372,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 49.9,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 8.9
+    }
+   ]
+  },
+  {
+   "id": "user38_fall2",
+   "seconds": 6.0,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.635,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 60.2,
+     "post_motion_sd_g": 0.168,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 2.9
+    }
+   ]
+  },
+  {
+   "id": "user38_fall3",
+   "seconds": 9.6,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 6.681,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 94.3,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 6.6
+    }
+   ]
+  },
+  {
+   "id": "user38_fall4",
+   "seconds": 3.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_fall5",
+   "seconds": 13.74,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.538,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 165.6,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 10.5
+    }
+   ]
+  },
+  {
+   "id": "user38_fall6",
+   "seconds": 18.86,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.136,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 25.0,
+     "post_motion_sd_g": 0.169,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 15.4
+    }
+   ]
+  },
+  {
+   "id": "user38_fall7",
+   "seconds": 7.72,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.116,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 102.7,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 4.5
+    }
+   ]
+  },
+  {
+   "id": "user38_fall8",
+   "seconds": 8.04,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.606,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 38.5,
+     "post_motion_sd_g": 0.003,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 5.0
+    }
+   ]
+  },
+  {
+   "id": "user39_fall1",
+   "seconds": 7.48,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.599,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 69.5,
+     "post_motion_sd_g": 0.003,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 4.8
+    }
+   ]
+  },
+  {
+   "id": "user39_fall2",
+   "seconds": 14.44,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.98,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 85.5,
+     "post_motion_sd_g": 0.006,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 10.5
+    }
+   ]
+  },
+  {
+   "id": "user39_fall3",
+   "seconds": 8.52,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.542,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 83.1,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 5.3
+    }
+   ]
+  },
+  {
+   "id": "user39_fall4",
+   "seconds": 9.5,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.256,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 70.4,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 6.6
+    }
+   ]
+  },
+  {
+   "id": "user39_fall5",
+   "seconds": 6.86,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.932,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 139.0,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 3.7
+    }
+   ]
+  },
+  {
+   "id": "user39_fall6",
+   "seconds": 11.4,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.537,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 14.7,
+     "post_motion_sd_g": 0.003,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 8.4
+    }
+   ]
+  },
+  {
+   "id": "user39_fall7",
+   "seconds": 3.74,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_fall8",
+   "seconds": 10.04,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 13.656,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 58.1,
+     "post_motion_sd_g": 0.008,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 6.6
+    }
+   ]
+  },
+  {
+   "id": "user4_fall1",
+   "seconds": 5.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_fall2",
+   "seconds": 7.68,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.942,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 52.1,
+     "post_motion_sd_g": 0.145,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 4.1
+    }
+   ]
+  },
+  {
+   "id": "user4_fall3",
+   "seconds": 6.38,
+   "raised": 1,
+   "confirmed": 0,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.115,
+     "confirmed": false,
+     "reason": "same orientation, hand carried on",
+     "orientation_change_deg": 8.0,
+     "post_motion_sd_g": 0.497,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 3.2
+    }
+   ]
+  },
+  {
+   "id": "user4_fall4",
+   "seconds": 5.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_fall5",
+   "seconds": 30.9,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.248,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 56.7,
+     "post_motion_sd_g": 0.016,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 26.2
+    }
+   ]
+  },
+  {
+   "id": "user4_fall6",
+   "seconds": 33.12,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.821,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 25.4,
+     "post_motion_sd_g": 0.01,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 29.6
+    }
+   ]
+  },
+  {
+   "id": "user4_fall7",
+   "seconds": 13.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_fall8",
+   "seconds": 31.18,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.879,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 23.7,
+     "post_motion_sd_g": 0.052,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 25.6
+    }
+   ]
+  },
+  {
+   "id": "user40_fall1",
+   "seconds": 20.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.937,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 29.3,
+     "post_motion_sd_g": 0.064,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 15.4
+    }
+   ]
+  },
+  {
+   "id": "user40_fall2",
+   "seconds": 11.94,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.547,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 59.8,
+     "post_motion_sd_g": 0.05,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 7.5
+    }
+   ]
+  },
+  {
+   "id": "user40_fall3",
+   "seconds": 19.96,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.947,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 127.0,
+     "post_motion_sd_g": 0.033,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 15.6
+    }
+   ]
+  },
+  {
+   "id": "user40_fall4",
+   "seconds": 3.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_fall5",
+   "seconds": 7.04,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.458,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 127.2,
+     "post_motion_sd_g": 0.04,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 2.4
+    }
+   ]
+  },
+  {
+   "id": "user40_fall6",
+   "seconds": 4.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_fall7",
+   "seconds": 14.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_fall8",
+   "seconds": 10.8,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.985,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 62.1,
+     "post_motion_sd_g": 0.159,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 6.5
+    }
+   ]
+  },
+  {
+   "id": "user41_fall1",
+   "seconds": 6.96,
+   "raised": 1,
+   "confirmed": 0,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.798,
+     "confirmed": false,
+     "reason": "same orientation, hand carried on",
+     "orientation_change_deg": 14.9,
+     "post_motion_sd_g": 1.053,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 5.1
+    }
+   ]
+  },
+  {
+   "id": "user41_fall2",
+   "seconds": 15.86,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.203,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 93.6,
+     "post_motion_sd_g": 0.011,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 11.2
+    }
+   ]
+  },
+  {
+   "id": "user41_fall3",
+   "seconds": 3.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_fall4",
+   "seconds": 16.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.679,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 65.3,
+     "post_motion_sd_g": 0.014,
+     "impacts_in_window": 6,
+     "clipped": false,
+     "seconds_after_impact": 11.7
+    }
+   ]
+  },
+  {
+   "id": "user41_fall5",
+   "seconds": 3.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_fall6",
+   "seconds": 4.08,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_fall7",
+   "seconds": 13.94,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.296,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 85.4,
+     "post_motion_sd_g": 0.013,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 9.3
+    }
+   ]
+  },
+  {
+   "id": "user41_fall8",
+   "seconds": 13.6,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.736,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 29.4,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 5.7
+    }
+   ]
+  },
+  {
+   "id": "user5_fall1",
+   "seconds": 12.2,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.863,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 36.8,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 6.9
+    }
+   ]
+  },
+  {
+   "id": "user5_fall2",
+   "seconds": 9.68,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_fall3",
+   "seconds": 62.22,
+   "raised": 2,
+   "confirmed": 2,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 5.898,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 115.3,
+     "post_motion_sd_g": 0.594,
+     "impacts_in_window": 5,
+     "clipped": false,
+     "seconds_after_impact": 56.6
+    },
+    {
+     "path": "rule",
+     "peak_g": 3.766,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 101.4,
+     "post_motion_sd_g": 0.044,
+     "impacts_in_window": 5,
+     "clipped": false,
+     "seconds_after_impact": 54.4
+    }
+   ]
+  },
+  {
+   "id": "user5_fall4",
+   "seconds": 17.02,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.483,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 25.9,
+     "post_motion_sd_g": 0.024,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 9.7
+    }
+   ]
+  },
+  {
+   "id": "user5_fall5",
+   "seconds": 9.6,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.009,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 10.9,
+     "post_motion_sd_g": 0.117,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 3.7
+    }
+   ]
+  },
+  {
+   "id": "user5_fall6",
+   "seconds": 9.54,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.155,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 13.0,
+     "post_motion_sd_g": 0.025,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 2.8
+    }
+   ]
+  },
+  {
+   "id": "user5_fall7",
+   "seconds": 9.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_fall8",
+   "seconds": 18.98,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.547,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 11.5,
+     "post_motion_sd_g": 0.043,
+     "impacts_in_window": 6,
+     "clipped": false,
+     "seconds_after_impact": 16.4
+    }
+   ]
+  },
+  {
+   "id": "user6_fall1",
+   "seconds": 5.24,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_fall2",
+   "seconds": 6.04,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_fall3",
+   "seconds": 11.7,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.966,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 120.7,
+     "post_motion_sd_g": 0.36,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 2.2
+    }
+   ]
+  },
+  {
+   "id": "user6_fall4",
+   "seconds": 59.08,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.459,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 7.4,
+     "post_motion_sd_g": 0.006,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 51.7
+    }
+   ]
+  },
+  {
+   "id": "user6_fall5",
+   "seconds": 16.28,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.353,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 133.2,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 6.1
+    }
+   ]
+  },
+  {
+   "id": "user6_fall6",
+   "seconds": 15.1,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.756,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 33.9,
+     "post_motion_sd_g": 0.03,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 10.2
+    }
+   ]
+  },
+  {
+   "id": "user6_fall7",
+   "seconds": 5.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_fall8",
+   "seconds": 7.22,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.444,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 54.3,
+     "post_motion_sd_g": 1.284,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 6.3
+    }
+   ]
+  },
+  {
+   "id": "user7_fall1",
+   "seconds": 5.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_fall2",
+   "seconds": 44.84,
+   "raised": 2,
+   "confirmed": 2,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.478,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 60.9,
+     "post_motion_sd_g": 0.212,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 41.3
+    },
+    {
+     "path": "model",
+     "peak_g": 3.616,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 6.1,
+     "post_motion_sd_g": 0.012,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 34.8
+    }
+   ]
+  },
+  {
+   "id": "user7_fall3",
+   "seconds": 66.98,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.305,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 125.6,
+     "post_motion_sd_g": 0.013,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 32.3
+    }
+   ]
+  },
+  {
+   "id": "user7_fall4",
+   "seconds": 15.16,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.07,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 31.8,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 10.6
+    }
+   ]
+  },
+  {
+   "id": "user7_fall5",
+   "seconds": 66.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_fall6",
+   "seconds": 65.3,
+   "raised": 2,
+   "confirmed": 2,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.297,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 39.9,
+     "post_motion_sd_g": 0.88,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 61.0
+    },
+    {
+     "path": "model",
+     "peak_g": 8.515,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 81.9,
+     "post_motion_sd_g": 0.114,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 58.2
+    }
+   ]
+  },
+  {
+   "id": "user7_fall7",
+   "seconds": 26.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_fall8",
+   "seconds": 66.26,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.605,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 41.6,
+     "post_motion_sd_g": 0.017,
+     "impacts_in_window": 5,
+     "clipped": false,
+     "seconds_after_impact": 59.9
+    }
+   ]
+  },
+  {
+   "id": "user8_fall1",
+   "seconds": 7.2,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.097,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 32.1,
+     "post_motion_sd_g": 0.006,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 3.0
+    }
+   ]
+  },
+  {
+   "id": "user8_fall2",
+   "seconds": 11.12,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.168,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 15.8,
+     "post_motion_sd_g": 0.025,
+     "impacts_in_window": 5,
+     "clipped": false,
+     "seconds_after_impact": 6.8
+    }
+   ]
+  },
+  {
+   "id": "user8_fall3",
+   "seconds": 48.7,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 12.832,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 117.1,
+     "post_motion_sd_g": 0.018,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 41.5
+    }
+   ]
+  },
+  {
+   "id": "user8_fall4",
+   "seconds": 6.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_fall5",
+   "seconds": 27.92,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.387,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 157.4,
+     "post_motion_sd_g": 0.086,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 21.4
+    }
+   ]
+  },
+  {
+   "id": "user8_fall6",
+   "seconds": 34.54,
+   "raised": 2,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 13.263,
+     "confirmed": false,
+     "reason": "repeated impacts, same orientation, moving",
+     "orientation_change_deg": 24.1,
+     "post_motion_sd_g": 1.037,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 28.8
+    },
+    {
+     "path": "model",
+     "peak_g": 8.849,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 46.5,
+     "post_motion_sd_g": 0.003,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 25.4
+    }
+   ]
+  },
+  {
+   "id": "user8_fall7",
+   "seconds": 33.44,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 8.215,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 161.2,
+     "post_motion_sd_g": 0.152,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 26.0
+    }
+   ]
+  },
+  {
+   "id": "user8_fall8",
+   "seconds": 25.08,
+   "raised": 2,
+   "confirmed": 2,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 12.906,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 35.6,
+     "post_motion_sd_g": 1.342,
+     "impacts_in_window": 6,
+     "clipped": false,
+     "seconds_after_impact": 20.7
+    },
+    {
+     "path": "model",
+     "peak_g": 5.414,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 45.5,
+     "post_motion_sd_g": 0.004,
+     "impacts_in_window": 6,
+     "clipped": false,
+     "seconds_after_impact": 18.7
+    }
+   ]
+  },
+  {
+   "id": "user9_fall1",
+   "seconds": 14.94,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.757,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 35.3,
+     "post_motion_sd_g": 0.008,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 9.4
+    }
+   ]
+  },
+  {
+   "id": "user9_fall2",
+   "seconds": 32.94,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.927,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 47.2,
+     "post_motion_sd_g": 0.062,
+     "impacts_in_window": 4,
+     "clipped": false,
+     "seconds_after_impact": 25.8
+    }
+   ]
+  },
+  {
+   "id": "user9_fall3",
+   "seconds": 62.26,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 13.116,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 123.9,
+     "post_motion_sd_g": 0.094,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 55.9
+    }
+   ]
+  },
+  {
+   "id": "user9_fall4",
+   "seconds": 6.82,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 13.412,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 16.9,
+     "post_motion_sd_g": 0.009,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 3.6
+    }
+   ]
+  },
+  {
+   "id": "user9_fall5",
+   "seconds": 29.68,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "rule",
+     "peak_g": 2.999,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 60.0,
+     "post_motion_sd_g": 0.005,
+     "impacts_in_window": 3,
+     "clipped": false,
+     "seconds_after_impact": 21.4
+    }
+   ]
+  },
+  {
+   "id": "user9_fall6",
+   "seconds": 9.68,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 10.604,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 32.9,
+     "post_motion_sd_g": 0.006,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 6.7
+    }
+   ]
+  },
+  {
+   "id": "user9_fall7",
+   "seconds": 27.0,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.171,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 46.1,
+     "post_motion_sd_g": 0.014,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 23.3
+    }
+   ]
+  },
+  {
+   "id": "user9_fall8",
+   "seconds": 11.04,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 11.529,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 22.3,
+     "post_motion_sd_g": 0.016,
+     "impacts_in_window": 5,
+     "clipped": false,
+     "seconds_after_impact": 7.0
+    }
+   ]
+  }
+ ],
+ "bits2_daily_activity": [
+  {
+   "id": "user10_adl1",
+   "seconds": 40.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl10",
+   "seconds": 11.18,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.706,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 39.7,
+     "post_motion_sd_g": 0.018,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 4.2
+    }
+   ]
+  },
+  {
+   "id": "user10_adl11",
+   "seconds": 22.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl12",
+   "seconds": 14.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl13",
+   "seconds": 9.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl14",
+   "seconds": 9.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl15",
+   "seconds": 22.24,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl16",
+   "seconds": 22.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl2",
+   "seconds": 96.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl3",
+   "seconds": 48.22,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl4",
+   "seconds": 15.34,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl5",
+   "seconds": 31.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl6",
+   "seconds": 41.14,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl7",
+   "seconds": 14.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl8",
+   "seconds": 69.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user10_adl9",
+   "seconds": 7.2,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl1",
+   "seconds": 11.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl10",
+   "seconds": 22.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl11",
+   "seconds": 12.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl12",
+   "seconds": 15.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl13",
+   "seconds": 13.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl14",
+   "seconds": 18.06,
+   "raised": 2,
+   "confirmed": 2,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.115,
+     "confirmed": true,
+     "reason": "orientation changed or arm not busy",
+     "orientation_change_deg": 95.8,
+     "post_motion_sd_g": 0.248,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 12.2
+    },
+    {
+     "path": "model",
+     "peak_g": 3.23,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 12.9,
+     "post_motion_sd_g": 0.019,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 7.5
+    }
+   ]
+  },
+  {
+   "id": "user11_adl15",
+   "seconds": 18.7,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 4.715,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 97.3,
+     "post_motion_sd_g": 0.15,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 17.2
+    }
+   ]
+  },
+  {
+   "id": "user11_adl16",
+   "seconds": 9.68,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl2",
+   "seconds": 7.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl3",
+   "seconds": 44.52,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl4",
+   "seconds": 24.82,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl5",
+   "seconds": 15.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl6",
+   "seconds": 7.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl7",
+   "seconds": 22.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl8",
+   "seconds": 16.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user11_adl9",
+   "seconds": 30.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl1",
+   "seconds": 18.74,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl10",
+   "seconds": 4.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl11",
+   "seconds": 3.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl12",
+   "seconds": 7.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl13",
+   "seconds": 26.34,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl14",
+   "seconds": 14.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl15",
+   "seconds": 11.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl16",
+   "seconds": 11.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl2",
+   "seconds": 11.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl3",
+   "seconds": 7.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl4",
+   "seconds": 16.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl5",
+   "seconds": 12.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl6",
+   "seconds": 12.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl7",
+   "seconds": 6.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl8",
+   "seconds": 5.32,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user12_adl9",
+   "seconds": 4.24,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl1",
+   "seconds": 16.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl10",
+   "seconds": 5.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl11",
+   "seconds": 3.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl12",
+   "seconds": 9.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl13",
+   "seconds": 8.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl14",
+   "seconds": 3.12,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl15",
+   "seconds": 4.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl16",
+   "seconds": 5.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl2",
+   "seconds": 6.46,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl3",
+   "seconds": 3.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl4",
+   "seconds": 3.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl5",
+   "seconds": 20.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl6",
+   "seconds": 15.34,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl7",
+   "seconds": 4.52,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl8",
+   "seconds": 3.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user13_adl9",
+   "seconds": 14.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl1",
+   "seconds": 6.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl10",
+   "seconds": 7.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl11",
+   "seconds": 6.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl12",
+   "seconds": 7.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl13",
+   "seconds": 4.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl14",
+   "seconds": 10.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl15",
+   "seconds": 6.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl16",
+   "seconds": 9.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl2",
+   "seconds": 5.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl3",
+   "seconds": 46.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl4",
+   "seconds": 7.28,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl5",
+   "seconds": 21.58,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 3.561,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 36.3,
+     "post_motion_sd_g": 0.124,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 6.4
+    }
+   ]
+  },
+  {
+   "id": "user14_adl6",
+   "seconds": 5.12,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl7",
+   "seconds": 5.18,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl8",
+   "seconds": 5.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user14_adl9",
+   "seconds": 5.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl1",
+   "seconds": 19.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl10",
+   "seconds": 10.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl11",
+   "seconds": 3.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl12",
+   "seconds": 4.28,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl13",
+   "seconds": 6.28,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl14",
+   "seconds": 17.04,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl15",
+   "seconds": 11.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl16",
+   "seconds": 4.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl2",
+   "seconds": 4.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl3",
+   "seconds": 7.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl4",
+   "seconds": 9.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl5",
+   "seconds": 29.46,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl6",
+   "seconds": 6.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl7",
+   "seconds": 4.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl8",
+   "seconds": 7.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user15_adl9",
+   "seconds": 4.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl1",
+   "seconds": 11.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl10",
+   "seconds": 4.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl11",
+   "seconds": 4.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl12",
+   "seconds": 7.76,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl13",
+   "seconds": 4.76,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl14",
+   "seconds": 6.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl15",
+   "seconds": 5.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl16",
+   "seconds": 11.32,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl2",
+   "seconds": 6.68,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl3",
+   "seconds": 3.14,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl4",
+   "seconds": 22.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl5",
+   "seconds": 13.2,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl6",
+   "seconds": 3.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl7",
+   "seconds": 4.08,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl8",
+   "seconds": 6.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user16_adl9",
+   "seconds": 3.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl1",
+   "seconds": 10.04,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl10",
+   "seconds": 4.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl11",
+   "seconds": 4.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl12",
+   "seconds": 7.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl13",
+   "seconds": 9.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl14",
+   "seconds": 11.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl15",
+   "seconds": 8.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl16",
+   "seconds": 6.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl2",
+   "seconds": 8.52,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl3",
+   "seconds": 32.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl4",
+   "seconds": 14.12,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl5",
+   "seconds": 3.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl6",
+   "seconds": 8.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl7",
+   "seconds": 4.26,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl8",
+   "seconds": 5.22,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user17_adl9",
+   "seconds": 6.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl1",
+   "seconds": 7.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl10",
+   "seconds": 4.08,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl11",
+   "seconds": 7.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl12",
+   "seconds": 6.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl13",
+   "seconds": 4.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl14",
+   "seconds": 11.3,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl15",
+   "seconds": 10.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl16",
+   "seconds": 11.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl2",
+   "seconds": 9.3,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl3",
+   "seconds": 11.2,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl4",
+   "seconds": 3.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl5",
+   "seconds": 14.96,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 6.439,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 52.4,
+     "post_motion_sd_g": 0.07,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 10.9
+    }
+   ]
+  },
+  {
+   "id": "user18_adl6",
+   "seconds": 6.52,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl7",
+   "seconds": 11.34,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl8",
+   "seconds": 12.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user18_adl9",
+   "seconds": 5.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl1",
+   "seconds": 8.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl10",
+   "seconds": 9.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl11",
+   "seconds": 3.68,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl12",
+   "seconds": 79.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl13",
+   "seconds": 3.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl14",
+   "seconds": 5.12,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl15",
+   "seconds": 4.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl16",
+   "seconds": 11.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl2",
+   "seconds": 7.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl3",
+   "seconds": 17.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl4",
+   "seconds": 5.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl5",
+   "seconds": 3.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl6",
+   "seconds": 6.34,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl7",
+   "seconds": 4.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl8",
+   "seconds": 4.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user19_adl9",
+   "seconds": 11.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl1",
+   "seconds": 5.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl10",
+   "seconds": 7.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl11",
+   "seconds": 10.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl12",
+   "seconds": 6.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl13",
+   "seconds": 7.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl14",
+   "seconds": 8.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl15",
+   "seconds": 7.26,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl16",
+   "seconds": 13.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl2",
+   "seconds": 7.34,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl3",
+   "seconds": 8.08,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl4",
+   "seconds": 5.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl5",
+   "seconds": 11.28,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl6",
+   "seconds": 4.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl7",
+   "seconds": 12.2,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl8",
+   "seconds": 10.04,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user2_adl9",
+   "seconds": 4.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl1",
+   "seconds": 8.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl10",
+   "seconds": 2.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl11",
+   "seconds": 5.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl12",
+   "seconds": 7.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl13",
+   "seconds": 4.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl14",
+   "seconds": 3.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl15",
+   "seconds": 6.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl16",
+   "seconds": 11.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl2",
+   "seconds": 16.76,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl3",
+   "seconds": 8.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl4",
+   "seconds": 19.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl5",
+   "seconds": 5.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl6",
+   "seconds": 12.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl7",
+   "seconds": 5.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl8",
+   "seconds": 17.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user20_adl9",
+   "seconds": 4.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl1",
+   "seconds": 16.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl10",
+   "seconds": 11.32,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl11",
+   "seconds": 9.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl12",
+   "seconds": 19.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl13",
+   "seconds": 18.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl14",
+   "seconds": 4.74,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl15",
+   "seconds": 5.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl16",
+   "seconds": 4.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl2",
+   "seconds": 16.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl3",
+   "seconds": 16.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl4",
+   "seconds": 7.2,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl5",
+   "seconds": 6.22,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl6",
+   "seconds": 5.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl7",
+   "seconds": 15.08,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl8",
+   "seconds": 16.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user21_adl9",
+   "seconds": 3.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl1",
+   "seconds": 3.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl10",
+   "seconds": 9.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl11",
+   "seconds": 4.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl12",
+   "seconds": 13.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl13",
+   "seconds": 7.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl14",
+   "seconds": 8.14,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl15",
+   "seconds": 11.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl16",
+   "seconds": 3.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl2",
+   "seconds": 5.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl3",
+   "seconds": 40.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl4",
+   "seconds": 19.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl5",
+   "seconds": 13.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl6",
+   "seconds": 13.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl7",
+   "seconds": 18.2,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl8",
+   "seconds": 4.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user22_adl9",
+   "seconds": 5.46,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl1",
+   "seconds": 7.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl10",
+   "seconds": 4.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl11",
+   "seconds": 5.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl12",
+   "seconds": 5.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl13",
+   "seconds": 16.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl14",
+   "seconds": 3.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl15",
+   "seconds": 6.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl16",
+   "seconds": 11.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl2",
+   "seconds": 4.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl3",
+   "seconds": 17.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl4",
+   "seconds": 10.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl5",
+   "seconds": 6.14,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl6",
+   "seconds": 3.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl7",
+   "seconds": 7.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl8",
+   "seconds": 3.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user23_adl9",
+   "seconds": 3.44,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl1",
+   "seconds": 5.08,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl10",
+   "seconds": 3.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl11",
+   "seconds": 6.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl12",
+   "seconds": 16.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl13",
+   "seconds": 4.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl14",
+   "seconds": 7.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl15",
+   "seconds": 3.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl16",
+   "seconds": 3.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl2",
+   "seconds": 13.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl3",
+   "seconds": 17.3,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl4",
+   "seconds": 4.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl5",
+   "seconds": 4.44,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl6",
+   "seconds": 18.74,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl7",
+   "seconds": 5.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl8",
+   "seconds": 5.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user24_adl9",
+   "seconds": 6.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl1",
+   "seconds": 3.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl10",
+   "seconds": 5.76,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl11",
+   "seconds": 11.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl12",
+   "seconds": 10.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl13",
+   "seconds": 16.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl14",
+   "seconds": 11.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl15",
+   "seconds": 4.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl16",
+   "seconds": 9.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl2",
+   "seconds": 6.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl3",
+   "seconds": 3.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl4",
+   "seconds": 17.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl5",
+   "seconds": 13.24,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl6",
+   "seconds": 4.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl7",
+   "seconds": 3.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl8",
+   "seconds": 3.14,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user25_adl9",
+   "seconds": 15.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl1",
+   "seconds": 5.26,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl10",
+   "seconds": 10.52,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl11",
+   "seconds": 2.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl12",
+   "seconds": 4.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl13",
+   "seconds": 14.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl14",
+   "seconds": 5.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl15",
+   "seconds": 8.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl16",
+   "seconds": 5.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl2",
+   "seconds": 4.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl3",
+   "seconds": 19.22,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl4",
+   "seconds": 9.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl5",
+   "seconds": 3.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl6",
+   "seconds": 11.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl7",
+   "seconds": 4.32,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl8",
+   "seconds": 7.3,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user26_adl9",
+   "seconds": 13.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl1",
+   "seconds": 17.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl10",
+   "seconds": 3.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl11",
+   "seconds": 12.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl12",
+   "seconds": 9.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl13",
+   "seconds": 16.52,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl14",
+   "seconds": 11.82,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl15",
+   "seconds": 5.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl16",
+   "seconds": 3.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl2",
+   "seconds": 11.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl3",
+   "seconds": 6.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl4",
+   "seconds": 35.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl5",
+   "seconds": 16.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl6",
+   "seconds": 21.26,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl7",
+   "seconds": 15.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl8",
+   "seconds": 16.08,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user27_adl9",
+   "seconds": 5.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl1",
+   "seconds": 12.18,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl10",
+   "seconds": 3.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl11",
+   "seconds": 11.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl12",
+   "seconds": 13.68,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl13",
+   "seconds": 3.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl14",
+   "seconds": 5.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl15",
+   "seconds": 6.74,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl16",
+   "seconds": 3.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl2",
+   "seconds": 7.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl3",
+   "seconds": 22.68,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl4",
+   "seconds": 6.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl5",
+   "seconds": 41.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl6",
+   "seconds": 14.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl7",
+   "seconds": 8.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl8",
+   "seconds": 8.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user28_adl9",
+   "seconds": 7.52,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl1",
+   "seconds": 6.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl10",
+   "seconds": 10.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl11",
+   "seconds": 5.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl12",
+   "seconds": 12.32,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl13",
+   "seconds": 6.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl14",
+   "seconds": 4.52,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl15",
+   "seconds": 6.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl16",
+   "seconds": 11.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl2",
+   "seconds": 16.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl3",
+   "seconds": 27.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl4",
+   "seconds": 22.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl5",
+   "seconds": 3.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl6",
+   "seconds": 16.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl7",
+   "seconds": 16.18,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl8",
+   "seconds": 6.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user29_adl9",
+   "seconds": 11.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl1",
+   "seconds": 5.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl10",
+   "seconds": 11.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl11",
+   "seconds": 2.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl12",
+   "seconds": 17.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl13",
+   "seconds": 2.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl14",
+   "seconds": 3.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl15",
+   "seconds": 6.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl16",
+   "seconds": 6.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl2",
+   "seconds": 18.24,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl3",
+   "seconds": 7.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl4",
+   "seconds": 9.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl5",
+   "seconds": 2.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl6",
+   "seconds": 12.26,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl7",
+   "seconds": 4.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl8",
+   "seconds": 7.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user3_adl9",
+   "seconds": 3.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl1",
+   "seconds": 7.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl10",
+   "seconds": 7.04,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl11",
+   "seconds": 6.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl12",
+   "seconds": 6.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl13",
+   "seconds": 3.24,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl14",
+   "seconds": 10.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl15",
+   "seconds": 10.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl16",
+   "seconds": 10.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl2",
+   "seconds": 5.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl3",
+   "seconds": 5.46,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl4",
+   "seconds": 24.04,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl5",
+   "seconds": 33.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl6",
+   "seconds": 3.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl7",
+   "seconds": 25.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl8",
+   "seconds": 3.2,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user30_adl9",
+   "seconds": 4.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl1",
+   "seconds": 14.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl10",
+   "seconds": 9.52,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl11",
+   "seconds": 6.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl12",
+   "seconds": 5.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl13",
+   "seconds": 4.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl14",
+   "seconds": 6.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl15",
+   "seconds": 5.12,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl16",
+   "seconds": 11.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl2",
+   "seconds": 8.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl3",
+   "seconds": 3.46,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl4",
+   "seconds": 15.76,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl5",
+   "seconds": 19.2,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl6",
+   "seconds": 16.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl7",
+   "seconds": 20.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl8",
+   "seconds": 5.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user31_adl9",
+   "seconds": 13.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl1",
+   "seconds": 8.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl10",
+   "seconds": 3.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl11",
+   "seconds": 5.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl12",
+   "seconds": 9.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl13",
+   "seconds": 5.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl14",
+   "seconds": 3.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl15",
+   "seconds": 6.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl16",
+   "seconds": 4.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl2",
+   "seconds": 13.04,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl3",
+   "seconds": 11.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl4",
+   "seconds": 25.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl5",
+   "seconds": 35.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl6",
+   "seconds": 4.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl7",
+   "seconds": 4.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl8",
+   "seconds": 6.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user32_adl9",
+   "seconds": 13.3,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl1",
+   "seconds": 4.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl10",
+   "seconds": 10.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl11",
+   "seconds": 10.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl12",
+   "seconds": 17.52,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl13",
+   "seconds": 5.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl14",
+   "seconds": 6.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl15",
+   "seconds": 11.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl16",
+   "seconds": 5.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl2",
+   "seconds": 6.14,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl3",
+   "seconds": 17.68,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl4",
+   "seconds": 6.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl5",
+   "seconds": 14.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl6",
+   "seconds": 14.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl7",
+   "seconds": 15.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl8",
+   "seconds": 6.24,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user33_adl9",
+   "seconds": 9.18,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl1",
+   "seconds": 13.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl10",
+   "seconds": 12.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl11",
+   "seconds": 8.3,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl12",
+   "seconds": 6.28,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl13",
+   "seconds": 7.74,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl14",
+   "seconds": 11.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl15",
+   "seconds": 3.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl16",
+   "seconds": 4.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl2",
+   "seconds": 16.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl3",
+   "seconds": 27.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl4",
+   "seconds": 4.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl5",
+   "seconds": 15.9,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 7.423,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 3.3,
+     "post_motion_sd_g": 0.129,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 10.8
+    }
+   ]
+  },
+  {
+   "id": "user34_adl6",
+   "seconds": 23.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl7",
+   "seconds": 6.08,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl8",
+   "seconds": 17.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user34_adl9",
+   "seconds": 4.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl1",
+   "seconds": 7.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl10",
+   "seconds": 12.08,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl11",
+   "seconds": 10.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl12",
+   "seconds": 6.12,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl13",
+   "seconds": 4.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl14",
+   "seconds": 3.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl15",
+   "seconds": 6.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl16",
+   "seconds": 6.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl2",
+   "seconds": 14.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl3",
+   "seconds": 34.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl4",
+   "seconds": 15.14,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl5",
+   "seconds": 20.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl6",
+   "seconds": 14.74,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl7",
+   "seconds": 4.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl8",
+   "seconds": 6.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user35_adl9",
+   "seconds": 3.14,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl1",
+   "seconds": 4.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl10",
+   "seconds": 5.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl11",
+   "seconds": 11.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl12",
+   "seconds": 9.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl13",
+   "seconds": 5.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl14",
+   "seconds": 14.34,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl15",
+   "seconds": 11.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl16",
+   "seconds": 5.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl2",
+   "seconds": 4.34,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl3",
+   "seconds": 78.2,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl4",
+   "seconds": 25.32,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl5",
+   "seconds": 4.18,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl6",
+   "seconds": 3.44,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl7",
+   "seconds": 15.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl8",
+   "seconds": 3.3,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user36_adl9",
+   "seconds": 3.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl1",
+   "seconds": 5.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl10",
+   "seconds": 4.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl11",
+   "seconds": 6.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl12",
+   "seconds": 8.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl13",
+   "seconds": 9.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl14",
+   "seconds": 12.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl15",
+   "seconds": 6.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl16",
+   "seconds": 4.04,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl2",
+   "seconds": 5.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl3",
+   "seconds": 5.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl4",
+   "seconds": 13.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl5",
+   "seconds": 7.9,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl6",
+   "seconds": 5.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl7",
+   "seconds": 4.22,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl8",
+   "seconds": 5.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user37_adl9",
+   "seconds": 4.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl1",
+   "seconds": 17.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl10",
+   "seconds": 3.86,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl11",
+   "seconds": 6.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl12",
+   "seconds": 7.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl13",
+   "seconds": 15.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl14",
+   "seconds": 8.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl15",
+   "seconds": 6.08,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl16",
+   "seconds": 4.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl2",
+   "seconds": 15.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl3",
+   "seconds": 18.12,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl4",
+   "seconds": 15.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl5",
+   "seconds": 3.68,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl6",
+   "seconds": 3.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl7",
+   "seconds": 4.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl8",
+   "seconds": 6.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user38_adl9",
+   "seconds": 12.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl1",
+   "seconds": 3.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl10",
+   "seconds": 6.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl11",
+   "seconds": 6.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl12",
+   "seconds": 7.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl13",
+   "seconds": 16.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl14",
+   "seconds": 7.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl15",
+   "seconds": 4.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl16",
+   "seconds": 5.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl2",
+   "seconds": 21.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl3",
+   "seconds": 4.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl4",
+   "seconds": 18.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl5",
+   "seconds": 18.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl6",
+   "seconds": 4.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl7",
+   "seconds": 16.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl8",
+   "seconds": 15.68,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user39_adl9",
+   "seconds": 3.14,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl1",
+   "seconds": 34.76,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl10",
+   "seconds": 26.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl11",
+   "seconds": 23.68,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl12",
+   "seconds": 43.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl13",
+   "seconds": 19.22,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl14",
+   "seconds": 17.18,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl15",
+   "seconds": 24.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl16",
+   "seconds": 24.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl2",
+   "seconds": 31.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl3",
+   "seconds": 98.92,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl4",
+   "seconds": 24.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl5",
+   "seconds": 16.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl6",
+   "seconds": 11.82,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl7",
+   "seconds": 17.14,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl8",
+   "seconds": 11.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user4_adl9",
+   "seconds": 11.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl1",
+   "seconds": 4.76,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl10",
+   "seconds": 7.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl11",
+   "seconds": 4.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl12",
+   "seconds": 14.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl13",
+   "seconds": 47.46,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl14",
+   "seconds": 16.4,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl15",
+   "seconds": 10.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl16",
+   "seconds": 11.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl2",
+   "seconds": 3.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl3",
+   "seconds": 18.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl4",
+   "seconds": 23.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl5",
+   "seconds": 4.76,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl6",
+   "seconds": 16.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl7",
+   "seconds": 4.68,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl8",
+   "seconds": 5.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user40_adl9",
+   "seconds": 4.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl1",
+   "seconds": 12.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl10",
+   "seconds": 6.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl11",
+   "seconds": 6.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl12",
+   "seconds": 6.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl13",
+   "seconds": 15.3,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl14",
+   "seconds": 11.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl15",
+   "seconds": 9.46,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl16",
+   "seconds": 8.88,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl2",
+   "seconds": 10.14,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl3",
+   "seconds": 52.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl4",
+   "seconds": 6.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl5",
+   "seconds": 16.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl6",
+   "seconds": 12.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl7",
+   "seconds": 3.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl8",
+   "seconds": 6.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user41_adl9",
+   "seconds": 5.74,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl1",
+   "seconds": 6.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl10",
+   "seconds": 23.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl11",
+   "seconds": 23.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl12",
+   "seconds": 13.34,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl13",
+   "seconds": 25.0,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 9.886,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 56.1,
+     "post_motion_sd_g": 0.003,
+     "impacts_in_window": 2,
+     "clipped": false,
+     "seconds_after_impact": 22.4
+    }
+   ]
+  },
+  {
+   "id": "user5_adl14",
+   "seconds": 6.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl15",
+   "seconds": 20.66,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl16",
+   "seconds": 17.04,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl2",
+   "seconds": 15.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl3",
+   "seconds": 63.0,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl4",
+   "seconds": 14.18,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl5",
+   "seconds": 42.58,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl6",
+   "seconds": 10.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl7",
+   "seconds": 21.04,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl8",
+   "seconds": 35.46,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user5_adl9",
+   "seconds": 7.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl1",
+   "seconds": 58.6,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl10",
+   "seconds": 21.72,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl11",
+   "seconds": 25.22,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl12",
+   "seconds": 11.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl13",
+   "seconds": 81.26,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl14",
+   "seconds": 17.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl15",
+   "seconds": 30.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl16",
+   "seconds": 21.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl2",
+   "seconds": 29.3,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl3",
+   "seconds": 16.74,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl4",
+   "seconds": 10.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl5",
+   "seconds": 37.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl6",
+   "seconds": 16.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl7",
+   "seconds": 40.12,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl8",
+   "seconds": 19.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user6_adl9",
+   "seconds": 19.88,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.643,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 46.1,
+     "post_motion_sd_g": 0.039,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 7.7
+    }
+   ]
+  },
+  {
+   "id": "user7_adl1",
+   "seconds": 9.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl10",
+   "seconds": 11.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl11",
+   "seconds": 12.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl12",
+   "seconds": 11.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl13",
+   "seconds": 114.48,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl14",
+   "seconds": 24.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl15",
+   "seconds": 15.88,
+   "raised": 1,
+   "confirmed": 1,
+   "decisions": [
+    {
+     "path": "model",
+     "peak_g": 2.963,
+     "confirmed": true,
+     "reason": "still afterwards",
+     "orientation_change_deg": 24.5,
+     "post_motion_sd_g": 0.007,
+     "impacts_in_window": 1,
+     "clipped": false,
+     "seconds_after_impact": 11.4
+    }
+   ]
+  },
+  {
+   "id": "user7_adl16",
+   "seconds": 9.5,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl2",
+   "seconds": 35.08,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl3",
+   "seconds": 13.46,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl4",
+   "seconds": 38.94,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl5",
+   "seconds": 21.78,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl6",
+   "seconds": 13.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl7",
+   "seconds": 8.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl8",
+   "seconds": 11.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user7_adl9",
+   "seconds": 7.16,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl1",
+   "seconds": 13.76,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl10",
+   "seconds": 7.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl11",
+   "seconds": 12.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl12",
+   "seconds": 37.32,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl13",
+   "seconds": 11.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl14",
+   "seconds": 22.68,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl15",
+   "seconds": 19.7,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl16",
+   "seconds": 10.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl2",
+   "seconds": 13.42,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl3",
+   "seconds": 49.22,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl4",
+   "seconds": 7.12,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl5",
+   "seconds": 21.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl6",
+   "seconds": 22.1,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl7",
+   "seconds": 12.8,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl8",
+   "seconds": 16.02,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user8_adl9",
+   "seconds": 21.54,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl1",
+   "seconds": 10.38,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl10",
+   "seconds": 22.56,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl11",
+   "seconds": 21.44,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl12",
+   "seconds": 7.32,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl13",
+   "seconds": 10.28,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl14",
+   "seconds": 18.06,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl15",
+   "seconds": 22.62,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl16",
+   "seconds": 18.64,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl2",
+   "seconds": 23.96,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl3",
+   "seconds": 14.12,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl4",
+   "seconds": 10.82,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl5",
+   "seconds": 11.22,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl6",
+   "seconds": 22.2,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl7",
+   "seconds": 11.84,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl8",
+   "seconds": 21.36,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  },
+  {
+   "id": "user9_adl9",
+   "seconds": 12.98,
+   "raised": 0,
+   "confirmed": 0,
+   "decisions": []
+  }
+ ],
+ "uci_har": []
+}

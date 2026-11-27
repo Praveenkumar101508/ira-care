@@ -2490,14 +2490,17 @@
    "title": "UMAFall terms reconciled (CC BY 4.0 against a CC BY-NC record)",
    "area": "external",
    "hardware_independent": true,
-   "state": "blocked_external",
+   "state": "implemented",
    "evidence": [
     {
      "kind": "docs_only",
-     "ref": "docs/legal/UMAFALL_PERMISSION_REQUEST_2026-11-26.md"
+     "ref": "docs/DATASETS.md"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/legal/LICENCE_SOURCE_CHECK.md"
     }
-   ],
-   "blocked_by": "the UMAFall authors"
+   ]
   },
   {
    "id": "F2.a",
@@ -2918,11 +2921,19 @@
   {
    "id": "F4.i",
    "parent": "F4",
-   "title": "Confirmation stage after a suspected fall: a still wrist is always asked, a wrist that kept its orientation with the hand carrying on or a burst of impacts is not; off by default until run on the permitted recorded falls",
+   "title": "Confirmation stage after a suspected fall: a still wrist is always asked, a wrist that kept its orientation with the hand carrying on or a burst of impacts is not; off: it failed its gate on the permitted recorded falls (D-110)",
    "area": "ai",
    "hardware_independent": true,
    "state": "accepted",
    "evidence": [
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_fall_confirmation_stays_off.py"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/fall/recorded_confirmation.json"
+    },
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/sensors/FallConfirmationTest.kt"
@@ -3382,7 +3393,7 @@
    "hardware_independent": true,
    "state": "blocked_external",
    "evidence": [],
-   "blocked_by": "access to Mozilla Common Voice through the Mozilla Data Collective: an account whose terms the owner accepts (the only public older-speaker set with a usable licence that was found)"
+   "blocked_by": "a Mozilla Data Collective account whose terms the owner accepts (Common Voice 27.0 English is CC0 per Mozilla's catalogue); then a remote run of docs/ai/speech/OLDER_ADULT_EVAL_PLAN.md"
   },
   {
    "id": "F8.d",

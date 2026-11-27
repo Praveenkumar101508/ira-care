@@ -2082,3 +2082,29 @@ the build machine. A source that cannot be reached is recorded as such and never
 agreeing; the test fails if the record ever holds a disagreement or stops covering the list.
 F1.b (models) is accepted; F1.a (datasets) stays implemented until the unreachable sources are
 read in a browser and recorded.
+
+## D-109 Non-commercial model weights never run in the commercial service (owner direction, 27 November 2026)
+
+OmniVoice's pre-trained weights are CC BY-NC. The owner directed that they, and any other
+non-commercial weights, stay out of the commercial IRA CARE service. Nothing in the product
+depended on OmniVoice: it was an optional voice engine selected by `IRA_VOICE_ENGINE=omnivoice`,
+never set by any deployment file; the default voice paths (Kokoro, the platform engines on the
+watch and phone) are Apache 2.0 or the platform's own. Decision: the cloud edition refuses to
+start with `IRA_VOICE_ENGINE=omnivoice` (`config.py`, one row in
+`tests/test_cloud_edition_boot_refusals.py`), the TTS factory never loads it in the cloud edition
+even if a process skipped the settings check, and
+`tests/readiness/test_noncommercial_weights_excluded.py` fails if any deployment file or workflow
+names or fetches it. The sidecar code stays for the Private edition's research use, with its
+licence recorded in `docs/ai/MODEL_WEIGHTS.md`.
+
+## D-110 The fall confirmation stage failed its recorded-data gate and stays off (requirement F4.i, 27 November 2026)
+
+D-103 added an optional confirmation stage and kept it off until it was run on the permitted
+recorded datasets. It has now been run on BITS-2 and UCI HAR, fetched on the build machine with
+their pinned checksums (`scripts/eval/fall_recorded_confirmation.py`,
+`docs/ai/fall/recorded_confirmation.json`): it lost 2 of the 217 falls the shipped pipeline caught
+and removed none of the 10 false alarms on recorded daily activities. The gate (no caught fall
+lost) fails. Decision: the stage stays off, its thresholds are not retuned on this data, and
+`tests/readiness/test_fall_confirmation_stays_off.py` holds the default off while the recorded
+result fails. F4.i remains accepted as an implemented, tested, switched-off option; it is not a
+product feature.

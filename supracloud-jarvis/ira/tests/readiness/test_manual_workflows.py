@@ -22,7 +22,8 @@ ROOT = Path(__file__).resolve().parents[4]
 WORKFLOWS = ROOT / ".github" / "workflows"
 # emulator.yml: 60 since round 9, when the extended journey's two ten-minute quiet-face waits took the
 # run to about 50 minutes (run 45910155640 hit 45).
-MANUAL = {"emulator.yml": 60, "ios-simulator.yml": 60, "phone-emulator.yml": 60}
+# soak.yml: 355, just under the 6-hour job limit of a standard runner (5.5-hour soak).
+MANUAL = {"emulator.yml": 60, "ios-simulator.yml": 60, "phone-emulator.yml": 60, "soak.yml": 355}
 PINNED = re.compile(r"^[\w.-]+/[\w./-]+@[0-9a-f]{40}$")
 
 

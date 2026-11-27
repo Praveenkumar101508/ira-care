@@ -55,6 +55,11 @@ STEP_UP_MAX_AGE_SECONDS_MIN = 60
 STEP_UP_MAX_AGE_SECONDS_MAX = 3600
 
 
+#: Voice engines whose model weights carry a non-commercial licence (docs/ai/MODEL_WEIGHTS.md).
+#: The commercial (cloud) edition refuses to start with one selected (D-109).
+NONCOMMERCIAL_VOICE_ENGINES = frozenset({"omnivoice"})
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=_ENV_FILE,
@@ -714,6 +719,15 @@ class Settings(BaseSettings):
         # flag has ONE parse. A Settings field would be a second, and the four
         # test modules that drive this feature monkeypatch the environment
         # variable directly — a cached field would silently stop honouring them.
+        # Owner direction (D-109): model weights whose licence forbids commercial use never run
+        # in the commercial service. OmniVoice's pre-trained weights are CC BY-NC; the sidecar
+        # stays in the Private edition for research only.
+        if (os.getenv("IRA_VOICE_ENGINE") or "").strip().lower() in NONCOMMERCIAL_VOICE_ENGINES:
+            raise RuntimeError(
+                "IRA_VOICE_ENGINE=omnivoice is refused on IRA_EDITION=cloud. OmniVoice's "
+                "pre-trained weights are licensed CC BY-NC (non-commercial) and are excluded "
+                "from the commercial service. See docs/ai/MODEL_WEIGHTS.md and D-109."
+            )
         if (os.getenv("IRA_FORGE_ENABLED") or "false").strip().lower() in (
             "1", "true", "yes", "on",
         ):
