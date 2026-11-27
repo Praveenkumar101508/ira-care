@@ -292,11 +292,21 @@ class PhoneSmoke:
         Account section and below the fold, so it was never found)."""
         # An overlay (Talk, the pairing guide) hides the tab bar: go back until it shows
         # (run 45974160883: the carer's sign-in started on the wearer's Talk screen).
+        # The app's own Back button first: the system Back key on the Talk screen leaves the app
+        # (run 45977153362). If the app is no longer in front, it is brought back (the session
+        # is kept, so the tab bar returns).
         for _ in range(4):
-            if find_id(self.dump(), "tab-settings") is not None:
+            nodes = self.dump()
+            if find_id(nodes, "tab-settings") is not None:
                 break
-            self.adb("shell", "input", "keyevent", "KEYCODE_BACK")
-            time.sleep(1.5)
+            back = find(nodes, text="Back") or find(nodes, desc_prefix="Back")
+            if back is not None:
+                self.adb("shell", "input", "tap", *map(str, centre(back)))
+            elif not self.app_in_front():
+                self.adb("shell", "monkey", "-p", PACKAGE, "-c", "android.intent.category.LAUNCHER", "1", timeout=120)
+            else:
+                self.adb("shell", "input", "keyevent", "KEYCODE_BACK")
+            time.sleep(2)
         self.tap_id("tab-settings")
         time.sleep(2)
         if self.scroll_to_id("settings-account"):

@@ -129,3 +129,11 @@ streamed reply shown, C-7.b) all passed, beside everything that passed before. T
 which hides the tab bar, so Sign out was never reached. The journey now goes back until the tab bar
 shows. No app defect was found by either run.
 
+### Third emulator run (run 45977153362, 27 November 2026, 10:02 UTC)
+
+**16 of 17 again**, every step through the wearer's Talk passing a second time (and the launcher
+hang now answered: Wait, then Close app, then the app in front). The carer step failed for a new
+reason: the system Back key on the Talk screen left the app, so the carer's sign-in began on the
+phone's home screen. The journey now taps the app's own Back button and brings the app to the front
+if it has left. Still no app defect found.
+
