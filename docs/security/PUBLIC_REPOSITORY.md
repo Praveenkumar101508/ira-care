@@ -117,6 +117,26 @@ recorded so the owner can decide.
    project's rule) or a request to GitHub Support, who can also remove cached pull request
    refs. `test_public_repository.py` fails if the file is ever tracked again under any name,
    and `FallModelReleaseTest` refuses it in any build.
+   **Exactly where it is (checked 27 November 2026):** one Git blob,
+   `11150045d50ba5c37efd48fe3b63ca327d42865e` (17,864 bytes), reachable from `d6ab9d6` (at
+   `watch/app/src/main/assets/fall_model.tflite` and `docs/evidence/training/ira_fall_model.tflite`)
+   and `08766d2` (at `watch/app/src/debug/assets/fall_model.tflite`), both ancestors of `main`, and
+   from the refs of pull requests #66 and #99. **The options, in order of preference:**
+   (a) **wait for the SisFall authors' reply** (requested 26 November); if they confirm the terms,
+   nothing needs doing; (b) **if they ask for removal: a GitHub Support request** (no history
+   rewrite by us), using the draft below; GitHub Support can purge the blob from cached views and
+   pull request refs; (c) a history rewrite with `git filter-repo`, which this project's rules
+   forbid without the owner's explicit, separate authorisation, and which would change every
+   commit identifier after `d6ab9d6` for every clone. No option is taken yet.
+
+   Draft for option (b), to send only if the authors ask:
+
+   > Repository: Praveenkumar101508/ira-care (public). Please remove the blob
+   > `11150045d50ba5c37efd48fe3b63ca327d42865e` (a 17,864-byte TensorFlow Lite model,
+   > `fall_model.tflite`) from the repository's history, cached views and the refs of pull requests
+   > #66 and #99. The dataset owners whose data it was derived from have asked for its removal.
+   > The file is no longer in any branch's tree (removed in commit `235bab1`).
+
 2. **Demo placeholders** (the 14 fingerprints in `.gitleaksignore`, plus the two now added):
    fixed local sealing keys and two device tokens of a reseeded local database. They protected
    nothing outside one developer machine and are no longer used.
