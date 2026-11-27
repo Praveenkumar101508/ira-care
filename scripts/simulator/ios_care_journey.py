@@ -100,7 +100,9 @@ def flow(steps: list[dict], bundle_id: str = BUNDLE_ID) -> str:
             # Not Maestro's hideKeyboard: on iOS it taps elsewhere on the screen, and on the sign-in
             # screen it hit "I have an invitation link" (run 46053932767 showed the Join screen). The
             # keyboard is dismissed by tapping the screen's heading, which has no action.
-            lines += into_view(rid) + ["- tapOn:", f"    id: {_q(rid)}", f"- inputText: {_q(text)}",
+            # Cleared first: Maestro types after what a field holds, and the server field holds the
+            # app's default address (run 46057616511 signed in to "http://10.0.2.2:8000http://...").
+            lines += into_view(rid) + ["- tapOn:", f"    id: {_q(rid)}", "- eraseText: 80", f"- inputText: {_q(text)}",
                                        "- tapOn:", "    point: \"50%,7%\""]
         elif "launch" in s:
             lines += ["- launchApp:", "    stopApp: false"]
@@ -222,8 +224,9 @@ class Journey:
         if find_id(nodes, "tab-home") is None and find_id(nodes, ws) is not None:
             self.run([{"tap": ws}])
             nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None, self.a.ui_timeout)
-        return self.step(f"{label}_signed_in", ok and find_id(nodes, "tab-home") is not None, t0,
-                         screenshot=self.shot(f"{label}_home"))
+        signed_in = ok and find_id(nodes, "tab-home") is not None
+        extra = {} if signed_in else {"screen": [{k: x[k] for k in ("resource-id", "text") if x.get(k)} for x in nodes][:40]}
+        return self.step(f"{label}_signed_in", signed_in, t0, screenshot=self.shot(f"{label}_home"), **extra)
 
     def sign_out(self) -> list[dict]:
         for _ in range(3):
