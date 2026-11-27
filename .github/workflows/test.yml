@@ -103,7 +103,11 @@ jobs:
       # The scanned-PDF test (tests/test_chat_scanned_pdf.py) renders a page with pdftoppm and
       # reads it with tesseract; without them it skips. Both are in Ubuntu's own repositories.
       - name: Install the OCR tools the scanned-PDF test needs
-        run: sudo apt-get update -qq >/dev/null && sudo apt-get install -y -q poppler-utils tesseract-ocr >/dev/null
+        # The runner image lists third-party apt repositories; one answering 403 (run 45980167244:
+        # packages.microsoft.com) must not stop the job. Ubuntu's own lists carry both tools.
+        run: |
+          sudo apt-get update -qq -o Dir::Etc::sourceparts=- -o APT::Get::List-Cleanup=0 >/dev/null || sudo apt-get update -qq >/dev/null || true
+          sudo apt-get install -y -q poppler-utils tesseract-ocr >/dev/null
       # -ra names every skip in the log, so a test that stops running is visible.
       - name: Run the suite (database tests skip here; they run in backend-database)
         run: python -m pytest -q -ra -p no:cacheprovider tests
