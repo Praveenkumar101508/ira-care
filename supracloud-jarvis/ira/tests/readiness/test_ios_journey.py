@@ -90,3 +90,12 @@ def test_the_probe_listener_collects_what_the_app_posts_and_ignores_junk(journey
         assert listener.screens() == ["sign-in", "home"]
     finally:
         listener.stop()
+
+
+def test_the_probe_is_read_from_the_unified_log_and_errors_are_picked_out(journey):
+    log = ('2026-11-27 10:31:02.1 IRACARE[811:9a] [javascript] ira-journey {"screen":"sign-in","signedIn":false}\n'
+           "2026-11-27 10:31:02.2 IRACARE[811:9a] some framework chatter\n"
+           "2026-11-27 10:31:03.0 IRACARE[811:9a] [javascript] Unhandled JS Exception: boom\n")
+    assert journey.screens(log) == ["sign-in"]
+    picked = journey.diagnostic_lines(log)
+    assert len(picked) == 2 and "chatter" not in " ".join(picked)

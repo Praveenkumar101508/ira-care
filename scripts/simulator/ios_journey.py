@@ -118,6 +118,18 @@ def screens(console: str) -> list[str]:
     return [p.get("screen", "") for p in probe_lines(console)]
 
 
+#: Lines of the app's unified log worth showing in the job's own log when the screen was not seen:
+#: React Native's JavaScript log and its errors (run 45980371196: no probe on either channel).
+_DIAGNOSTIC = ("[javascript]", "ira-journey", "Unhandled", "Exception", "error", "Error", "bundle", "Bundle",
+               "RCTFatal", "Invariant", "Unable to", "metro", "Metro")
+
+
+def diagnostic_lines(app_log: str, limit: int = 60) -> list[str]:
+    """The app log lines that say what the JavaScript did (or why it did not run), newest last."""
+    out = [ln.strip() for ln in app_log.splitlines() if any(k in ln for k in _DIAGNOSTIC)]
+    return out[-limit:]
+
+
 def new_crash_reports(before: set[str], after: set[str], app_name: str) -> list[str]:
     """Crash report file names that appeared during the run and name the app."""
     return sorted(f for f in after - before if app_name.lower() in f.lower())
@@ -197,7 +209,13 @@ class Journey:
         (self.out / "probe_posts.jsonl").write_text("".join(json.dumps(r) + "\n" for r in listener.records))
         shot = self.out / "01_launched.png"
         run(["xcrun", "simctl", "io", udid, "screenshot", str(shot)])
-        seen = listener.screens() or screens(console)
+        # A development bundle's console.log goes to the unified log ("[javascript] ira-journey ...").
+        early_log = run(["xcrun", "simctl", "spawn", udid, "log", "show", "--last", "5m", "--style", "compact",
+                         "--predicate", 'process == "IRACARE"'], timeout=600)
+        seen = listener.screens() or screens(console) or screens(early_log)
+        if "sign-in" not in seen:
+            print(json.dumps({"diagnosis": "the sign-in screen was not reported; the app's own log follows",
+                              "app_log": diagnostic_lines(early_log)}), flush=True)
         self.step("sign_in_screen_shown", "sign-in" in seen, t0, screens=seen[:10], screenshot=shot.name,
                   console_lines=len(collected), probe_posts=len(listener.records))
 
