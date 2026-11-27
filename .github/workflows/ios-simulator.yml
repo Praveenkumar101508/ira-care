@@ -34,7 +34,7 @@ jobs:
   ios-simulator-build:
     name: iOS simulator build (unsigned, Debug)
     runs-on: macos-15
-    timeout-minutes: 90
+    timeout-minutes: 150
     defaults:
       run:
         working-directory: mobile
@@ -51,7 +51,9 @@ jobs:
         # The Android test build's default server is the emulator's host (10.0.2.2, app.json); the iOS
         # simulator shares the Mac's loopback, so its test build defaults to 127.0.0.1:8000. Only this
         # job's copy changes; nothing is committed and the release builds keep app.json as it is.
-        run: node -e "const f='app.json';const j=JSON.parse(require('fs').readFileSync(f));j.expo.extra.careApiBaseUrl='http://127.0.0.1:8000';require('fs').writeFileSync(f,JSON.stringify(j,null,2))"
+        # quietDevWarnings: the Debug build's warning bar sat over the tab bar and took the journey's
+        # taps (run 46071161313); the warnings still go to the console log (mobile/index.ts).
+        run: node -e "const f='app.json';const j=JSON.parse(require('fs').readFileSync(f));j.expo.extra.careApiBaseUrl='http://127.0.0.1:8000';j.expo.extra.quietDevWarnings=true;require('fs').writeFileSync(f,JSON.stringify(j,null,2))"
       - name: Generate the iOS project
         env:
           CI: "1"
@@ -85,6 +87,25 @@ jobs:
               --bundle-output "$app/main.jsbundle" --assets-dest "$app"
           fi
           ls -la "$app/main.jsbundle"
+      - name: Sign the simulator app ad hoc, so the keychain works
+        # Built with CODE_SIGNING_ALLOWED=NO the app carries no entitlements, and the simulator's
+        # keychain refuses it: the session and the appearance were not kept across a restart (run
+        # 46071161313 showed the sign-in screen after one). An ad hoc signature ("-") needs no Apple
+        # certificate or account. The team prefix is a placeholder; nothing leaves this runner.
+        working-directory: mobile/ios
+        run: |
+          set -euo pipefail
+          app=$(find build/Build/Products/Debug-iphonesimulator -maxdepth 1 -name '*.app' | head -1)
+          cat > "$RUNNER_TEMP/simulator.entitlements" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>application-identifier</key><string>SIMULATOR.care.ira.family</string>
+            <key>keychain-access-groups</key><array><string>SIMULATOR.care.ira.family</string></array>
+          </dict></plist>
+          PLIST
+          codesign --force --sign - --timestamp=none --entitlements "$RUNNER_TEMP/simulator.entitlements" "$app"
+          codesign -d --entitlements - "$app" 2>&1 | tail -n 12
       - name: Package the .app
         working-directory: mobile/ios
         run: |

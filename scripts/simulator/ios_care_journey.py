@@ -137,6 +137,11 @@ class Journey:
     # recording
     def step(self, name: str, ok: bool, t0: float, **info) -> bool:
         rec = {"step": name, "ok": bool(ok), "seconds": round(time.time() - t0, 1), **info}
+        if not ok and "screen" not in rec:
+            # What was on screen when the step failed, in the job log: the artifacts cannot always be
+            # fetched (run 46071161313's plan step failed with nothing to show why).
+            rec["screen"] = [{k: x[k] for k in ("resource-id", "text") if x.get(k)} for x in self.nodes()
+                             if x.get("resource-id")][:60]
         self.steps.append(rec)
         print(json.dumps(rec), flush=True)
         return ok
