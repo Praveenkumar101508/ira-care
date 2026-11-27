@@ -2379,6 +2379,14 @@
    "evidence": [
     {
      "kind": "docs_only",
+     "ref": "docs/legal/LICENCE_SOURCE_CHECK.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_licence_source_check.py"
+    },
+    {
+     "kind": "docs_only",
      "ref": "docs/DATASETS.md"
     },
     {
@@ -2397,8 +2405,16 @@
    "title": "Model-weight licence register for every shipped or downloaded model",
    "area": "external",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
+    {
+     "kind": "docs_only",
+     "ref": "docs/legal/LICENCE_SOURCE_CHECK.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "supracloud-jarvis/ira/tests/readiness/test_licence_source_check.py"
+    },
     {
      "kind": "docs_only",
      "ref": "docs/ai/MODEL_WEIGHTS.md"

@@ -2,13 +2,13 @@
   "config": {
     "argv": [
       "/opt/node22/bin/node",
-      "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/node_modules/.bin/playwright",
+      "<checkout>/e2e/node_modules/.bin/playwright",
       "test",
       "--trace",
       "off"
     ],
-    "configFile": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/playwright.config.ts",
-    "rootDir": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e",
+    "configFile": "<checkout>/e2e/playwright.config.ts",
+    "rootDir": "<checkout>/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": false,
@@ -24,7 +24,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/test-results",
+        "outputDir": "<checkout>/e2e/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -32,7 +32,7 @@
         },
         "id": "",
         "name": "",
-        "testDir": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e",
+        "testDir": "<checkout>/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -83,7 +83,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
+                    "file": "<checkout>/e2e/journey.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -107,7 +107,7 @@
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
+                        "file": "<checkout>/e2e/journey.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -135,7 +135,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
+                    "file": "<checkout>/e2e/journey.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -159,7 +159,7 @@
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
+                        "file": "<checkout>/e2e/journey.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -187,7 +187,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
+                    "file": "<checkout>/e2e/journey.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -211,7 +211,7 @@
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
+                        "file": "<checkout>/e2e/journey.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -239,7 +239,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
+                    "file": "<checkout>/e2e/journey.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -263,7 +263,7 @@
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
+                        "file": "<checkout>/e2e/journey.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -291,7 +291,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
+                    "file": "<checkout>/e2e/journey.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -315,7 +315,7 @@
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/journey.spec.ts",
+                        "file": "<checkout>/e2e/journey.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -351,7 +351,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/live_refresh.spec.ts",
+                    "file": "<checkout>/e2e/live_refresh.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -375,7 +375,7 @@
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/live_refresh.spec.ts",
+                        "file": "<checkout>/e2e/live_refresh.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -403,7 +403,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/live_refresh.spec.ts",
+                    "file": "<checkout>/e2e/live_refresh.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -427,7 +427,7 @@
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/live_refresh.spec.ts",
+                        "file": "<checkout>/e2e/live_refresh.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -463,7 +463,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/outages.spec.ts",
+                    "file": "<checkout>/e2e/outages.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -487,7 +487,7 @@
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/outages.spec.ts",
+                        "file": "<checkout>/e2e/outages.spec.ts",
                         "line": 0,
                         "column": 0
                       }
@@ -515,7 +515,7 @@
                 {
                   "type": "serial",
                   "location": {
-                    "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/outages.spec.ts",
+                    "file": "<checkout>/e2e/outages.spec.ts",
                     "line": 0,
                     "column": 0
                   }
@@ -539,7 +539,7 @@
                     {
                       "type": "serial",
                       "location": {
-                        "file": "/tmp/claude-0/-home-user-ira-care/1a673a16-ae57-56eb-aa4d-9c85d80c28c8/scratchpad/staging-proof/repo/e2e/outages.spec.ts",
+                        "file": "<checkout>/e2e/outages.spec.ts",
                         "line": 0,
                         "column": 0
                       }

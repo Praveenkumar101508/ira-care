@@ -82,3 +82,5 @@ care code path loads these. They are listed so that nobody enables one without s
   model weights (D-082, `tests/readiness/test_training_scripts_publish_nothing.py`).
 - `supracloud-jarvis/ira/core/models/artefacts.py` refers to an owner determination file
   (`MODEL_LICENCE_DETERMINATIONS_REQUIRED.md`, item L-06) that is not in this repository.
+
+**Re-read at source, 27 November 2026.** Every row with a published source was read again where its licence is stated, by `scripts/legal/verify_licence_sources.py`; the results, and the sources that could not be reached from the build machine, are in `docs/legal/LICENCE_SOURCE_CHECK.md`. No row disagreed with its source.

@@ -1,0 +1,524 @@
+{
+ "checked_at": "2026-11-27T14:03:39+00:00",
+ "counts": {
+  "agrees": 44,
+  "differs": 0,
+  "not_stated": 0,
+  "unreachable": 6
+ },
+ "results": [
+  {
+   "register": "DATASETS.md",
+   "row": "SisFall",
+   "url": "https://zenodo.org/api/records/22212281",
+   "kind": "zenodo",
+   "expected": "cc-by-4.0",
+   "found": "cc-by-4.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "SisFall",
+   "url": "http://sistemic.udea.edu.co/en/investigacion/proyectos/english-falls/",
+   "kind": "text",
+   "expected": "cc-by-4.0",
+   "found": null,
+   "http_status": 503,
+   "result": "unreachable"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "BITS-2 Dataset for Fall Detection",
+   "url": "https://zenodo.org/api/records/10013090",
+   "kind": "zenodo",
+   "expected": "cc-by-4.0",
+   "found": "cc-by-4.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "BITS-2 Dataset for Fall Detection",
+   "url": "https://zenodo.org/api/records/8082667",
+   "kind": "zenodo",
+   "expected": "cc-by-4.0",
+   "found": "cc-by-4.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "WEDA-FALL",
+   "url": "https://raw.githubusercontent.com/joaojtmarques/WEDA-FALL/main/LICENSE",
+   "kind": "text",
+   "expected": "odc-by-1.0",
+   "found": "odc-by-1.0",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "Open Data Commons Attribution License"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "KFall",
+   "url": "https://sites.google.com/view/kfalldataset",
+   "kind": "text",
+   "expected": "by-request",
+   "found": "by-request",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "fill in the form below. The KFall team will review your request"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "MobiFall v2.0",
+   "url": "https://bmi.hmu.gr/?p=1642",
+   "kind": "text",
+   "expected": "by-request",
+   "found": null,
+   "http_status": null,
+   "result": "unreachable"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "UMAFall",
+   "url": "https://figshare.com/articles/dataset/UMA_ADL_FALL_Dataset_zip/4214283",
+   "kind": "text",
+   "expected": "cc-by-4.0",
+   "found": null,
+   "http_status": 202,
+   "result": "unreachable"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "FallAllD",
+   "url": "https://ieee-dataport.org/open-access/fallalld-comprehensive-dataset-human-falls-and-activities-daily-living",
+   "kind": "text",
+   "expected": "cc-by",
+   "found": "cc-by",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "Creative Commons Attribution 16974 views 3 Citat"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "UCI HAR",
+   "url": "https://archive.ics.uci.edu/dataset/240/human+activity+recognition+using+smartphones",
+   "kind": "text",
+   "expected": "cc-by-4.0",
+   "found": "cc-by-4.0",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "Creative Commons Attribution 4.0 International"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "WISDM",
+   "url": "https://archive.ics.uci.edu/dataset/507/wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset",
+   "kind": "text",
+   "expected": "cc-by-4.0",
+   "found": "cc-by-4.0",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "Creative Commons Attribution 4.0 International"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "HARTH",
+   "url": "https://archive.ics.uci.edu/dataset/779/harth",
+   "kind": "text",
+   "expected": "cc-by-4.0",
+   "found": "cc-by-4.0",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "Creative Commons Attribution 4.0 International"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "PPG-DaLiA",
+   "url": "https://archive.ics.uci.edu/dataset/495/ppg+dalia",
+   "kind": "text",
+   "expected": "cc-by-4.0",
+   "found": "cc-by-4.0",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "Creative Commons Attribution 4.0 International"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "GalaxyPPG",
+   "url": "https://zenodo.org/api/records/14635823",
+   "kind": "zenodo",
+   "expected": "cc-by-4.0",
+   "found": "cc-by-4.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "MIMIC-III waveform",
+   "url": "https://physionet.org/content/mimic3wdb-matched/1.0/",
+   "kind": "text",
+   "expected": "odbl-1.0",
+   "found": "odbl-1.0",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "Open Data Commons Open Database License"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "Sleep-EDF Expanded",
+   "url": "https://physionet.org/content/sleep-edfx/1.0.0/",
+   "kind": "text",
+   "expected": "odc-by-1.0",
+   "found": "odc-by-1.0",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "Open Data Commons Attribution License"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "BIDSleep",
+   "url": "https://physionet.org/content/bidsleep-dataset/1.0.1/",
+   "kind": "text",
+   "expected": "odc-by-1.0",
+   "found": "odc-by-1.0",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "Open Data Commons Attribution License"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "EmpatheticDialogues",
+   "url": "https://huggingface.co/api/datasets/facebook/empathetic_dialogues",
+   "kind": "huggingface",
+   "expected": "cc-by-nc-4.0",
+   "found": "cc-by-nc-4.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "LibriSpeech test-clean",
+   "url": "https://huggingface.co/api/datasets/openslr/librispeech_asr",
+   "kind": "huggingface",
+   "expected": "cc-by-4.0",
+   "found": "cc-by-4.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "LibriSpeech test-clean",
+   "url": "https://www.openslr.org/12",
+   "kind": "text",
+   "expected": "cc-by-4.0",
+   "found": null,
+   "http_status": null,
+   "result": "unreachable"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "Mozilla Common Voice",
+   "url": "https://datacollective.mozillafoundation.org",
+   "kind": "text",
+   "expected": "cc0-1.0",
+   "found": null,
+   "http_status": null,
+   "result": "unreachable"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`gemma4:e4b`",
+   "url": "https://huggingface.co/api/models/google/gemma-4-E4B-it",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`gemma4:e2b`",
+   "url": "https://huggingface.co/api/models/google/gemma-4-E2B-it",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`gemma4:12b`",
+   "url": "https://huggingface.co/api/models/google/gemma-4-12B-it",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`gemma4:e4b`",
+   "url": "https://ai.google.dev/gemma/docs/gemma_4_license",
+   "kind": "text",
+   "expected": "apache-2.0",
+   "found": null,
+   "http_status": null,
+   "result": "unreachable"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`sentence-transformers/all-MiniLM-L6-v2`",
+   "url": "https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`sentence-transformers/all-MiniLM-L6-v2`",
+   "url": "https://huggingface.co/api/models/nreimers/MiniLM-L6-H384-uncased",
+   "kind": "huggingface",
+   "expected": "mit",
+   "found": "mit",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "Silero VAD v6",
+   "url": "https://raw.githubusercontent.com/snakers4/silero-vad/master/LICENSE",
+   "kind": "text",
+   "expected": "mit",
+   "found": "mit",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "MIT License"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3.5:2b`",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen3.5-2B",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3.5:2b`",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen3.5-4B",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3.5:2b`",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen3.5-9B",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "Piper and the `en_GB-cori-high` voice",
+   "url": "https://huggingface.co/api/models/rhasspy/piper-voices",
+   "kind": "huggingface",
+   "expected": "mit",
+   "found": "mit",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "Piper and the `en_GB-cori-high` voice",
+   "url": "https://raw.githubusercontent.com/rhasspy/piper/master/LICENSE.md",
+   "kind": "text",
+   "expected": "mit",
+   "found": "mit",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "MIT License"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "OmniVoice",
+   "url": "https://huggingface.co/k2-fsa/OmniVoice/raw/main/README.md",
+   "kind": "text",
+   "expected": "cc-by-nc",
+   "found": "cc-by-nc",
+   "http_status": 200,
+   "result": "agrees",
+   "matched_words": "CC-BY-NC"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "Supertonic 3",
+   "url": "https://huggingface.co/api/models/Supertone/supertonic-3",
+   "kind": "huggingface",
+   "expected": "openrail",
+   "found": "openrail",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "faster-whisper",
+   "url": "https://huggingface.co/api/models/Systran/faster-whisper-base",
+   "kind": "huggingface",
+   "expected": "mit",
+   "found": "mit",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "faster-whisper",
+   "url": "https://huggingface.co/api/models/Systran/faster-whisper-small",
+   "kind": "huggingface",
+   "expected": "mit",
+   "found": "mit",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "faster-whisper",
+   "url": "https://huggingface.co/api/models/Systran/faster-whisper-large-v3",
+   "kind": "huggingface",
+   "expected": "mit",
+   "found": "mit",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "faster-whisper",
+   "url": "https://huggingface.co/api/models/Systran/faster-distil-whisper-large-v3",
+   "kind": "huggingface",
+   "expected": "mit",
+   "found": "mit",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "bge-large-en-v1.5",
+   "url": "https://huggingface.co/api/models/BAAI/bge-large-en-v1.5",
+   "kind": "huggingface",
+   "expected": "mit",
+   "found": "mit",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "bge-large-en-v1.5",
+   "url": "https://huggingface.co/api/models/BAAI/bge-m3",
+   "kind": "huggingface",
+   "expected": "mit",
+   "found": "mit",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "bge-reranker-v2-m3",
+   "url": "https://huggingface.co/api/models/BAAI/bge-reranker-v2-m3",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "ECAPA speaker embeddings",
+   "url": "https://huggingface.co/api/models/speechbrain/spkrec-ecapa-voxceleb",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "pyannote speaker-diarization-3.1",
+   "url": "https://huggingface.co/api/models/pyannote/speaker-diarization-3.1",
+   "kind": "huggingface",
+   "expected": "mit",
+   "found": "mit",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "Indic Parler-TTS",
+   "url": "https://huggingface.co/api/models/ai4bharat/indic-parler-tts",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "Kokoro-82M",
+   "url": "https://huggingface.co/api/models/hexgrad/Kokoro-82M",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3:14b`",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen3-14B",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3:14b`",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen3-8B",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3:14b`",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen2.5-VL-7B-Instruct",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  },
+  {
+   "register": "MODEL_WEIGHTS.md",
+   "row": "`qwen3:14b`",
+   "url": "https://huggingface.co/api/models/Qwen/Qwen2.5-Coder-14B-Instruct",
+   "kind": "huggingface",
+   "expected": "apache-2.0",
+   "found": "apache-2.0",
+   "http_status": 200,
+   "result": "agrees"
+  }
+ ]
+}
