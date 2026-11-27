@@ -162,3 +162,23 @@ five minutes and gave up without tapping. The search now accepts the text or the
 (`UNPAIR_BUTTON` in `scripts/emulator/watch_smoke.py`), with a test that fails on the old search
 (`test_the_unpair_button_is_found_by_its_description_when_compose_hides_its_text`). The next run is
 the proof for the unpair steps.
+
+### Fourth run: the whole extended journey passes (run 45999809729, job 140508259808, commit `5634dcb`, 27 November 2026, 12:37 to 13:08 UTC)
+
+**Every step passed: 49 of 49** (`{"ok": true, "steps": 49}`). The earlier runs recorded fewer
+steps because a failed step ends its group; this one ran every group to the end: install and
+pairing; Help from the wrist and on the server; the stray question answered; the medication
+reminder shown, an unclear answer not recorded, the confirmation asked and the dose taken in two
+steps; a check-in answered by touch; the fall countdown with a second detection attached, the alert
+after it and its resolution; Help during a fall countdown making one alert, the responder status on
+the wrist; Help queued offline and delivered once, and again across a reboot with monitoring
+resumed; the sensor permission revoked (shown and reported) and granted again; the unpair warning,
+the server's record, the old token refused (401), pairing again isolated from the old pairing; the
+accessibility labels and touch targets; no app crash after the journey.
+
+Register items this run moves to verified, each for what the run shows and no more: C-23.c
+(automated accessibility checks on the watch app), D1.d (a fall detection, injected through the
+debug-only receiver, feeding the countdown), D1.e (Help, its delivery and the responder status on
+the wrist), D1.h (a reminder shown and answered on the wrist). Not moved, because the run does not
+show all of their titles: D1.a (voice check-ins; the run answers by touch), D1.g (battery state),
+C-21.b (the refusal to unpair while Help is pending), C-20.a (a crash, as against a reboot).

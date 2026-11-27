@@ -924,8 +924,12 @@
    "title": "Automated accessibility checks on the watch app",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/ui/AccessibilityTest.kt"
@@ -1062,8 +1066,12 @@
    "title": "Watch fall detection (rules) feeding the countdown",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/sensors/FallDetectorTest.kt"
@@ -1076,8 +1084,12 @@
    "title": "Watch Help / SOS state, with delivery and responder status shown",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/outbox/SosStateTest.kt"
@@ -1126,8 +1138,12 @@
    "title": "Watch reminders and routines shown and answered on the wrist",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/checkin/ReminderButtonsTest.kt"
