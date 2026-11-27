@@ -133,10 +133,15 @@ jobs:
           PGPASSWORD: postgres
         run: |
           set -euo pipefail
-          brew install postgresql@17 pgvector redis
+          brew install postgresql@17 redis
+          export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
+          # pgvector built against this PostgreSQL: Homebrew's pgvector bottle follows its newest
+          # PostgreSQL and was missing for @17 on one runner image (run 46036510723).
+          git clone --quiet --depth 1 --branch v0.8.0 https://github.com/pgvector/pgvector.git "$RUNNER_TEMP/pgvector"
+          make -s -C "$RUNNER_TEMP/pgvector" PG_CONFIG="$(brew --prefix postgresql@17)/bin/pg_config"
+          make -s -C "$RUNNER_TEMP/pgvector" install PG_CONFIG="$(brew --prefix postgresql@17)/bin/pg_config"
           brew services start postgresql@17
           brew services start redis
-          export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
           for _ in $(seq 1 30); do pg_isready -h 127.0.0.1 && break; sleep 2; done
           psql -h 127.0.0.1 -d postgres -v ON_ERROR_STOP=1 -c "CREATE ROLE postgres WITH SUPERUSER LOGIN PASSWORD 'postgres';"
           psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ira_test"
