@@ -141,9 +141,20 @@ class CareDependencies private constructor(context: Context) {
     @Volatile var lastOnWrist: Boolean? = null
 
     fun deviceState(): DeviceState {
+        return DeviceState(batteryPercent(), lastOnWrist, sensors.backgroundPermissionGranted(), BuildConfig.VERSION_NAME)
+    }
+
+    /** The battery level: the battery property where the device supports it, else the system's last
+     *  battery broadcast (level / scale). Some devices, the emulator among them, answer the property with
+     *  "unsupported", and the server then never learnt the battery level (CI run 46143245120). */
+    private fun batteryPercent(): Int? {
         val bm = appContext.getSystemService(BatteryManager::class.java)
-        val battery = bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)?.takeIf { it in 0..100 }
-        return DeviceState(battery, lastOnWrist, sensors.backgroundPermissionGranted(), BuildConfig.VERSION_NAME)
+        val fromProperty = runCatching { bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) }.getOrNull()
+        val sticky = runCatching {
+            appContext.registerReceiver(null, android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED))
+        }.getOrNull()
+        return BatteryLevel.percent(fromProperty,
+            sticky?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1), sticky?.getIntExtra(BatteryManager.EXTRA_SCALE, -1))
     }
 
     /** The wearer confirmed unpairing (see pairing/Unpairing): the server first, then the watch. */

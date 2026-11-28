@@ -874,6 +874,12 @@ class Smoke:
     def api(self, method: str, path: str, body=None, headers=None, form=False):
         """A call that must succeed; the status and the server's words are in the error when it does not."""
         status, out = self.api_status(method, path, body, headers, form)
+        if status == 401 and headers is not None and "Authorization" in headers and any(
+                headers is h for h in (getattr(self, "h", None), getattr(self, "fam_h", None)) if h is not None):
+            # The journey outlives an access token (run 46143245120: 401 after 35 minutes); sign in again,
+            # as the dashboard and the app do, and retry once.
+            self.renew_sessions()
+            status, out = self.api_status(method, path, body, headers, form)
         if status is None or status >= 400:
             raise RuntimeError(f"{method} {path} answered {status}: {str(out)[:300]}")
         return out
@@ -909,8 +915,11 @@ class Smoke:
         for cmd in ("settings put secure user_setup_complete 1", "settings put global device_provisioned 1",
                     "dumpsys battery unplug", "dumpsys battery set status 3",
                     "svc power stayon true", "settings put system screen_off_timeout 2147483647",
-                    "input keyevent KEYCODE_WAKEUP"):
+                    "input keyevent KEYCODE_WAKEUP",
+                    # D1.f: location on, as on a watch the wearer set up; the GPS fix is given below.
+                    "cmd location set-location-enabled true", "settings put secure location_mode 3"):
             self.adb("shell", cmd, timeout=120, check=False)
+        self.adb("emu", "geo", "fix", str(GPS_FIX[1]), str(GPS_FIX[0]), timeout=60, check=False)
 
     def wait_for_host(self) -> tuple[bool, float]:
         """The guest can reach the host (the development server's address) before the app starts."""
@@ -925,6 +934,20 @@ class Smoke:
             # restarting): a failed step with the reason, not a crash.
             self.step("device_error", False, time.time(), error=str(exc)[:400])
             return self.finish()
+
+    def renew_sessions(self) -> None:
+        """New access tokens for the coordinator and the family member, written into the same header
+        dictionaries every caller holds."""
+        creds = self.creds
+        for key, headers in (("coordinator", self.h), ("family", self.fam_h)):
+            if headers is None:
+                continue
+            l = (next(x for x in creds["logins"] if x.get("role") == "workspace_admin") if key == "coordinator"
+                 else next(x for x in creds["logins"] if x.get("key") == "family"))
+            code, tok = self.api_status("POST", "/auth/cloud/login", {"email": l["email"], "password": l["password"]}, form=True)
+            if code == 200:
+                headers["Authorization"] = f"Bearer {tok['access_token']}"
+        self.sessions_renewed = getattr(self, "sessions_renewed", 0) + 1
 
     def login(self) -> None:
         """The coordinator's and the family member's sessions, and the person the journey is about."""
@@ -1009,8 +1032,9 @@ class Smoke:
 
         t0 = time.time()
         # D1.f: the emulator's GPS is given a position before Help, so the SOS can carry it.
-        self.adb("emu", "geo", "fix", str(GPS_FIX[1]), str(GPS_FIX[0]), timeout=60, check=False)
-        time.sleep(3)
+        for _ in range(3):   # repeated, so the GPS provider has a recent fix when Help asks for one
+            self.adb("emu", "geo", "fix", str(GPS_FIX[1]), str(GPS_FIX[0]), timeout=60, check=False)
+            time.sleep(2)
         self.adb("shell", "input", "tap", *map(str, centre(help_btn)))
         received = None
         deadline = time.time() + a.ui_timeout

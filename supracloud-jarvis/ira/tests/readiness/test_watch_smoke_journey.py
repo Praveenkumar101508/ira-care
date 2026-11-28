@@ -451,3 +451,40 @@ def test_unpair_refusal_mirror_matches_the_watch(smoke):
     assert smoke.unpair_refusal(0, None, None) is None
     assert smoke.unpair_refusal(0, "closed", None) is None
     assert '"unpair_refused_during_fall_check"' in SCRIPT.read_text(encoding="utf-8")
+
+
+def test_the_journey_signs_in_again_when_its_session_expires_and_turns_location_on(smoke):
+    text = SCRIPT.read_text(encoding="utf-8")
+    # Run 46143245120: the coordinator's token expired after 35 minutes and two groups failed with 401.
+    assert "def renew_sessions(self)" in text and 'headers["Authorization"] = f"Bearer' in text
+    assert "status == 401" in text
+    # D1.f: location on before the first Help, and the GPS fix given early.
+    assert "cmd location set-location-enabled true" in text
+
+
+def test_an_expired_session_is_renewed_in_place_and_the_call_retried_once(smoke, tmp_path):
+    class Args:
+        out, adb, serial, package, api_only = str(tmp_path), "adb", "emulator-5554", PKG, True
+
+    s = smoke.Smoke(Args())
+    s.creds = {"workspace_id": "w", "logins": [{"role": "workspace_admin", "email": "c@x", "password": "p"},
+                                               {"key": "family", "role": "family", "email": "f@x", "password": "p"}]}
+    s.h = {"Authorization": "Bearer old", "X-Workspace-ID": "w"}
+    s.fam_h = {"Authorization": "Bearer oldf", "X-Workspace-ID": "w"}
+    seen = []
+
+    def fake(method, path, body=None, headers=None, form=False):
+        seen.append((path, dict(headers or {})))
+        if path == "/auth/cloud/login":
+            return 200, {"access_token": "new-" + body["email"]}
+        return (401, {"error_code": "unauthenticated"}) if headers["Authorization"].endswith("old") else (200, {"ok": True})
+
+    s.api_status = fake
+    assert s.api("GET", "/api/v1/care/visits/1", None, s.h) == {"ok": True}
+    assert s.h["Authorization"] == "Bearer new-c@x" and s.fam_h["Authorization"] == "Bearer new-f@x"
+    assert [p for p, _ in seen] == ["/api/v1/care/visits/1", "/auth/cloud/login", "/auth/cloud/login", "/api/v1/care/visits/1"]
+    # Negative control: a device-token call (not a session) that gets 401 is not retried with a sign-in.
+    seen.clear()
+    with pytest.raises(RuntimeError):
+        s.api("GET", "/api/v1/care/devices/me", None, {"Authorization": "Bearer old"})   # not one of the journey's sessions
+    assert [p for p, _ in seen] == ["/api/v1/care/devices/me"]
