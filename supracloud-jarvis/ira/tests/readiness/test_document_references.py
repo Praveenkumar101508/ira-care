@@ -24,6 +24,8 @@ DOCS = [
     "docs/hardware/QUALCOMM_ENGAGEMENT.md",
     "docs/evidence/ENDORSEMENT_PACK.md",
     "docs/progress/GO_NO_GO.md",
+    "docs/evidence/device/GALAXY_WATCH4_TEST.md",
+    "docs/evidence/device/TUNNEL_CHOICE.md",
 ]
 EXT = (".md", ".json", ".py", ".kt", ".ts", ".tsx", ".sh", ".yml", ".sql", ".svg", ".glb")
 REQ_ID = re.compile(r"\b((?:[A-L]\d?(?:–H4)?|C-\d+|D\db?|H1–H4)\.[a-z])\b")

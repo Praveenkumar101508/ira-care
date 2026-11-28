@@ -53,6 +53,7 @@ import care.ira.watch.service.CareDependencies
 import care.ira.watch.service.CareForegroundService
 import care.ira.watch.service.SyncWorker
 import care.ira.watch.service.WatchStatus
+import care.ira.watch.testserver.TestServer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -81,10 +82,15 @@ class MainActivity : ComponentActivity() {
                 val status by deps.statusFlow().collectAsStateWithLifecycle()
                 var unpairing by remember { mutableStateOf(false) }
                 var about by remember { mutableStateOf(false) }
+                // Debug builds only: the test server's address (src/debug TestServer). Null in release.
+                var testServer by remember { mutableStateOf(false) }
+                val addressScreen = TestServer.addressScreen
                 BackHandler(enabled = about) { about = false }
+                BackHandler(enabled = testServer) { testServer = false }
                 when {
                     about -> AboutScreen(onBack = { about = false })
-                    !status.paired -> { unpairing = false; PairingScreen(deps) }
+                    testServer && !status.paired && addressScreen != null -> addressScreen { testServer = false }
+                    !status.paired -> { unpairing = false; PairingScreen(deps, onTestServer = if (addressScreen != null) ({ testServer = true }) else null) }
                     !status.permissionGranted -> PermissionScreen(deps)
                     unpairing -> UnpairScreen(deps, status, onKeep = { unpairing = false })
                     else -> HomeScreen(
@@ -108,7 +114,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun PairingScreen(deps: CareDependencies) {
+    private fun PairingScreen(deps: CareDependencies, onTestServer: (() -> Unit)? = null) {
         var code by remember { mutableStateOf("") }
         var message by remember { mutableStateOf("") }
         val scope = rememberCoroutineScope()
@@ -147,6 +153,14 @@ class MainActivity : ComponentActivity() {
                 },
             ) { Text(getString(R.string.pair_button)) }
             if (message.isNotEmpty()) Text(message, fontSize = 12.sp, textAlign = TextAlign.Center)
+            if (onTestServer != null) {
+                Spacer(Modifier.height(4.dp))
+                Button(
+                    onClick = onTestServer,
+                    colors = ButtonDefaults.secondaryButtonColors(),
+                    modifier = Modifier.fillMaxWidth().height(32.dp).semantics { contentDescription = "Test server address. Test build only." },
+                ) { Text("Test server…", fontSize = 11.sp) }
+            }
         }
     }
 

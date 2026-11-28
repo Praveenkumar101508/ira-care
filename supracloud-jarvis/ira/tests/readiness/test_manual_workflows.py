@@ -25,7 +25,9 @@ WORKFLOWS = ROOT / ".github" / "workflows"
 # ios-simulator.yml: 150 since round 10: the build takes about 30 minutes and the authenticated
 # journey's Maestro steps about 2 minutes each, and run 46071161313 was stopped at 90 with steps left.
 # soak.yml: 355, just under the 6-hour job limit of a standard runner (5.5-hour soak).
-MANUAL = {"emulator.yml": 60, "ios-simulator.yml": 150, "phone-emulator.yml": 60, "soak.yml": 355, "deploy-guide.yml": 60, "dataset-provenance.yml": 30}
+# watch-device-test.yml: 340, up to 5 hours of service for the stand-in watch plus start-up, under 6 hours.
+MANUAL = {"emulator.yml": 60, "ios-simulator.yml": 150, "phone-emulator.yml": 60, "soak.yml": 355, "deploy-guide.yml": 60,
+          "dataset-provenance.yml": 30, "watch-device-test.yml": 340}
 PINNED = re.compile(r"^[\w.-]+/[\w./-]+@[0-9a-f]{40}$")
 
 

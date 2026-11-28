@@ -32,6 +32,15 @@ before then.
 Done means: the native-checks run on `main` (or on the follow-up pull request) green, the iOS journey
 16 of 16, and D2.h's journey recorded in `docs/evidence/builds/IOS_SIMULATOR.md`.
 
+## Stand-in watch test (Galaxy Watch 4)
+
+After the pull request that adds `.github/workflows/watch-device-test.yml` is merged: the owner
+creates the repository secret `IRA_WATCH_TEST_DASHBOARD_PASSWORD`, runs "watch device test server
+(manual)" and follows `docs/evidence/device/GALAXY_WATCH4_TEST.md`. When results arrive, record
+them in `requirements.json` as `device` evidence labelled "stand-in device: Samsung Galaxy Watch 4
+(SM-R8xx), Wear OS 6" (D1.j, C-5.b, C-17.b, C-21.d, the watch part of C-23.e). F3.e, F4.g, F7.k
+and F3.d stay blocked; no denominator changes.
+
 Each outside need, with exactly what to ask for and what it unblocks: `docs/progress/RESOURCE_REQUESTS.md`.
 
 Owner actions, in order of use:
