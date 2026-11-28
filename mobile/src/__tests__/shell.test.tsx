@@ -121,7 +121,8 @@ test('settings has the eight sections, each with an accessible label, and the ap
   const r = renderer.create(<ThemeProvider appearance={current}>{el()}</ThemeProvider>);
   const sections = all(r.toJSON() as Node).filter((n) => String(n.props.testID ?? '').startsWith('settings-'));
   expect(sections).toHaveLength(8);
-  for (const s of sections) expect(typeof s.props.accessibilityLabel).toBe('string');
+  // Named by their visible title and description (WCAG 2.5.3), not by a separate label.
+  for (const s of sections) expect(s.props.accessibilityLabel).toBeUndefined();
   press(r, 'settings-appearance');
   press(r, 'mode-dark');
   expect(current.mode).toBe('dark');
@@ -136,6 +137,8 @@ test('settings has the eight sections, each with an accessible label, and the ap
 test('the tab bar names its four tabs and counts the alerts that need someone', () => {
   const tree = render(<TabBar tab="home" onTab={() => {}} alertCount={2} />);
   const tabs = all(tree).filter((n) => n.props.accessibilityRole === 'tab');
-  expect(tabs.map((t) => t.props.accessibilityLabel)).toEqual(['Home', 'Care', 'Alerts (2)', 'Settings']);
+  expect(tabs.map((t) => t.props.accessibilityLabel)).toEqual(['Home', 'Care', undefined, 'Settings']);
+  // With a badge the name is the visible words (WCAG 2.5.3) and the hint says what the number means.
+  expect(tabs[2].props.accessibilityHint).toBe('2 need someone');
   expect(tabs[0].props.accessibilityState).toEqual({ selected: true });
 });

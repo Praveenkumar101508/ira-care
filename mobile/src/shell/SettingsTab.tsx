@@ -40,7 +40,7 @@ export function SettingsTab(p: SettingsProps) {
       <Screen title="Settings">
         <ScrollView>
           {SECTIONS.map((s) => (
-            <Pressable key={s.key} testID={`settings-${s.key}`} accessibilityRole="button" accessibilityLabel={s.title} accessibilityHint={s.words} onPress={() => setSection(s.key)}>
+            <Pressable key={s.key} testID={`settings-${s.key}`} accessibilityRole="button" onPress={() => setSection(s.key)}>
               <Card><Text style={[styles.h, { color: c.text }]}>{s.title}</Text><Muted>{s.words}</Muted></Card>
             </Pressable>
           ))}

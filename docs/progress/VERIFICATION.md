@@ -328,3 +328,14 @@ C-7.b (Talk offered only to the wearer) moved to verified on the phone emulator 
 G4.c (the operations runbooks) moved from implemented to accepted, not verified: the drills ran
 sections 2 and 5 against the production server and worker (`docs/evidence/ops/DRILLS_ROUND10.md`),
 but the provider-secret rotations and the compose wrappers themselves were not exercised.
+
+## Round 10, continued again (28 November 2026, after pull request 133)
+
+Software verification: 110 to 112 of 210. Every accepted-but-not-verified requirement is now read one
+by one in `docs/progress/VERIFICATION_MATRIX.md`, with its single route to integration evidence.
+
+| Item | Evidence |
+|---|---|
+| C-10.c A failed section is named and the rest shows | the visits request made to fail in Chromium: named, the rest of the record shown, and nothing named once it works (`docs/evidence/browser/ROUND10_RECORD_AND_PHONE_A11Y.md`) |
+| C-23.b Automated accessibility checks on the phone app | axe in the phone app's web build on the sign-in screen and each experience's home and settings, after fixing an invalid autocomplete token and names that did not contain their visible words (WCAG 2.5.3) |
+

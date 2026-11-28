@@ -402,11 +402,19 @@
    "title": "A failed section is named and the rest of the record still shows (B1c)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/person_live.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/record_and_phone_a11y.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_RECORD_AND_PHONE_A11Y.md"
     }
    ]
   },
@@ -974,11 +982,19 @@
    "title": "Automated accessibility checks on the phone app",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/accessibility.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/record_and_phone_a11y.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_RECORD_AND_PHONE_A11Y.md"
     }
    ]
   },
