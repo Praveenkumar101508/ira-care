@@ -13,7 +13,7 @@ Results: `docs/evidence/browser/round10_verification_results.json`.
 | Browser | headless Chromium, Playwright 1.63.0 |
 | Accessibility checker | axe-core 4 (the dashboard's own development dependency), the WCAG 2.0 and 2.1 A and AA rules, run inside each page |
 
-## Browser: `e2e/verification.spec.ts`, 6 of 6 passed
+## Browser: `e2e/verification.spec.ts`, 7 of 7 passed
 
 | Requirement | Test | What it proves | Result |
 |---|---|---|---|
@@ -23,6 +23,8 @@ Results: `docs/evidence/browser/round10_verification_results.json`.
 | D4.b | a measurement IRA cannot make is refused from the watch and shown as not available | the person's own watch (its device token) sends blood oxygen (97 %) and blood pressure (120 mmHg): each refused with 422, and no row added to the person's readings; negative control, a heart rate from the same watch is accepted; the health tab lists both as not available, with no number and unit, and does not list heart rate | passed |
 | C-16.b | a carer whose access token has expired stays signed in | the server restarted with one-minute access tokens (`ACCESS_TOKEN_EXPIRE_MINUTES=1`); the carer signs in and opens a record; 75 s later the first access token is refused by the server (401), the page is reloaded, and the record loads and says it is live: no sign-in page, a renewal answered 200, and a new access token kept | passed (1.3 min, run on its own with `E2E_ACCESS_TOKEN_SECONDS=60`) |
 | C-23.a | axe finds no serious or critical violation | the sign-in page, the people list, a person's record (care and health tabs), alerts and visits | passed after the fix below |
+
+| C-23.d | text meets the contrast threshold in light, dark and more-contrast appearances | the browser told the page the system is light or dark, each with and without "more contrast" (`prefers-color-scheme`, `prefers-contrast`); axe's colour-contrast rule (WCAG 2 AA: 4.5 to 1, large text 3 to 1) on the sign-in page and five carer pages in all four: 24 checks, no violation. The dark appearance really rendered dark (body `rgb(20, 24, 27)`); on a person's record the rule examined 143 elements in each mode and left none undecided | passed |
 
 The first run of the monitoring test was started before the last job runs were five minutes old,
 and failed (correctly: monitoring had not yet paused). It was run again once they were.

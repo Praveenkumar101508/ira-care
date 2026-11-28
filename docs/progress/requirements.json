@@ -982,7 +982,7 @@
    "title": "Dark-mode and high-contrast colour pairs measured against contrast thresholds (C5)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -991,6 +991,14 @@
     {
      "kind": "unit_test",
      "ref": "#54"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },

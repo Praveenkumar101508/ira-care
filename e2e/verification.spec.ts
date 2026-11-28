@@ -22,7 +22,9 @@ import { DASH, dashboardSignIn, info, login } from './helpers';
  *          E2E_ACCESS_TOKEN_SECONDS=60), a carer whose access token has expired is not signed out:
  *          the dashboard renews it with the refresh token and the record keeps loading;
  *  - C-23.a axe-core, run in the page, finds no serious or critical accessibility violation on the
- *          sign-in page, the people list, a person's record, alerts and visits.
+ *          sign-in page, the people list, a person's record, alerts and visits;
+ *  - C-23.d axe's colour-contrast rule on the same pages in light, dark, and each with the
+ *          operating system's "more contrast" setting, as the browser reports them.
  *
  * Fictional people only (scripts/demo/seed_demo.py).
  */
@@ -156,13 +158,13 @@ test('a carer whose access token has expired stays signed in: the dashboard rene
 const AXE = readFileSync(process.env.AXE_PATH ?? join(__dirname, '..', 'dashboard', 'node_modules', 'axe-core', 'axe.min.js'), 'utf8');
 type Violation = { id: string; impact: string | null; help: string; nodes: { target: string[] }[] };
 
-async function axe(page: Page): Promise<Violation[]> {
-  await page.addScriptTag({ content: AXE });
-  const found = await page.evaluate(async () => {
+async function axe(page: Page, only?: string[]): Promise<Violation[]> {
+  if (!(await page.evaluate(() => 'axe' in window))) await page.addScriptTag({ content: AXE });
+  const found = await page.evaluate(async (rules) => {
     const r = await (window as unknown as { axe: { run: (c: Document, o: object) => Promise<{ violations: Violation[] }> } })
-      .axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } });
+      .axe.run(document, { runOnly: rules ? { type: 'rule', values: rules } : { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } });
     return r.violations;
-  });
+  }, only ?? null);
   return found.filter((v) => v.impact === 'serious' || v.impact === 'critical');
 }
 
@@ -181,6 +183,27 @@ test.describe('accessibility in the browser', () => {
       report[path] = (await axe(page)).map((v) => `${v.id} (${v.impact}): ${v.help} at ${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join('; ')}`);
     }
     console.log(JSON.stringify({ axe: report }));
+    expect(report).toEqual(Object.fromEntries(Object.keys(report).map((k) => [k, []])));
+  });
+
+  test('text meets the contrast threshold in light, dark and more-contrast appearances', async ({ page }) => {
+    const pages = ['/', `/people/${person.id}?tab=care`, `/people/${person.id}?tab=health`, '/alerts', '/visits'];
+    const report: Record<string, string[]> = {};
+    await dashboardSignIn(page, manager);
+    for (const colorScheme of ['light', 'dark'] as const) {
+      for (const contrast of ['no-preference', 'more'] as const) {
+        await page.emulateMedia({ colorScheme, contrast });
+        for (const path of ['/login', ...pages]) {
+          await page.goto(`${DASH}${path}`); await page.waitForLoadState('networkidle'); await page.waitForTimeout(1_000);
+          const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+          report[`${colorScheme}/${contrast} ${path} (body ${bg})`] = (await axe(page, ['color-contrast']))
+            .map((v) => `${v.nodes.length} element(s): ${v.nodes.map((n) => n.target.join(' ')).slice(0, 4).join('; ')}`);
+        }
+      }
+    }
+    console.log(JSON.stringify({ contrast: report }));
+    // The dark appearance really is dark: the check ran on the colours it claims to.
+    expect(Object.keys(report).some((k) => k.startsWith('dark/') && /rgb\((1\d|2\d), /.test(k))).toBe(true);
     expect(report).toEqual(Object.fromEntries(Object.keys(report).map((k) => [k, []])));
   });
 });
