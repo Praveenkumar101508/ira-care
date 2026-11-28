@@ -43,6 +43,9 @@ register (`docs/progress/requirements.json`); the round-by-round detail is in
 
 ## Not done, and why
 
+What to ask for, from whom, for each item below: `docs/progress/RESOURCE_REQUESTS.md`.
+
+
 - **The 24-hour soak (G2.e):** a free runner stops a job at 6 hours and the build container stops
   its daemons when idle; it needs a Linux server that stays up for a day. The owner's personal Mac
   is ruled out for all testing (storage).

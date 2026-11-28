@@ -26,6 +26,8 @@ before then.
 Done means: the native-checks run on `main` (or on the follow-up pull request) green, the iOS journey
 16 of 16, and D2.h's journey recorded in `docs/evidence/builds/IOS_SIMULATOR.md`.
 
+Each outside need, with exactly what to ask for and what it unblocks: `docs/progress/RESOURCE_REQUESTS.md`.
+
 Owner actions, in order of use:
 
 1. **Pull request 132 is merged** (28 November); its iOS journey still fails: see "Mandatory" above.
