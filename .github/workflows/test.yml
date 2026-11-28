@@ -229,8 +229,13 @@ jobs:
           sudo apt-get install -y -q postgresql-client-16 >/dev/null
           export PATH=/usr/lib/postgresql/16/bin:$PATH
           pg_dump --version
-          sh deploy/backup.sh
+          # Under the stock umask on purpose: the files must be private whatever the host's default
+          # (round 10: they were 0644, readable by every account).
+          (umask 022 && sh deploy/backup.sh)
           f=$(ls -t "$BACKUP_DIR"/*.enc | head -1)
+          stat -c '%a %n' "$BACKUP_DIR" "$BACKUP_DIR"/ira-care-*
+          test "$(stat -c %a "$BACKUP_DIR")" = 700
+          for x in "$BACKUP_DIR"/ira-care-*; do test "$(stat -c %a "$x")" = 600; done
           psql postgresql://postgres:postgres@localhost:5432/postgres -c "CREATE DATABASE iratest_restore"
           sh deploy/restore.sh "$f" postgresql://postgres:postgres@localhost:5432/iratest_restore
           a=$(psql -At postgresql://postgres:postgres@localhost:5432/iratest -c "select count(*) from information_schema.tables where table_schema='public'")

@@ -216,6 +216,10 @@ jobs:
         run: |
           set -o pipefail
           udid=$(python3 -c "import json; print(next(s['udid'] for s in json.load(open('build/ios-journey/results.json'))['steps'] if s['step']=='simulator_booted'))")
+          # One signing secret for the whole journey, as a deployment has: the journey stops and starts
+          # the care server, and the demo server otherwise makes a new random secret each start, which
+          # signed the app out ("Your sign-in has expired", run 46100618011). Random per job; never stored.
+          export IRA_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
           python3 scripts/simulator/ios_care_journey.py --udid "$udid" --api http://127.0.0.1:8000 \
             --credentials "$RUNNER_TEMP/seed.json" --out build/ios-care-journey \
             --api-cmd "python3 scripts/demo/api.py"

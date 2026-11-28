@@ -2131,3 +2131,19 @@ never asked for the password; it now installs them, as the full server does. The
 saying how recently the administrator confirmed who they are was computed once at page load; it now
 counts on and says the next action will ask once the server's limit has passed. With both fixed,
 the four browser tests pass, including the two-person factory reset and the step-up prompt.
+
+## D-113 Erciyes is a held-out test set for the fall pipeline, never training data (requirement F4.f, 28 November 2026)
+
+**Decision.** The Erciyes "Simulated Falls and Daily Living Activities" set (UCI 455, CC BY 4.0,
+right wrist) is used only to test the shipped fall pipeline out of sample. Nothing is trained or
+tuned on it, so it stays a fair test for every later model.
+
+**What it showed** (`docs/ai/fall/ERCIYES_EVAL.md`): 87.6 % of 1,722 simulated falls caught, 3.1 %
+of 1,414 daily-activity recordings with an alarm. Rolling out of bed is caught 45 % of the time, and
+slow wall-assisted collapses 71 %; lying down on and getting up from a bed raise most false alarms.
+The confirmation stage would lose 98 caught falls: it stays off (D-110 holds).
+
+**Why.** BITS-2's catch rate is in-sample (the model was trained on all its subjects). This is the
+first licensed, commercially usable, wrist-worn set the shipped model never saw. The weak cases are
+recorded as known limits in the model card, not fixed by tuning to this set.
+

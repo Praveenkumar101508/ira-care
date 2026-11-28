@@ -4,6 +4,10 @@
 # Needs: pg_dump (PG* variables or a DSN in $BACKUP_DSN), openssl, $BACKUP_PASSPHRASE.
 # Keeps $BACKUP_KEEP_DAYS days (14). Prints the file written; never prints the passphrase.
 set -eu
+# Private to the service account: the dump is ciphertext, but its name, size and timing still say
+# something about the people in it, and the checksum file is written beside it. Without this the
+# files took the process umask (0644 on a stock host; found by the round 10 runbook drill, docs/evidence/ops/).
+umask 077
 # Refuse at once without openssl: a backup that cannot be encrypted must fail loudly, never write
 # nothing and look like it ran (deploy/Dockerfile.backup installs it at build time).
 command -v openssl >/dev/null 2>&1 || { echo "backup: openssl not found; nothing written" >&2; exit 1; }
@@ -11,6 +15,7 @@ command -v openssl >/dev/null 2>&1 || { echo "backup: openssl not found; nothing
 BACKUP_DIR="${BACKUP_DIR:-/backups}"
 KEEP="${BACKUP_KEEP_DAYS:-14}"
 mkdir -p "$BACKUP_DIR"
+chmod 700 "$BACKUP_DIR"
 stamp="$(date -u +%Y%m%dT%H%MZ)"
 out="$BACKUP_DIR/ira-care-$stamp.sql.gz.enc"
 tmp="$out.part"

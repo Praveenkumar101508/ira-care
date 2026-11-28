@@ -18,6 +18,8 @@ STALE_WORDS = "Cannot reach the care server. Alerts may be out of date."
 ALL_WELL_WORDS = "No open alerts."
 #: Home-screen test ids that only the family experience draws (mobile/src/model/experience.ts).
 FAMILY_ONLY_IDS = ("card-person", "card-updates", "card-watch", "home-care")
+#: Only the wearer is offered Talk to IRA (C-7.b): never the family member or the carer.
+WEARER_ONLY_IDS = ("home-talk",)
 #: What the carer's home screen must show.
 CARER_IDS = ("card-visits", "card-people", "card-handover")
 
@@ -171,6 +173,9 @@ def carer_home_problems(nodes: list[dict], family_words: tuple[str, ...] = ()) -
     for rid in FAMILY_ONLY_IDS:
         if find_id(nodes, rid) is not None:
             problems.append(f"family-only {rid} shown to the carer")
+    for rid in WEARER_ONLY_IDS:
+        if find_id(nodes, rid) is not None:
+            problems.append(f"wearer-only {rid} shown to the carer")
     for w in family_words:
         if has_text(nodes, w):
             problems.append(f"previous account's words shown: {w!r}")

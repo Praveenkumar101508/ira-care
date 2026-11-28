@@ -8,6 +8,9 @@
 * { box-sizing: border-box; }
 body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.45; }
 a { color: var(--notice-text); text-decoration: none; }
+/* A link inside text is underlined: colour alone does not tell it apart (WCAG 1.4.1; axe found it on the
+   home page's attention list, round 10). Navigation and tab pills keep their own look. */
+p a, li a, td a, dd a { text-decoration: underline; text-underline-offset: 2px; }
 header.top { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 10px 16px; background: var(--card); border-bottom: 1px solid var(--border); }
 header.top .who { margin-left: auto; font-size: 14px; }
 @media (max-width: 600px) { header.top .who { order: 3; flex-basis: 100%; margin-left: 0; } header.top nav a { margin-right: 10px; } }

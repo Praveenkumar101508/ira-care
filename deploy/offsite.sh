@@ -18,6 +18,8 @@
 # Requests are signed with AWS Signature V4 by curl (--aws-sigv4); the keys are handed to
 # curl on standard input, never on the command line where `ps` would show them.
 set -eu
+# Fetched copies are private to the service account, like the ones backup.sh writes.
+umask 077
 command -v curl >/dev/null 2>&1 || { echo "offsite: curl not found" >&2; exit 1; }
 : "${OFFSITE_S3_ENDPOINT:?set OFFSITE_S3_ENDPOINT}"
 : "${OFFSITE_S3_BUCKET:?set OFFSITE_S3_BUCKET}"
@@ -55,6 +57,7 @@ case "$cmd" in
     name="${2:?usage: offsite.sh fetch NAME DIR}"; dir="${3:?usage: offsite.sh fetch NAME DIR}"
     is_backup_name "$name" || { echo "offsite: $name is not a backup name" >&2; exit 3; }
     mkdir -p "$dir"
+    chmod 700 "$dir"
     s3 -o "$dir/$name" "$BASE/$name"
     s3 -o "$dir/$name.sha256" "$BASE/$name.sha256"
     # The checksum file names the path it was written with; check the content, not the path.

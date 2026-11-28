@@ -1,0 +1,497 @@
+{
+ "what": "the shipped fall pipeline, unchanged, on the Erciyes right-wrist recordings",
+ "data": {
+  "name": "Simulated Falls and Daily Living Activities (Erciyes, UCI 455)",
+  "licence": "CC BY 4.0 (UCI 455, doi:10.24432/C52028)",
+  "sensor": "right wrist, Xsens MTw 340537, 25 Hz, m/s²",
+  "fetched": "outside the repository"
+ },
+ "model": {
+  "tflite_sha256": "2cab7c9bcbf60de51d7c42f5690ad549bcbf4f13eb6266c35bf5d0a59b063278",
+  "runtime": "ai-edge-litert"
+ },
+ "limits": [
+  "out-of-sample: the shipped model never saw this dataset",
+  "simulated falls by young volunteers onto mats, not real falls of older people",
+  "a research IMU on the right wrist with its own axes, not the IRA watch",
+  "25 Hz resampled to 50 Hz by linear interpolation: impact peaks above 12.5 Hz content are not restored"
+ ],
+ "summary": {
+  "fall_recordings": 1722,
+  "falls_caught": 1509,
+  "sensitivity": 0.8763,
+  "adl_recordings": 1414,
+  "adl_recordings_with_an_alarm": 44,
+  "adl_alarm_rate": 0.0311,
+  "adl_hours": 7.819,
+  "confirmation_stage_off_in_the_product": {
+   "falls_caught_after": 1411,
+   "falls_it_would_lose": 98,
+   "lost": [
+    "102/905/Test_3",
+    "102/905/Test_4",
+    "102/905/Test_5",
+    "102/906/Test_2",
+    "102/906/Test_3",
+    "102/906/Test_5",
+    "102/914/Test_2",
+    "102/914/Test_5",
+    "102/916/Test_4",
+    "103/905/Test_2",
+    "103/905/Test_3",
+    "103/905/Test_4",
+    "103/905/Test_5",
+    "103/906/Test_1",
+    "103/906/Test_4",
+    "103/906/Test_5",
+    "104/905/Test_1",
+    "104/905/Test_2",
+    "104/905/Test_5",
+    "104/916/Test_1",
+    "104/916/Test_2",
+    "104/916/Test_3",
+    "104/916/Test_4",
+    "104/916/Test_5",
+    "105/905/Test_1",
+    "105/905/Test_2",
+    "105/905/Test_4",
+    "105/905/Test_5",
+    "105/906/Test_1",
+    "105/906/Test_2",
+    "105/906/Test_3",
+    "105/906/Test_4",
+    "105/914/Test_1",
+    "105/914/Test_2",
+    "105/914/Test_3",
+    "105/914/Test_4",
+    "105/916/Test_3",
+    "105/916/Test_4",
+    "105/916/Test_5",
+    "106/905/Test_2",
+    "106/906/Test_1",
+    "106/914/Test_2",
+    "108/905/Test_1",
+    "108/905/Test_2",
+    "108/905/Test_3",
+    "108/905/Test_5",
+    "108/905/Test_6",
+    "108/914/Test_1",
+    "108/914/Test_5",
+    "109/905/Test_2",
+    "109/905/Test_3",
+    "109/905/Test_4",
+    "109/905/Test_5",
+    "109/905/Test_6",
+    "109/906/Test_1",
+    "109/906/Test_2",
+    "109/906/Test_3",
+    "109/914/Test_1",
+    "109/916/Test_1",
+    "109/916/Test_4",
+    "109/916/Test_5",
+    "110/905/Test_2",
+    "110/905/Test_4",
+    "110/916/Test_3",
+    "110/916/Test_4",
+    "110/916/Test_6",
+    "203/905/Test_1",
+    "203/905/Test_2",
+    "203/905/Test_4",
+    "203/905/Test_5",
+    "203/914/Test_2",
+    "203/914/Test_3",
+    "203/914/Test_4",
+    "204/905/Test_1",
+    "204/905/Test_2",
+    "204/906/Test_2",
+    "204/914/Test_2",
+    "205/905/Test_1",
+    "205/905/Test_3",
+    "205/914/Test_3",
+    "205/914/Test_5",
+    "205/914/Test_6",
+    "205/916/Test_1",
+    "205/916/Test_3",
+    "205/916/Test_6",
+    "206/914/Test_1",
+    "207/906/Test_4",
+    "208/905/Test_2",
+    "208/905/Test_3",
+    "208/905/Test_5",
+    "208/914/Test_1",
+    "208/914/Test_2",
+    "208/914/Test_3",
+    "208/914/Test_4",
+    "208/914/Test_6",
+    "209/914/Test_3",
+    "209/914/Test_4",
+    "209/916/Test_4"
+   ],
+   "adl_alarms_after": 42,
+   "gate_no_caught_fall_lost": false
+  },
+  "unreadable_recordings": [
+   "107/804-ComelmeKalkma/Test_2Fail",
+   "108/804-ComelmeKalkma/Test_2Fail",
+   "109/901-OneDogruUzanma/Test_6"
+  ]
+ },
+ "per_activity": [
+  {
+   "code": 801,
+   "activity": "Yurume Ileri",
+   "fall": false,
+   "recordings": 93,
+   "raised": 0,
+   "confirmed": 0
+  },
+  {
+   "code": 802,
+   "activity": "YurumeGeri",
+   "fall": false,
+   "recordings": 92,
+   "raised": 0,
+   "confirmed": 0
+  },
+  {
+   "code": 803,
+   "activity": "TempoluYavasKosu",
+   "fall": false,
+   "recordings": 92,
+   "raised": 0,
+   "confirmed": 0
+  },
+  {
+   "code": 804,
+   "activity": "ComelmeKalkma",
+   "fall": false,
+   "recordings": 90,
+   "raised": 0,
+   "confirmed": 0
+  },
+  {
+   "code": 805,
+   "activity": "Egilme",
+   "fall": false,
+   "recordings": 91,
+   "raised": 0,
+   "confirmed": 0
+  },
+  {
+   "code": 806,
+   "activity": "EgilmeVeAlma",
+   "fall": false,
+   "recordings": 86,
+   "raised": 2,
+   "confirmed": 2
+  },
+  {
+   "code": 807,
+   "activity": "Topallama",
+   "fall": false,
+   "recordings": 86,
+   "raised": 0,
+   "confirmed": 0
+  },
+  {
+   "code": 808,
+   "activity": "Tokezleme",
+   "fall": false,
+   "recordings": 87,
+   "raised": 2,
+   "confirmed": 0
+  },
+  {
+   "code": 809,
+   "activity": "AyakBurkulmasi",
+   "fall": false,
+   "recordings": 86,
+   "raised": 3,
+   "confirmed": 3
+  },
+  {
+   "code": 810,
+   "activity": "Oksurme",
+   "fall": false,
+   "recordings": 87,
+   "raised": 0,
+   "confirmed": 0
+  },
+  {
+   "code": 811,
+   "activity": "Sandalye",
+   "fall": false,
+   "recordings": 87,
+   "raised": 0,
+   "confirmed": 0
+  },
+  {
+   "code": 812,
+   "activity": "Kanepe",
+   "fall": false,
+   "recordings": 88,
+   "raised": 0,
+   "confirmed": 0
+  },
+  {
+   "code": 813,
+   "activity": "HavayaOturma",
+   "fall": false,
+   "recordings": 87,
+   "raised": 0,
+   "confirmed": 0
+  },
+  {
+   "code": 814,
+   "activity": "YatagaOturma",
+   "fall": false,
+   "recordings": 87,
+   "raised": 0,
+   "confirmed": 0
+  },
+  {
+   "code": 815,
+   "activity": "YatagaUzanma",
+   "fall": false,
+   "recordings": 87,
+   "raised": 18,
+   "confirmed": 18
+  },
+  {
+   "code": 816,
+   "activity": "YataktanKalkma",
+   "fall": false,
+   "recordings": 88,
+   "raised": 19,
+   "confirmed": 19
+  },
+  {
+   "code": 901,
+   "activity": "OneDogruUzanma",
+   "fall": true,
+   "recordings": 84,
+   "raised": 84,
+   "confirmed": 84
+  },
+  {
+   "code": 902,
+   "activity": "OneDogruKorunarakDusme",
+   "fall": true,
+   "recordings": 89,
+   "raised": 89,
+   "confirmed": 89
+  },
+  {
+   "code": 903,
+   "activity": "OneDogruDizlerUzerine",
+   "fall": true,
+   "recordings": 85,
+   "raised": 62,
+   "confirmed": 62
+  },
+  {
+   "code": 904,
+   "activity": "OneDogruDizlerUzerineArdindanUzanma",
+   "fall": true,
+   "recordings": 88,
+   "raised": 81,
+   "confirmed": 81
+  },
+  {
+   "code": 905,
+   "activity": "OneCabukKalkma",
+   "fall": true,
+   "recordings": 85,
+   "raised": 79,
+   "confirmed": 41
+  },
+  {
+   "code": 906,
+   "activity": "OneYavasKalkma",
+   "fall": true,
+   "recordings": 84,
+   "raised": 81,
+   "confirmed": 65
+  },
+  {
+   "code": 907,
+   "activity": "OneDogruSagli",
+   "fall": true,
+   "recordings": 86,
+   "raised": 86,
+   "confirmed": 86
+  },
+  {
+   "code": 908,
+   "activity": "OneDogruSollu",
+   "fall": true,
+   "recordings": 85,
+   "raised": 85,
+   "confirmed": 85
+  },
+  {
+   "code": 909,
+   "activity": "GeriyeDogruOturma",
+   "fall": true,
+   "recordings": 85,
+   "raised": 65,
+   "confirmed": 65
+  },
+  {
+   "code": 910,
+   "activity": "GeriyeDogruUzanma",
+   "fall": true,
+   "recordings": 87,
+   "raised": 80,
+   "confirmed": 80
+  },
+  {
+   "code": 911,
+   "activity": "GeriyeDogruSagli",
+   "fall": true,
+   "recordings": 87,
+   "raised": 81,
+   "confirmed": 81
+  },
+  {
+   "code": 912,
+   "activity": "GeriyeDogruSollu",
+   "fall": true,
+   "recordings": 86,
+   "raised": 83,
+   "confirmed": 83
+  },
+  {
+   "code": 913,
+   "activity": "YanaSagli",
+   "fall": true,
+   "recordings": 86,
+   "raised": 82,
+   "confirmed": 82
+  },
+  {
+   "code": 914,
+   "activity": "YanaSagliCabukKalkma",
+   "fall": true,
+   "recordings": 85,
+   "raised": 76,
+   "confirmed": 51
+  },
+  {
+   "code": 915,
+   "activity": "YanaSollu",
+   "fall": true,
+   "recordings": 86,
+   "raised": 78,
+   "confirmed": 78
+  },
+  {
+   "code": 916,
+   "activity": "YanaSolluCabukKalkma",
+   "fall": true,
+   "recordings": 86,
+   "raised": 51,
+   "confirmed": 32
+  },
+  {
+   "code": 917,
+   "activity": "YataktanDusme",
+   "fall": true,
+   "recordings": 89,
+   "raised": 40,
+   "confirmed": 40
+  },
+  {
+   "code": 918,
+   "activity": "Podyum",
+   "fall": true,
+   "recordings": 86,
+   "raised": 85,
+   "confirmed": 85
+  },
+  {
+   "code": 919,
+   "activity": "Bayilma",
+   "fall": true,
+   "recordings": 87,
+   "raised": 80,
+   "confirmed": 80
+  },
+  {
+   "code": 920,
+   "activity": "BayilmaDuvar",
+   "fall": true,
+   "recordings": 86,
+   "raised": 61,
+   "confirmed": 61
+  }
+ ],
+ "per_subject_falls": {
+  "101": {
+   "falls": 100,
+   "caught": 84
+  },
+  "102": {
+   "falls": 101,
+   "caught": 99
+  },
+  "103": {
+   "falls": 101,
+   "caught": 97
+  },
+  "104": {
+   "falls": 101,
+   "caught": 98
+  },
+  "105": {
+   "falls": 100,
+   "caught": 93
+  },
+  "106": {
+   "falls": 101,
+   "caught": 87
+  },
+  "108": {
+   "falls": 119,
+   "caught": 83
+  },
+  "109": {
+   "falls": 119,
+   "caught": 110
+  },
+  "110": {
+   "falls": 121,
+   "caught": 107
+  },
+  "203": {
+   "falls": 101,
+   "caught": 82
+  },
+  "204": {
+   "falls": 101,
+   "caught": 83
+  },
+  "205": {
+   "falls": 116,
+   "caught": 112
+  },
+  "206": {
+   "falls": 100,
+   "caught": 86
+  },
+  "207": {
+   "falls": 101,
+   "caught": 74
+  },
+  "208": {
+   "falls": 118,
+   "caught": 102
+  },
+  "209": {
+   "falls": 122,
+   "caught": 112
+  }
+ },
+ "machine": "x86_64, Linux 6.18.44-fc-v880",
+ "seconds_to_run": 7.8
+}

@@ -9,21 +9,54 @@ browser with two fixes (D-112), and the authenticated iOS journey (its first run
 evaluation, datasets, Docker, AOSP or the soak (too little storage). Everything below runs on
 GitHub's free runners, the build machine, or a remote server.
 
+## Mandatory: done (carried from pull request 132)
+
+**Closed on 28 November 2026:** the iOS authenticated journey passed **16 of 16** on run 46106258647
+(pull request 133, every check green). Record: `docs/evidence/builds/IOS_SIMULATOR.md`.
+
+The history of the fix:
+
+Pull request 132 was merged on 28 November 2026 with **one check failing**: the iOS simulator job's
+authenticated care journey (`.github/workflows/ios-simulator.yml`, `scripts/simulator/ios_care_journey.py`).
+`main` shows that red check, and every pull request that touches the phone or watch apps will fail
+the same job, until this is fixed. It must not be released, marked verified or reported as passing
+before then.
+
+| Run | Where it stopped | Fix |
+|---|---|---|
+| 46083831505 | 12 of 16 steps; the sign-in was lost at the restart | signed to run locally (in `main`) |
+| 46090062926 | sign-in: iOS autocorrect changed the username | no autocorrect on account fields (pull request 133) |
+| 46093555159 | sign-in: iOS's "Save Password?" sheet covered the app | answer it "Not Now" (pull request 133) |
+| 46100618011 | 10 of 14: sign-in, record, plan, Help acknowledged, appearance across a restart, offline notice all passed; then the care server's restart signed the app out (a new random secret at each start of the test server), and iOS's "Save Password?" sheet covered the wearer's and carer's sign-ins | one secret for the whole journey; the sheet answered before and after every sign-in (on pull request 133) |
+
+Done means: the native-checks run on `main` (or on the follow-up pull request) green, the iOS journey
+16 of 16, and D2.h's journey recorded in `docs/evidence/builds/IOS_SIMULATOR.md`.
+
+Each outside need, with exactly what to ask for and what it unblocks: `docs/progress/RESOURCE_REQUESTS.md`.
+
 Owner actions, in order of use:
 
-1. **Merge pull request 132** once its checks are green.
-2. **A Linux server for the 24-hour soak (G2.e)**, from a sponsor or a university (Essex research
+1. **Pull request 132 is merged** (28 November); its iOS journey now passes on pull request 133 (see above). Merge 133.
+   The follow-up pull request carries the two fixes and this round's verification work.
+2. **After the merge, three manual workflows** (Actions, the workflow, "Run workflow" on `main`;
+   each needs the file on the default branch first):
+   - `deployment guide (manual)`: follows `docs/DEPLOY.md` sections 2 to 7 on a free runner (G4.a);
+   - `wall-clock soak (manual)`: 5.5 hours of the server under load (G2.e's interim);
+   - `dataset provenance (manual)`: fetches UMAFall version 8 and checks it against both official
+     records (F1.g).
+   (C-7.b moved to verified on phone emulator run 46100618011.)
+3. **A Linux server for the 24-hour soak (G2.e)**, from a sponsor or a university (Essex research
    computing has been asked), or registered as a GitHub self-hosted runner (jobs up to 5 days).
    Meanwhile the `wall-clock soak (manual)` workflow runs 5.5 hours on a free runner: Actions,
    "wall-clock soak (manual)", "Run workflow" (`docs/evidence/soak/HOW_TO_RUN_24H.md`).
-3. **The AOSP build host** (E2.h onwards): about 64 GB of memory, 400 GB of disk, x86-64 and KVM
+4. **The AOSP build host** (E2.h onwards): about 64 GB of memory, 400 GB of disk, x86-64 and KVM
    (`docs/os/BUILD.md`).
-4. **Common Voice:** decide whether to accept the Mozilla Data Collective's terms. Common Voice 27.0
+5. **Common Voice:** decide whether to accept the Mozilla Data Collective's terms. Common Voice 27.0
    English is CC0; with an account, only the older-speaker subset is fetched, on a remote machine
    (`docs/ai/speech/OLDER_ADULT_EVAL_PLAN.md`).
-5. **Dataset replies:** KFall, SisFall, FallAllD and WEDA-FALL (`docs/legal/`). SisFall stays
+6. **Dataset replies:** KFall, SisFall, FallAllD and WEDA-FALL (`docs/legal/`). SisFall stays
    excluded until its authors reply; UMAFall version 8 is CC BY 4.0 on two official records.
-6. **Devices, keys, reviewers and accounts:** unchanged from `READINESS.md`.
+7. **Devices, keys, reviewers and accounts:** unchanged from `READINESS.md`.
 
 To continue in a new session: read `STATUS.md`, this file, `docs/BUILD_RULES.md` and
 `docs/DECISIONS.md`, then carry on with the same rules.

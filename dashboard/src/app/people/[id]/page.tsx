@@ -483,9 +483,9 @@ function AddRoutine({ onAdd }: { onAdd: (b: { name: string; kind: string; time_o
   const [name, setName] = useState(''); const [kind, setKind] = useState('meal'); const [time, setTime] = useState('12:30');
   return (
     <form className="row" style={{ marginTop: 10 }} onSubmit={(e) => { e.preventDefault(); void onAdd({ name, kind, time_of_day: time || null }); setName(''); }}>
-      <input placeholder="Routine name" value={name} onChange={(e) => setName(e.target.value)} required />
-      <select value={kind} onChange={(e) => setKind(e.target.value)}>{['meal', 'medication', 'activity', 'sleep', 'social', 'other'].map((k) => <option key={k}>{k}</option>)}</select>
-      <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+      <input placeholder="Routine name" aria-label="Routine name" value={name} onChange={(e) => setName(e.target.value)} required />
+      <select aria-label="Kind of routine" value={kind} onChange={(e) => setKind(e.target.value)}>{['meal', 'medication', 'activity', 'sleep', 'social', 'other'].map((k) => <option key={k}>{k}</option>)}</select>
+      <input type="time" aria-label="Time of day" value={time} onChange={(e) => setTime(e.target.value)} />
       <button type="submit">Add routine</button>
     </form>
   );
@@ -508,10 +508,10 @@ function AddMember({ onAdd }: { onAdd: (b: { display_name: string; role: string;
   const tier = role === 'care_organisation' ? 2 : 1;
   return (
     <form className="row" style={{ marginTop: 10 }} onSubmit={(e) => { e.preventDefault(); void onAdd({ display_name: name, role, tier, phone, relationship: rel }); setName(''); setPhone(''); }}>
-      <input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} required />
-      <input placeholder="Relationship" value={rel} onChange={(e) => setRel(e.target.value)} />
-      <select value={role} onChange={(e) => setRole(e.target.value)}>{['family', 'carer', 'clinician', 'care_organisation'].map((k) => <option key={k} value={k}>{k.replace('_', ' ')}</option>)}</select>
-      <input placeholder="+44..." value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <input placeholder="Name" aria-label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
+      <input placeholder="Relationship" aria-label="Relationship" value={rel} onChange={(e) => setRel(e.target.value)} />
+      <select aria-label="Role in the circle" value={role} onChange={(e) => setRole(e.target.value)}>{['family', 'carer', 'clinician', 'care_organisation'].map((k) => <option key={k} value={k}>{k.replace('_', ' ')}</option>)}</select>
+      <input placeholder="+44..." aria-label="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} />
       <button type="submit">Add to circle ({tier === 1 ? 'called first' : tier === 2 ? 'called second' : 'called last'})</button>
     </form>
   );
@@ -568,11 +568,11 @@ function InviteForm({ onInvite }: { onInvite: (b: { email: string; display_name:
     }}>
       <strong>Invite by link</strong>
       <div className="row" style={{ gap: 8, marginTop: 6 }}>
-        <input placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: 220 }} data-testid="invite-email" />
-        <input placeholder="name" value={name} onChange={(e) => setName(e.target.value)} style={{ width: 140 }} />
-        <input placeholder="relationship" value={rel} onChange={(e) => setRel(e.target.value)} style={{ width: 120 }} />
-        <select value={role} onChange={(e) => setRole(e.target.value)}><option value="family">family</option><option value="carer">carer</option><option value="clinician">clinician</option><option value="care_organisation">care organisation</option></select>
-        <input placeholder="+44…" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ width: 130 }} />
+        <input placeholder="email" aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: 220 }} data-testid="invite-email" />
+        <input placeholder="name" aria-label="Name" value={name} onChange={(e) => setName(e.target.value)} style={{ width: 140 }} />
+        <input placeholder="relationship" aria-label="Relationship" value={rel} onChange={(e) => setRel(e.target.value)} style={{ width: 120 }} />
+        <select aria-label="Role in the circle" value={role} onChange={(e) => setRole(e.target.value)}><option value="family">family</option><option value="carer">carer</option><option value="clinician">clinician</option><option value="care_organisation">care organisation</option></select>
+        <input placeholder="+44…" aria-label="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ width: 130 }} />
       </div>
       <div style={{ marginTop: 8 }}>
         <span className="muted">Consent given now, for this person&apos;s role:</span>
@@ -590,14 +590,14 @@ function InviteForm({ onInvite }: { onInvite: (b: { email: string; display_name:
 function SettingsForm({ settings, manage, onSave }: { settings: SafetySettings; manage: boolean; onSave: (s: SafetySettings) => Promise<void> }) {
   const [s, setS] = useState<SafetySettings>(settings);
   const num = (k: keyof SafetySettings, nullable = false) => (
-    <input type="number" value={(s[k] as number | null) ?? ''} disabled={!manage}
+    <input type="number" aria-label={String(k).replace(/_/g, ' ')} value={(s[k] as number | null) ?? ''} disabled={!manage}
       onChange={(e) => setS({ ...s, [k]: e.target.value === '' ? (nullable ? null : 0) : Number(e.target.value) })} style={{ width: 90 }} />
   );
   return (
     <form className="card" onSubmit={(e) => { e.preventDefault(); void onSave(s); }}>
       <p className="muted">Set per person by a carer or clinician. An empty heart-rate bound means no heart-rate rule; there is no built-in range.</p>
       <table><tbody>
-        <tr><td>Quiet hours</td><td><input type="time" value={s.quiet_start.slice(0, 5)} disabled={!manage} onChange={(e) => setS({ ...s, quiet_start: e.target.value })} /> to <input type="time" value={s.quiet_end.slice(0, 5)} disabled={!manage} onChange={(e) => setS({ ...s, quiet_end: e.target.value })} /></td></tr>
+        <tr><td>Quiet hours</td><td><input type="time" aria-label="Quiet hours start" value={s.quiet_start.slice(0, 5)} disabled={!manage} onChange={(e) => setS({ ...s, quiet_start: e.target.value })} /> to <input type="time" aria-label="Quiet hours end" value={s.quiet_end.slice(0, 5)} disabled={!manage} onChange={(e) => setS({ ...s, quiet_end: e.target.value })} /></td></tr>
         <tr><td>Check-in every (minutes)</td><td>{num('checkin_min_minutes')} to {num('checkin_max_minutes')}</td></tr>
         <tr><td>Repeat after (s) / check sensors after (s)</td><td>{num('repeat_after_s')} / {num('sensor_check_after_s')}</td></tr>
         <tr><td>Heart rate range (bpm)</td><td>{num('heart_rate_min', true)} to {num('heart_rate_max', true)}</td></tr>
@@ -614,7 +614,7 @@ function SettingsForm({ settings, manage, onSave }: { settings: SafetySettings; 
         <tr><td>Fall thresholds: impact (g) / still for (s) / movement above (g)</td><td>{num('fall_impact_g')} / {num('fall_still_seconds')} / {num('fall_still_threshold_g')}<span className="muted"> · settings, not medical claims; accuracy on real devices is unmeasured</span></td></tr>
         <tr><td>A planned visit counts as late with no arrival after (min)</td><td>{num('visit_late_minutes')}<span className="muted"> · a notice to the coordinator and an extra check-in; missed at the window&apos;s end is an alert</span></td></tr>
         <tr><td>Hydration prompt every (min; 0 = off)</td><td>{num('hydration_every_minutes')}<span className="muted"> · in waking hours, as a reminder the watch asks</span></td></tr>
-        <tr><td>Usual wake time / morning check after (min)</td><td><input type="time" value={s.usual_wake_time.slice(0, 5)} disabled={!manage} onChange={(e) => setS({ ...s, usual_wake_time: e.target.value })} /> / {num('wake_grace_minutes')}</td></tr>
+        <tr><td>Usual wake time / morning check after (min)</td><td><input type="time" aria-label="Usual wake time" value={s.usual_wake_time.slice(0, 5)} disabled={!manage} onChange={(e) => setS({ ...s, usual_wake_time: e.target.value })} /> / {num('wake_grace_minutes')}</td></tr>
       </tbody></table>
       {manage ? <button type="submit">Save settings</button> : <p className="muted">Only an administrator may change these.</p>}
     </form>
@@ -680,15 +680,15 @@ function ProfileForm({ profile, circle, onSave, busy }: { profile: Communication
       <strong>How IRA speaks to this person</strong>
       <p className="muted">Set by the person or their representative{profile.updated_by_role ? ` (last changed by the ${profile.updated_by_role})` : ''}. Applied on the watch and the phone.</p>
       <table><tbody>
-        <tr><td>Pace</td><td><select value={p.pace} onChange={(e) => setP({ ...p, pace: e.target.value as CommunicationProfile['pace'] })}>{(Object.keys(PROFILE_WORDS.pace) as CommunicationProfile['pace'][]).map((k) => <option key={k} value={k}>{PROFILE_WORDS.pace[k]}</option>)}</select></td></tr>
-        <tr><td>Prompting</td><td><select value={p.prompting_level} onChange={(e) => setP({ ...p, prompting_level: e.target.value as CommunicationProfile['prompting_level'] })}>{(Object.keys(PROFILE_WORDS.prompting_level) as CommunicationProfile['prompting_level'][]).map((k) => <option key={k} value={k}>{PROFILE_WORDS.prompting_level[k]}</option>)}</select></td></tr>
+        <tr><td>Pace</td><td><select aria-label="Pace" value={p.pace} onChange={(e) => setP({ ...p, pace: e.target.value as CommunicationProfile['pace'] })}>{(Object.keys(PROFILE_WORDS.pace) as CommunicationProfile['pace'][]).map((k) => <option key={k} value={k}>{PROFILE_WORDS.pace[k]}</option>)}</select></td></tr>
+        <tr><td>Prompting</td><td><select aria-label="Prompting" value={p.prompting_level} onChange={(e) => setP({ ...p, prompting_level: e.target.value as CommunicationProfile['prompting_level'] })}>{(Object.keys(PROFILE_WORDS.prompting_level) as CommunicationProfile['prompting_level'][]).map((k) => <option key={k} value={k}>{PROFILE_WORDS.prompting_level[k]}</option>)}</select></td></tr>
         <tr><td>Channels</td><td>
           <label><input type="checkbox" checked={p.voice_on} onChange={(e) => setP({ ...p, voice_on: e.target.checked })} /> voice</label>{' '}
           <label><input type="checkbox" checked={p.touch_on} onChange={(e) => setP({ ...p, touch_on: e.target.checked })} /> touch</label>{' '}
           <label><input type="checkbox" checked={p.vibration_on} onChange={(e) => setP({ ...p, vibration_on: e.target.checked })} /> vibration</label>
           <span className="muted"> · a safety question is always spoken</span>
         </td></tr>
-        <tr><td>When a worry repeats, offer</td><td><select value={p.redirect_member_id ?? ''} onChange={(e) => setP({ ...p, redirect_member_id: e.target.value || null })}><option value="">the carer</option>{circle.map((m) => <option key={m.id} value={m.id}>{m.display_name}</option>)}</select></td></tr>
+        <tr><td>When a worry repeats, offer</td><td><select aria-label="When a worry repeats, offer" value={p.redirect_member_id ?? ''} onChange={(e) => setP({ ...p, redirect_member_id: e.target.value || null })}><option value="">the carer</option>{circle.map((m) => <option key={m.id} value={m.id}>{m.display_name}</option>)}</select></td></tr>
         <tr><td>Familiar topics</td><td><input value={p.familiar_topics.join(', ')} disabled={!consented} onChange={(e) => setP({ ...p, familiar_topics: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) })} placeholder={consented ? 'the garden, the grandchildren' : 'needs the topics consent'} /></td></tr>
         <tr><td>Topics to avoid</td><td><input value={p.topics_avoid.join(', ')} disabled={!consented} onChange={(e) => setP({ ...p, topics_avoid: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) })} placeholder={consented ? 'the accident' : 'needs the topics consent'} /></td></tr>
       </tbody></table>

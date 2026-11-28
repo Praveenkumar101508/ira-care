@@ -39,13 +39,13 @@ export function LoginScreen({ defaultBaseUrl, onLoggedIn, onJoin, notice = '' }:
       <Card>
         {notice ? <Text style={styles.error} accessibilityRole="alert" testID="signed-out-notice">{notice}</Text> : null}
         <Muted>Sign in with the account your care circle gave you.</Muted>
-        <TextInput style={styles.input} placeholder="Username" accessibilityLabel="Username" autoCapitalize="none" value={username} onChangeText={setUsername} testID="username" />
-        <TextInput style={styles.input} placeholder="Password" accessibilityLabel="Password" secureTextEntry value={password} onChangeText={setPassword} testID="password" />
+        <TextInput style={styles.input} placeholder="Username" accessibilityLabel="Username" autoCapitalize="none" autoCorrect={false} spellCheck={false} autoComplete="username" textContentType="username" keyboardType="email-address" value={username} onChangeText={setUsername} testID="username" />
+        <TextInput style={styles.input} placeholder="Password" accessibilityLabel="Password" secureTextEntry autoCorrect={false} autoComplete="password" textContentType="password" value={password} onChangeText={setPassword} testID="password" />
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <BigButton label={busy ? 'Signing in…' : 'Sign in'} onPress={submit} disabled={busy || !username || !password} testID="sign-in" />
         {onJoin ? <BigButton label="I have an invitation link" color={colors.muted} onPress={onJoin} testID="open-join" /> : null}
         <Text onPress={() => setAdvanced((v) => !v)} accessibilityRole="button" accessibilityLabel="Advanced" style={{ color: colors.muted, marginTop: 12 }} testID="advanced">Advanced</Text>
-        {advanced ? <TextInput style={styles.input} placeholder="Care server" accessibilityLabel="Care server" autoCapitalize="none" value={baseUrl} onChangeText={setBaseUrl} testID="server" /> : null}
+        {advanced ? <TextInput style={styles.input} placeholder="Care server" accessibilityLabel="Care server" autoCapitalize="none" autoCorrect={false} spellCheck={false} keyboardType="url" value={baseUrl} onChangeText={setBaseUrl} testID="server" /> : null}
       </Card>
       <View style={{ height: 8 }} />
       <Muted>Family see alerts and summaries. Conversations stay private unless the person agrees.</Muted>

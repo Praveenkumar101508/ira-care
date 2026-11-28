@@ -1,0 +1,47 @@
+{
+ "run_at": "2026-11-28T02:36:48.015Z",
+ "expected": 4,
+ "unexpected": 0,
+ "tests": [
+  {
+   "title": "the phone never shows a silent or unknown watch as worn",
+   "status": "passed",
+   "duration_ms": 62975
+  },
+  {
+   "title": "a visit and a reminder set by the care team reach the wearer, and Done is recorded",
+   "status": "passed",
+   "duration_ms": 5250
+  },
+  {
+   "title": "the appearance chosen on one phone is the one the same person sees on another",
+   "status": "passed",
+   "duration_ms": 11692
+  },
+  {
+   "title": "the phone build under test is the one served at FAMILY_URL",
+   "status": "passed",
+   "duration_ms": 12
+  }
+ ],
+ "before_the_fix": {
+  "C-11.b": "unit test with the stale case fails on the old deviceSummary (1 failed, 8 passed); the phone said 'on the wrist' for a watch silent three hours"
+ },
+ "stack": {
+  "api": "scripts/demo/api.py on localhost:8000, PostgreSQL 16 with pgvector, Redis 7",
+  "phone": "mobile/ built with npx expo export --platform web, served on localhost:8081",
+  "browser": "Chromium (Playwright 1.63.0), headless; a separate browser profile per device",
+  "data": "scripts/demo/seed_demo.py fictional people"
+ },
+ "session_renewal": {
+  "run_at": "2026-11-28T02:45Z",
+  "how": "care API restarted with ACCESS_TOKEN_EXPIRE_MINUTES=1; run alone with E2E_ACCESS_TOKEN_SECONDS=60 (list reporter)",
+  "tests": [
+   {
+    "title": "the phone renews an expired sign-in instead of signing the family member out",
+    "status": "passed",
+    "duration": "2.3m"
+   }
+  ]
+ }
+}

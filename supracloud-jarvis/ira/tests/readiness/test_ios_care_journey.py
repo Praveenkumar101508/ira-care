@@ -74,6 +74,37 @@ def test_flows_are_valid_yaml_with_the_app_id_and_quoted_text(j):
     assert up[0]["scrollUntilVisible"]["direction"] == "UP" and up[1] == {"tapOn": {"id": "sign-in"}}
 
 
+def test_a_system_sheet_is_answered_only_when_it_is_there(j):
+    # iOS's "Save Password?" sheet covered the app after sign-in (run 46093555159).
+    cmds = yaml.safe_load(j.flow([{"dismiss_text": "Not Now"}]).split("---\n")[1])
+    assert cmds == [{"tapOn": {"text": "Not Now", "optional": True}}]
+
+
+def test_the_password_sheet_is_answered_until_it_is_gone_and_never_when_absent(j, monkeypatch):
+    monkeypatch.setattr(j.time, "sleep", lambda s: None)
+    sheet = [{"text": "Save Password?", "content-desc": "", "resource-id": ""}, {"text": "Not Now", "content-desc": "", "resource-id": ""}]
+    home = [{"text": "Home", "content-desc": "", "resource-id": "tab-home"}]
+
+    def journey(screens):
+        jr = object.__new__(j.Journey)
+        jr.ran = []
+        jr.nodes = lambda: screens.pop(0) if screens else home
+        jr.run = lambda steps: jr.ran.append(steps) or True
+        return jr
+
+    jr = journey([sheet, home])   # up when read, gone after one "Not Now"
+    assert jr.answer_password_sheet() == home and jr.ran == [[{"dismiss_text": "Not Now"}]]
+    jr = journey([sheet, sheet, sheet, sheet])   # never goes: three tries, then the screen is returned as it is
+    assert jr.answer_password_sheet() == sheet and len(jr.ran) == 3
+    jr = journey([home])   # no sheet: nothing tapped
+    assert jr.answer_password_sheet() == home and jr.ran == []
+
+
+def test_typing_one_keystroke_at_a_time_types_every_character(j):
+    cmds = yaml.safe_load(j.flow([{"type": ["username", "ab@c"], "slow": True}]).split("---\n")[1])
+    assert [c["inputText"] for c in cmds if "inputText" in c] == ["a", "b", "@", "c"]
+
+
 def test_an_unknown_step_is_refused(j):
     with pytest.raises(ValueError):
         j.flow([{"swipe": "left"}])

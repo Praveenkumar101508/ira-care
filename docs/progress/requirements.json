@@ -208,7 +208,7 @@
    "title": "Care provider and care exception logs carry no name, address or reading (A5)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -217,6 +217,10 @@
     {
      "kind": "unit_test",
      "ref": "#44"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_logs_no_personal_data_db.py"
     }
    ]
   },
@@ -226,7 +230,7 @@
    "title": "Exception text kept out of logs across the whole backend, with a static checker (A5b)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -235,6 +239,10 @@
     {
      "kind": "unit_test",
      "ref": "#55"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_log_exception_text_db.py"
     }
    ]
   },
@@ -262,11 +270,15 @@
    "title": "The phone app offers Talk only to the wearer (isWearerOf)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/experience.test.ts"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md"
     }
    ]
   },
@@ -422,7 +434,7 @@
    "title": "Dashboard shows unknown and stale wrist status as unknown, never as worn (B2)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -431,6 +443,14 @@
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/person_live.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },
@@ -440,11 +460,19 @@
    "title": "Phone app shows unknown and stale wrist status as unknown (B2)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/model.test.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/phone_verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_PHONE_WEB.md"
     }
    ]
   },
@@ -592,7 +620,7 @@
    "title": "Phone renews an expired session with the refresh token instead of signing out (C4)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -601,6 +629,14 @@
     {
      "kind": "unit_test",
      "ref": "#47"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/phone_verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_PHONE_WEB.md"
     }
    ]
   },
@@ -610,7 +646,7 @@
    "title": "Dashboard renews an expired session instead of signing the carer out (C4b)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -619,6 +655,14 @@
     {
      "kind": "unit_test",
      "ref": "#52"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },
@@ -908,11 +952,19 @@
    "title": "Automated accessibility checks on the dashboard",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/accessibility.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },
@@ -954,7 +1006,7 @@
    "title": "Dark-mode and high-contrast colour pairs measured against contrast thresholds (C5)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -963,6 +1015,14 @@
     {
      "kind": "unit_test",
      "ref": "#54"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },
@@ -1262,7 +1322,7 @@
    "title": "Phone app: wearer, family and carer experiences from one app",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -1271,6 +1331,10 @@
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/shell.test.tsx"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md"
     }
    ]
   },
@@ -1280,11 +1344,19 @@
    "title": "Phone app: the person's own appearance on every device",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/appearance.test.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/phone_verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_PHONE_WEB.md"
     }
    ]
   },
@@ -1294,7 +1366,7 @@
    "title": "Phone app: reminders",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -1303,6 +1375,14 @@
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/person_plan.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/phone_verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_PHONE_WEB.md"
     }
    ]
   },
@@ -1312,11 +1392,19 @@
    "title": "Phone app: scheduled visits",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/visits.test.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/phone_verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_PHONE_WEB.md"
     }
    ]
   },
@@ -1719,11 +1807,19 @@
    "title": "Not-available measurements are refused and never shown with a value",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/not_measured.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },
@@ -2923,6 +3019,14 @@
     {
      "kind": "docs_only",
      "ref": "docs/ai/fall/CROSS_DATASET_WEDA.md"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/fall/erciyes_eval.json"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/fall/ERCIYES_EVAL.md"
     }
    ]
   },
@@ -3344,7 +3448,7 @@
    "title": "Activity trend panel on the person's health tab, labelled as an estimate",
    "area": "ai",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -3353,6 +3457,14 @@
     {
      "kind": "build",
      "ref": "dashboard/src/components/ActivityTrend.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },
@@ -3560,7 +3672,7 @@
    "title": "Backup files are private",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -3569,6 +3681,14 @@
     {
      "kind": "config_check",
      "ref": "deploy/backup.sh"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_deploy_backup_private_db.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "docs/evidence/ops/drills_round10.json"
     }
    ]
   },
@@ -3596,11 +3716,19 @@
    "title": "Monitoring heartbeat: the dashboard says when monitoring has paused",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/topbar.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },
@@ -3610,10 +3738,10 @@
    "title": "Behaviour under concurrency: ceilings hold, saturated pools shed load",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
-     "kind": "unit_test",
+     "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/readiness/test_behaviour_under_load.py"
     }
    ]
@@ -3876,7 +4004,7 @@
    "title": "Operations runbooks (incident, restore, key rotation)",
    "area": "software",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "docs_only",
@@ -3889,6 +4017,18 @@
     {
      "kind": "docs_only",
      "ref": "docs/evidence/ops/DRILLS_ROUND9.md"
+    },
+    {
+     "kind": "db_test",
+     "ref": "docs/evidence/ops/drills_round10.json"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/ops/DRILLS_ROUND10.md"
+    },
+    {
+     "kind": "config_check",
+     "ref": "scripts/ops/runbook_drills.py"
     }
    ]
   },
@@ -4350,7 +4490,7 @@
    "title": "Demo, presenter and simulator pages refused in production builds (B6)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -4359,6 +4499,14 @@
     {
      "kind": "unit_test",
      "ref": "#67"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },

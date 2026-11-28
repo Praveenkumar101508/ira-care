@@ -8,7 +8,7 @@ compared the licence it found with the register. The machine-readable record is
 `LICENCE_SOURCE_CHECK.json`; `supracloud-jarvis/ira/tests/readiness/test_licence_source_check.py`
 fails if the record stops covering the list or ever records a disagreement.
 
-**Result: 44 sources agree with the register, 0 differ, 6 could not be reached.**
+**Result: 45 sources agree with the register, 0 differ, 6 could not be reached** (re-read on 28 November 2026, with the Erciyes row added).
 
 | Register | Row | Source read | Register says | Source says | Result |
 |---|---|---|---|---|---|
@@ -33,6 +33,7 @@ fails if the record stops covering the list or ever records a disagreement.
 | DATASETS.md | LibriSpeech test-clean | <https://huggingface.co/api/datasets/openslr/librispeech_asr> | cc-by-4.0 | cc-by-4.0 | agrees |
 | DATASETS.md | LibriSpeech test-clean | <https://www.openslr.org/12> | cc-by-4.0 | — | unreachable |
 | DATASETS.md | Mozilla Common Voice | <https://datacollective.mozillafoundation.org> | cc0-1.0 | — | unreachable |
+| DATASETS.md | Simulated Falls and Daily Living Activities (Erciyes) | <https://archive.ics.uci.edu/dataset/455/simulated+falls+and+daily+living+activities+data+set> | cc-by-4.0 | cc-by-4.0 | agrees |
 | MODEL_WEIGHTS.md | gemma4:e4b | <https://huggingface.co/api/models/google/gemma-4-E4B-it> | apache-2.0 | apache-2.0 | agrees |
 | MODEL_WEIGHTS.md | gemma4:e2b | <https://huggingface.co/api/models/google/gemma-4-E2B-it> | apache-2.0 | apache-2.0 | agrees |
 | MODEL_WEIGHTS.md | gemma4:12b | <https://huggingface.co/api/models/google/gemma-4-12B-it> | apache-2.0 | apache-2.0 | agrees |

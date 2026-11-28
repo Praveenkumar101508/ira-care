@@ -110,6 +110,8 @@ def test_the_carers_home_has_the_carers_cards_and_nothing_of_the_family_experien
     assert "family-only card-person shown to the carer" in problems
     assert "previous account's words shown: 'Sravani Perni'" in problems
     assert kit.carer_home_problems(carer[1:]) == ["no 'Today' title"]
+    # Talk to IRA is the wearer's alone (C-7.b).
+    assert kit.carer_home_problems(carer + [node(rid="home-talk")]) == ["wearer-only home-talk shown to the carer"]
 
 
 def test_after_sign_out_nothing_of_the_account_may_remain(kit):
