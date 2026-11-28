@@ -369,6 +369,14 @@
    "kind": "huggingface",
    "url": "https://huggingface.co/api/models/Qwen/Qwen2.5-Coder-14B-Instruct",
    "expected": "apache-2.0"
+  },
+  {
+   "register": "DATASETS.md",
+   "row": "Simulated Falls and Daily Living Activities (Erciyes)",
+   "kind": "text",
+   "url": "https://archive.ics.uci.edu/dataset/455/simulated+falls+and+daily+living+activities+data+set",
+   "pattern": "Creative Commons Attribution 4\\.0 International|CC BY 4\\.0",
+   "expected": "cc-by-4.0"
   }
  ]
 }

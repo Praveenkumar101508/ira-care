@@ -3015,6 +3015,14 @@
     {
      "kind": "docs_only",
      "ref": "docs/ai/fall/CROSS_DATASET_WEDA.md"
+    },
+    {
+     "kind": "model_eval",
+     "ref": "docs/ai/fall/erciyes_eval.json"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/ai/fall/ERCIYES_EVAL.md"
     }
    ]
   },

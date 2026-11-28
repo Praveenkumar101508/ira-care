@@ -79,6 +79,15 @@ TFLite agrees with Keras on 200 of 200 windows.
 - Latency on a watch CPU is unmeasured (one TFLite invoke takes about 0.011 ms on the x86 build
   machine, `cross_dataset_weda.json`).
 
+## Out-of-sample: Erciyes, right wrist (28 November 2026)
+
+On a licensed set the model never saw (Erciyes, UCI 455, CC BY 4.0; `ERCIYES_EVAL.md`, D-113), the
+shipped pipeline, unchanged, caught **1,509 of 1,722 simulated falls (87.6 %)** with an alarm on
+44 of 1,414 daily-activity recordings (3.1 %). **Known weak cases:** rolling out of bed (40 of 89,
+45 %), a sideways fall with quick recovery (59 %), fainting down a wall (71 %), falling onto the knees
+(73 %); false alarms mostly from lying down on, or getting up from, a bed. Erciyes is held out: no
+change to the model may be tuned on it.
+
 ## Cross-dataset evaluation (F4.f)
 
 Done on 26 November 2026 on **WEDA-FALL** (ODC-By 1.0 in the clone used, with a provenance caveat of 26 November 2026 in `CROSS_DATASET_WEDA.md`; a Fitbit Sense on the wrist), with the

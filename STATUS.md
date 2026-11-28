@@ -37,7 +37,7 @@ register (`docs/progress/requirements.json`); the round-by-round detail is in
 | Server memory over time | 1-hour soak passes (1.996 % an hour against 5 %) | `docs/evidence/soak/WALLCLOCK_1H_ROUND9.md`; a 5.5-hour run is available on a free runner (`.github/workflows/soak.yml`) |
 | IRA conversation and safety rules | Built, measured | 162-turn set unchanged; round 10 hold-out 31 of 32 (`docs/ai/conversation/ROUND10_CONVERSATION.md`) |
 | Fall detection on the watch | Shipped model v3 (trained on BITS-2 and UCI HAR) | the optional confirmation stage **failed** its gate on recorded falls and stays off (D-110) |
-| Licence registers | Re-read at source | 44 sources agree, none differ (`docs/legal/LICENCE_SOURCE_CHECK.md`); non-commercial weights refused in the commercial edition (D-109) |
+| Licence registers | Re-read at source | 45 sources agree, none differ (`docs/legal/LICENCE_SOURCE_CHECK.md`); non-commercial weights refused in the commercial edition (D-109) |
 | Operations runbooks | Drilled | the worker-stopped and key-rotation sections run against the production server and worker, 10 of 10, after making the deployment's backups private (`docs/evidence/ops/DRILLS_ROUND10.md`) |
 | IRA CARE OS (AOSP product layer) | Host-checked | 76 host tests; **the image has not been built or booted** |
 

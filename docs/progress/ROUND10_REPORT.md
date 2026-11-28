@@ -99,6 +99,14 @@ Round 10 began at 82 of 210 verified; the first part (27 November) took it to 91
 6. The deployment's nightly backups (`deploy/backup.sh`) and fetched off-site copies were readable
    by every account on the host (0644); now 0600 in a 0700 folder, and CI checks it.
 
+## A new held-out safety evaluation
+
+The shipped fall pipeline on Erciyes (UCI 455, CC BY 4.0, right wrist), a licensed set it never saw
+(`docs/ai/fall/ERCIYES_EVAL.md`, D-113): **87.6 % of 1,722 simulated falls caught**, an alarm on 3.1 %
+of 1,414 daily-activity recordings. Weakest: rolling out of bed (45 %) and fainting down a wall (71 %).
+The confirmation stage would lose 98 caught falls; it stays off. Recorded as known limits; nothing
+tuned on it.
+
 ## What remains, and what each needs
 
 | Item | Needs |
