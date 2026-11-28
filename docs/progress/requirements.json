@@ -1290,7 +1290,7 @@
    "title": "Phone app: wearer, family and carer experiences from one app",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -1299,6 +1299,10 @@
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/shell.test.tsx"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md"
     }
    ]
   },

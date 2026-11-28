@@ -37,7 +37,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from adbkit import (  # noqa: E402
-    ALL_WELL_WORDS, STALE_WORDS, adb_text, app_sessions, carer_home_problems, find_id, has_text, is_selected,
+    ALL_WELL_WORDS, STALE_WORDS, WEARER_ONLY_IDS, adb_text, app_sessions, carer_home_problems, find_id, has_text, is_selected,
     nothing_revealed_problems, offline_problems, person_record_problems, plan_problems, recovered_problems,
     revocation_problems,
 )
@@ -339,9 +339,11 @@ class PhoneSmoke:
             return
         t0 = time.time()
         nodes = self.wait_for(lambda n: find_id(n, "card-person") is not None, a.ui_timeout)
-        self.step("patient_selected", find_id(nodes, "card-person") is not None and
+        # Talk to IRA is the wearer's alone (C-7.b): the family member's home never offers it.
+        talk_offered = any(find_id(nodes, rid) is not None for rid in WEARER_ONLY_IDS)
+        self.step("patient_selected", find_id(nodes, "card-person") is not None and not talk_offered and
                   (has_text(nodes, name) or has_text(nodes, self.person["display_name"])), t0,
-                  screenshot=self.shot("family_person_card"))
+                  talk_offered_to_family=talk_offered, screenshot=self.shot("family_person_card"))
 
         # 2. The person record shows the right name and the latest readings the API reports.
         t0 = time.time()
