@@ -438,3 +438,16 @@ def test_the_visit_group_plans_arrives_and_departs_and_the_thank_you_clears(smok
     assert smoke.THANK_YOU_S == 30
     kt = (SCRIPT.parents[2] / "watch/app/src/main/java/care/ira/watch/service/CareForegroundService.kt").read_text(encoding="utf-8")
     assert "const val THANK_YOU_MS = 30_000L" in kt and "clearThankYouLater()" in kt
+
+
+def test_unpair_refusal_mirror_matches_the_watch(smoke):
+    kt = (SCRIPT.parents[2] / "watch/app/src/main/java/care/ira/watch/pairing/Unpairing.kt").read_text(encoding="utf-8")
+    assert smoke.unpair_refusal(0, None, 12) == smoke.UNPAIR_REFUSED_FALL
+    assert f'"{smoke.UNPAIR_REFUSED_FALL}"' in kt
+    assert smoke.unpair_refusal(1, None, None) == "One urgent message is still being sent. Unpair once it has gone."
+    assert smoke.unpair_refusal(0, "on_the_way", None) == "Your Help request is still open. Unpair once it is closed."
+    assert "Your Help request is still open. Unpair once it is closed." in kt
+    # Negative controls: nothing unfinished, and a closed request, allow unpairing.
+    assert smoke.unpair_refusal(0, None, None) is None
+    assert smoke.unpair_refusal(0, "closed", None) is None
+    assert '"unpair_refused_during_fall_check"' in SCRIPT.read_text(encoding="utf-8")

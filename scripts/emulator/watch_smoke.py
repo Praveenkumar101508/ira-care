@@ -80,6 +80,8 @@ FALL_LINE = "Help in"
 PAIR_TITLE = "Pair this watch"
 PERMISSION_TITLE = "Background sensors"
 UNPAIR_WARNING = "Unpair this watch? IRA will stop watching over you"
+#: Unpairing.check while a fall countdown runs.
+UNPAIR_REFUSED_FALL = "A fall check is running. Answer it first."
 HELP_DESC = "Help. Tells your family"
 
 #: The alert kinds the server counts as an SOS for the wrist (care/sos.py SOS_KINDS, the two the watch opens).
@@ -381,6 +383,18 @@ def face_text(countdown: int | None, sos_text: str | None, question: str | None,
     return "All well"
 
 
+def unpair_refusal(urgent_pending: int, sos_state: str | None, countdown: int | None) -> str | None:
+    """Unpairing.check: why unpairing is refused now, or None when it is allowed."""
+    if countdown is not None:
+        return UNPAIR_REFUSED_FALL
+    if urgent_pending > 0:
+        return ("One urgent message is still being sent. Unpair once it has gone." if urgent_pending == 1
+                else f"{urgent_pending} urgent messages are still being sent. Unpair once they have gone.")
+    if sos_state not in (None, "idle", "closed", "asking"):
+        return "Your Help request is still open. Unpair once it is closed."
+    return None
+
+
 def visit_text_of(visit: dict | None) -> str | None:
     """VisitState.text(), from the server's `visit` (care/visits.py watch_state). The API-only wrist shows the
     planned time in UTC; the watch shows it in its own zone."""
@@ -620,6 +634,10 @@ class ApiWrist:
         if not self.permission:
             return [PERMISSION_TITLE, "Allow"]
         if self.screen == "unpair":
+            refused = unpair_refusal(sum(1 for e in self.outbox if e["kind"] in ("help", "fall_ok", "checkin_answer")),
+                                     self.sos.get("state"), self.countdown_left())
+            if refused:
+                return [refused, "Keep paired"]
             return ["Unpair this watch? IRA will stop watching over you, and your family and carers will be told.", "Keep paired", "Unpair"]
         sos_active = self.sos_text() is not None and self.sos.get("state") not in (None, "idle", "closed") or self.outbox
         kind = (self.checkin or {}).get("question_kind") if (self.checkin or {}).get("reminder_id") else None
@@ -1555,6 +1573,32 @@ class Smoke:
         self.step("repaired_isolated", home and new.get("status") == "paired" and old.get("status") == "revoked" and str(dev2["id"]) != str(self.device["id"]), t0,
                   old_device={"id": old.get("id"), "status": old.get("status")}, new_device={"id": new.get("id"), "status": new.get("status")}, **snap)
         self.device = dev2
+        # C-21.b: unpairing is refused while something urgent is unfinished. A fall while the unpair screen is
+        # open: the screen says why and offers only "Keep paired"; back home, the countdown is answered.
+        t0 = time.time()
+        btn = w.scroll_to_text(*UNPAIR_BUTTON) if hasattr(w, "scroll_to_text") else w.wait_text(UNPAIR_BUTTON[0], 30)
+        tapped = w.tap("Unpair watch…", "Unpair this watch") if btn else None
+        warning = w.wait_text(UNPAIR_WARNING, self.a.ui_timeout) if tapped else None
+        before = self.alert_ids()
+        sent = w.inject_fall(3.2, 20, int(time.time() * 1000)) if warning else False
+        refused = w.wait_text(UNPAIR_REFUSED_FALL, 90) if sent else None
+        offered = [t for t in w.visible() if t == "Unpair"]
+        snap = w.snapshot("unpair_refused")
+        if not self.step("unpair_refused_during_fall_check", warning is not None and refused is not None and not offered, t0,
+                         fall_broadcast=sent, unpair_button_offered=bool(offered), **snap):
+            return
+        t0 = time.time()
+        kept = w.tap("Keep paired")
+        countdown = w.wait_text(FALL_LINE, 30) if kept else None
+        ok = w.tap("I'm OK") if countdown else None
+        alert = self.wait_until(lambda: next((a for a in self.person_alerts()
+                                              if a.get("kind") == "suspected_fall" and str(a["id"]) not in before), None), 60)
+        closed = self.wait_until(lambda: (lambda a: a if a.get("status") == "resolved" else None)(self.alert(alert["id"])), 90) if alert else None
+        rows = {str(d["id"]): d for d in self.devices()}
+        snap = w.snapshot("unpair_refused_answered")
+        self.step("fall_check_answered_still_paired", ok is not None and closed is not None
+                  and rows.get(str(dev2["id"]), {}).get("status") == "paired", t0,
+                  alert=self.brief(closed or alert), device_status=rows.get(str(dev2["id"]), {}).get("status"), **snap)
 
     def journey_accessibility(self) -> None:
         """Every clickable node on the dumped screens is labelled and big enough to tap."""
