@@ -65,11 +65,15 @@ PERMISSIONS = ("android.permission.BODY_SENSORS", "android.permission.ACTIVITY_R
 #: The home column's Unpair button: its text, and the description Compose exposes in its place
 #: (watch/.../ui/MainActivity.kt).
 UNPAIR_BUTTON = ("Unpair watch", "Unpair this watch")
-GROUPS = ("medication", "checkin", "fall", "help_during_fall", "offline", "reboot", "permission", "unpair",
+GROUPS = ("medication", "checkin", "fall", "help_during_fall", "offline", "reboot", "permission", "visit", "unpair",
           "accessibility")
+#: The carer in the visit group (a fictional first name).
+VISIT_CARER = "Uday"
 
 #: The words the wrist shows (FaceText, SosState, the screens in MainActivity), matched by substring.
 HELP_RECEIVED = "Help request received."
+#: How long "Thank you." stays after an answer (CareForegroundService.THANK_YOU_MS).
+THANK_YOU_S = 30
 WAITING_FOR_CONNECTION = "Waiting for connection. Help request saved."
 OFFLINE_LINE = "Offline: saving for later"
 FALL_LINE = "Help in"
@@ -358,17 +362,36 @@ def responder_line(name: str) -> str:
     return f"{name} is on the way."
 
 
-def face_text(countdown: int | None, sos_text: str | None, question: str | None, last_answer: str | None, online: bool) -> str:
-    """FaceText.main, for the API-only wrist (no visit line: the journey plans no visit)."""
+def face_text(countdown: int | None, sos_text: str | None, question: str | None, last_answer: str | None, online: bool,
+              visit_text: str | None = None) -> str:
+    """FaceText.main: the countdown, Help, a question, then "No connection" (never hidden), the thank-you
+    (for THANK_YOU_S after an answer), a carer's visit, and "All well"."""
     if countdown is not None:
         return f"Did you fall? Are you OK?\nHelp in {countdown} s"
     if sos_text:
         return sos_text
     if question:
         return question
+    if not online:
+        return "No connection.\nHelp is saved and sent when it is back."
     if last_answer is not None:
         return "Thank you."
-    return "All well" if online else "No connection.\nHelp is saved and sent when it is back."
+    if visit_text:
+        return visit_text
+    return "All well"
+
+
+def visit_text_of(visit: dict | None) -> str | None:
+    """VisitState.text(), from the server's `visit` (care/visits.py watch_state). The API-only wrist shows the
+    planned time in UTC; the watch shows it in its own zone."""
+    v = visit or {}
+    name = v.get("carer_name") or "Your carer"
+    if v.get("state") == "here":
+        return f"{name} is here."
+    if v.get("state") in ("expected", "late"):
+        at = (v.get("planned_start") or "")[11:16]
+        return f"{name} is coming at {at}." if at else f"{name} is coming today."
+    return None
 
 
 def sos_text_of(state: str | None, responder_name: str | None) -> str | None:
@@ -517,6 +540,8 @@ class ApiWrist:
         self.question: str | None = None
         self.checkin: dict | None = None
         self.last_answer: str | None = None
+        self.last_answer_at = 0.0
+        self.acknowledged_visits: set[str] = set()
         self.countdown: dict | None = None
         self.countdown_s = 30
         self.sos: dict = {}
@@ -569,6 +594,11 @@ class ApiWrist:
             return self.on_unauthorised()
         if code == 200:
             self.sos = me.get("sos") or {}
+            visit = self.sos.get("visit") or {}
+            if visit.get("state") == "here" and visit.get("visit_id") and visit["visit_id"] not in self.acknowledged_visits:
+                ack, _ = self.call("POST", f"/api/v1/care/devices/me/visits/{visit['visit_id']}/acknowledge", {})
+                if ack == 200:
+                    self.acknowledged_visits.add(visit["visit_id"])
             self.countdown_s = int((me.get("fall") or {}).get("fall_countdown_s") or 30)
         if self.question is None:
             code, due = self.call("GET", "/api/v1/care/devices/me/checkins/due")
@@ -593,7 +623,10 @@ class ApiWrist:
             return ["Unpair this watch? IRA will stop watching over you, and your family and carers will be told.", "Keep paired", "Unpair"]
         sos_active = self.sos_text() is not None and self.sos.get("state") not in (None, "idle", "closed") or self.outbox
         kind = (self.checkin or {}).get("question_kind") if (self.checkin or {}).get("reminder_id") else None
-        out = [face_text(self.countdown_left(), self.sos_text(), self.question, self.last_answer, self.online)]
+        if self.last_answer is not None and time.time() - self.last_answer_at >= THANK_YOU_S:
+            self.last_answer = None
+        out = [face_text(self.countdown_left(), self.sos_text(), self.question, self.last_answer, self.online,
+                         visit_text_of(self.sos.get("visit")))]
         if not self.online:
             out.append(OFFLINE_LINE)
         buttons = reminder_buttons(kind) if self.countdown is None and not sos_active else []
@@ -654,7 +687,7 @@ class ApiWrist:
 
     def answer(self, body: dict, label: str) -> None:
         cid = self.checkin["id"]
-        self.question, self.checkin, self.last_answer = None, None, label
+        self.question, self.checkin, self.last_answer, self.last_answer_at = None, None, label, time.time()
         self.enqueue("checkin_answer", f"/api/v1/care/devices/me/checkins/{cid}/answer", body)
 
     def home(self, timeout: float) -> bool:
@@ -1280,6 +1313,13 @@ class Smoke:
                                    self.a.ui_timeout)
         self.step("checkin_answered_by_touch", tapped is not None and answered is not None and answered.get("answered_via") == "button", t0,
                   answered_via=(answered or {}).get("answered_via"), answer_summary=(answered or {}).get("answer_summary"), voice_exercised=False)
+        # "Thank you." acknowledges the answer, then the face goes back to what is true now (it used to stay until a restart).
+        t0 = time.time()
+        thanked = w.wait_text("Thank you.", 20)
+        cleared = self.wait_until(lambda: not any("Thank you." in t for t in w.visible()), THANK_YOU_S + 90, every=5)
+        snap = w.snapshot("checkin_thank_you_cleared")
+        self.step("checkin_thank_you_clears", thanked is not None and bool(cleared), t0,
+                  cleared_after_s=round(time.time() - t0, 1), **snap)
 
     def inject_and_wait_countdown(self, label: str) -> tuple[dict | None, dict]:
         """A synthetic fall; the wrist's countdown and the server's asking alert, with the dump saved."""
@@ -1437,6 +1477,34 @@ class Smoke:
         self.adb("shell", "dumpsys", "battery", "set", "level", "80", timeout=60, check=False)
         self.step("battery_level_reported", battery is not None, t0, set_to=BATTERY_TEST_LEVEL,
                   battery_percent=(battery or {}).get("battery_percent"))
+
+    def journey_visit(self) -> None:
+        """A carer's visit on the wrist (D1.b): planned, the wrist says the carer is coming; marked arrived, the wrist
+        says the carer is here and acknowledges it to the server (scheduled check-ins then pause, care/checkin_cycle.py);
+        departed, the line goes."""
+        w, pid = self.wrist, self.person["id"]
+        t0 = time.time()
+        visit = self.api("POST", f"/api/v1/care/people/{pid}/visits",
+                         {"planned_start": iso_now(20 * 60), "planned_end": iso_now(80 * 60), "carer_name": VISIT_CARER,
+                          "purpose": "Emulator journey."}, self.h)
+        # A Help request closed in the last ten minutes still shows first ("This is now resolved."): wait that out.
+        coming = w.wait_text(f"{VISIT_CARER} is coming", 720)
+        snap = w.snapshot("visit_expected")
+        if not self.step("visit_expected_shown", bool(visit.get("id")) and coming is not None, t0, visit_id=visit.get("id"), **snap):
+            return
+        t0 = time.time()
+        self.api("POST", f"/api/v1/care/visits/{visit['id']}/arrive", {}, self.h)
+        here = w.wait_text(f"{VISIT_CARER} is here", 300)
+        snap = w.snapshot("visit_here")
+        row = self.wait_until(lambda: (lambda r: r if r.get("acknowledged_at") else None)(
+            self.api("GET", f"/api/v1/care/visits/{visit['id']}", None, self.h)), 180)
+        self.step("visit_here_shown_and_acknowledged", here is not None and row is not None, t0,
+                  status=(row or {}).get("status"), acknowledged_at=(row or {}).get("acknowledged_at"), **snap)
+        t0 = time.time()
+        self.api("POST", f"/api/v1/care/visits/{visit['id']}/depart", {"outcome": "all_well", "notes": "Emulator journey."}, self.h)
+        gone = self.wait_until(lambda: not any(f"{VISIT_CARER} is here" in t for t in w.visible()), 300, every=5)
+        snap = w.snapshot("visit_departed")
+        self.step("visit_departed_cleared", bool(gone), t0, **snap)
 
     def journey_unpair(self) -> None:
         """Unpairing from the wrist, with its warning; the server's row; a dead token; pairing again."""

@@ -411,3 +411,30 @@ def test_the_journey_checks_location_and_battery(smoke):
     text = SCRIPT.read_text(encoding="utf-8")
     assert '"help_alert_carries_location"' in text and '"emu", "geo", "fix"' in text
     assert '"battery_level_reported"' in text and smoke.BATTERY_TEST_LEVEL not in (0, 80, 100)
+
+
+def test_face_text_mirror_keeps_no_connection_above_the_thank_you_and_shows_the_visit(smoke):
+    # As FaceText.main: "No connection" is never hidden behind a thank-you or a visit.
+    assert smoke.face_text(None, None, None, "I'm OK", False).startswith("No connection.")
+    assert smoke.face_text(None, None, None, None, False, "Uday is here.").startswith("No connection.")
+    assert smoke.face_text(None, None, None, "I'm OK", True, "Uday is here.") == "Thank you."
+    assert smoke.face_text(None, None, None, None, True, "Uday is here.") == "Uday is here."
+    assert smoke.face_text(None, None, None, None, True) == "All well"
+
+
+def test_visit_text_mirror_reads_the_server_visit_state(smoke):
+    assert smoke.visit_text_of({"state": "here", "carer_name": "Uday"}) == "Uday is here."
+    assert smoke.visit_text_of({"state": "expected", "carer_name": "Uday", "planned_start": "2026-11-28T14:05:00+00:00"}) == "Uday is coming at 14:05."
+    assert smoke.visit_text_of({"state": "late", "carer_name": None, "planned_start": None}) == "Your carer is coming today."
+    assert smoke.visit_text_of({"state": "none"}) is None
+    assert smoke.visit_text_of(None) is None
+
+
+def test_the_visit_group_plans_arrives_and_departs_and_the_thank_you_clears(smoke):
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert "visit" in smoke.GROUPS and smoke.GROUPS.index("visit") < smoke.GROUPS.index("unpair")
+    for name in ("visit_expected_shown", "visit_here_shown_and_acknowledged", "visit_departed_cleared", "checkin_thank_you_clears"):
+        assert f'"{name}"' in text, name
+    assert smoke.THANK_YOU_S == 30
+    kt = (SCRIPT.parents[2] / "watch/app/src/main/java/care/ira/watch/service/CareForegroundService.kt").read_text(encoding="utf-8")
+    assert "const val THANK_YOU_MS = 30_000L" in kt and "clearThankYouLater()" in kt

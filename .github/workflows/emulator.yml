@@ -48,7 +48,7 @@ on:
         type: boolean
         default: false
       steps:
-        description: "Extended journey groups after the eleven core steps (care-journey only): all, or a comma list of medication, checkin, fall, help_during_fall, offline, reboot, permission, unpair, accessibility"
+        description: "Extended journey groups after the eleven core steps (care-journey only): all, or a comma list of medication, checkin, fall, help_during_fall, offline, reboot, permission, visit, unpair, accessibility"
         type: string
         default: all
   # Also callable from native-checks.yml, which runs it on pull requests that change the watch

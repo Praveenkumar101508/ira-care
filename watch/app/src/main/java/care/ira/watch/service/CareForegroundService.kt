@@ -311,6 +311,7 @@ class CareForegroundService : LifecycleService() {
                         lastAnswer = label ?: action.text.ifBlank { getString(R.string.im_ok) }, urgentPending = deps.outbox.size())
                     controller.reset()
                     syncNow()
+                    clearThankYouLater()
                 }
                 is CheckinController.Action.ReportMissed -> {
                     listening?.cancel()
@@ -424,7 +425,21 @@ class CareForegroundService : LifecycleService() {
         super.onDestroy()
     }
 
+    private var thankYou: Job? = null
+
+    /** "Thank you." is the answer's acknowledgement, not a state: after THANK_YOU_MS the face goes back to
+     *  what is true now (a carer's visit, "All well"). Left on, it hid the visit line until a restart. */
+    private fun clearThankYouLater() {
+        thankYou?.cancel()
+        thankYou = lifecycleScope.launch {
+            delay(THANK_YOU_MS)
+            deps.status.value = deps.status.value.copy(lastAnswer = null)
+        }
+    }
+
     companion object {
+        /** How long "Thank you." stays on the face after an answer. */
+        const val THANK_YOU_MS = 30_000L
         /** How long a Help request waits for a location fix before it is written to the outbox. */
         const val HELP_FIX_MS = 2_000L
         const val NOTIFICATION_ID = 1
