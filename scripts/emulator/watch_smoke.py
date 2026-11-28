@@ -88,6 +88,18 @@ MIN_TARGET_DP = 44
 MIN_TARGET_PX_FLOOR = 48
 
 #: The sensor permissions the permission group revokes and grants again (background first).
+#: A position given to the emulator's GPS before Help (latitude, longitude): central London, fictional.
+GPS_FIX = (51.5072, -0.1276)
+#: The battery level set on the emulator for the battery-report check.
+BATTERY_TEST_LEVEL = 23
+
+
+def gps_matches(alert: dict, fix: tuple, tolerance: float = 0.01) -> bool:
+    """True when the alert's stored location is within about a kilometre of the position given."""
+    lat, lon = alert.get("location_latitude"), alert.get("location_longitude")
+    return lat is not None and lon is not None and abs(float(lat) - fix[0]) <= tolerance and abs(float(lon) - fix[1]) <= tolerance
+
+
 SENSOR_PERMISSIONS = ("android.permission.BODY_SENSORS_BACKGROUND", "android.permission.BODY_SENSORS")
 
 #: The debug build's synthetic fall (watch/app/src/debug/.../SyntheticFallReceiver.kt).
@@ -945,6 +957,9 @@ class Smoke:
             return self.finish()
 
         t0 = time.time()
+        # D1.f: the emulator's GPS is given a position before Help, so the SOS can carry it.
+        self.adb("emu", "geo", "fix", str(GPS_FIX[1]), str(GPS_FIX[0]), timeout=60, check=False)
+        time.sleep(3)
         self.adb("shell", "input", "tap", *map(str, centre(help_btn)))
         received = None
         deadline = time.time() + a.ui_timeout
@@ -961,6 +976,14 @@ class Smoke:
         mine = [x for x in alerts if x.get("person_id") == person["id"] and x.get("kind") == "help_requested"]
         self.step("help_received_on_wrist", received is not None, t0, screenshot=shot)
         self.step("help_alert_on_server", len(mine) == 1, t0, alerts=[{k: x.get(k) for k in ("id", "kind", "status", "opened_at", "details")} for x in mine])
+        # D1.f: the watch sends one location fix with the SOS; the alert carries the position given above.
+        t0 = time.time()
+        located = None
+        if len(mine) == 1:
+            located = self.wait_until(lambda: (lambda al: al if gps_matches(al, GPS_FIX) else None)(
+                self.api("GET", f"/api/v1/care/alerts/{mine[0]['id']}", None, h)), 90)
+        self.step("help_alert_carries_location", located is not None, t0, expected=GPS_FIX,
+                  location={k: (located or {}).get(k) for k in ("location_latitude", "location_longitude", "location_accuracy_m")})
 
         # A journey can pass while the app crashed and restarted on the way (run 45760714043's
         # crash after pairing was hidden that way in an earlier pass), so read the crash buffer.
@@ -1405,6 +1428,15 @@ class Smoke:
         snap = w.snapshot("permission_back")
         self.step("permission_regranted_recovered", home and recovered is not None and all(c["ok"] for c in changes), t0,
                   changes=changes, background_sensor_permission=(recovered or {}).get("background_sensor_permission"), **snap)
+
+        # D1.g: the battery level the watch reports reaches the server's device row.
+        t0 = time.time()
+        self.adb("shell", "dumpsys", "battery", "set", "level", str(BATTERY_TEST_LEVEL), timeout=60, check=False)
+        battery = self.wait_until(lambda: next((d for d in self.devices() if str(d["id"]) == str(self.device["id"])
+                                                and d.get("battery_percent") == BATTERY_TEST_LEVEL), None), 300)
+        self.adb("shell", "dumpsys", "battery", "set", "level", "80", timeout=60, check=False)
+        self.step("battery_level_reported", battery is not None, t0, set_to=BATTERY_TEST_LEVEL,
+                  battery_percent=(battery or {}).get("battery_percent"))
 
     def journey_unpair(self) -> None:
         """Unpairing from the wrist, with its warning; the server's row; a dead token; pairing again."""

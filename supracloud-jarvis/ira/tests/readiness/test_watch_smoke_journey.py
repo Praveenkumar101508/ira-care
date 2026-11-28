@@ -398,3 +398,16 @@ def test_a_dead_emulator_network_is_reset_with_airplane_mode_then_the_host_is_aw
     assert ("shell", "cmd", "connectivity", "airplane-mode", "disable") in calls
     assert calls.index(("shell", "cmd", "connectivity", "airplane-mode", "enable")) < \
         calls.index(("shell", "cmd", "connectivity", "airplane-mode", "disable"))
+
+
+def test_the_sos_location_check_reads_the_alert_within_a_kilometre(smoke):
+    fix = smoke.GPS_FIX
+    assert smoke.gps_matches({"location_latitude": fix[0] + 0.001, "location_longitude": fix[1] - 0.002}, fix)
+    assert not smoke.gps_matches({"location_latitude": None, "location_longitude": None}, fix)
+    assert not smoke.gps_matches({"location_latitude": fix[0] + 0.5, "location_longitude": fix[1]}, fix)
+
+
+def test_the_journey_checks_location_and_battery(smoke):
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert '"help_alert_carries_location"' in text and '"emu", "geo", "fix"' in text
+    assert '"battery_level_reported"' in text and smoke.BATTERY_TEST_LEVEL not in (0, 80, 100)
