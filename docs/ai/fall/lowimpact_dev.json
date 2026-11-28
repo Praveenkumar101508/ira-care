@@ -1,0 +1,129 @@
+{
+ "what": "low-impact candidate, development on BITS-2 and UCI HAR (D-115)",
+ "model": {
+  "tflite_sha256": "2cab7c9bcbf60de51d7c42f5690ad549bcbf4f13eb6266c35bf5d0a59b063278",
+  "runtime": "ai-edge-litert"
+ },
+ "daily_activity_hours": 6.2,
+ "grid": [
+  {
+   "candidate_g": 2.0,
+   "threshold": 0.95,
+   "falls": 316,
+   "falls_caught": 217,
+   "falls_lost_vs_shipped": 0,
+   "alarms": 10,
+   "alarms_per_hour": 1.613
+  },
+  {
+   "candidate_g": 2.0,
+   "threshold": 0.9,
+   "falls": 316,
+   "falls_caught": 220,
+   "falls_lost_vs_shipped": 0,
+   "alarms": 17,
+   "alarms_per_hour": 2.742
+  },
+  {
+   "candidate_g": 2.0,
+   "threshold": 0.8,
+   "falls": 316,
+   "falls_caught": 225,
+   "falls_lost_vs_shipped": 0,
+   "alarms": 23,
+   "alarms_per_hour": 3.71
+  },
+  {
+   "candidate_g": 1.8,
+   "threshold": 0.95,
+   "falls": 316,
+   "falls_caught": 218,
+   "falls_lost_vs_shipped": 0,
+   "alarms": 10,
+   "alarms_per_hour": 1.613
+  },
+  {
+   "candidate_g": 1.8,
+   "threshold": 0.9,
+   "falls": 316,
+   "falls_caught": 221,
+   "falls_lost_vs_shipped": 0,
+   "alarms": 18,
+   "alarms_per_hour": 2.903
+  },
+  {
+   "candidate_g": 1.8,
+   "threshold": 0.8,
+   "falls": 316,
+   "falls_caught": 226,
+   "falls_lost_vs_shipped": 0,
+   "alarms": 23,
+   "alarms_per_hour": 3.71
+  },
+  {
+   "candidate_g": 1.6,
+   "threshold": 0.95,
+   "falls": 316,
+   "falls_caught": 220,
+   "falls_lost_vs_shipped": 0,
+   "alarms": 11,
+   "alarms_per_hour": 1.774
+  },
+  {
+   "candidate_g": 1.6,
+   "threshold": 0.9,
+   "falls": 316,
+   "falls_caught": 223,
+   "falls_lost_vs_shipped": 0,
+   "alarms": 19,
+   "alarms_per_hour": 3.065
+  },
+  {
+   "candidate_g": 1.6,
+   "threshold": 0.8,
+   "falls": 316,
+   "falls_caught": 228,
+   "falls_lost_vs_shipped": 0,
+   "alarms": 25,
+   "alarms_per_hour": 4.032
+  },
+  {
+   "candidate_g": 1.4,
+   "threshold": 0.95,
+   "falls": 316,
+   "falls_caught": 221,
+   "falls_lost_vs_shipped": 0,
+   "alarms": 11,
+   "alarms_per_hour": 1.774
+  },
+  {
+   "candidate_g": 1.4,
+   "threshold": 0.9,
+   "falls": 316,
+   "falls_caught": 223,
+   "falls_lost_vs_shipped": 0,
+   "alarms": 19,
+   "alarms_per_hour": 3.065
+  },
+  {
+   "candidate_g": 1.4,
+   "threshold": 0.8,
+   "falls": 316,
+   "falls_caught": 229,
+   "falls_lost_vs_shipped": 0,
+   "alarms": 25,
+   "alarms_per_hour": 4.032
+  }
+ ],
+ "chosen": {
+  "candidate_g": 1.6,
+  "threshold": 0.9,
+  "falls": 316,
+  "falls_caught": 223,
+  "falls_lost_vs_shipped": 0,
+  "alarms": 19,
+  "alarms_per_hour": 3.065
+ },
+ "rule": "The development rule, fixed before any held-out data is read: among settings that lose no\nfall the shipped setting catches on BITS-2, and add no more than 2 alarms per hour of daily\nactivity over the shipped setting (BITS-2 activities and UCI HAR together), the one that catches\nthe most BITS-2 falls; ties go to the higher candidateG, then the higher threshold.",
+ "seconds": 36.5
+}

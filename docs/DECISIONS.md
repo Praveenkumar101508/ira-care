@@ -2166,3 +2166,17 @@ ordinary talk (12 of 96 turns). Sets C to E are reported as measured, each befor
 catching most emergencies said in new words is worth that rate of interruption is an alert-fatigue
 and clinical-safety judgement (I.j), not a routine engineering one. So is whether "I don't want to
 be here any more" is an emergency (the 162-turn set says distress; it stays so until decided).
+
+## D-115 The fall pipeline opens a model candidate at 1.6 g and raises at 0.9 (requirement F4.h, 28 November 2026)
+
+**Decision.** `fall_model.json` ships candidateG 1.6 (was 2.0) and threshold 0.9 (was 0.95). The
+model file is unchanged.
+
+**Evidence** (`docs/ai/fall/LOWIMPACT_CANDIDATE.md`): chosen on BITS-2 and UCI HAR by a rule written
+before held-out data was read (lose no caught fall, at most 2 more alarms an hour, then most falls);
+confirmed once on Erciyes: 1,563 of 1,722 simulated falls caught against 1,509, none lost; 59 of
+1,414 daily-activity recordings with an alarm against 44, mostly around a bed.
+
+**Why.** The weak cases for older people (onto the knees, down a wall, out of bed) gain most; the
+cost is a cancellable countdown. Erciyes now informed a decision: the next fall change needs a new
+held-out set.

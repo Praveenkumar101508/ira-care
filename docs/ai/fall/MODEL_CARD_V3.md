@@ -79,6 +79,14 @@ TFLite agrees with Keras on 200 of 200 windows.
 - Latency on a watch CPU is unmeasured (one TFLite invoke takes about 0.011 ms on the x86 build
   machine, `cross_dataset_weda.json`).
 
+## The low-impact setting (D-115, 28 November 2026)
+
+The watch now opens a model candidate at **1.6 g** (was 2.0) and raises at **0.9** (was 0.95), chosen
+on BITS-2 and UCI HAR and confirmed once on Erciyes: **1563 of 1722 simulated falls
+(90.8%)** against 1509 (87.6%), none lost; daily-activity
+recordings with an alarm 59 against 44 of 1414, mostly lying down on or getting up from a
+bed (`LOWIMPACT_CANDIDATE.md`). The model file is unchanged.
+
 ## Out-of-sample: Erciyes, right wrist (28 November 2026)
 
 On a licensed set the model never saw (Erciyes, UCI 455, CC BY 4.0; `ERCIYES_EVAL.md`, D-113), the
