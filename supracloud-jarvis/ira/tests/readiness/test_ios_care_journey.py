@@ -108,3 +108,11 @@ def test_typing_one_keystroke_at_a_time_types_every_character(j):
 def test_an_unknown_step_is_refused(j):
     with pytest.raises(ValueError):
         j.flow([{"swipe": "left"}])
+
+
+def test_a_password_left_as_the_placeholder_is_noticed(j):
+    # Run 46142872577: the carer's username was typed, the password field still read "Password".
+    assert j.password_missing({"resource-id": "password", "text": "Password"})
+    assert j.password_missing({"resource-id": "password", "text": ""})
+    assert j.password_missing(None)
+    assert not j.password_missing({"resource-id": "password", "text": "••••••••••••••••••••"})

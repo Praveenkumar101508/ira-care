@@ -51,6 +51,14 @@ STORAGE_WORDS = ("ira-storage", "SecureStore", "-34018", "errSecMissingEntitleme
 
 # ── pure parts ───────────────────────────────────────────────────────────────
 
+def password_missing(node: dict | None) -> bool:
+    """The password field after typing still shows nothing but its placeholder (or is not found).
+    A filled secure field shows bullets, never the placeholder "Password"."""
+    if node is None:
+        return True
+    return (node.get("text") or "").strip() in ("", "Password")
+
+
 def nodes_from_hierarchy(tree: dict) -> list[dict]:
     """Maestro's `hierarchy` JSON as a flat list of nodes in the uiautomator form the shared checks
     read: `text` (the visible text, else the accessibility label), `content-desc` (the label),
@@ -265,7 +273,13 @@ class Journey:
             return self.step(f"{label}_signed_in", False, t0, reason="Simulator did not enter the seeded username",
                              screenshot=self.shot(f"{label}_username_mismatch"))
 
-        steps = [{"type": ["password", login["password"]]}]
+        # The password can go missing the same way (run 46142872577: the carer's sign-in stopped with
+        # the username typed and the password field still showing its placeholder). Typing clears the
+        # field first, so when the field still looks empty it is typed again, one key at a time.
+        self.run([{"type": ["password", login["password"]]}])
+        if password_missing(find_id(self.nodes(), "password")):
+            self.run([{"type": ["password", login["password"]], "slow": True}])
+        steps: list[dict] = []
         # The test build's default server is this one (the workflow sets it, as the Android test build's
         # is the emulator's host), so the server field is typed only when it holds something else.
         # Typed only with --type-server: on iOS the field could not be cleared reliably (run 46064671882
