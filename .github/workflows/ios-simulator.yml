@@ -170,6 +170,39 @@ jobs:
         run: |
           curl -fsSL "https://get.maestro.mobile.dev" | bash
           "$HOME/.maestro/bin/maestro" --version
+      - name: Sign the app to run locally, so the keychain keeps the sign-in
+        # The unsigned app above has no entitlements, and the simulator's keychain keeps nothing for
+        # it: run 46083831505 passed 12 of 16 steps and lost the sign-in at the first restart (the
+        # four failures all follow from that). Xcode's own "Sign to Run Locally" (identity "-") needs
+        # no Apple certificate or account; it is the signing every local simulator build gets. The
+        # build is incremental (the same derived data). If the signed app does not launch, the
+        # unsigned one is put back, so the journey runs either way and says what it found.
+        working-directory: ${{ github.workspace }}/mobile/ios
+        run: |
+          set -uo pipefail
+          udid=$(python3 -c "import json; print(next(s['udid'] for s in json.load(open('../../build/ios-journey/results.json'))['steps'] if s['step']=='simulator_booted'))")
+          app=$(find build/Build/Products/Debug-iphonesimulator -maxdepth 1 -name '*.app' | head -1)
+          ditto "$app" "$RUNNER_TEMP/unsigned.app"
+          if FORCE_BUNDLING=1 xcodebuild -workspace IRACARE.xcworkspace -scheme IRACARE \
+              -sdk iphonesimulator -configuration Debug -destination 'generic/platform=iOS Simulator' \
+              -derivedDataPath build CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=- \
+              CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER= FORCE_BUNDLING=1 build \
+              > xcodebuild-signed.log 2>&1; then
+            test -f "$app/main.jsbundle" || cp "$RUNNER_TEMP/unsigned.app/main.jsbundle" "$app/main.jsbundle"
+            codesign -dv "$app" 2>&1 | grep -E "Signature|Identifier" || true
+            xcrun simctl terminate "$udid" care.ira.family 2>/dev/null || true
+            xcrun simctl install "$udid" "$app"
+            if xcrun simctl launch "$udid" care.ira.family; then
+              sleep 10; xcrun simctl terminate "$udid" care.ira.family || true
+              echo "signed to run locally: installed and launched"; exit 0
+            fi
+            echo "the signed app did not launch; newest crash report:"
+            ls -t "$HOME/Library/Logs/DiagnosticReports/"IRACARE* 2>/dev/null | head -1 | xargs -I{} head -c 3000 {} || true
+          else
+            echo "the signed build failed:"; grep -E "error:|warning: .*sign" xcodebuild-signed.log | head -20
+          fi
+          echo "putting the unsigned app back"
+          xcrun simctl install "$udid" "$RUNNER_TEMP/unsigned.app"
       - name: The authenticated care journey in the simulator
         working-directory: ${{ github.workspace }}
         env:
