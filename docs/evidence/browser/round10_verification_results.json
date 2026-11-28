@@ -44,6 +44,37 @@
      "select-name (critical): Select element must have an accessible name at form > select"
     ]
    }
+  },
+  "session_renewal": {
+   "run_at": "2026-11-28T01:19:57.565Z",
+   "how": "care API restarted with ACCESS_TOKEN_EXPIRE_MINUTES=1; E2E_ACCESS_TOKEN_SECONDS=60",
+   "tests": [
+    {
+     "title": "the demonstration pages answer 404 in a production build, and the real pages do not",
+     "status": "passed",
+     "duration_ms": 79
+    },
+    {
+     "title": "the dashboard says when monitoring has paused, and only then",
+     "status": "passed",
+     "duration_ms": 6871
+    },
+    {
+     "title": "a silent watch is shown as last known, a watch that never said as unknown: never as on the wrist",
+     "status": "passed",
+     "duration_ms": 1604
+    },
+    {
+     "title": "a measurement IRA cannot make is refused from the watch and shown as not available, never with a value",
+     "status": "passed",
+     "duration_ms": 1286
+    },
+    {
+     "title": "axe finds no serious or critical violation on the sign-in page and the carer pages",
+     "status": "passed",
+     "duration_ms": 13220
+    }
+   ]
   }
  },
  "stack": {

@@ -622,7 +622,7 @@
    "title": "Dashboard renews an expired session instead of signing the carer out (C4b)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -631,6 +631,14 @@
     {
      "kind": "unit_test",
      "ref": "#52"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },

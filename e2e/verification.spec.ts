@@ -18,6 +18,9 @@ import { DASH, dashboardSignIn, info, login } from './helpers';
  *  - D4.b  a measurement IRA cannot make (blood oxygen, blood pressure) sent by the watch is refused
  *          and nothing is stored, and the person's health tab lists it as not available, never with
  *          a value;
+ *  - C-16.b with the server's access tokens lasting one minute (ACCESS_TOKEN_EXPIRE_MINUTES=1,
+ *          E2E_ACCESS_TOKEN_SECONDS=60), a carer whose access token has expired is not signed out:
+ *          the dashboard renews it with the refresh token and the record keeps loading;
  *  - C-23.a axe-core, run in the page, finds no serious or critical accessibility violation on the
  *          sign-in page, the people list, a person's record, alerts and visits.
  *
@@ -121,6 +124,33 @@ test('a measurement IRA cannot make is refused from the watch and shown as not a
   await expect(page.getByTestId('not-measured-blood_pressure')).toContainText('not available');
   expect(await panel.textContent()).not.toMatch(/\d+\s*(%|mmHg)/);
   await expect(page.getByTestId('not-measured-heart_rate')).toHaveCount(0);
+});
+
+test('a carer whose access token has expired stays signed in: the dashboard renews it', async ({ page }) => {
+  const seconds = Number(process.env.E2E_ACCESS_TOKEN_SECONDS ?? '0');
+  test.skip(!seconds, 'start the server with ACCESS_TOKEN_EXPIRE_MINUTES=1 and set E2E_ACCESS_TOKEN_SECONDS=60');
+  test.setTimeout((seconds + 120) * 1000);
+  const api = process.env.IRA_CARE_API ?? 'http://127.0.0.1:8010';
+  const renewals: number[] = [];
+  page.on('response', (r) => { if (r.url().endsWith('/auth/refresh')) renewals.push(r.status()); });
+  await dashboardSignIn(page, manager);
+  await page.goto(`${DASH}/people/${person.id}?tab=care`);
+  await expect(page.getByTestId('live')).toContainText('Live: updated', { timeout: 30_000 });
+  const token = async () => JSON.parse((await page.evaluate(() => window.sessionStorage.getItem('ira_care_dashboard_session'))) ?? '{}').accessToken as string;
+  const first = await token();
+  expect(first).toBeTruthy();
+
+  await page.waitForTimeout((seconds + 15) * 1000);
+  // The first token really has expired: the server refuses it.
+  const refused = await fetch(`${api}/api/v1/care/people`, { headers: { Authorization: `Bearer ${first}`, 'X-Workspace-ID': i.workspace_id } });
+  expect(refused.status, 'the old access token is refused').toBe(401);
+
+  await page.reload();
+  await expect(page.getByTestId('live')).toContainText('Live: updated', { timeout: 60_000 });
+  expect(page.url()).not.toContain('/login');
+  await expect(page.getByText(person.display_name).first()).toBeVisible();
+  expect(renewals, 'renewed with the refresh token').toContain(200);
+  expect(await token(), 'a new access token is kept').not.toBe(first);
 });
 
 const AXE = readFileSync(process.env.AXE_PATH ?? join(__dirname, '..', 'dashboard', 'node_modules', 'axe-core', 'axe.min.js'), 'utf8');
