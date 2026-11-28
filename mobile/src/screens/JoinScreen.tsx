@@ -26,9 +26,9 @@ export function JoinScreen({ baseUrl, onJoined, onBack }: { baseUrl: string; onJ
     <Screen title="Join a care circle">
       <Card>
         <Muted>Paste the invitation link (or its code), then sign in with the email address it was sent to. The link works once, for that address only.</Muted>
-        <TextInput style={styles.input} placeholder="Invitation link" autoCapitalize="none" value={link} onChangeText={setLink} testID="join-link" />
-        <TextInput style={styles.input} placeholder="Email" autoCapitalize="none" value={email} onChangeText={setEmail} testID="join-email" />
-        <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} testID="join-password" />
+        <TextInput style={styles.input} placeholder="Invitation link" accessibilityLabel="Invitation link" autoCapitalize="none" autoCorrect={false} spellCheck={false} keyboardType="url" value={link} onChangeText={setLink} testID="join-link" />
+        <TextInput style={styles.input} placeholder="Email" accessibilityLabel="Email" autoCapitalize="none" autoCorrect={false} spellCheck={false} autoComplete="email" textContentType="emailAddress" keyboardType="email-address" value={email} onChangeText={setEmail} testID="join-email" />
+        <TextInput style={styles.input} placeholder="Password" accessibilityLabel="Password" secureTextEntry autoCorrect={false} autoComplete="new-password" textContentType="newPassword" value={password} onChangeText={setPassword} testID="join-password" />
         {message ? <Text style={{ color: message.startsWith('You have') ? colors.ok : colors.sos, marginTop: 8 }}>{message}</Text> : null}
       </Card>
       <BigButton label={busy ? 'Joining…' : 'Sign in and join'} disabled={busy || !token || !email || !password} onPress={() => { void join(); }} testID="join-go" />
