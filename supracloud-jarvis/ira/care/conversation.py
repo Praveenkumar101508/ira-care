@@ -480,6 +480,10 @@ _ADVICE_ASK = re.compile(
     r"what (tablet|pill|medicine|medication) (should|can)|(go|get) to (the )?hospital|see (a|the|my) (doctor|gp|nurse)|"
     # Round 10 hold-out B: "Do you think my mole is cancer?" Only with a health word, so "do you think
     # my roses need water?" is an ordinary question.
+    # Round 10 hold-out C: "What should my blood sugar be?" A target for the person is advice.
+    r"what (should|ought) my (blood sugar|sugar|sugars|blood pressure|pressure|bp|pulse|heart rate|weight|temperature|"
+    r"oxygen|sats|cholesterol|insulin|dose)( level| reading)? (to )?be\b|"
+    r"what('s| is) a (normal|healthy|safe) (blood sugar|sugar|blood pressure|pulse|heart rate|weight|temperature|dose)\b|"
     r"(do you think|is it|could it be|might it be) (my|this|that|it)\b.{0,30}\b(cancer|serious|broken|infect\w*|stroke|"
     r"heart attack|tumou?r|lump|mole|rash|fracture|clot|diabet\w*|dementia))\b", re.I)
 _URL = re.compile(r"https?://|www\.", re.I)
@@ -704,11 +708,39 @@ RED_FLAGS = re.compile(
     r"i can'?t lift my (arm|leg|hand)s?|i can'?t lift them|"
     r"my face.{0,15}droop|droop(y|ing) on one side|one side of my face|"
     r"can'?t get my breath|cannot get my breath|(like a )?weight on my chest|"
-    r"won'?t stop bleeding|will not stop bleeding|bleeding won'?t stop)\b", re.I)
+    r"won'?t stop bleeding|will not stop bleeding|bleeding won'?t stop|"
+    # Round 10 hold-out C (recorded as misses before these lines, D-114): a medication mistake, an
+    # explicit call for someone, gas or smoke, and thoughts of not wanting to live. Each asks first,
+    # as every red flag does, then follows the escalation chain.
+    r"(taken|took|had) (my |the )?(tablets?|pills?|medicines?|meds|doses?) twice|double (dose|my tablets)|"
+    r"taken too many|took too many|too many (tablets|pills)|overdose|"
+    r"(please )?(get|send|fetch) (some ?one|some ?body)(?! (to|round to|in to|over to) (fix|mend|repair|look at|see to|clean|"
+    r"do|sort|help with|change|check|cut|paint))|(get|send|fetch) a doctor|"
+    # "Call an ambulance" and "get help" are help requests the help rule already answers (checkins._HELP),
+    # as the conversation dataset labels them; they are not repeated here.
+    r"(don'?t|do not) feel right at all|feel(ing)? (very |really |terribly )?(strange|peculiar) and|"
+    r"(smell|smells|smelling) (of )?(gas|burning|smoke)|gas leak|(there'?s|there is) (a )?(fire|smoke)|"
+    # Only unambiguous words about not wanting to live: "I don't want to be here any more" is distress
+    # in the 162-turn set (turns.jsonl, distress_redirect-05), answered warmly with a named person, and
+    # is left for the clinical safety officer to decide (D-114, I.j).
+    r"(don'?t|do not) want to (live|go on living|wake up)|want to die|wish i (was|were) dead|"
+    r"end it all|kill myself|better off dead|no point (in )?(living|going on))\b", re.I)
 
 
 def red_flag(text: str) -> bool:
     return bool(RED_FLAGS.search(text or ""))
+
+
+def talk_red_flag_by_meaning(text: str) -> bool:
+    """The talk red-flag head (care/classifier.py, D-114), when the classifier is on; False when it is
+    off or fails, so the keyword rules and the model carry on exactly as before."""
+    try:
+        from . import classifier
+        c = classifier.configured()
+        return bool(c is not None and c.talk_red_flag(text))
+    except Exception as exc:  # noqa: BLE001 - never let the second layer break the conversation
+        logger.warning("care talk red-flag head failed (%s); the keyword rules carry on", type(exc).__name__)
+        return False
 
 
 def answer_messages(kind: str, question: str, text: str, language: str = DEFAULT_LANGUAGE) -> list[dict]:
@@ -917,7 +949,15 @@ class TalkContext(Context):
 
 _WORRY = re.compile(r"\b(worr(y|ied|ies)|scared|afraid|frightened|anxious|lonely|alone|nobody|no one|what if|where is|"
                     r"where'?s|has (he|she|anyone) |is (he|she) (coming|dead|all right|alright)|can'?t stop thinking|"
-                    r"keep thinking|again and again|still not|not come|hasn'?t come|forgot(ten)? me)\b", re.I)
+                    r"keep thinking|again and again|still not|not come|hasn'?t come|forgot(ten)? me|"
+                    # Worries that come back in dementia (round 10 hold-out, D-114): someone in the house or
+                    # moving or taking things; someone coming to fetch the person.
+                    r"(some ?one|some ?body|anyone|anybody) (has )?(been|is|was|came|come) (in|into|round)|"
+                    r"(moving|moved|taking|taken|took|stolen|stealing) (my )?(things|stuff|purse|money|bag)|"
+                    r"coming (to|for) (get|fetch|take|collect|pick)|come (to|and) (get|fetch|take|collect) me|"
+                    # Round 10 hold-out C: things kept hidden or moved; someone who has not phoned or come.
+                    r"keeps? (hiding|moving|taking|stealing)|"
+                    r"(hasn'?t|has not|haven'?t|have not) (phoned|rung|called|visited|come|been)( me| round| to see me)?)\b", re.I)
 _STOP = frozenset("i me my the a an is are was were to of and it its it's im i'm he she they do does did has have had "
                   "not no so just very really that this there here what where when why how about for with on in at be been".split())
 
@@ -1048,6 +1088,12 @@ async def talk(text: str, ctx: TalkContext, *, recent: Sequence[tuple[str, str]]
                on_sentence: Optional[Callable[[str], None]] = None) -> Turn:
     """A reply to the person. Rules first, then the model behind the guard, then the fallback line."""
     ruled = rule_reply(text, ctx)
+    if ruled is None and talk_red_flag_by_meaning(text):
+        # The second layer (D-114): an emergency said in words the rules do not know. The same
+        # ask-first path as a rule red flag (needs_help starts the escalation chain, which the person
+        # can cancel); it can only add help, never take a rule's red flag away.
+        ruled = Turn([f"That sounds serious, {ctx.name}. I'm getting help for you now; tell me if you're all right."],
+                     source="classifier", needs_help=True)
     if ruled is None and worry_repeated(text, [w for sp, w in recent if sp == "person"]):
         ruled = redirect_reply(ctx)
     if ruled is not None:

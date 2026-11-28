@@ -229,11 +229,22 @@ def _short(text: Optional[str]) -> str:
 
 # ── Understanding the answer ─────────────────────────────────────────────────
 
-_YES = re.compile(r"\b(yes|yeah|yep|i have|i did|already|taken|took|done|all done|just now)\b")
-_NO = re.compile(r"\b(no|not yet|haven'?t|havent|forgot|didn'?t|didnt|later|nope)\b")
-_PAIN = re.compile(r"\b(pain|hurts?|hurting|ache|aches|aching|sore|dizzy|breathless|fell|fall|fallen)\b")
+# "I had soup earlier" stays unclear (the conversation dataset: "earlier" may be any meal); "ate" and
+# "eaten" answer the question asked (D-114).
+_YES = re.compile(r"\b(yes|yeah|yep|i have|i did|already|taken|took|done|all done|just now|ate|eaten)\b")
+# "Couldn't face anything", "no appetite", "skipped it": a meal not eaten, said without a plain no
+# (round 10 hold-out, D-114). With a yes as well ("nothing much, just soup") the answer stays unclear.
+_NO = re.compile(r"\b(no|not yet|haven'?t|havent|forgot|didn'?t|didnt|later|nope|could(?:n'?t| not) face|"
+                 r"not hungry|wasn'?t hungry|was not hungry|no appetite|lost my appetite|(had|eaten|ate) nothing|nothing (at all|yet|today)|not a thing|"
+                 r"skipped|missed it)\b")
+_PAIN = re.compile(r"\b(pain|hurts?|hurting|ache|aches|aching|sore|dizzy|breathless|fell|fall|fallen|"
+                   # Round 10 hold-out C: a body part "giving me trouble" or "playing up" (the part is required,
+                   # so "the telly is playing up" stays ordinary).
+                   r"my (hips?|knees?|back|legs?|arms?|feet|foot|shoulders?|neck|hands?|joints?|stomach|tummy|head|chest)"
+                   r" .{0,20}(giving me (real |some |a lot of )?(trouble|gyp|grief)|playing (me )?up))\b")
 _LOW = re.compile(r"\b(sad|lonely|tired|not good|not great|unwell|poorly|rough|awful|terrible|worried|anxious|down|"
-                  r"low|crying|cried|tearful|in tears|miserable|fed up)\b")   # round 10 hold-out B: "very low today, crying"
+                  r"low|crying|cried|tearful|in tears|miserable|fed up|"   # round 10 hold-out B: "very low today, crying"
+                  r"rotten|didn'?t sleep|couldn'?t sleep|not slept|hardly slept|so alone|all alone|feel alone)\b")  # hold-out C
 _GOOD = re.compile(r"\b(good|fine|well|great|ok|okay|lovely|happy|better|not bad|alright|all right)\b")
 _HELP = re.compile(r"\b(help|emergency|ambulance|can'?t get up|cant get up)\b")
 
