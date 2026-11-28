@@ -317,8 +317,11 @@ jobs:
       - name: The AOSP flavour carries no Google service dependency
         working-directory: .
         run: bash scripts/ci/check_watch_aosp_deps.sh
-      - name: Build both release APKs (what ships)
-        run: ./gradlew --no-daemon --console=plain assembleWearosRelease assembleAospRelease
+      - name: Build both release APKs (what ships) and run the unit tests in the release variants
+        run: ./gradlew --no-daemon --console=plain assembleWearosRelease assembleAospRelease testWearosReleaseUnitTest testAospReleaseUnitTest
+      - name: Release keeps its configured https server and refuses cleartext; only debug takes a test server
+        working-directory: .
+        run: python3 scripts/ci/check_watch_release_server.py
       - name: Licence check of the release runtime classpath (both flavours)
         working-directory: .
         run: python3 scripts/licence_check.py --check --only gradle-watch

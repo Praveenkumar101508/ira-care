@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import re
 import uuid
 
 from care import visits
@@ -54,7 +55,7 @@ def test_visit_alert_words_say_what_was_observed_and_never_dial_anyone():
     late = {"id": uuid.uuid4(), "kind": "visit_late", "severity": "notice",
             "details": {"summary": "Sravani's visit to Ada planned for 10:00 has not started 15 minutes after its start."}}
     title, body = alert_text(person, late, 1)
-    assert "late" in title and "Sravani" in body and "999" not in body
+    assert "late" in title and "Sravani" in body and "999" not in re.sub(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "<id>", body)
     missed = {"id": uuid.uuid4(), "kind": "visit_missed", "severity": "urgent",
               "details": {"summary": "Sravani's visit to Ada planned for 10:00 did not happen."}}
     title, body = alert_text(person, missed, 1)

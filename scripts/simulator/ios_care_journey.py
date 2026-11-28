@@ -51,6 +51,14 @@ STORAGE_WORDS = ("ira-storage", "SecureStore", "-34018", "errSecMissingEntitleme
 
 # ── pure parts ───────────────────────────────────────────────────────────────
 
+def password_missing(node: dict | None) -> bool:
+    """The password field after typing still shows nothing but its placeholder (or is not found).
+    A filled secure field shows bullets, never the placeholder "Password"."""
+    if node is None:
+        return True
+    return (node.get("text") or "").strip() in ("", "Password")
+
+
 def nodes_from_hierarchy(tree: dict) -> list[dict]:
     """Maestro's `hierarchy` JSON as a flat list of nodes in the uiautomator form the shared checks
     read: `text` (the visible text, else the accessibility label), `content-desc` (the label),
@@ -287,6 +295,19 @@ class Journey:
             # The sheet came later than the flow's own optional tap waited for.
             self.answer_password_sheet(nodes)
             nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)
+        if find_id(nodes, "tab-home") is None and find_id(nodes, ws) is None and find_id(nodes, "sign-in") is not None:
+            # Still on the sign-in screen: once, the password again if it did not land (run 46142872577:
+            # the field still read "Password"; typing clears it first, one key at a time here), then
+            # Sign in again (run 46150368809: both fields filled, the tap did not take).
+            retry: list[dict] = []
+            if password_missing(find_id(nodes, "password")):
+                retry.append({"type": ["password", login["password"]], "slow": True})
+            retry += [{"tap": "sign-in", "up": True}, {"dismiss_text": "Not Now"}]
+            ok = self.run(retry)
+            nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)
+            if has_text(nodes, "Save Password?"):
+                self.answer_password_sheet(nodes)
+                nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)
         if find_id(nodes, "tab-home") is None and find_id(nodes, ws) is not None:
             self.run([{"tap": ws}])
             nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None, self.a.ui_timeout)

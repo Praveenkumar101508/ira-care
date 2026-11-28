@@ -89,6 +89,20 @@ Round 5 (the master directive, pull requests 63 to 80; the remediation programme
 
 Round 5 is merged to `main` (`eec19a0`). Verification: `VERIFICATION.md`; the GO / NO-GO decision: `FINAL_REPORT.md`.
 
+## Stand-in watch test (28 November 2026)
+
+A real-watch test build and a test server, so the owner can run the watch care journey on a
+Samsung Galaxy Watch 4 (Wear OS 6) as a **stand-in device**, never as IRA watch validation.
+
+| Piece | Where | State |
+| --- | --- | --- |
+| Test server address typed on the watch before pairing (debug builds only; https, or http to the emulator's 10.0.2.2 only) | `watch/app/src/debug/java/care/ira/watch/testserver/TestServer.kt`, `watch/app/src/main/java/care/ira/watch/api/ServerAddress.kt` | Debug 220 and release 219 JVM tests pass locally; negative controls seen failing |
+| Release keeps its configured https address and refuses cleartext | `watch/app/src/release/java/care/ira/watch/testserver/TestServer.kt`, `ReleaseServerAddressTest`, `scripts/ci/check_watch_release_server.py` | Release build unchanged; checked in the unit tests and on the built APKs |
+| Manual workflow "watch device test server (manual)" | `.github/workflows/watch-device-test.yml` | Rehearsed locally up to the tunnel (database, seed, API, dashboard, proxy, sign-in, pairing code, pairing, Help, alert); its first real run is the owner's |
+| Owner's guide and tunnel terms | `docs/evidence/device/GALAXY_WATCH4_TEST.md`, `docs/evidence/device/TUNNEL_CHOICE.md` | Written |
+
+No requirement changed state: results are recorded when the owner sends them.
+
 ## Round 9 (26 to 27 November 2026), one pull request
 
 | Workstream | Branch and pull request | State |

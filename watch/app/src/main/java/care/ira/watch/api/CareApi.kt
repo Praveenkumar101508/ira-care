@@ -201,13 +201,15 @@ sealed class ApiOutcome<out T> {
  * run off the main thread (the foreground service and the sync worker do).
  */
 class CareApi(
-    private val baseUrl: String,
+    /** Asked at each call: a test build's watch may be given its server's address at pairing (TestServer). */
+    private val baseUrlOf: () -> String,
     private val tokenProvider: () -> String?,
-    private val client: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(20, TimeUnit.SECONDS)
-        .build(),
+    private val client: OkHttpClient = defaultClient(),
 ) {
+    constructor(baseUrl: String, tokenProvider: () -> String?, client: OkHttpClient = defaultClient()) :
+        this({ baseUrl }, tokenProvider, client)
+
+    private val baseUrl: String get() = baseUrlOf()
     private val json = Json { ignoreUnknownKeys = true; explicitNulls = false }
     private val mediaType = "application/json; charset=utf-8".toMediaType()
     /** The SOS stream is held open; it must not be cut by the ordinary read timeout. */
@@ -372,6 +374,11 @@ class CareApi(
     }
 
     companion object {
+        fun defaultClient(): OkHttpClient = OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .build()
+
         /** Answers that mean "not now", never "no": 5xx, 408 (timeout), 425 (too early), 429 (slow down). */
         fun isRetryable(code: Int): Boolean = code >= 500 || code == 408 || code == 425 || code == 429
 

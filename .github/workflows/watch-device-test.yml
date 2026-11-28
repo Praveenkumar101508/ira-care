@@ -1,0 +1,283 @@
+# A care server a real watch can reach, for the stand-in device test. Manual only.
+#
+# docs/evidence/device/GALAXY_WATCH4_TEST.md is the owner's guide. Pressing "Run workflow":
+#   1. builds the watch's test APK (the wearos debug build, which can be given a test server's
+#      https:// address at pairing: watch/app/src/debug/.../testserver/TestServer.kt) and uploads it
+#      as the artifact "ira-watch-test-apk";
+#   2. starts PostgreSQL 16 (pgvector) and Redis, applies the migration chain, loads the fictional
+#      demo seed (Lowbridge Care, Ada Hartley, Bert Lowe), and runs the care API
+#      (scripts/demo/api.py) and the carer dashboard behind one local proxy (Caddy): /api, /auth
+#      and /health go to the API, everything else to the dashboard, as deploy/Caddyfile does;
+#   3. exposes that proxy over HTTPS through a Cloudflare Quick Tunnel (trycloudflare.com: no
+#      account, no card; terms and limits recorded in docs/evidence/device/TUNNEL_CHOICE.md);
+#   4. prints the HTTPS address in the job summary, stays up for the hours chosen, then shuts
+#      everything down by itself.
+#
+# The repository is public, so this run's logs and summary are public. Nothing secret is printed:
+# the dashboard sign-in password is the repository secret IRA_WATCH_TEST_DASHBOARD_PASSWORD (GitHub
+# masks it); every other secret (database roles, Redis, the server's signing key) is generated for
+# this run, masked before first use and never stored; pairing codes are made in the dashboard by the
+# owner and appear only there; the API's own log is never printed or uploaded. Text, call and SOS
+# providers stay log-only: no Twilio or other provider setting exists in this job, and the system
+# never dials anyone. Runs only by hand: tests/readiness/test_manual_workflows.py and
+# tests/readiness/test_watch_device_test.py fail if another trigger is added or the limits change.
+name: watch device test server (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      hours:
+        description: "How long the test server stays up before it shuts itself down (hours)"
+        type: choice
+        options: ["1", "2", "3", "4", "5"]
+        default: "3"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: watch-device-test
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.12"
+  IRA_CARE_MODEL: fake
+  HF_HUB_OFFLINE: "1"
+  # Pinned tunnel client and proxy. cloudflared is checked against the digest GitHub records for
+  # the release asset before it runs.
+  CLOUDFLARED_VERSION: "2026.8.1"
+  CADDY_IMAGE: caddy:2.8.4-alpine
+
+jobs:
+  watch-apk:
+    name: Build the watch test APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
+      - name: Build the wearos debug APK (the test build; release is untouched)
+        working-directory: watch
+        run: ./gradlew --no-daemon --console=plain assembleWearosDebug
+      - name: Upload the APK
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ira-watch-test-apk
+          path: watch/app/build/outputs/apk/wearos/debug/app-wearos-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  test-server:
+    name: Care test server over HTTPS
+    runs-on: ubuntu-latest
+    # Up to 5 hours of service plus about 20 minutes of start-up: under the 6-hour job limit.
+    timeout-minutes: 340
+    env:
+      HOURS: ${{ inputs.hours }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: The dashboard password secret is set
+        env:
+          DASHBOARD_PASSWORD: ${{ secrets.IRA_WATCH_TEST_DASHBOARD_PASSWORD }}
+        run: |
+          set -euo pipefail
+          case "$HOURS" in 1|2|3|4|5) ;; *) echo "hours must be 1 to 5"; exit 1 ;; esac
+          if [ "${#DASHBOARD_PASSWORD}" -lt 12 ]; then
+            echo "Create the repository secret IRA_WATCH_TEST_DASHBOARD_PASSWORD (12 characters or more):"
+            echo "Settings, Secrets and variables, Actions, New repository secret."
+            exit 1
+          fi
+          # Nothing that could reach a real phone or a monitoring centre is configured here.
+          if env | grep -E '^IRA_CARE_TWILIO_' >/dev/null; then echo "a messaging provider is configured; refusing"; exit 1; fi
+
+      - name: Generate this run's secrets (masked, never stored)
+        run: |
+          set -euo pipefail
+          for name in PG_SUPER PG_APP PG_MIGRATOR PG_WORKER REDIS_PW IRA_SECRET_KEY IRA_ADMIN_PASSWORD; do
+            value=$(python3 -c 'import secrets; print(secrets.token_hex(24))')
+            echo "::add-mask::$value"
+            echo "$name=$value" >> "$GITHUB_ENV"
+          done
+
+      - name: Start PostgreSQL 16 and Redis (this machine only)
+        run: |
+          set -euo pipefail
+          docker run -d --name ira-pg -p 127.0.0.1:5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD="$PG_SUPER" \
+            -e POSTGRES_DB=ira_test pgvector/pgvector:pg16 > /dev/null
+          docker run -d --name ira-redis -p 127.0.0.1:6379:6379 redis:7-alpine redis-server --requirepass "$REDIS_PW" > /dev/null
+          for _ in $(seq 1 60); do docker exec ira-pg pg_isready -U postgres -d ira_test >/dev/null 2>&1 && break; sleep 2; done
+          docker exec ira-pg pg_isready -U postgres -d ira_test
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: supracloud-jarvis/ira/requirements-test.txt
+
+      - name: Migrate, seed the fictional demo and start the care API
+        working-directory: supracloud-jarvis/ira
+        env:
+          PGPASSWORD: ${{ env.PG_SUPER }}
+          IRA_DEMO_COORDINATOR_PASSWORD: ${{ secrets.IRA_WATCH_TEST_DASHBOARD_PASSWORD }}
+        run: |
+          set -euo pipefail
+          pip install -q -r requirements-test.txt
+          pip install -q --no-deps --require-hashes -r requirements-nodeps.txt
+          pip install -q "$(grep -E '^psutil==' requirements.txt)"
+          psql -h 127.0.0.1 -U postgres -d ira_test -v ON_ERROR_STOP=1 -q -f ../postgres/provisioning/001_database_roles.sql
+          psql -h 127.0.0.1 -U postgres -d ira_test -v ON_ERROR_STOP=1 -q \
+            -v app="$PG_APP" -v mig="$PG_MIGRATOR" -v wrk="$PG_WORKER" <<'SQL'
+          ALTER ROLE ira_migrator PASSWORD :'mig';
+          ALTER ROLE ira_app PASSWORD :'app';
+          ALTER ROLE ira_worker PASSWORD :'wrk';
+          SQL
+          python -m scripts.migrate apply --dsn "postgresql://ira_migrator:$PG_MIGRATOR@127.0.0.1:5432/ira_test" > /dev/null
+          cd "$GITHUB_WORKSPACE"
+          # The seed prints its logins and device tokens: they go nowhere. seed.json stays on this
+          # machine (mode 0600) and is never uploaded.
+          IRA_TEST_DATABASE_DSN="postgresql://ira_app:$PG_APP@127.0.0.1:5432/ira_test" \
+          IRA_TEST_ADMIN_DSN="postgresql://postgres:$PG_SUPER@127.0.0.1:5432/ira_test" \
+            python scripts/demo/seed_demo.py --out "$RUNNER_TEMP/seed.json" > /dev/null 2>&1 || { echo "the demo seed failed"; exit 1; }
+          rm -f "$RUNNER_TEMP/seed.json"
+          # The API's log can hold request details; it is kept on this machine and never printed.
+          POSTGRES_USER=ira_app POSTGRES_PASSWORD="$PG_APP" POSTGRES_HOST=127.0.0.1 POSTGRES_DB=ira_test \
+          REDIS_PASSWORD="$REDIS_PW" IRA_MAIL_TRANSPORT=console IRA_CARE_PUSH_PROVIDER=log \
+          IRA_TRUSTED_PROXY_HOPS=2 IRA_CARE_DEMO_PORT=8000 \
+            nohup python scripts/demo/api.py > "$RUNNER_TEMP/api.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/api.pid"
+          for _ in $(seq 1 60); do curl -fsS -o /dev/null http://127.0.0.1:8000/health && exit 0; sleep 2; done
+          echo "the care API did not start"; exit 1
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Build and start the carer dashboard (same origin as the API)
+        working-directory: dashboard
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: |
+          set -euo pipefail
+          # Empty: the browser reaches the API on the dashboard's own address (through the proxy).
+          export NEXT_PUBLIC_CARE_API_BASE_URL=""
+          npm ci --no-audit --no-fund > /dev/null
+          npm run build > /dev/null
+          cp -r .next/static .next/standalone/.next/static
+          cd .next/standalone
+          NODE_ENV=production PORT=3000 HOSTNAME=127.0.0.1 nohup node server.js > "$RUNNER_TEMP/dashboard.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/dashboard.pid"
+          for _ in $(seq 1 60); do curl -fsS -o /dev/null http://127.0.0.1:3000/login && exit 0; sleep 2; done
+          echo "the dashboard did not start"; exit 1
+
+      - name: Start the local proxy (API and dashboard on one address)
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/Caddyfile" <<'CADDY'
+          {
+              admin off
+              auto_https off
+              servers {
+                  trusted_proxies static 127.0.0.1/32 ::1/128
+              }
+          }
+          :8080 {
+              bind 127.0.0.1
+              header {
+                  Strict-Transport-Security "max-age=31536000; includeSubDomains"
+                  X-Content-Type-Options nosniff
+                  X-Frame-Options DENY
+                  Referrer-Policy no-referrer
+                  -Server
+              }
+              @api path /api/* /auth/* /health /health/*
+              handle @api {
+                  reverse_proxy 127.0.0.1:8000 {
+                      flush_interval -1
+                  }
+              }
+              handle {
+                  reverse_proxy 127.0.0.1:3000
+              }
+          }
+          CADDY
+          docker run -d --name ira-proxy --network host -v "$RUNNER_TEMP/Caddyfile:/etc/caddy/Caddyfile:ro" "$CADDY_IMAGE" > /dev/null
+          for _ in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8080/health && break; sleep 2; done
+          curl -fsS -o /dev/null http://127.0.0.1:8080/health
+          curl -fsS -o /dev/null http://127.0.0.1:8080/login
+
+      - name: Fetch cloudflared and check it against the release's recorded digest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          asset=cloudflared-linux-amd64
+          want=$(gh api "repos/cloudflare/cloudflared/releases/tags/$CLOUDFLARED_VERSION" \
+            --jq ".assets[] | select(.name == \"$asset\") | .digest")
+          case "$want" in sha256:*) ;; *) echo "no sha256 digest recorded for $asset $CLOUDFLARED_VERSION"; exit 1 ;; esac
+          gh release download "$CLOUDFLARED_VERSION" -R cloudflare/cloudflared -p "$asset" -O "$RUNNER_TEMP/cloudflared"
+          got="sha256:$(sha256sum "$RUNNER_TEMP/cloudflared" | cut -d' ' -f1)"
+          if [ "$got" != "$want" ]; then echo "cloudflared digest mismatch: $got, expected $want"; exit 1; fi
+          chmod +x "$RUNNER_TEMP/cloudflared"
+          "$RUNNER_TEMP/cloudflared" --version
+
+      - name: Open the HTTPS tunnel and publish the address
+        run: |
+          set -euo pipefail
+          nohup "$RUNNER_TEMP/cloudflared" tunnel --no-autoupdate --url http://127.0.0.1:8080 > "$RUNNER_TEMP/tunnel.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/tunnel.pid"
+          url=""
+          for _ in $(seq 1 60); do
+            url=$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$RUNNER_TEMP/tunnel.log" | head -1 || true)
+            [ -n "$url" ] && break; sleep 2
+          done
+          if [ -z "$url" ]; then echo "the tunnel gave no address"; grep -viE 'token|secret|password' "$RUNNER_TEMP/tunnel.log" | tail -20; exit 1; fi
+          ok=""
+          for _ in $(seq 1 60); do curl -fsS -o /dev/null "$url/health" && ok=1 && break; sleep 5; done
+          if [ -z "$ok" ]; then echo "the tunnel address did not answer"; exit 1; fi
+          until_utc=$(date -u -d "+$HOURS hours" '+%H:%M UTC on %d %B %Y')
+          echo "TEST_SERVER_URL=$url" >> "$GITHUB_ENV"
+          {
+            echo "## IRA CARE watch test server"
+            echo
+            echo "**Address (type it on the watch, and open it on your phone):** \`$url\`"
+            echo
+            echo "Up until about **$until_utc**, then it shuts itself down. Every run gets a new address."
+            echo
+            echo "- Dashboard: \`$url/login\`, sign in as \`praveen@example.com\` with the password you saved as the"
+            echo "  repository secret \`IRA_WATCH_TEST_DASHBOARD_PASSWORD\`."
+            echo "- Make the pairing code on the dashboard (Ada Hartley, \"Pair a new watch\"). It is never printed here."
+            echo "- The watch APK is the artifact \`ira-watch-test-apk\` on this run's page."
+            echo "- Fictional data only. Texts, calls and SOS messages are logged on this server, never sent."
+            echo "- This page is public. Anyone with the address sees the sign-in page; nothing signs in without the password."
+            echo
+            echo "Guide: \`docs/evidence/device/GALAXY_WATCH4_TEST.md\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Test server: $url (until $until_utc)"
+
+      - name: Stay up for the chosen hours, then stop
+        run: |
+          set -uo pipefail
+          end=$(( $(date +%s) + HOURS * 3600 ))
+          while [ "$(date +%s)" -lt "$end" ]; do
+            if curl -fsS -o /dev/null -m 20 "$TEST_SERVER_URL/health"; then s=up; else s=unreachable; fi
+            echo "$(date -u '+%H:%M') server $s, $(( (end - $(date +%s)) / 60 )) minutes left"
+            sleep 300
+          done
+          echo "Time is up: shutting down."
+
+      - name: Shut everything down
+        if: always()
+        run: |
+          for name in tunnel api dashboard; do
+            [ -f "$RUNNER_TEMP/$name.pid" ] && kill "$(cat "$RUNNER_TEMP/$name.pid")" 2>/dev/null || true
+          done
+          docker rm -f ira-proxy ira-redis ira-pg > /dev/null 2>&1 || true
+          rm -f "$RUNNER_TEMP/api.log" "$RUNNER_TEMP/dashboard.log" "$RUNNER_TEMP/seed.json"
+          echo "Stopped. The address no longer works."

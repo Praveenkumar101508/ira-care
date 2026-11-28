@@ -41,6 +41,19 @@ from demo._local_state import fresh_password, prepare_environment, write_private
 prepare_environment(renew_key=True, edition="cloud", model="fake")
 
 UTC = dt.UTC
+# The watch device test server (.github/workflows/watch-device-test.yml) signs the coordinator in to
+# its public test dashboard with a password the owner keeps as a repository secret, so it is never
+# printed. Unset (every other use), the coordinator's password is random like the rest.
+COORDINATOR_PASSWORD_ENV = "IRA_DEMO_COORDINATOR_PASSWORD"
+
+
+def coordinator_password() -> str:
+    given = os.environ.get(COORDINATOR_PASSWORD_ENV, "")
+    if not given:
+        return fresh_password()
+    if len(given) < 12:
+        raise SystemExit(f"{COORDINATOR_PASSWORD_ENV} must be at least 12 characters")
+    return given
 SLUG = "demo-care-organisation"
 DISPLAY = "Lowbridge Care"
 ACCOUNTS = [
@@ -115,7 +128,7 @@ async def seed(dsn: str, admin_dsn: str, out: Path) -> dict:
         users, passwords = {}, {}
         for key, email, name, trole, wrole in ACCOUNTS:
             uid = uuid.uuid4()
-            password = passwords[email] = fresh_password()
+            password = passwords[email] = coordinator_password() if key == "coordinator" else fresh_password()
             await admin.execute(
                 "INSERT INTO users (id, email, email_verified_at, display_name, auth_provider, status) "
                 "VALUES ($1, $2, NOW(), $3, 'password', 'active')", uid, email, name)

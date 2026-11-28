@@ -84,7 +84,11 @@ class CareDependencies private constructor(context: Context) {
     val queue = OfflineQueue({ readingFiles.current() }, sealer = sealer)
     /** Help, falls and answers, on disk until the server has answered. */
     val outbox = Outbox({ outboxFiles.current() }, clock, sealer = sealer)
-    val api = CareApi(BuildConfig.CARE_API_BASE_URL, { pairing.token })
+    /**
+     * Release builds: always BuildConfig.CARE_API_BASE_URL (https, set at build time). Debug builds
+     * only: the test server's address typed at pairing, when there is one (src/debug TestServer).
+     */
+    val api = CareApi({ care.ira.watch.testserver.TestServer.baseUrl(context) }, { pairing.token })
     /** The platform's readings, or the scripted driver when the build asks for it (phase 8). */
     val sensors: SensorSource = if (BuildConfig.SIMULATED_SENSORS) SimulatedSensorSource(clock) else PlatformDrivers.sensors(context, clock)
     val platform: String = PlatformDrivers.NAME

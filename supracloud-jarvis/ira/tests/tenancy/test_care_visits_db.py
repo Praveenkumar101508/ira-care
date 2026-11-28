@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import datetime as dt
 import os
+import re
 import uuid
 
 import pytest
@@ -109,7 +110,7 @@ async def test_no_arrival_means_late_then_missed_with_an_extra_checkin_each_time
     assert (out.visits_late, out.visits_missed) == (0, 1)
     # (An hour on, the watch has also not synced: that notice is the ordinary one, not this test's.)
     missed = [m for m in fake.messages if "did not happen" in m["body"]]
-    assert len(missed) == 1 and "alert for Test Person" in missed[0]["title"] and "999" not in missed[0]["body"]
+    assert len(missed) == 1 and "alert for Test Person" in missed[0]["title"] and "999" not in re.sub(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "<id>", missed[0]["body"])
     alerts = (await client.get(f"{C}/alerts", params={"person_id": p["id"], "open_only": "true"})).json()["alerts"]
     kinds = [a["kind"] for a in alerts]
     assert "visit_missed" in kinds and "visit_late" not in kinds

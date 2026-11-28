@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import datetime as dt
 import os
+import re
 import uuid
 
 import pytest
@@ -388,7 +389,7 @@ async def _steps_4_to_22(client, watch, net, fam, pid, h, device, jp, daughter, 
     assert (await watch.get(f"{C}/devices/me/sos", headers=h)).json()["state"] == "received", "step 14: the wrist says help is called"
     assert ("sms", FAMILY_PHONE) in provider.sent, f"step 15: a text to the daughter, by the test provider: {provider.sent}"
     assert FAMILY_TOKEN in pusher.tokens, "step 15: a push to the daughter's registered phone (fake push service)"
-    assert all("999" not in str(m) for m in pusher.messages), "step 15: no emergency number is involved"
+    assert all("999" not in re.sub(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "<id>", str(m)) for m in pusher.messages), "step 15: no emergency number is involved"
 
     # ── 16. The dashboard receives the incident ───────────────────────────────
     client.act_as(fam, "founder", "workspace_admin")
