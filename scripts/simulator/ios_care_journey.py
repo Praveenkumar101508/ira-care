@@ -273,13 +273,7 @@ class Journey:
             return self.step(f"{label}_signed_in", False, t0, reason="Simulator did not enter the seeded username",
                              screenshot=self.shot(f"{label}_username_mismatch"))
 
-        # The password can go missing the same way (run 46142872577: the carer's sign-in stopped with
-        # the username typed and the password field still showing its placeholder). Typing clears the
-        # field first, so when the field still looks empty it is typed again, one key at a time.
-        self.run([{"type": ["password", login["password"]]}])
-        if password_missing(find_id(self.nodes(), "password")):
-            self.run([{"type": ["password", login["password"]], "slow": True}])
-        steps: list[dict] = []
+        steps = [{"type": ["password", login["password"]]}]
         # The test build's default server is this one (the workflow sets it, as the Android test build's
         # is the emulator's host), so the server field is typed only when it holds something else.
         # Typed only with --type-server: on iOS the field could not be cleared reliably (run 46064671882
@@ -301,6 +295,19 @@ class Journey:
             # The sheet came later than the flow's own optional tap waited for.
             self.answer_password_sheet(nodes)
             nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)
+        if find_id(nodes, "tab-home") is None and find_id(nodes, ws) is None and find_id(nodes, "sign-in") is not None:
+            # Still on the sign-in screen: once, the password again if it did not land (run 46142872577:
+            # the field still read "Password"; typing clears it first, one key at a time here), then
+            # Sign in again (run 46150368809: both fields filled, the tap did not take).
+            retry: list[dict] = []
+            if password_missing(find_id(nodes, "password")):
+                retry.append({"type": ["password", login["password"]], "slow": True})
+            retry += [{"tap": "sign-in", "up": True}, {"dismiss_text": "Not Now"}]
+            ok = self.run(retry)
+            nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)
+            if has_text(nodes, "Save Password?"):
+                self.answer_password_sheet(nodes)
+                nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)
         if find_id(nodes, "tab-home") is None and find_id(nodes, ws) is not None:
             self.run([{"tap": ws}])
             nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None, self.a.ui_timeout)

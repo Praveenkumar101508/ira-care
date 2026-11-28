@@ -116,3 +116,46 @@ def test_a_password_left_as_the_placeholder_is_noticed(j):
     assert j.password_missing({"resource-id": "password", "text": ""})
     assert j.password_missing(None)
     assert not j.password_missing({"resource-id": "password", "text": "••••••••••••••••••••"})
+
+
+def _sign_in_journey(j, screens):
+    """A Journey whose screen reads come from `screens` (the last one repeats) and whose flows are recorded."""
+    from types import SimpleNamespace
+    jr = object.__new__(j.Journey)
+    jr.a = SimpleNamespace(ui_timeout=0, type_server=False)
+    jr.server = SimpleNamespace(creds={"workspace_id": "w1"})
+    jr.ran, jr.steps_seen = [], []
+    jr.nodes = lambda: screens.pop(0) if len(screens) > 1 else screens[0]
+    jr.wait_for = lambda check, seconds: jr.nodes()
+    jr.run = lambda steps: jr.ran.append(steps) or True
+    jr.shot = lambda name: name
+    jr.step = lambda name, ok, t0, **kw: jr.steps_seen.append((name, ok)) or ok
+    return jr
+
+
+LOGIN = {"email": "sravani@example.com", "password": "abc123-def456-789abc"}
+
+
+def _sign_in_screen(password_text):
+    return [{"resource-id": "sign-in", "text": "Sign in"}, {"resource-id": "username", "text": LOGIN["email"]},
+            {"resource-id": "password", "text": password_text}]
+
+
+HOME = [{"resource-id": "tab-home", "text": "Home"}]
+
+
+@pytest.mark.parametrize("password_text, retyped", [("•" * 20, False), ("Password", True)])
+def test_a_sign_in_that_did_not_take_is_tried_once_more(j, password_text, retyped):
+    # Runs 46142872577 (password left as the placeholder) and 46150368809 (both filled, the tap did not take).
+    stuck = _sign_in_screen(password_text)
+    jr = _sign_in_journey(j, [stuck, stuck, stuck, stuck, HOME])
+    assert jr.sign_in(LOGIN, "family") is True
+    retry = jr.ran[-1]
+    assert {"tap": "sign-in", "up": True} in retry
+    assert ({"type": ["password", LOGIN["password"]], "slow": True} in retry) is retyped
+
+
+def test_a_sign_in_that_never_takes_still_fails(j):
+    stuck = _sign_in_screen("•" * 20)
+    jr = _sign_in_journey(j, [stuck])
+    assert jr.sign_in(LOGIN, "family") is False and jr.steps_seen[-1] == ("family_signed_in", False)
