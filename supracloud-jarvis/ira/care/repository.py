@@ -577,6 +577,33 @@ async def record_help_request(principal: Principal, device: dict, body: dict) ->
         return await attach_location(conn, alert["id"], loc) or alert
 
 
+#: How old an open SOS may be for a position that arrives after it to be attached.
+LATE_LOCATION_WINDOW = dt.timedelta(minutes=30)
+
+
+async def attach_late_location(principal: Principal, device: dict, body: dict) -> Optional[dict]:
+    """A position the watch got only after its Help request went (a GPS fix can take a minute; Help is
+    never held back for one). Attached to the person's newest open SOS alert from the last half hour
+    that has no position yet; an alert that already has one keeps it. None when there is no such alert."""
+    from . import location
+    from .sos import SOS_KINDS
+    loc = location.from_body(body)
+    if loc is None:
+        return None
+    async with workspace_connection(principal) as conn:
+        row = await conn.fetchrow(
+            """
+            SELECT id FROM care_alerts
+             WHERE person_id = $1 AND kind = ANY($2::text[]) AND severity = 'sos'
+               AND status IN ('asking', 'open', 'escalating', 'acknowledged')
+               AND location_latitude IS NULL AND opened_at > $3
+             ORDER BY opened_at DESC LIMIT 1
+            """, device["person_id"], list(SOS_KINDS), _now() - LATE_LOCATION_WINDOW)
+        if row is None:
+            return None
+        return await attach_location(conn, row["id"], loc)
+
+
 async def attach_location(conn, alert_id: uuid.UUID, loc) -> Optional[dict]:
     """Store the watch's one-off location on the alert and decide at-home from
     the person's home coordinates. None when there is no location to store."""

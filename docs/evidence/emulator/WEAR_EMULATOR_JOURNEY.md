@@ -210,3 +210,14 @@ Two defects found on the way, both fixed with unit tests:
 The journey also signs in again when its session expires (run 46143245120 stopped two groups with 401
 after 35 minutes). D1.f stays accepted, not verified: the next run asks the fused provider first and
 records the emulator's location state if there is still no position.
+
+Run 46150286394 (commit `5b0c7cf`): every step passed except `help_alert_carries_location`. Its
+diagnostics showed why: location on, the app's location grants given, the emulator's geo fix answered
+"OK" three times, but every provider's last location empty, and the watch's one request a BALANCED
+(network) one. A fix needs GPS, which nothing had asked for, and Help waits only two seconds for a
+position. That is the same on a real watch outdoors from cold, so the defect is the watch's, not the
+emulator's: a Help sent without a position never got one. The watch now asks for a high-accuracy fix,
+and when Help went without a position it keeps looking for up to a minute and sends the fix to the
+open SOS (`POST /devices/me/help/location`, `tests/tenancy/test_care_location_db.py`); Help itself is
+never held back.
+

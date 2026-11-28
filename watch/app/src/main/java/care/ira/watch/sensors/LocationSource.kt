@@ -43,7 +43,14 @@ class AndroidLocationSource(private val context: Context) : LocationSource {
                 suspendCancellableCoroutine { cont ->
                     val signal = CancellationSignal()
                     cont.invokeOnCancellation { signal.cancel() }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        // High accuracy: the fused provider then uses GPS, not only the network's rough
+                        // position (CI run 46150286394: a BALANCED request, and no position at all).
+                        val request = android.location.LocationRequest.Builder(0L)
+                            .setQuality(android.location.LocationRequest.QUALITY_HIGH_ACCURACY)
+                            .setDurationMillis(timeoutMs.coerceAtLeast(1L)).build()
+                        manager.getCurrentLocation(provider, request, signal, executor) { loc -> cont.resume(loc?.let(::fix)) }
+                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         manager.getCurrentLocation(provider, signal, executor) { loc -> cont.resume(loc?.let(::fix)) }
                     } else {
                         @Suppress("DEPRECATION")

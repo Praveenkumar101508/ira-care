@@ -152,6 +152,8 @@ class Outbox(
         }
 
         const val KIND_HELP = "help"
+        /** A position that came after its Help request (CareForegroundService.sendLateFix). */
+        const val KIND_HELP_LOCATION = "help_location"
         const val KIND_FALL_STARTED = "fall_started"
         const val KIND_FALL_OK = "fall_ok"
         const val KIND_ANSWER = "checkin_answer"
