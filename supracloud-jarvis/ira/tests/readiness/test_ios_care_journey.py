@@ -133,7 +133,7 @@ def _sign_in_journey(j, screens):
     return jr
 
 
-LOGIN = {"email": "sravani@example.com", "password": "abc123-def456-789abc"}
+LOGIN = {"email": "sravani@example.com", "password": "not-a-real-password"}
 
 
 def _sign_in_screen(password_text):

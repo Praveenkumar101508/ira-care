@@ -30,3 +30,8 @@ dd963124f786a778e61fb2ef38ca4dd00767633d:.demo/demo.local.json:generic-api-key:3
 # public as refs/pull/11/head. Listed so a scan of every ref (`--log-opts="--all"`) is clean too.
 c6aea74073828e32569fe624344960d3afd4840f:scripts/simulate_patient.py:generic-api-key:45
 c6aea74073828e32569fe624344960d3afd4840f:supracloud-jarvis/ira/tests/tenancy/_care_fixtures.py:generic-api-key:24
+#
+# A fake password in the iOS journey's sign-in test fixture ("abc123-def456-789abc", matching
+# the demo seed's password shape; it signs in to nothing). Replaced in the next commit on the
+# same branch by "not-a-real-password"; the original commit stays in the branch's history.
+eb31b3ef513f3c79aff0f332bcae1c36b6148980:supracloud-jarvis/ira/tests/readiness/test_ios_care_journey.py:generic-api-key:136
