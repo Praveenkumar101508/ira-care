@@ -95,6 +95,10 @@ def flow(steps: list[dict], bundle_id: str = BUNDLE_ID) -> str:
     for s in steps:
         if "tap" in s:
             lines += into_view(s["tap"], "UP" if s.get("up") else "DOWN") + ["- tapOn:", f"    id: {_q(s['tap'])}"]
+        elif "dismiss_text" in s:
+            # A system sheet that may or may not appear (iOS "Save Password?"): tapped when it is
+            # there, skipped when it is not.
+            lines += ["- tapOn:", f"    text: {_q(s['dismiss_text'])}", "    optional: true"]
         elif "tap_text" in s:
             lines += ["- tapOn:", f"    text: {_q(s['tap_text'])}"]
         elif "type" in s:
@@ -258,9 +262,16 @@ class Journey:
             steps += [{"type": ["server", self.a.api]}]
         # On screen: username, password, Sign in, then Advanced and the server; so back up to Sign in.
         steps += [{"tap": "sign-in", "up": True}]
+        # Signed to run locally, the app gets iOS's password sheet after a sign-in ("Save Password?",
+        # run 46093555159): it covers the app until answered, so it is answered "Not Now".
+        steps += [{"dismiss_text": "Not Now"}]
         ok = self.run(steps)
         ws = "workspace-" + self.server.creds["workspace_id"]
         nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)
+        if find_id(nodes, "tab-home") is None and has_text(nodes, "Save Password?"):
+            # The sheet came later than the flow's own optional tap waited for.
+            self.run([{"dismiss_text": "Not Now"}])
+            nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)
         if find_id(nodes, "tab-home") is None and find_id(nodes, ws) is not None:
             self.run([{"tap": ws}])
             nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None, self.a.ui_timeout)
