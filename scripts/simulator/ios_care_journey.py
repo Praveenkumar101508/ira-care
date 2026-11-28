@@ -210,6 +210,20 @@ class Journey:
                            capture_output=True, text=True, timeout=600)
         return [ln.strip()[:300] for ln in r.stdout.splitlines() if any(k in ln for k in STORAGE_WORDS)][-40:]
 
+    def answer_password_sheet(self, nodes: list[dict] | None = None) -> list[dict]:
+        """iOS's "Save Password?" sheet (the app is signed to run locally) covers the app until it is
+        answered, and it can come seconds after a sign-in or still be up at the next one (run
+        46100618011: the wearer's and the carer's sign-ins were covered). Answered "Not Now", up to
+        three times, until the screen no longer shows it."""
+        nodes = self.nodes() if nodes is None else nodes
+        for _ in range(3):
+            if not has_text(nodes, "Save Password?"):
+                break
+            self.run([{"dismiss_text": "Not Now"}])
+            time.sleep(2)
+            nodes = self.nodes()
+        return nodes
+
     def relaunch(self) -> None:
         self.run([{"stop": True}, {"launch": True}])
 
@@ -237,6 +251,7 @@ class Journey:
     # the app
     def sign_in(self, login: dict, label: str) -> bool:
         t0 = time.time()
+        nodes = self.answer_password_sheet()
         nodes = self.wait_for(lambda n: find_id(n, "sign-in") is not None, self.a.ui_timeout)
         # iOS can reorder characters during a single Maestro inputText command.
         # Verify the seeded username before submitting, with individual keystrokes as a fallback.
@@ -268,9 +283,9 @@ class Journey:
         ok = self.run(steps)
         ws = "workspace-" + self.server.creds["workspace_id"]
         nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)
-        if find_id(nodes, "tab-home") is None and has_text(nodes, "Save Password?"):
+        if has_text(nodes, "Save Password?"):
             # The sheet came later than the flow's own optional tap waited for.
-            self.run([{"dismiss_text": "Not Now"}])
+            self.answer_password_sheet(nodes)
             nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)
         if find_id(nodes, "tab-home") is None and find_id(nodes, ws) is not None:
             self.run([{"tap": ws}])
@@ -280,6 +295,7 @@ class Journey:
         return self.step(f"{label}_signed_in", signed_in, t0, screenshot=self.shot(f"{label}_home"), **extra)
 
     def sign_out(self) -> list[dict]:
+        self.answer_password_sheet()
         for _ in range(3):
             nodes = self.nodes()
             if find_id(nodes, "tab-settings") is not None:

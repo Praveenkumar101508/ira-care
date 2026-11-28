@@ -20,8 +20,9 @@ before then.
 | Run | Where it stopped | Fix |
 |---|---|---|
 | 46083831505 | 12 of 16 steps; the sign-in was lost at the restart | signed to run locally (in `main`) |
-| 46090062926 | sign-in: iOS autocorrect changed the username | no autocorrect on account fields (on the branch, not yet pushed) |
-| 46093555159 | sign-in: iOS's "Save Password?" sheet covered the app | answer it "Not Now" (on the branch, not yet pushed) |
+| 46090062926 | sign-in: iOS autocorrect changed the username | no autocorrect on account fields (pull request 133) |
+| 46093555159 | sign-in: iOS's "Save Password?" sheet covered the app | answer it "Not Now" (pull request 133) |
+| 46100618011 | 10 of 14: sign-in, record, plan, Help acknowledged, appearance across a restart, offline notice all passed; then the care server's restart signed the app out (a new random secret at each start of the test server), and iOS's "Save Password?" sheet covered the wearer's and carer's sign-ins | one secret for the whole journey; the sheet answered before and after every sign-in (on pull request 133) |
 
 Done means: the native-checks run on `main` (or on the follow-up pull request) green, the iOS journey
 16 of 16, and D2.h's journey recorded in `docs/evidence/builds/IOS_SIMULATOR.md`.

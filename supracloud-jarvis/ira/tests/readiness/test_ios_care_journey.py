@@ -80,6 +80,26 @@ def test_a_system_sheet_is_answered_only_when_it_is_there(j):
     assert cmds == [{"tapOn": {"text": "Not Now", "optional": True}}]
 
 
+def test_the_password_sheet_is_answered_until_it_is_gone_and_never_when_absent(j, monkeypatch):
+    monkeypatch.setattr(j.time, "sleep", lambda s: None)
+    sheet = [{"text": "Save Password?", "content-desc": "", "resource-id": ""}, {"text": "Not Now", "content-desc": "", "resource-id": ""}]
+    home = [{"text": "Home", "content-desc": "", "resource-id": "tab-home"}]
+
+    def journey(screens):
+        jr = object.__new__(j.Journey)
+        jr.ran = []
+        jr.nodes = lambda: screens.pop(0) if screens else home
+        jr.run = lambda steps: jr.ran.append(steps) or True
+        return jr
+
+    jr = journey([sheet, home])   # up when read, gone after one "Not Now"
+    assert jr.answer_password_sheet() == home and jr.ran == [[{"dismiss_text": "Not Now"}]]
+    jr = journey([sheet, sheet, sheet, sheet])   # never goes: three tries, then the screen is returned as it is
+    assert jr.answer_password_sheet() == sheet and len(jr.ran) == 3
+    jr = journey([home])   # no sheet: nothing tapped
+    assert jr.answer_password_sheet() == home and jr.ran == []
+
+
 def test_typing_one_keystroke_at_a_time_types_every_character(j):
     cmds = yaml.safe_load(j.flow([{"type": ["username", "ab@c"], "slow": True}]).split("---\n")[1])
     assert [c["inputText"] for c in cmds if "inputText" in c] == ["a", "b", "@", "c"]
