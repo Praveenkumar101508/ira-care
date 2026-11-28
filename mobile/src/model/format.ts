@@ -24,11 +24,19 @@ export function readingLabel(reading: Reading): string {
   }
 }
 
+/** After this long without a sync, the wrist state is only the last known one (the dashboard's limit too). */
+export const WRIST_STALE_AFTER_MINUTES = 60;
+
 export function deviceSummary(device: Device | undefined, now: Date = new Date()): string {
   if (!device) return 'No watch paired';
   const parts: string[] = [];
-  // Never guessed: a watch that has not said whether it is worn is 'wrist unknown', not worn.
-  parts.push(device.on_wrist === true ? 'on the wrist' : device.on_wrist === false ? 'off the wrist' : 'wrist unknown');
+  // Never guessed: a watch that has not said whether it is worn is 'wrist unknown', not worn; one that
+  // said so but has not synced for over an hour is 'last known', as on the dashboard (lib/view.ts,
+  // wristState). Found by the browser test of C-11: the phone said "on the wrist" three hours on.
+  const synced = device.last_sync_at ? new Date(device.last_sync_at).getTime() : NaN;
+  const stale = Number.isNaN(synced) || (now.getTime() - synced) / 60000 > WRIST_STALE_AFTER_MINUTES;
+  const wrist = device.on_wrist === true ? 'on the wrist' : device.on_wrist === false ? 'off the wrist' : 'wrist unknown';
+  parts.push(device.on_wrist === null || device.on_wrist === undefined ? wrist : stale ? `last known ${wrist}` : wrist);
   if (device.battery_percent !== null && device.battery_percent !== undefined) parts.push(`battery ${device.battery_percent} %`);
   if (device.background_sensor_permission === false) parts.push('sensor permission off');
   parts.push(`synced ${timeAgo(device.last_sync_at, now)}`);

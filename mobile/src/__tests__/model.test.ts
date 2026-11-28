@@ -57,6 +57,12 @@ test('readings and the watch are described, never judged', () => {
   const at = new Date('2026-11-21T12:00:00Z');
   expect(deviceSummary({ ...device, on_wrist: null }, at)).toMatch(/^wrist unknown, /);
   expect(deviceSummary({ ...device, on_wrist: true }, at)).toMatch(/^on the wrist, /);
+  // Stale: worn, but no sync for three hours, or never synced, is only the last known state (C-11.b).
+  const later = new Date('2026-11-21T14:00:00Z');
+  expect(deviceSummary({ ...device, on_wrist: true }, later)).toMatch(/^last known on the wrist, .*synced 3 h ago$/);
+  expect(deviceSummary({ ...device, on_wrist: true, last_sync_at: null }, at)).toMatch(/^last known on the wrist, /);
+  expect(deviceSummary({ ...device, on_wrist: false }, later)).toMatch(/^last known off the wrist, /);
+  expect(deviceSummary({ ...device, on_wrist: null }, later)).toMatch(/^wrist unknown, /);
 });
 
 test('telephone links keep digits and plus only', () => {
