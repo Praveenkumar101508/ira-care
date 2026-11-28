@@ -1032,9 +1032,11 @@ class Smoke:
 
         t0 = time.time()
         # D1.f: the emulator's GPS is given a position before Help, so the SOS can carry it.
+        geo_replies = []
         for _ in range(3):   # repeated, so the GPS provider has a recent fix when Help asks for one
-            self.adb("emu", "geo", "fix", str(GPS_FIX[1]), str(GPS_FIX[0]), timeout=60, check=False)
+            geo_replies.append(str(self.adb("emu", "geo", "fix", str(GPS_FIX[1]), str(GPS_FIX[0]), timeout=60, check=False)).strip()[:80])
             time.sleep(2)
+        self.geo_replies = geo_replies
         self.adb("shell", "input", "tap", *map(str, centre(help_btn)))
         received = None
         deadline = time.time() + a.ui_timeout
@@ -1057,8 +1059,18 @@ class Smoke:
         if len(mine) == 1:
             located = self.wait_until(lambda: (lambda al: al if gps_matches(al, GPS_FIX) else None)(
                 self.api("GET", f"/api/v1/care/alerts/{mine[0]['id']}", None, h)), 90)
+        diag = {}
+        if located is None:
+            # Why there was no position: the providers and last fixes as the system sees them, and the app's grants.
+            loc = str(self.adb("shell", "dumpsys", "location", timeout=60, check=False))
+            diag = {"geo_fix_replies": getattr(self, "geo_replies", None),
+                    "location_dumpsys": [l.strip()[:160] for l in loc.splitlines()
+                                         if any(w in l for w in ("provider", "Provider", "enabled", "last location", "Location["))][:40],
+                    "appops": str(self.adb("shell", "appops", "get", self.a.package, timeout=60, check=False)).strip()[:600],
+                    "alert_location": {k: (self.api("GET", f"/api/v1/care/alerts/{mine[0]['id']}", None, h) if mine else {}).get(k)
+                                       for k in ("location_latitude", "location_longitude")}}
         self.step("help_alert_carries_location", located is not None, t0, expected=GPS_FIX,
-                  location={k: (located or {}).get(k) for k in ("location_latitude", "location_longitude", "location_accuracy_m")})
+                  location={k: (located or {}).get(k) for k in ("location_latitude", "location_longitude", "location_accuracy_m")}, **diag)
 
         # A journey can pass while the app crashed and restarted on the way (run 45760714043's
         # crash after pairing was hidden that way in an earlier pass), so read the crash buffer.

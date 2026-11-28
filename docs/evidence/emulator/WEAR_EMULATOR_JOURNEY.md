@@ -182,3 +182,31 @@ debug-only receiver, feeding the countdown), D1.e (Help, its delivery and the re
 the wrist), D1.h (a reminder shown and answered on the wrist). Not moved, because the run does not
 show all of their titles: D1.a (voice check-ins; the run answers by touch), D1.g (battery state),
 C-21.b (the refusal to unpair while Help is pending), C-20.a (a crash, as against a reboot).
+
+## Round 11: battery, carer visit, unpairing refused, the thank-you (28 November 2026)
+
+Run 46146704537, job 140984229449, commit `242f25a` (pull request 134), the same runner, image and
+backend as above. **56 of 57 steps passed**; the one that failed is below.
+
+| Step | What it shows | Result |
+|---|---|---|
+| `battery_level_reported` (D1.g) | the emulator's battery set to 23 % (`dumpsys battery set level 23`): the server's device row reads `battery_percent` 23 | pass, 57.3 s |
+| `checkin_thank_you_clears` | after a check-in answered by touch, "Thank you." gives way to "All well" | pass, 35.7 s |
+| `visit_expected_shown` (D1.b) | a visit planned through the API: "Uday is coming at 13:38." on the watch (after the closed-Help notice's ten minutes) | pass, 483.6 s |
+| `visit_here_shown_and_acknowledged` (D1.b) | the carer marked arrived: "Uday is here." on the watch, and the server records the watch's acknowledgement (`acknowledged_at` 13:26:36) | pass, 5.2 s |
+| `visit_departed_cleared` (D1.b) | the carer departed: the face back to "All well" | pass, 4.6 s |
+| `unpair_refused_during_fall_check` (C-21.b) | a fall while the unpair screen is open: "A fall check is running. Answer it first.", and no Unpair button | pass, 15.7 s |
+| `fall_check_answered_still_paired` (C-21.b) | back home, "I'm OK" answers the countdown (outcome `answered_ok`); the watch is still paired | pass, 16.6 s |
+| `help_alert_carries_location` (D1.f) | the Help alert carries the emulator's GPS fix | **fail**: no position on the alert |
+
+Two defects found on the way, both fixed with unit tests:
+
+1. **The battery level never reached the server.** The watch read `BATTERY_PROPERTY_CAPACITY`, which
+   the emulator, like some devices, answers as unsupported (run 46143245120: `battery_percent` null).
+   It now reads the system's battery broadcast, with the property as fallback (`BatteryLevelTest`).
+2. **"Thank you." stayed on the face until a restart**, above "No connection" and the visit line. It
+   now clears after 30 seconds, and "No connection" ranks above it (`FaceTextTest`).
+
+The journey also signs in again when its session expires (run 46143245120 stopped two groups with 401
+after 35 minutes). D1.f stays accepted, not verified: the next run asks the fused provider first and
+records the emulator's location state if there is still no position.

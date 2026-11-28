@@ -834,7 +834,7 @@
    "title": "Explicit unpair on the watch, with a warning and refusal while Help is pending (D7)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -843,6 +843,10 @@
     {
      "kind": "unit_test",
      "ref": "#53"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
     }
    ]
   },
@@ -1142,11 +1146,15 @@
    "title": "Watch scheduled-visit state (arrival pauses check-ins)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/outbox/VisitStateTest.kt"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
     }
    ]
   },
@@ -1224,7 +1232,7 @@
    "title": "Watch reports battery and sensor-permission state",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -1233,6 +1241,14 @@
     {
      "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_api_db.py"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/service/BatteryLevelTest.kt"
     }
    ]
   },

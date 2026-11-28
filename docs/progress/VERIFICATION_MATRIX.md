@@ -9,7 +9,7 @@ document, a dataset decision), the row says so instead of inventing a test.
 |---|---|
 | not an integration target | 18 |
 | the AOSP build host (Cuttlefish) | 17 |
-| watch emulator journey on CI | 15 |
+| watch emulator journey on CI | 15 (D1.b, D1.g and C-21.b verified since, 28 November) |
 | a physical watch or phone | 7 |
 | browser or database, here | 4 (C-10.b, C-10.c, C-12.b and C-23.b verified since, 28 November) |
 | a staging server | 4 |
@@ -29,15 +29,12 @@ document, a dataset decision), the row says so instead of inventing a test.
 | C-20.a | Offline queue writes are atomic and survive a crash; unreadable lines are reported (D5) | unit_test | watch emulator journey on CI | kill the app mid-write on the emulator; the queue is intact after restart |
 | C-20.b | Outbox events are on disk before sending, keep their key and back off on failure | unit_test | watch emulator journey on CI | partly shown by the offline and reboot groups (on disk, delivered once); back-off needs a failing server step |
 | C-21.a | Pairing data kept per wearer; re-pairing another wearer does not read the previous one's d | unit_test | watch emulator journey on CI | pair a second wearer on the same emulator; the first wearer's data is not read |
-| C-21.b | Explicit unpair on the watch, with a warning and refusal while Help is pending (D7) | unit_test | watch emulator journey on CI | partly shown (the warning); refusal while Help is pending needs a journey step |
 | C-22.c | System-wide security review of the integrated stack (threat model, secrets, dependencies,  | browser, docs_only, unit_test | a reviewer | a system-wide security review: an independent reviewer (C-22.d is the penetration test) |
 | C-24.a | Watch keeps retryable server failures (5xx, 425, 429) and drops only permanent refusals (E | unit_test | watch emulator journey on CI | a journey step with the server answering 503 then 200: the request is kept and sent |
 | C-5.a | A negative, a doubt or trouble never ends the watch fall countdown as OK (A4b) | build, unit_test | watch emulator journey on CI | a synthetic fall's countdown answered with a doubt: the alert must stay open |
 | D1.a | Watch check-ins by voice and touch | build, unit_test | a physical watch or phone | touch is shown on the emulator; voice needs a microphone |
-| D1.b | Watch scheduled-visit state (arrival pauses check-ins) | unit_test | watch emulator journey on CI | plan a visit and mark the carer arrived through the API: the watch shows the visit and asks no check-in |
 | D1.c | Watch heart-rate and wrist readings batched and sent | unit_test | watch emulator journey on CI | simulated readings from the watch arrive at the server, marked simulated |
 | D1.f | Watch sends location with an SOS (GPS) | db_test, unit_test | watch emulator journey on CI | set the emulator's position (adb emu geo fix), press Help: the alert carries the location |
-| D1.g | Watch reports battery and sensor-permission state | db_test, unit_test | watch emulator journey on CI | set the emulator's battery (dumpsys battery set level): the server's device row reports it; the permission half is shown |
 | D1b.a | AOSP flavour builds and unit-tests with no Google service dependency | build | the AOSP build host (Cuttlefish) | the AOSP flavour on Cuttlefish |
 | D1b.b | Platform layer behind interfaces (one app for Wear OS and AOSP) | unit_test | the AOSP build host (Cuttlefish) | the AOSP flavour on Cuttlefish |
 | D2.f | Phone app typecheck and tests in CI | build | not an integration target | a CI build-and-test job: its evidence is the job |
