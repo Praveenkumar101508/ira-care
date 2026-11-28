@@ -130,6 +130,15 @@ def flow(steps: list[dict], bundle_id: str = BUNDLE_ID) -> str:
 
 # ── the journey ──────────────────────────────────────────────────────────────
 
+#: Words of a sign-in the server or the app refused (mobile/src/api/client.ts, LoginScreen): never retried.
+REFUSAL_WORDS = ("wrong", "too many", "could not", "expired", "not allowed")
+
+
+def refused_on_screen(nodes: list[dict]) -> bool:
+    text = " ".join((n.get("text", "") + " " + n.get("content-desc", "")).lower() for n in nodes)
+    return any(w in text for w in REFUSAL_WORDS)
+
+
 class Journey:
     """The API side comes from the Android journey (`phone_smoke.PhoneSmoke`), unchanged."""
 
@@ -250,7 +259,22 @@ class Journey:
 
     # the app
     def sign_in(self, login: dict, label: str) -> bool:
+        """Sign in, and once more if the app is still on the sign-in screen with nothing refused: on a slow
+        runner (run 46158686899, every step about five times slower) the wearer's sign-in tap landed and the
+        app stayed on the sign-in screen with no message. Both attempts are recorded in the step."""
         t0 = time.time()
+        attempts = []
+        for attempt in (1, 2):
+            signed_in, nodes, ok = self._sign_in_once(login, label)
+            attempts.append({"attempt": attempt, "flows_ok": ok, "home": signed_in,
+                             "on_sign_in_screen": find_id(nodes, "sign-in") is not None,
+                             "username_shown": (find_id(nodes, "username") or {}).get("text")})
+            if signed_in or find_id(nodes, "sign-in") is None or refused_on_screen(nodes):
+                break
+        extra = {} if signed_in else {"screen": [{k: x[k] for k in ("resource-id", "text") if x.get(k)} for x in nodes][:40]}
+        return self.step(f"{label}_signed_in", signed_in, t0, attempts=attempts, screenshot=self.shot(f"{label}_home"), **extra)
+
+    def _sign_in_once(self, login: dict, label: str) -> tuple[bool, list[dict], bool]:
         nodes = self.answer_password_sheet()
         nodes = self.wait_for(lambda n: find_id(n, "sign-in") is not None, self.a.ui_timeout)
         # iOS can reorder characters during a single Maestro inputText command.
@@ -262,8 +286,8 @@ class Journey:
             if typed and username and username.get("text") == email:
                 break
         else:
-            return self.step(f"{label}_signed_in", False, t0, reason="Simulator did not enter the seeded username",
-                             screenshot=self.shot(f"{label}_username_mismatch"))
+            self.shot(f"{label}_username_mismatch")
+            return False, self.nodes(), False
 
         steps = [{"type": ["password", login["password"]]}]
         # The test build's default server is this one (the workflow sets it, as the Android test build's
@@ -282,7 +306,8 @@ class Journey:
         steps += [{"dismiss_text": "Not Now"}]
         ok = self.run(steps)
         ws = "workspace-" + self.server.creds["workspace_id"]
-        nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, self.a.ui_timeout)
+        home_wait = max(self.a.ui_timeout, 90)   # the sign-in request and the first load, on a slow runner
+        nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None or find_id(n, ws) is not None, home_wait)
         if has_text(nodes, "Save Password?"):
             # The sheet came later than the flow's own optional tap waited for.
             self.answer_password_sheet(nodes)
@@ -291,8 +316,7 @@ class Journey:
             self.run([{"tap": ws}])
             nodes = self.wait_for(lambda n: find_id(n, "tab-home") is not None, self.a.ui_timeout)
         signed_in = ok and find_id(nodes, "tab-home") is not None
-        extra = {} if signed_in else {"screen": [{k: x[k] for k in ("resource-id", "text") if x.get(k)} for x in nodes][:40]}
-        return self.step(f"{label}_signed_in", signed_in, t0, screenshot=self.shot(f"{label}_home"), **extra)
+        return signed_in, nodes, ok
 
     def sign_out(self) -> list[dict]:
         self.answer_password_sheet()
