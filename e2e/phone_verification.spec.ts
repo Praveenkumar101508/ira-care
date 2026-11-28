@@ -12,7 +12,10 @@ import { Api, FAMILY, appSignIn, info, login } from './helpers';
  *          "wrist unknown" (the rows set as a silent watch leaves them, with E2E_ADMIN_DSN, and put back);
  *  - D2.c  a reminder set for the person reaches the wearer's home and "Done" is recorded on the server;
  *  - D2.d  a visit planned by the care team reaches the wearer's home as the next visit, with the carer's name;
- *  - D2.b  the appearance the family member chooses on one device is the one their other device shows.
+ *  - D2.b  the appearance the family member chooses on one device is the one their other device shows;
+ *  - C-16.a with the server's access tokens lasting one minute (ACCESS_TOKEN_EXPIRE_MINUTES=1,
+ *          E2E_ACCESS_TOKEN_SECONDS=60), the phone renews an expired sign-in with its refresh token and
+ *          the family member stays signed in, with no "sign-in has expired" screen.
  *
  * Fictional people only (scripts/demo/seed_demo.py). FAMILY_URL is where the web build is served.
  */
@@ -124,6 +127,27 @@ test('the appearance chosen on one phone is the one the same person sees on anot
     await expect.poll(mode, { timeout: 30_000 }).not.toBe('dark').catch(() => undefined);
     await first.close(); await second.close();
   }
+});
+
+test('the phone renews an expired sign-in instead of signing the family member out', async ({ page }) => {
+  const seconds = Number(process.env.E2E_ACCESS_TOKEN_SECONDS ?? '0');
+  test.skip(!seconds, 'start the server with ACCESS_TOKEN_EXPIRE_MINUTES=1 and set E2E_ACCESS_TOKEN_SECONDS=60');
+  test.setTimeout((seconds + 180) * 1000);
+  const renewals: number[] = [];
+  const refused: number[] = [];
+  page.on('response', (r) => {
+    if (r.url().endsWith('/auth/refresh')) renewals.push(r.status());
+    else if (r.url().includes('/api/v1/care/') && r.status() === 401) refused.push(r.status());
+  });
+  await appSignIn(page, family);
+  await expect(page.getByTestId('card-watch')).toBeVisible({ timeout: 60_000 });
+  // Past the token's life, and two of the app's 30-second refreshes after it.
+  await page.waitForTimeout((seconds + 75) * 1000);
+  expect(refused.length, 'the expired token was refused by the server at least once').toBeGreaterThan(0);
+  expect(renewals, 'renewed with the refresh token').toContain(200);
+  await expect(page.getByTestId('card-watch')).toBeVisible();
+  await expect(page.getByTestId('sign-in')).toHaveCount(0);
+  await expect(page.getByTestId('signed-out-notice')).toHaveCount(0);
 });
 
 test('the phone build under test is the one served at FAMILY_URL', async ({ request }) => {

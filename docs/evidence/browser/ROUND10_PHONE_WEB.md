@@ -6,7 +6,7 @@ the running care server (`scripts/demo/api.py`, PostgreSQL 16 with pgvector, Red
 machine, not the owner's computer. Each "device" is a separate browser profile. Fictional people
 only. Results: `round10_phone_results.json`.
 
-## `e2e/phone_verification.spec.ts`: 4 of 4 passed (1.3 min)
+## `e2e/phone_verification.spec.ts`: 5 of 5 passed
 
 | Requirement | Test | What it proves | Result |
 |---|---|---|---|
@@ -14,6 +14,8 @@ only. Results: `round10_phone_results.json`.
 | D2.c | a reminder set by the care team reaches the wearer, and Done is recorded | a reminder made by the coordinator through the API appears on the wearer's home; "Done" on the phone leaves it `confirmed` on the server, and it leaves the open list | passed |
 | D2.d | a visit planned by the care team reaches the wearer | the wearer's "Next visit" card reads "Verification Carer is coming at" the planned time | passed |
 | D2.b | the appearance chosen on one phone is the one the same person sees on another | the family member turns on dark mode on one device: the server keeps it, the first device draws dark, and a second device (a fresh browser profile, the same person signed in) draws dark too; it was light before; put back afterwards | passed |
+
+| C-16.a | the phone renews an expired sign-in instead of signing the family member out | the server restarted with one-minute access tokens; the family member signs in, and over the next 135 s the server refuses the expired token (401) at least once, the app renews it (`/auth/refresh` answered 200), and the home screen stays with no sign-in screen and no "sign-in has expired" notice | passed (2.3 min, run on its own with `E2E_ACCESS_TOKEN_SECONDS=60`) |
 
 ## A defect the test found, fixed
 

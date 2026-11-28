@@ -32,5 +32,16 @@
   "phone": "mobile/ built with npx expo export --platform web, served on localhost:8081",
   "browser": "Chromium (Playwright 1.63.0), headless; a separate browser profile per device",
   "data": "scripts/demo/seed_demo.py fictional people"
+ },
+ "session_renewal": {
+  "run_at": "2026-11-28T02:45Z",
+  "how": "care API restarted with ACCESS_TOKEN_EXPIRE_MINUTES=1; run alone with E2E_ACCESS_TOKEN_SECONDS=60 (list reporter)",
+  "tests": [
+   {
+    "title": "the phone renews an expired sign-in instead of signing the family member out",
+    "status": "passed",
+    "duration": "2.3m"
+   }
+  ]
  }
 }

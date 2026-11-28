@@ -16,7 +16,7 @@ register (`docs/progress/requirements.json`); the round-by-round detail is in
 | --- | --- |
 | Hardware-independent software implementation | 179 / 195, 91.8 % |
 | Hardware-independent software acceptance | 174 / 195, 89.2 % |
-| Software verification (integration evidence: database, browser, emulator, model evaluation, device) | 108 / 210, 51.4 % |
+| Software verification (integration evidence: database, browser, emulator, model evaluation, device) | 109 / 210, 51.9 % |
 | AI development (accepted) | 41 / 48, 85.4 % |
 | OS development (accepted, hardware-independent) | 17 / 29, 58.6 % |
 | Hardware integration | 0 / 14 |
@@ -30,7 +30,7 @@ register (`docs/progress/requirements.json`); the round-by-round detail is in
 | Care backend (people, circle, check-ins, alerts and SOS tiers, medication, reports, consent, retention, audit) | Built, tested | about 5,800 unit and 4,500 database tests against a real PostgreSQL with forced row-level security |
 | Wear OS watch app | Runs on the emulator | the 49-step care journey passed on GitHub's runner (run 45999809729): medication, check-in, fall countdown, Help, offline queue, reboot, permissions, unpair and pair again, accessibility |
 | Family phone app, Android | Runs on the emulator | the authenticated journey, 18 of 18 (run 45990580023) |
-| Family phone app, in a browser | Runs (its web build) | the stale-wrist rule (after a fix), reminders, visits and appearance across devices, 4 of 4 (`docs/evidence/browser/ROUND10_PHONE_WEB.md`) |
+| Family phone app, in a browser | Runs (its web build) | the stale-wrist rule (after a fix), reminders, visits, appearance across devices and an expired sign-in renewed, 5 of 5 (`docs/evidence/browser/ROUND10_PHONE_WEB.md`) |
 | Family phone app, iOS | Launches in the simulator; the authenticated journey not yet passed | 6 of 6 launch checks (run 45994124214). The authenticated journey reached 12 of 16 steps (run 46083831505; the rest followed a lost sign-in at restart). Signed to run locally, the next run stopped at sign-in on iOS autocorrect; the fix is committed and not yet run |
 | Carer dashboard | Runs in a browser | the deployment-administration journey, 4 of 4 in Chromium against a running server (`docs/evidence/browser/DEPLOYMENT_ADMIN_BROWSER.md`); demo pages refused in production, the monitoring-paused warning, wrist status never guessed, unavailable measurements refused, an expired sign-in renewed, an axe accessibility check of six pages and their contrast in light, dark and high-contrast appearances, the activity trend only under consent, 8 of 8, after fixing unnamed form controls and colour-only links the check found (`docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md`) |
 | Step-up authentication for deployment administrators | Built, verified | database and browser tests, including the two-person factory reset |

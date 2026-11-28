@@ -616,7 +616,7 @@
    "title": "Phone renews an expired session with the refresh token instead of signing out (C4)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -625,6 +625,14 @@
     {
      "kind": "unit_test",
      "ref": "#47"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/phone_verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_PHONE_WEB.md"
     }
    ]
   },
