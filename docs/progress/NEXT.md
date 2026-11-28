@@ -11,19 +11,29 @@ GitHub's free runners, the build machine, or a remote server.
 
 Owner actions, in order of use:
 
-1. **Merge pull request 132** once its checks are green.
-2. **A Linux server for the 24-hour soak (G2.e)**, from a sponsor or a university (Essex research
+1. **Merge pull request 132** once its checks are green. The iOS journey reached 12 of 16 steps
+   on run 46083831505; the run after it (46090062926) launched the locally signed app and stopped at
+   sign-in, where iOS autocorrect rewrote the username. The fix (no autocorrect on account fields)
+   is committed on the branch with this round's verification work.
+2. **After the merge, three manual workflows** (Actions, the workflow, "Run workflow" on `main`;
+   each needs the file on the default branch first):
+   - `deployment guide (manual)`: follows `docs/DEPLOY.md` sections 2 to 7 on a free runner (G4.a);
+   - `wall-clock soak (manual)`: 5.5 hours of the server under load (G2.e's interim);
+   - `dataset provenance (manual)`: fetches UMAFall version 8 and checks it against both official
+     records (F1.g).
+   Then a phone emulator run with the new "Talk is the wearer's alone" check moves C-7.b.
+3. **A Linux server for the 24-hour soak (G2.e)**, from a sponsor or a university (Essex research
    computing has been asked), or registered as a GitHub self-hosted runner (jobs up to 5 days).
    Meanwhile the `wall-clock soak (manual)` workflow runs 5.5 hours on a free runner: Actions,
    "wall-clock soak (manual)", "Run workflow" (`docs/evidence/soak/HOW_TO_RUN_24H.md`).
-3. **The AOSP build host** (E2.h onwards): about 64 GB of memory, 400 GB of disk, x86-64 and KVM
+4. **The AOSP build host** (E2.h onwards): about 64 GB of memory, 400 GB of disk, x86-64 and KVM
    (`docs/os/BUILD.md`).
-4. **Common Voice:** decide whether to accept the Mozilla Data Collective's terms. Common Voice 27.0
+5. **Common Voice:** decide whether to accept the Mozilla Data Collective's terms. Common Voice 27.0
    English is CC0; with an account, only the older-speaker subset is fetched, on a remote machine
    (`docs/ai/speech/OLDER_ADULT_EVAL_PLAN.md`).
-5. **Dataset replies:** KFall, SisFall, FallAllD and WEDA-FALL (`docs/legal/`). SisFall stays
+6. **Dataset replies:** KFall, SisFall, FallAllD and WEDA-FALL (`docs/legal/`). SisFall stays
    excluded until its authors reply; UMAFall version 8 is CC BY 4.0 on two official records.
-6. **Devices, keys, reviewers and accounts:** unchanged from `READINESS.md`.
+7. **Devices, keys, reviewers and accounts:** unchanged from `READINESS.md`.
 
 To continue in a new session: read `STATUS.md`, this file, `docs/BUILD_RULES.md` and
 `docs/DECISIONS.md`, then carry on with the same rules.

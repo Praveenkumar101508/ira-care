@@ -12,13 +12,13 @@ register (`docs/progress/requirements.json`); the round-by-round detail is in
 | Measure | Now |
 | --- | --- |
 | Hardware-independent software implementation | 179 / 195, 91.8 % |
-| Hardware-independent software acceptance | 173 / 195, 88.7 % |
-| Software verification (integration evidence: database, browser, emulator, model evaluation, device) | 102 / 210, 48.6 % |
+| Hardware-independent software acceptance | 174 / 195, 89.2 % |
+| Software verification (integration evidence: database, browser, emulator, model evaluation, device) | 103 / 210, 49.0 % |
 | AI development (accepted) | 41 / 48, 85.4 % |
 | OS development (accepted, hardware-independent) | 17 / 29, 58.6 % |
 | Hardware integration | 0 / 14 |
 | External and commercial readiness | 2 / 34 |
-| Completed requirements (accepted or better) | 175 / 258 |
+| Completed requirements (accepted or better) | 176 / 258 |
 
 ## What runs, and where it was proved
 
@@ -34,6 +34,7 @@ register (`docs/progress/requirements.json`); the round-by-round detail is in
 | IRA conversation and safety rules | Built, measured | 162-turn set unchanged; round 10 hold-out 31 of 32 (`docs/ai/conversation/ROUND10_CONVERSATION.md`) |
 | Fall detection on the watch | Shipped model v3 (trained on BITS-2 and UCI HAR) | the optional confirmation stage **failed** its gate on recorded falls and stays off (D-110) |
 | Licence registers | Re-read at source | 44 sources agree, none differ (`docs/legal/LICENCE_SOURCE_CHECK.md`); non-commercial weights refused in the commercial edition (D-109) |
+| Operations runbooks | Drilled | the worker-stopped and key-rotation sections run against the production server and worker, 10 of 10, after making the deployment's backups private (`docs/evidence/ops/DRILLS_ROUND10.md`) |
 | IRA CARE OS (AOSP product layer) | Host-checked | 76 host tests; **the image has not been built or booted** |
 
 ## Not done, and why

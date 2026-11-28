@@ -1,0 +1,141 @@
+{
+ "what": "docs/ops/RUNBOOKS.md sections 2 and 5, run on the build machine",
+ "ok": true,
+ "passed": 10,
+ "steps": 10,
+ "seconds": 248,
+ "run_at": "2026-11-28T01:45:59Z",
+ "processes": {
+  "server": "python -m uvicorn care.server:app",
+  "worker": "python -m care.worker"
+ },
+ "not_run": [
+  "IRA_CARE_TWILIO_AUTH_TOKEN",
+  "IRA_CARE_CALLBACK_SECRET",
+  "IRA_CARE_ARC_SECRET",
+  "OFFSITE_S3_ACCESS_KEY / OFFSITE_S3_SECRET_KEY: each needs its provider's console"
+ ],
+ "results": [
+  {
+   "drill": "setup",
+   "step": "server_started",
+   "ok": true,
+   "entry": "uvicorn care.server:app"
+  },
+  {
+   "drill": "2. the worker stopped",
+   "step": "health_jobs_fails_while_the_worker_is_down",
+   "ok": true,
+   "seconds": 150,
+   "answer": {
+    "monitoring_paused": true,
+    "stale_after_s": 300,
+    "jobs": {
+     "care_checkins": {
+      "last_run_at": "2026-11-28T01:39:17.388189+00:00",
+      "age_s": 306,
+      "stale": true
+     },
+     "care_monitoring": {
+      "last_run_at": "2026-11-28T01:39:17.534233+00:00",
+      "age_s": 305,
+      "stale": true
+     }
+    },
+    "checked_at": "2026-11-28T01:44:23.405072+00:00",
+    "delivery": {
+     "queued_overdue": 0,
+     "failed_recent": 0,
+     "delivery_problem": false
+    },
+    "model": "fake"
+   }
+  },
+  {
+   "drill": "2. the worker stopped",
+   "step": "help_in_the_gap_is_kept_and_not_yet_sent",
+   "ok": true,
+   "http": 201,
+   "alert": "e065a264-c340-44fb-9f94-ae1155a2039d",
+   "dispatches_at_press": 0,
+   "dispatches_20s_later": 0
+  },
+  {
+   "drill": "2. the worker stopped",
+   "step": "health_jobs_turns_healthy_after_the_restart",
+   "ok": true,
+   "seconds": 65
+  },
+  {
+   "drill": "2. the worker stopped",
+   "step": "the_alert_left_by_the_gap_is_sent_on",
+   "ok": true,
+   "seconds": 65,
+   "dispatches": [
+    "1:push:queued",
+    "1:sms:queued",
+    "1:call:queued",
+    "1:push:queued",
+    "1:sms:queued",
+    "1:call:queued"
+   ]
+  },
+  {
+   "drill": "5a. IRA_SECRET_KEY",
+   "step": "a_new_secret_signs_everyone_out_and_signing_in_again_works",
+   "ok": true,
+   "before": true,
+   "old_access": 401,
+   "old_refresh": 401,
+   "signed_in_again": 200
+  },
+  {
+   "drill": "5b. one account's sessions",
+   "step": "logout_all_ends_every_session_of_that_account_and_no_other",
+   "ok": true,
+   "logout_all": 200,
+   "first_session": 401,
+   "second_session": 401,
+   "second_refresh": 401,
+   "other_account": 200
+  },
+  {
+   "drill": "5c. a watch's device token",
+   "step": "revoked_token_refused_and_a_new_pairing_works",
+   "ok": true,
+   "before": 200,
+   "revoke": 200,
+   "old_token_after": 401,
+   "new_device": 201,
+   "pair": 200,
+   "new_token": 200
+  },
+  {
+   "drill": "5d. BACKUP_PASSPHRASE",
+   "step": "new_backups_need_the_new_passphrase_older_ones_the_old",
+   "ok": true,
+   "migrations": "120",
+   "new_with_new": [
+    0,
+    "120"
+   ],
+   "old_with_new": [
+    3,
+    ""
+   ],
+   "old_with_old": [
+    0,
+    "120"
+   ]
+  },
+  {
+   "drill": "5d. BACKUP_PASSPHRASE",
+   "step": "every_backup_file_is_private_to_its_owner",
+   "ok": true,
+   "modes": {
+    "ira-care-20261128T0145Z.sql.gz.enc": "0o600",
+    "ira-care-20261128T0145Z.sql.gz.enc.sha256": "0o600"
+   }
+  }
+ ]
+}

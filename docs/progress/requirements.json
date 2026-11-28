@@ -3612,7 +3612,7 @@
    "title": "Backup files are private",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -3621,6 +3621,14 @@
     {
      "kind": "config_check",
      "ref": "deploy/backup.sh"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_deploy_backup_private_db.py"
+    },
+    {
+     "kind": "db_test",
+     "ref": "docs/evidence/ops/drills_round10.json"
     }
    ]
   },
@@ -3936,7 +3944,7 @@
    "title": "Operations runbooks (incident, restore, key rotation)",
    "area": "software",
    "hardware_independent": true,
-   "state": "implemented",
+   "state": "accepted",
    "evidence": [
     {
      "kind": "docs_only",
@@ -3949,6 +3957,18 @@
     {
      "kind": "docs_only",
      "ref": "docs/evidence/ops/DRILLS_ROUND9.md"
+    },
+    {
+     "kind": "db_test",
+     "ref": "docs/evidence/ops/drills_round10.json"
+    },
+    {
+     "kind": "docs_only",
+     "ref": "docs/evidence/ops/DRILLS_ROUND10.md"
+    },
+    {
+     "kind": "config_check",
+     "ref": "scripts/ops/runbook_drills.py"
     }
    ]
   },
