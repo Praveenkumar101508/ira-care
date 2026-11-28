@@ -57,9 +57,9 @@ the native journeys on the runners, and the soak.
 
 | Item | Blocker | Exact next action |
 | --- | --- | --- |
-| G2.e, the 24-hour soak | The build container stops its daemons when the session is idle; a day-long run needs a machine the owner controls | `docs/evidence/soak/HOW_TO_RUN_24H.md` on the Mac, under `caffeinate`; the memory criterion is now met |
+| G2.e, the 24-hour soak | A free standard runner stops a job at 6 hours; the build container stops its daemons when idle; the owner's Mac is ruled out (storage) | A remote Linux server or a self-hosted runner (jobs up to 5 days); meanwhile `.github/workflows/soak.yml` runs 5.5 hours on a standard runner (`docs/evidence/soak/HOW_TO_RUN_24H.md`) |
 | E2.h to E4.f, E6.c, the Cuttlefish image | A 64 GB, 400 GB, KVM x86-64 host; none available without spending; the host checks have removed what could be found without one | `docs/os/BUILD.md` on such a host (Essex research computing, a sponsor, or protected credits) |
-| F4.i on real falls | BITS-2 and UCI HAR are on the owner's machine, not here | `docs/ai/fall/FALSE_ALARM_INVESTIGATION.md`, "the next step" |
+| F4.i on real falls | Done on 27 November on the build machine: the confirmation stage **failed** its gate (lost 2 of 217 caught falls, removed no recorded false alarm) and stays off | `docs/ai/fall/FALSE_ALARM_INVESTIGATION.md`, D-110 |
 | F1.d to F1.g, F8.c, F3.d, F3.e, F7.k | Dataset permissions (requests sent), the older-adult speech set, the IRA watch's raw PPG, physical devices | Owner: replies, the Mozilla Data Collective, devices |
 | D1.j, D2.i, K.h, J.f, C-5.b, C-17.b, C-19.b, C-21.d, C-23.e | A physical watch and phone | Owner: devices |
 | D1b.c, E4.g, D2.j, D2.k | Signing keys and store accounts | `docs/security/SIGNING_KEYS_STEP_BY_STEP.md`; the owner's decision on custody; no purchase made |

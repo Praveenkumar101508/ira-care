@@ -78,3 +78,23 @@ Check the [S] and [NV] items before relying on them.
 3. **24-hour soak:** a founder laptop or desktop left on for a day, following `docs/evidence/soak/HOW_TO_RUN_24H.md`. Alternatively, a few dollars of GCP or AWS credits on a 4 vCPU instance.
 4. **OS build and boot:** apply for Google for Startups Start (or AWS Activate), then use an Intel 64 GB / 500 GB VM with nested virtualisation, stopped between builds. Ask Essex Startups about a sponsor and partner credits first.
 5. **GPU evaluation:** nothing is outstanding.
+
+## Round 10 (27 November 2026): what each remaining job can run on, at no cost
+
+**Owner restriction: the owner's personal Mac is never used** (too little storage). Read from the
+build machine on 27 November 2026; only GitHub's documentation was reachable from it, so every
+other row is unverified here and must be checked in a browser before anyone signs up. Nothing has
+been signed up to, accepted or paid for.
+
+| Job | Needs | Free option | Verified limits | Status |
+|---|---|---|---|---|
+| A. 24-hour soak | one Linux process held for 24 h | (1) a GitHub self-hosted runner on a server someone lends (job up to 5 days); (2) a university or sponsor's Linux VM | GitHub-hosted job limit **6 hours**, self-hosted **5 days**, workflow run **35 days** (<https://docs.github.com/en/actions/reference/limits>, read today) | not available yet; meanwhile `.github/workflows/soak.yml` runs **5.5 hours** on a free standard runner |
+| B. AOSP build | about 64 GB RAM, 400 GB disk, x86-64, KVM | Essex research computing (asked); a sponsor's workstation | a standard runner (14 GB SSD, 7-16 GB RAM, earlier rows) cannot hold an AOSP tree | not available |
+| C. GPU deployment check | an NVIDIA GPU of 16 GB or more, commercial use allowed | Kaggle's T4 was used for measurement (its terms limit commercial use: earlier rows) | not re-checked today: the provider pages are unreachable from here | measured once on Kaggle (D-074); a commercially usable GPU not available |
+| D. Hosted staging and a representative load test | a server that stays up, a domain, HTTPS | a sponsor's VM; cloud credits programmes (earlier rows, founders' sign-up) | unverified today | not available |
+| E. Recorded-dataset AI evaluation | a few GB of disk, CPU | **the build machine**: BITS-2 and UCI HAR were fetched, checksummed, evaluated and deleted here on 27 November (D-110) | done | done for BITS-2 and UCI HAR; Common Voice waits for the owner's account decision |
+
+What to verify for any provider before use (the owner's checklist): the continuous-runtime limit;
+whether the free tier needs a card and what happens at its limit (a hard stop, not a charge); the
+commercial-use terms; disk and memory; whether nested virtualisation or KVM is available (for the
+OS and the emulators); and that billing alerts or a spending cap of zero can be set.

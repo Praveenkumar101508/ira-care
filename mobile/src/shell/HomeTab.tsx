@@ -37,19 +37,23 @@ export function HomeTab({ d, a }: { d: HomeData; a: HomeActions }) {
   const cards = orderCards(HOME_CARDS[d.experience], d.cardOrder).map((x) => x.key);
   const title = d.experience === 'wearer' ? `Hello${name ? `, ${name}` : ''}` : d.experience === 'carer' ? 'Today' : name || 'Care circle';
 
+  // In the urgent banner, I'm on my way sits beside the tappable words, not inside them: on iOS a
+  // pressable is one accessibility element, so a button inside it could not be reached by VoiceOver.
   const urgentFirst = d.experience === 'wearer' ? (
     <Card key="help-first" testID="card-help">
       <Body>If you need someone, press Help. Your family and carers are told at once, with where you are.</Body>
       <BigButton label="Help" color={c.sos} testID="home-help" hint="Tells your family and carers you need them now" onPress={a.onHelp} />
     </Card>
   ) : urgent.length > 0 ? (
-    <Pressable key="alerts-first" onPress={a.onAlerts} testID="urgent-banner" style={[styles.banner, { backgroundColor: c.sos }]}>
-      <Text style={styles.bannerText} maxFontSizeMultiplier={2}>{urgent.length === 1 ? '1 alert needs someone' : `${urgent.length} alerts need someone`}. Tap to see.</Text>
-      {urgent[0] ? <Text style={styles.bannerDetail} maxFontSizeMultiplier={2}>{alertTitle(urgent[0])}{urgent[0].opened_at ? ` · ${timeAgo(urgent[0].opened_at)}` : ''}</Text> : null}
+    <View key="alerts-first" testID="urgent-banner" style={[styles.banner, { backgroundColor: c.sos }]}>
+      <Pressable onPress={a.onAlerts} testID="urgent-banner-open" accessibilityRole="button">
+        <Text style={styles.bannerText} maxFontSizeMultiplier={2}>{urgent.length === 1 ? '1 alert needs someone' : `${urgent.length} alerts need someone`}. Tap to see.</Text>
+        {urgent[0] ? <Text style={styles.bannerDetail} maxFontSizeMultiplier={2}>{alertTitle(urgent[0])}{urgent[0].opened_at ? ` · ${timeAgo(urgent[0].opened_at)}` : ''}</Text> : null}
+      </Pressable>
       {urgent[0] && d.experience === 'family' ? (
         <BigButton label="I'm on my way" color="#FFFFFF" textColor={c.sos} testID="home-on-my-way" hint="Tells everyone you are going" onPress={() => a.onOnMyWay(urgent[0])} />
       ) : null}
-    </Pressable>
+    </View>
   ) : d.error ? (
     // The last refresh failed: what is on screen may be out of date, so it is not called well.
     <Card key="alerts-first" testID="card-stale"><Text style={{ color: c.urgent, fontSize: 16 }} maxFontSizeMultiplier={2}>{STALE_WORDS}</Text></Card>

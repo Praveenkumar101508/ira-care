@@ -118,3 +118,11 @@ and without the stage, and alarms on the other recordings fell from 88 to 62 (65
 hour): every clap, knock and hammer burst and most shaking removed, single slaps and sitting down
 hard still asked about. The WEDA-FALL figures above are not re-run (licence unresolved) and are
 not the stage's performance.
+
+## The confirmation stage on recorded data (27 November 2026, D-110)
+
+On BITS-2 and UCI HAR the optional confirmation stage lost 2 of the 217 falls the shipped pipeline
+caught and removed none of its 10 false alarms on recorded daily activities. It stays off; the shipped
+behaviour (ask as soon as a fall is suspected) is unchanged. Details:
+`FALSE_ALARM_INVESTIGATION.md` and `recorded_confirmation.json`.
+

@@ -274,3 +274,26 @@ reviewed exceptions are listed in `docs/security/LICENCES.md`. Datasets stay as 
 build, debug builds included (D-077, D-082). The shipped fall model v3 is trained only on licensed
 data (D-080). The Gemma 4 models used in the real-model run are Apache-2.0
 (`docs/MODEL_CHOICE.md`), and no model weights are in this repository.
+
+## Round 10 (27 November 2026): what moved to verified, and why
+
+Each item below moved only because integration-level evidence that shows its whole title exists
+and is now cited; nothing was reclassified to raise the figure. Software verification: 82 to 91
+of 210.
+
+| Item | Evidence |
+|---|---|
+| D3.l Deployment administration screen | the four-test browser journey against a running server (`docs/evidence/browser/DEPLOYMENT_ADMIN_BROWSER.md`) |
+| C-1.b The 18 mandatory ambiguous dose answers | each recorded through the real check-in cycle on PostgreSQL (`test_each_mandatory_answer_is_recorded_as_the_rules_read_it`, 18 cases) |
+| F2.b The conversation evaluation runner | the round 10 hold-out run (`docs/evidence/eval/round10/holdout_fake.json`) |
+| F3.a The classical heart-rate estimator | its leave-one-subject-out evaluation on PPG-DaLiA (`docs/ai/heart/results.json`) |
+| F4.a The rule-based fall detector | its held-out evaluation on BITS-2 (`docs/ai/fall/results_v3.json`, `rule_detector`) |
+| F5.d The round 9 scenario families | run through the real conversation code, with the round 10 hold-out |
+| G2.j API memory within 5 % an hour | the complete 1-hour wall-clock soak (`WALLCLOCK_1H_ROUND9.md`) |
+| D3.f The audit trail of care actions | the access log append-only, kept on erasure and written for plan reads and writes, on PostgreSQL |
+| C-22.a Every person-scoped route guarded | the isolation suites refusing another family's person on real routes, on PostgreSQL |
+
+Left as accepted after review, because their integration evidence shows only part of the title:
+D1.f and D1.g (the server half of the watch's location and battery reports), G2.c (the heartbeat,
+not the dashboard's banner), G2.g and G2.h (drills not on staging or off-site), E2.o (the watch's
+side of an instruction), F4.i (switched off), the three model cards and C-22.c.

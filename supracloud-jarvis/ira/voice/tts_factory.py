@@ -33,6 +33,12 @@ def make_tts(voice: str, speed: float = 1.05) -> tts.TTS:
     so a missing Supertonic install can never take the voice agent down."""
     engine = os.getenv("IRA_VOICE_ENGINE", "kokoro").strip().lower()
 
+    if engine == "omnivoice" and os.getenv("IRA_EDITION", "").strip().lower() == "cloud":
+        # D-109: CC BY-NC weights never run in the commercial service (config.py refuses at boot;
+        # this keeps a process that skipped Settings from loading them).
+        logger.error("OmniVoice is refused on IRA_EDITION=cloud (non-commercial weights); using Kokoro.")
+        engine = "kokoro"
+
     if engine == "omnivoice":
         try:
             from voice.tts_omnivoice import IRAOmniVoiceTTS, is_available
@@ -77,7 +83,7 @@ def synthesize_say(text: str, *, lang: str = "en", voice: str | None = None,
     fails soft to the logic below. Otherwise: Tamil/Telugu/Kannada/Malayalam route to
     the native Indic engine (fail soft to Supertonic's 'na'); everything else — incl.
     Hindi and Supertonic's other 30 languages — uses Supertonic."""
-    if _say_engine() == "omnivoice":
+    if _say_engine() == "omnivoice" and os.getenv("IRA_EDITION", "").strip().lower() != "cloud":
         try:
             from voice.tts_omnivoice import synthesize_wav_omnivoice
             wav = synthesize_wav_omnivoice(text, lang=lang, voice=voice, steps=steps,

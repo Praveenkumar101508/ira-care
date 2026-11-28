@@ -477,7 +477,11 @@ _ADVICE_ASK = re.compile(
     r"\b(should i (take|stop|have|skip|go|see|call|ring|double|miss)|is it (safe|normal|ok|okay) to|can i (take|skip|miss|stop|have)|"
     r"how (much|many) (\w+ )?(should|can|could|may) i|what('s| is) wrong with me|do i (have|need)|do you think i('ve| have| am| might)|"
     r"what should i do about|is (this|it|that) .{0,30}(normal|serious|dangerous)|dose|dosage|"
-    r"what (tablet|pill|medicine|medication) (should|can)|(go|get) to (the )?hospital|see (a|the|my) (doctor|gp|nurse))\b", re.I)
+    r"what (tablet|pill|medicine|medication) (should|can)|(go|get) to (the )?hospital|see (a|the|my) (doctor|gp|nurse)|"
+    # Round 10 hold-out B: "Do you think my mole is cancer?" Only with a health word, so "do you think
+    # my roses need water?" is an ordinary question.
+    r"(do you think|is it|could it be|might it be) (my|this|that|it)\b.{0,30}\b(cancer|serious|broken|infect\w*|stroke|"
+    r"heart attack|tumou?r|lump|mole|rash|fracture|clot|diabet\w*|dementia))\b", re.I)
 _URL = re.compile(r"https?://|www\.", re.I)
 
 FALLBACK_LINE = "I'm here with you, {name}. Shall I let {carer} know you'd like a word?"
@@ -688,7 +692,19 @@ RED_FLAGS = re.compile(
     r"(i'?ve |i have |i )?(come|came) over (all )?(funny|faint|dizzy|queer)|i'?ve gone all (funny|faint|dizzy)|"
     r"can'?t catch my breath|cannot catch my breath|face.{0,12}drooping|went down (like a sack|with a bang)|"
     r"blood everywhere|words (are )?coming out wrong|my (arm|leg) won'?t work|gone over in the|"
-    r"i'?m still down|fallen out of bed)\b", re.I)
+    r"i'?m still down|fallen out of bed|"
+    # Round 10 (the round 9 hold-out's misses): a head injury is a red flag even when the person
+    # says they are fine. "went down" alone is not added: "I went down to the shop" is ordinary.
+    r"(hit|banged|bumped|knocked|cracked|smacked) (my|me) head|head injury|hurt my head|"
+    # Round 10 hold-out (r10-r10-5, recorded as a miss before this line): chest tightness in other words.
+    r"chest (has )?(gone|going|feels?|felt|is getting) (all )?(tight|heavy)|tight(ness)? (in|across) my chest|"
+    # Round 10 hold-out B (recorded as misses before these lines): stroke signs, breathlessness and
+    # bleeding in other words. Each needs "my" or "I", so another person's weak legs stay ordinary.
+    r"my (left |right )?(arm|leg|hand)s?( and (my )?(left |right )?(arm|leg|hand)s?)? (has|have|is|are) (gone |going |feeling |all )?(weak|numb|dead|floppy|heavy)|"
+    r"i can'?t lift my (arm|leg|hand)s?|i can'?t lift them|"
+    r"my face.{0,15}droop|droop(y|ing) on one side|one side of my face|"
+    r"can'?t get my breath|cannot get my breath|(like a )?weight on my chest|"
+    r"won'?t stop bleeding|will not stop bleeding|bleeding won'?t stop)\b", re.I)
 
 
 def red_flag(text: str) -> bool:
@@ -947,10 +963,31 @@ def mentions_avoided_topic(sentence: str, topics: Sequence[str]) -> bool:
     return any(t and t.lower() in low for t in topics)
 
 
+_HELP_BUTTON = re.compile(r"\b(press(ing|ed)?|push(ing|ed)?|touch(ing|ed)?) (the )?help\b|\bhelp button\b", re.I)
+_QUESTION = re.compile(r"^\s*(what|what's|whats|how|who|which|where|when|why|does|do|is|can|could|would|will)\b|\?\s*$", re.I)
+
+
+def asks_about_the_help_button(text: str) -> bool:
+    """A question about the Help button itself ("what number do you ring when I press Help?"),
+    with no sign of trouble. Anything with a distress word, an urgent word or a red flag is not
+    one, so "how do I press Help, I've fallen" still escalates."""
+    t = (text or "").strip()
+    if not (_HELP_BUTTON.search(t) and _QUESTION.search(t)):
+        return False
+    low = rules.normalise_answer(t)
+    return not (rules._SAFE_DISTRESS.search(low.replace("help", "")) or
+                re.search(r"\b(now|quick|quickly|please help|help me|emergency|ambulance|urgent)\b", low))
+
+
 def rule_reply(text: str, ctx: TalkContext) -> Optional[Turn]:
     """The things IRA answers from the record, before any model: a call, the
     day's plan, the tablets, a reminder, and advice requests."""
     t = (text or "").strip()
+    if not red_flag(t) and asks_about_the_help_button(t):
+        # Round 10: a question ABOUT the Help button is not a call for help (round 9 hold-out).
+        who = ctx.carer_name or "your family"
+        return Turn([f"When you press Help, I tell {who} and the people looking after you straight away, {ctx.name}.",
+                     "If you ever need them, press it, or just tell me, and I'll get help."], source="rules")
     if red_flag(t) or rules._HELP.search(t.lower()):
         return Turn([f"I'm getting help for you now, {ctx.name}. Stay where you are."], source="rules",
                     red_flag=red_flag(t), needs_help=True)

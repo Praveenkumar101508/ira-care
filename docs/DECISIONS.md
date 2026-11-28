@@ -2082,3 +2082,52 @@ the build machine. A source that cannot be reached is recorded as such and never
 agreeing; the test fails if the record ever holds a disagreement or stops covering the list.
 F1.b (models) is accepted; F1.a (datasets) stays implemented until the unreachable sources are
 read in a browser and recorded.
+
+## D-109 Non-commercial model weights never run in the commercial service (owner direction, 27 November 2026)
+
+OmniVoice's pre-trained weights are CC BY-NC. The owner directed that they, and any other
+non-commercial weights, stay out of the commercial IRA CARE service. Nothing in the product
+depended on OmniVoice: it was an optional voice engine selected by `IRA_VOICE_ENGINE=omnivoice`,
+never set by any deployment file; the default voice paths (Kokoro, the platform engines on the
+watch and phone) are Apache 2.0 or the platform's own. Decision: the cloud edition refuses to
+start with `IRA_VOICE_ENGINE=omnivoice` (`config.py`, one row in
+`tests/test_cloud_edition_boot_refusals.py`), the TTS factory never loads it in the cloud edition
+even if a process skipped the settings check, and
+`tests/readiness/test_noncommercial_weights_excluded.py` fails if any deployment file or workflow
+names or fetches it. The sidecar code stays for the Private edition's research use, with its
+licence recorded in `docs/ai/MODEL_WEIGHTS.md`.
+
+## D-110 The fall confirmation stage failed its recorded-data gate and stays off (requirement F4.i, 27 November 2026)
+
+D-103 added an optional confirmation stage and kept it off until it was run on the permitted
+recorded datasets. It has now been run on BITS-2 and UCI HAR, fetched on the build machine with
+their pinned checksums (`scripts/eval/fall_recorded_confirmation.py`,
+`docs/ai/fall/recorded_confirmation.json`): it lost 2 of the 217 falls the shipped pipeline caught
+and removed none of the 10 false alarms on recorded daily activities. The gate (no caught fall
+lost) fails. Decision: the stage stays off, its thresholds are not retuned on this data, and
+`tests/readiness/test_fall_confirmation_stays_off.py` holds the default off while the recorded
+result fails. F4.i remains accepted as an implemented, tested, switched-off option; it is not a
+product feature.
+
+## D-111 The round 9 hold-out misses are fixed, and a new hold-out replaces the used one (requirement F5.d, 27 November 2026)
+
+The four round 9 hold-out misses were investigated: three were product defects (a head injury not
+read as a red flag, twice; a dose named by another time of day read as taken) and one a safe-side
+false alarm (a question about the Help button escalated). All four are fixed in
+`care/conversation.py` and `care/checkins.py` with negative controls
+(`tests/care/test_care_round10_rules.py`). Because the round 9 hold-out was used to fix rules, it is
+no longer a hold-out; a new one, `round10_holdout.jsonl` (32 turns), was written before it was run
+and run once: 31 of 32. Its one miss (chest tightness in other words) is a safety gap, so it was
+fixed after the result was recorded, and the hold-out figure stays as measured. The 162-turn set is
+unchanged turn for turn. Details: `docs/ai/conversation/ROUND10_CONVERSATION.md`.
+
+## D-112 The care API installs the shared error handlers; the step-up line counts on (requirements D3.l, E2.p, 27 November 2026)
+
+The deployment administrator journey ran in a real browser for the first time
+(`docs/evidence/browser/DEPLOYMENT_ADMIN_BROWSER.md`) and found two defects. The care API
+(`scripts/demo/api.py`) did not install `core.runtime.errors.install_error_handlers`, so a
+structured refusal, "step-up required" among them, reached the browser as a 500 and the dashboard
+never asked for the password; it now installs them, as the full server does. The dashboard's line
+saying how recently the administrator confirmed who they are was computed once at page load; it now
+counts on and says the next action will ask once the server's limit has passed. With both fixed,
+the four browser tests pass, including the two-person factory reset and the step-up prompt.

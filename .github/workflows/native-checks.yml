@@ -15,6 +15,7 @@ on:
       - "watch/**"
       - "mobile/**"
       - "scripts/emulator/**"
+      - "scripts/simulator/**"
       - ".github/workflows/emulator.yml"
       - ".github/workflows/ios-simulator.yml"
       - ".github/workflows/native-checks.yml"

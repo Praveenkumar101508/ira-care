@@ -80,6 +80,11 @@ def create_demo_app() -> FastAPI:
     # (recorded in STATUS.md for the deployment phase). Workspace roles are what
     # authorise care calls (care/authz.py), and those are enforced by the routes.
     app.state.limiter = limiter
+    # The same error handlers as the full server (app/factory.py): without them a structured
+    # refusal such as "step-up required" escaped as a 500, and the dashboard showed "No connection"
+    # instead of asking the administrator to confirm who they are (found by the browser test, round 10).
+    from core.runtime.errors import install_error_handlers
+    install_error_handlers(app)
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     app.add_middleware(_IPBlockMiddleware)
     register_auth_routes(app, limiter)

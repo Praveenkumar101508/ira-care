@@ -1,7 +1,21 @@
 # How to run the 24-hour wall-clock soak (register G2.e)
 
-The 24-hour soak has **not been run**. This page says how to run it on a machine you
-control, with `scripts/soak_wallclock.py`. A one-hour run of the same harness on the
+The 24-hour soak has **not been run**. This page says how to run it with
+`scripts/soak_wallclock.py` on a **remote Linux server**.
+
+**Owner restriction (27 November 2026): never on the owner's personal Mac.** It has too little
+storage, and the owner has ruled it out for all IRA CARE testing, hosting and evaluation.
+
+**Where it can run, at no cost:**
+
+- **A standard GitHub runner, up to 5.5 hours:** the `wall-clock soak (manual)` workflow
+  (`.github/workflows/soak.yml`; Actions, then "Run workflow"). GitHub-hosted jobs stop at 6 hours
+  (<https://docs.github.com/en/actions/reference/limits>, read 27 November 2026), so this is a
+  longer run than the 1-hour one, never the 24-hour result.
+- **The 24 hours themselves:** a Linux server that stays up for a day, from a sponsor or a
+  university (Essex research computing has been asked about), or registered as a GitHub
+  self-hosted runner, whose jobs may run for up to 5 days (same page). No provider has been
+  signed up to and nothing paid for. A one-hour run of the same harness on the
 build container is in [`WALLCLOCK_1H.md`](WALLCLOCK_1H.md); it is evidence that the
 harness works, not the 24-hour result.
 
@@ -47,7 +61,7 @@ run is INCOMPLETE, never PASS.
 At least 2 CPU cores, 4 GB of free memory and 5 GB of free disk are plenty; the run
 itself uses well under 1 CPU and about 200 MB of memory.
 
-Linux:
+On the Linux server:
 
 ```bash
 nproc
@@ -57,20 +71,6 @@ egrep -c '(vmx|svm)' /proc/cpuinfo   # > 0: the CPU offers virtualisation (neede
 ls -l /dev/kvm                       # present: KVM is usable
 ```
 
-macOS:
-
-```bash
-sysctl -n hw.ncpu hw.memsize         # cores, memory in bytes
-df -h .
-sysctl -n kern.hv_support            # 1: the Hypervisor framework is available
-```
-
-Windows (PowerShell; run the soak itself inside WSL 2 Ubuntu):
-
-```powershell
-systeminfo | findstr /C:"Total Physical Memory" /C:"Processor(s)" /C:"Hyper-V"
-wsl --status
-```
 
 ## 2. Prerequisites
 
@@ -99,9 +99,6 @@ redis-cli ping
 ## 3. Keep the machine awake for 24 hours
 
 - Linux: `systemd-inhibit --what=idle:sleep --why="IRA CARE soak" <the command below>`
-- macOS: `caffeinate -dimsu <the command below>` (and keep the lid open on mains power)
-- Windows: Settings, System, Power: set "When plugged in, put my device to sleep after" to
-  Never for the day; keep the WSL window open.
 
 Also switch off automatic updates and restarts for the day.
 

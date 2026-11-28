@@ -1,31 +1,31 @@
 # IRA CARE: next step
 
-**Round 9 is on pull request 128** (`praveen/vigilant-tesla-bhe022`): the independently achievable
-software, AI and OS work that remained after #127, as one squash merge once every check is green.
-What was built, measured and left is in `ROUND9_REPORT.md`; the verification record is in
-`VERIFICATION.md` ("Round 9"); the decisions are D-095 to D-105 (D-102 to D-104 among them).
+**Round 10 is on pull request 132** (`praveen/vigilant-tesla-bhe022`): licences, the OmniVoice
+exclusion (D-109), the fall confirmation stage on recorded data (D-110, it stays off), the
+conversation fixes and a new hold-out (D-111), the deployment administrator journey in a real
+browser with two fixes (D-112), and the authenticated iOS journey (its first run is on the PR).
+
+**Owner restriction: the owner's personal Mac is never used** for IRA CARE testing, hosting,
+evaluation, datasets, Docker, AOSP or the soak (too little storage). Everything below runs on
+GitHub's free runners, the build machine, or a remote server.
 
 Owner actions, in order of use:
 
-1. **Merge pull request 128** once its checks are green (the watch, phone and iOS journeys run on
-   the standard runners on every push to it; the last results are in
-   `docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md`, `PHONE_EMULATOR_SMOKE.md` and
-   `docs/evidence/builds/IOS_SIMULATOR.md`).
-2. **The 24-hour soak (G2.e)** on your Mac or another machine you control, exactly as
-   `docs/evidence/soak/HOW_TO_RUN_24H.md` says; the memory criterion is now met on a 1-hour run
-   (`WALLCLOCK_1H_ROUND9.md`). The build container cannot hold a process for a day.
-3. **The four technical reviews** in `docs/ai/review/` (heart model card, activity dataset and
-   model card, speech licences): Sravani records a decision in each pack; the register moves only
-   on an `accept`.
-4. **The fall confirmation stage** stays off until the permitted recorded falls have been run with
-   it on the machine that holds BITS-2 and UCI HAR (`docs/ai/fall/FALSE_ALARM_INVESTIGATION.md`,
-   "the next step"); then `fall_confirm_before_asking` can be set per person.
-5. **The AOSP build host** (E2.h onwards): the host checks have fixed what could be found without
-   one (`docs/os/HOST_CHECKS.md`); the build itself needs the machine `docs/os/BUILD.md` describes.
-6. Dataset permissions (F1), the older-adult speech set (F8.c), devices, keys, reviewers and
-   accounts: unchanged from `READINESS.md`.
+1. **Merge pull request 132** once its checks are green.
+2. **A Linux server for the 24-hour soak (G2.e)**, from a sponsor or a university (Essex research
+   computing has been asked), or registered as a GitHub self-hosted runner (jobs up to 5 days).
+   Meanwhile the `wall-clock soak (manual)` workflow runs 5.5 hours on a free runner: Actions,
+   "wall-clock soak (manual)", "Run workflow" (`docs/evidence/soak/HOW_TO_RUN_24H.md`).
+3. **The AOSP build host** (E2.h onwards): about 64 GB of memory, 400 GB of disk, x86-64 and KVM
+   (`docs/os/BUILD.md`).
+4. **Common Voice:** decide whether to accept the Mozilla Data Collective's terms. Common Voice 27.0
+   English is CC0; with an account, only the older-speaker subset is fetched, on a remote machine
+   (`docs/ai/speech/OLDER_ADULT_EVAL_PLAN.md`).
+5. **Dataset replies:** KFall, SisFall, FallAllD and WEDA-FALL (`docs/legal/`). SisFall stays
+   excluded until its authors reply; UMAFall version 8 is CC BY 4.0 on two official records.
+6. **Devices, keys, reviewers and accounts:** unchanged from `READINESS.md`.
 
-To continue in a new session: read `STATUS.md` ("Round 9"), this file, `docs/BUILD_RULES.md` and
+To continue in a new session: read `STATUS.md`, this file, `docs/BUILD_RULES.md` and
 `docs/DECISIONS.md`, then carry on with the same rules.
 
 ---

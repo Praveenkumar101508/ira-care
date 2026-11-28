@@ -1,0 +1,85 @@
+# Follow docs/DEPLOY.md, sections 2 to 7, on a fresh standard runner. Manual only.
+#
+# Register G4.a ("single-machine deployment guide with backups and updates") needs the guide
+# executed, not only written. This runs it as an operator would, on ubuntu-latest with Docker:
+# copy deploy/.env.example, fill every secret with fresh random values (never stored), start the
+# stack without the conversation models (the guide's own compose.nomodel.yml variant), check
+# /health and /health/jobs through Caddy, take an encrypted backup and restore it into a scratch
+# database, then update (rebuild and restart) and check again. IRA_CARE_DOMAIN=localhost, so
+# Caddy serves its own local certificate. Fictional nothing: no people are created; providers log.
+# Runs only by hand: tests/readiness/test_manual_workflows.py fails if any other trigger is added.
+name: deployment guide (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-guide-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-guide:
+    name: Follow the single-machine deployment guide
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: deploy
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: "2 and 3: copy and fill deploy/.env"
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          python3 - <<'PY'
+          import base64, os, re, secrets
+          vals = {"IRA_CARE_DOMAIN": "localhost", "IRA_ENVIRONMENT": "staging", "POSTGRES_DB": "ira_care",
+                  "POSTGRES_SUPERUSER_PASSWORD": secrets.token_urlsafe(32), "IRA_APP_PASSWORD": secrets.token_urlsafe(32),
+                  "IRA_MIGRATOR_PASSWORD": secrets.token_urlsafe(32), "IRA_MIGRATE_ON_START": "true",
+                  "IRA_SECRET_KEY": secrets.token_urlsafe(48), "IRA_ADMIN_PASSWORD": secrets.token_urlsafe(24),
+                  "IRA_CONNECTOR_ENCRYPTION_KEY": base64.b64encode(os.urandom(32)).decode(),
+                  "BACKUP_PASSPHRASE": secrets.token_urlsafe(32), "IRA_MAIL_TRANSPORT": "console",
+                  "IRA_CARE_SMS_PROVIDER": "log", "IRA_CARE_PUSH_PROVIDER": "log"}
+          s = open(".env").read()
+          for k, v in vals.items():
+              s = re.sub(rf"^{k}=.*$", f"{k}={v}", s, flags=re.M) if re.search(rf"^{k}=", s, re.M) else s + f"\n{k}={v}"
+          open(".env", "w").write(s + "\n")
+          PY
+      - name: "4: start (the no-model variant) and wait for the health checks"
+        run: |
+          set -euo pipefail
+          C="docker compose -f docker-compose.yml -f compose.nomodel.yml --env-file .env"
+          $C up -d --build
+          for _ in $(seq 1 90); do curl -fsSk https://localhost/health && break; sleep 5; done
+          curl -fsSk https://localhost/health | tee "$RUNNER_TEMP/health.json"
+          for _ in $(seq 1 60); do curl -fsSk https://localhost/health/jobs > "$RUNNER_TEMP/jobs.json" && break; sleep 10; done
+          cat "$RUNNER_TEMP/jobs.json"
+          curl -fsSk -o /dev/null -w 'dashboard %{http_code}\n' https://localhost/login
+          $C ps
+      - name: "6: an encrypted backup, restored into a scratch database"
+        run: |
+          set -euo pipefail
+          C="docker compose -f docker-compose.yml -f compose.nomodel.yml --env-file .env"
+          $C exec -T backup sh /usr/local/bin/backup.sh
+          $C exec -T postgres createdb -U postgres ira_care_restore_test
+          $C exec -T backup sh -c 'f=$(ls -t /backups/*.enc | head -1); sh /usr/local/bin/restore.sh "$f" "postgresql://postgres:$PGPASSWORD@postgres:5432/ira_care_restore_test"'
+          a=$($C exec -T postgres psql -U postgres -d ira_care -Atc "select count(*) from schema_migrations")
+          b=$($C exec -T postgres psql -U postgres -d ira_care_restore_test -Atc "select count(*) from schema_migrations")
+          echo "migrations live=$a restored=$b"; test "$a" = "$b" && test "$a" -gt 0
+          $C exec -T postgres dropdb -U postgres ira_care_restore_test
+      - name: "7: update (rebuild and restart) and check again"
+        run: |
+          set -euo pipefail
+          C="docker compose -f docker-compose.yml -f compose.nomodel.yml --env-file .env"
+          $C up -d --build
+          for _ in $(seq 1 90); do curl -fsSk https://localhost/health && break; sleep 5; done
+          curl -fsSk https://localhost/health
+      - name: The containers' state and logs (no secrets are printed)
+        if: always()
+        run: |
+          C="docker compose -f docker-compose.yml -f compose.nomodel.yml --env-file .env"
+          $C ps || true
+          $C logs --no-color --tail 80 api worker caddy backup 2>&1 | grep -v -i "password\|secret\|passphrase" || true

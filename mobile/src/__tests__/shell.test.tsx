@@ -87,6 +87,19 @@ test("the urgent banner's I'm on my way button has readable words, and the banne
   expect(text(byId(tree, 'urgent-banner'))).toContain('Asked for help');
 });
 
+test("I'm on my way is not inside the banner's own pressable, so iOS VoiceOver can reach it", () => {
+  // On iOS a pressable is one accessibility element: a button nested in it is hidden from VoiceOver.
+  const a = actions();
+  const r = mount(<HomeTab d={data({ experience: 'family', alerts: [open] })} a={a} />);
+  const pressables = r.root.findAll((n) => typeof n.props.onPress === 'function' && n.props.accessibilityRole === 'button');
+  const opener = pressables.find((n) => n.props.testID === 'urgent-banner-open')!;
+  expect(opener).toBeTruthy();
+  expect(opener.findAll((n) => n.props.testID === 'home-on-my-way')).toHaveLength(0);
+  expect(r.root.findAll((n) => n.props.testID === 'urgent-banner')[0].findAll((n) => n.props.testID === 'home-on-my-way').length).toBeGreaterThan(0);
+  press(r, 'urgent-banner-open');
+  expect(a.calls).toEqual(['alerts']);
+});
+
 test("a carer sees today's visits with I've arrived, and the last handover", () => {
   const a = actions();
   const today = { ...visit, planned_start: new Date().toISOString().slice(0, 11) + '10:00:00+00:00', planned_end: new Date().toISOString().slice(0, 11) + '11:00:00+00:00' };

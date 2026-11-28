@@ -122,6 +122,18 @@ test('every status word the server can send has words of its own, and the form c
   expect(stepUpWords(ME_ADMIN)).toContain('20 s ago');
 });
 
+test('the step-up line keeps counting while the page is open, and says the next action will ask once it is too old', () => {
+  // Round 10: a page opened 20 s after sign-in still said "20 s ago" minutes later.
+  expect(stepUpWords(ME_ADMIN, 25)).toContain('45 s ago');
+  expect(stepUpWords(ME_ADMIN, 200)).toContain('4 min ago');
+  const stale = stepUpWords(ME_ADMIN, 280);   // 20 + 280 = 300 s, the server's limit
+  expect(stale).toContain('you will be asked to confirm who you are');
+  expect(stale).not.toContain('ago');
+  // negative control: no time passing changes nothing, and a negative elapsed time is ignored
+  expect(stepUpWords(ME_ADMIN, 0)).toBe(stepUpWords(ME_ADMIN));
+  expect(stepUpWords(ME_ADMIN, -50)).toContain('20 s ago');
+});
+
 // ── The client's step-up call ───────────────────────────────────────────────────
 
 test('confirming who you are replaces the sign-in through the renewal path and sends the code only when given', async () => {

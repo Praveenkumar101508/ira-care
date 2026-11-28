@@ -40,6 +40,8 @@ REFUSED_ON_CLOUD = [
     ("ARMORY_ENABLED", "true", "ARMORY_ENABLED"),
     ("DEV_MODE", "true", "DEV_MODE"),
     ("IRA_FORGE_ENABLED", "true", "IRA_FORGE_ENABLED"),
+    # D-109: non-commercial (CC BY-NC) voice weights never run in the commercial service.
+    ("IRA_VOICE_ENGINE", "omnivoice", "IRA_VOICE_ENGINE"),
 ]
 
 
