@@ -208,7 +208,7 @@
    "title": "Care provider and care exception logs carry no name, address or reading (A5)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -217,6 +217,10 @@
     {
      "kind": "unit_test",
      "ref": "#44"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_logs_no_personal_data_db.py"
     }
    ]
   },
@@ -422,7 +426,7 @@
    "title": "Dashboard shows unknown and stale wrist status as unknown, never as worn (B2)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -431,6 +435,14 @@
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/person_live.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },
@@ -908,11 +920,19 @@
    "title": "Automated accessibility checks on the dashboard",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/accessibility.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },
@@ -3596,11 +3616,19 @@
    "title": "Monitoring heartbeat: the dashboard says when monitoring has paused",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/topbar.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },
@@ -4350,7 +4378,7 @@
    "title": "Demo, presenter and simulator pages refused in production builds (B6)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -4359,6 +4387,14 @@
     {
      "kind": "unit_test",
      "ref": "#67"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },

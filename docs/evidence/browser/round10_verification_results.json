@@ -1,0 +1,51 @@
+{
+ "run_at": "2026-11-28T01:16:44.703Z",
+ "expected": 4,
+ "unexpected": 0,
+ "tests": [
+  {
+   "title": "the demonstration pages answer 404 in a production build, and the real pages do not",
+   "status": "passed",
+   "duration_ms": 87
+  },
+  {
+   "title": "the dashboard says when monitoring has paused, and only then",
+   "status": "passed",
+   "duration_ms": 7237
+  },
+  {
+   "title": "a silent watch is shown as last known, a watch that never said as unknown: never as on the wrist",
+   "status": "passed",
+   "duration_ms": 1537
+  },
+  {
+   "title": "axe finds no serious or critical violation on the sign-in page and the carer pages",
+   "status": "passed",
+   "duration_ms": 13027
+  }
+ ],
+ "also": {
+  "monitoring_paused": {
+   "run_at": "2026-11-28T01:15:14Z",
+   "status": "passed",
+   "how": "care API restarted with IRA_WORKER_JOBS=none; run once every job's last run was more than 310 s old"
+  },
+  "accessibility_before_the_fix": {
+   "run_at": "2026-11-28T01:05Z",
+   "status": "failed",
+   "found": {
+    "/people/<id>?tab=care": [
+     "label (critical): Form elements must have labels at input[value=\"12:30\"]; input[value=\"22:00\"]; input[value=\"07:00\"]",
+     "select-name (critical): Select element must have an accessible name at form > select"
+    ]
+   }
+  }
+ },
+ "stack": {
+  "api": "scripts/demo/api.py on localhost:8000, PostgreSQL 16 with pgvector, Redis 7",
+  "dashboard": "next build, next start on localhost:3000 (production build, NEXT_PUBLIC_IRA_DEMO_PAGES unset)",
+  "browser": "Chromium (Playwright 1.63.0), headless",
+  "checker": "axe-core from the dashboard's development dependencies, WCAG 2.0 and 2.1 A and AA rules",
+  "data": "scripts/demo/seed_demo.py fictional people"
+ }
+}
