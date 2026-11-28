@@ -7,6 +7,9 @@ register (`docs/progress/requirements.json`); the round-by-round detail is in
 [docs/progress/ROUND10_REPORT.md](docs/progress/ROUND10_REPORT.md), and every decision in
 [docs/DECISIONS.md](docs/DECISIONS.md).
 
+> **Mandatory fix outstanding:** pull request 132 was merged with the iOS journey failing; see
+> `docs/progress/NEXT.md`, "Mandatory: must be fixed".
+
 ## The measures
 
 | Measure | Now |

@@ -9,12 +9,27 @@ browser with two fixes (D-112), and the authenticated iOS journey (its first run
 evaluation, datasets, Docker, AOSP or the soak (too little storage). Everything below runs on
 GitHub's free runners, the build machine, or a remote server.
 
+## Mandatory: must be fixed (carried from pull request 132)
+
+Pull request 132 was merged on 28 November 2026 with **one check failing**: the iOS simulator job's
+authenticated care journey (`.github/workflows/ios-simulator.yml`, `scripts/simulator/ios_care_journey.py`).
+`main` shows that red check, and every pull request that touches the phone or watch apps will fail
+the same job, until this is fixed. It must not be released, marked verified or reported as passing
+before then.
+
+| Run | Where it stopped | Fix |
+|---|---|---|
+| 46083831505 | 12 of 16 steps; the sign-in was lost at the restart | signed to run locally (in `main`) |
+| 46090062926 | sign-in: iOS autocorrect changed the username | no autocorrect on account fields (on the branch, not yet pushed) |
+| 46093555159 | sign-in: iOS's "Save Password?" sheet covered the app | answer it "Not Now" (on the branch, not yet pushed) |
+
+Done means: the native-checks run on `main` (or on the follow-up pull request) green, the iOS journey
+16 of 16, and D2.h's journey recorded in `docs/evidence/builds/IOS_SIMULATOR.md`.
+
 Owner actions, in order of use:
 
-1. **Merge pull request 132** once its checks are green. The iOS journey reached 12 of 16 steps
-   on run 46083831505; the run after it (46090062926) launched the locally signed app and stopped at
-   sign-in, where iOS autocorrect rewrote the username. The fix (no autocorrect on account fields)
-   is committed on the branch with this round's verification work.
+1. **Pull request 132 is merged** (28 November); its iOS journey still fails: see "Mandatory" above.
+   The follow-up pull request carries the two fixes and this round's verification work.
 2. **After the merge, three manual workflows** (Actions, the workflow, "Run workflow" on `main`;
    each needs the file on the default branch first):
    - `deployment guide (manual)`: follows `docs/DEPLOY.md` sections 2 to 7 on a free runner (G4.a);

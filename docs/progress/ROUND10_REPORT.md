@@ -4,6 +4,23 @@ Every figure comes from `scripts/completion_summary.py` over `docs/progress/requ
 nothing is rounded up. Work ran on the build machine and GitHub's free runners; the owner's
 personal Mac was not used for anything, and nothing was bought.
 
+## Mandatory: must be fixed (carried from pull request 132)
+
+Pull request 132 was merged on 28 November 2026 with **one check failing**: the iOS simulator job's
+authenticated care journey (`.github/workflows/ios-simulator.yml`, `scripts/simulator/ios_care_journey.py`).
+`main` shows that red check, and every pull request that touches the phone or watch apps will fail
+the same job, until this is fixed. It must not be released, marked verified or reported as passing
+before then.
+
+| Run | Where it stopped | Fix |
+|---|---|---|
+| 46083831505 | 12 of 16 steps; the sign-in was lost at the restart | signed to run locally (in `main`) |
+| 46090062926 | sign-in: iOS autocorrect changed the username | no autocorrect on account fields (on the branch, not yet pushed) |
+| 46093555159 | sign-in: iOS's "Save Password?" sheet covered the app | answer it "Not Now" (on the branch, not yet pushed) |
+
+Done means: the native-checks run on `main` (or on the follow-up pull request) green, the iOS journey
+16 of 16, and D2.h's journey recorded in `docs/evidence/builds/IOS_SIMULATOR.md`.
+
 ## The measures
 
 | Measure | Before 28 November | Now |
