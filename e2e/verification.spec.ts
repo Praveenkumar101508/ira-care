@@ -15,6 +15,9 @@ import { DASH, dashboardSignIn, info, login } from './helpers';
  *  - C-11.a a watch that has not synced for hours is shown as last known, and one that never said
  *          whether it is worn as unknown: never as "on the wrist" (the row is set as a silent watch
  *          leaves it, with E2E_ADMIN_DSN, and put back afterwards);
+ *  - D4.b  a measurement IRA cannot make (blood oxygen, blood pressure) sent by the watch is refused
+ *          and nothing is stored, and the person's health tab lists it as not available, never with
+ *          a value;
  *  - C-23.a axe-core, run in the page, finds no serious or critical accessibility violation on the
  *          sign-in page, the people list, a person's record, alerts and visits.
  *
@@ -90,6 +93,36 @@ test('a silent watch is shown as last known, a watch that never said as unknown:
 });
 
 // axe-core comes from the dashboard's own development dependencies (its unit accessibility tests use it).
+test('a measurement IRA cannot make is refused from the watch and shown as not available, never with a value', async ({ page, request }) => {
+  test.skip(!ADMIN_DSN, 'set E2E_ADMIN_DSN to count the stored readings');
+  const count = () => Number(sql(`SELECT count(*) FROM care_vitals WHERE person_id = '${person.id}' AND kind IN ('spo2', 'blood_pressure')`));
+  const before = count();
+  const at = new Date().toISOString();
+  for (const reading of [{ kind: 'spo2', value: 97, unit: '%', recorded_at: at }, { kind: 'blood_pressure', value: 120, unit: 'mmHg', recorded_at: at }]) {
+    const r = await request.post(`${process.env.IRA_CARE_API ?? 'http://127.0.0.1:8010'}/api/v1/care/devices/me/report`, {
+      headers: { 'X-Device-Token': person.device_token, 'Content-Type': 'application/json' },
+      data: { readings: [reading], background_sensor_permission: true, battery_percent: 70, on_wrist: true },
+    });
+    expect(r.status(), `${reading.kind}: ${await r.text()}`).toBe(422);
+  }
+  expect(count(), 'nothing stored').toBe(before);
+  // Negative control: a heart rate, which the watch does measure, is accepted from the same watch.
+  const ok = await request.post(`${process.env.IRA_CARE_API ?? 'http://127.0.0.1:8010'}/api/v1/care/devices/me/report`, {
+    headers: { 'X-Device-Token': person.device_token, 'Content-Type': 'application/json' },
+    data: { readings: [{ kind: 'heart_rate', value: 72, unit: 'bpm', recorded_at: at }], background_sensor_permission: true, battery_percent: 70, on_wrist: true },
+  });
+  expect(ok.status(), await ok.text()).toBeLessThan(300);
+
+  await dashboardSignIn(page, manager);
+  await page.goto(`${DASH}/people/${person.id}?tab=health`);
+  const panel = page.getByTestId('not-measured');
+  await expect(panel).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('not-measured-spo2')).toContainText('not available');
+  await expect(page.getByTestId('not-measured-blood_pressure')).toContainText('not available');
+  expect(await panel.textContent()).not.toMatch(/\d+\s*(%|mmHg)/);
+  await expect(page.getByTestId('not-measured-heart_rate')).toHaveCount(0);
+});
+
 const AXE = readFileSync(process.env.AXE_PATH ?? join(__dirname, '..', 'dashboard', 'node_modules', 'axe-core', 'axe.min.js'), 'utf8');
 type Violation = { id: string; impact: string | null; help: string; nodes: { target: string[] }[] };
 

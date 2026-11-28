@@ -13,13 +13,14 @@ Results: `docs/evidence/browser/round10_verification_results.json`.
 | Browser | headless Chromium, Playwright 1.63.0 |
 | Accessibility checker | axe-core 4 (the dashboard's own development dependency), the WCAG 2.0 and 2.1 A and AA rules, run inside each page |
 
-## Browser: `e2e/verification.spec.ts`, 4 of 4 passed (22.4 s)
+## Browser: `e2e/verification.spec.ts`, 5 of 5 passed
 
 | Requirement | Test | What it proves | Result |
 |---|---|---|---|
 | J.h | the demonstration pages answer 404 in a production build | `/watch`, `/presenter`, `/simulator` and a path below one answer 404 and never show the presenter controls; `/login` and `/` answer 200 | passed |
 | G2.c | the dashboard says when monitoring has paused, and only then | against the server with its care jobs running, no "Monitoring paused" banner; against the same server restarted with no care jobs (`IRA_WORKER_JOBS=none`), once every job's last run was more than five minutes old, the banner shows on the home page and on the person's record, saying check-ins and alerts are not being processed | passed, both ways (the "paused" run at 01:15 UTC) |
 | C-11.a | a silent watch is shown as last known, a watch that never said as unknown | the person's watch row set as a silent watch leaves it (worn, last sync three hours ago): the record says "last known on the wrist" and not "on the wrist"; never said: "wrist unknown"; negative control, worn and just synced: "on the wrist"; the row is put back afterwards | passed |
+| D4.b | a measurement IRA cannot make is refused from the watch and shown as not available | the person's own watch (its device token) sends blood oxygen (97 %) and blood pressure (120 mmHg): each refused with 422, and no row added to the person's readings; negative control, a heart rate from the same watch is accepted; the health tab lists both as not available, with no number and unit, and does not list heart rate | passed |
 | C-23.a | axe finds no serious or critical violation | the sign-in page, the people list, a person's record (care and health tabs), alerts and visits | passed after the fix below |
 
 The first run of the monitoring test was started before the last job runs were five minutes old,

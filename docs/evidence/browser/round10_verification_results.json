@@ -1,27 +1,32 @@
 {
- "run_at": "2026-11-28T01:16:44.703Z",
- "expected": 4,
+ "run_at": "2026-11-28T01:19:57.565Z",
+ "expected": 5,
  "unexpected": 0,
  "tests": [
   {
    "title": "the demonstration pages answer 404 in a production build, and the real pages do not",
    "status": "passed",
-   "duration_ms": 87
+   "duration_ms": 79
   },
   {
    "title": "the dashboard says when monitoring has paused, and only then",
    "status": "passed",
-   "duration_ms": 7237
+   "duration_ms": 6871
   },
   {
    "title": "a silent watch is shown as last known, a watch that never said as unknown: never as on the wrist",
    "status": "passed",
-   "duration_ms": 1537
+   "duration_ms": 1604
+  },
+  {
+   "title": "a measurement IRA cannot make is refused from the watch and shown as not available, never with a value",
+   "status": "passed",
+   "duration_ms": 1286
   },
   {
    "title": "axe finds no serious or critical violation on the sign-in page and the carer pages",
    "status": "passed",
-   "duration_ms": 13027
+   "duration_ms": 13220
   }
  ],
  "also": {

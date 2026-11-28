@@ -1739,11 +1739,19 @@
    "title": "Not-available measurements are refused and never shown with a value",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/not_measured.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },
