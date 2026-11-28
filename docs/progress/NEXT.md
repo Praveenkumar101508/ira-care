@@ -38,7 +38,7 @@ Owner actions, in order of use:
    - `wall-clock soak (manual)`: 5.5 hours of the server under load (G2.e's interim);
    - `dataset provenance (manual)`: fetches UMAFall version 8 and checks it against both official
      records (F1.g).
-   Then a phone emulator run with the new "Talk is the wearer's alone" check moves C-7.b.
+   (C-7.b moved to verified on phone emulator run 46100618011.)
 3. **A Linux server for the 24-hour soak (G2.e)**, from a sponsor or a university (Essex research
    computing has been asked), or registered as a GitHub self-hosted runner (jobs up to 5 days).
    Meanwhile the `wall-clock soak (manual)` workflow runs 5.5 hours on a free runner: Actions,

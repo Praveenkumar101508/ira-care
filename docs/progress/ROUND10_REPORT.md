@@ -27,7 +27,7 @@ Done means: the native-checks run on `main` (or on the follow-up pull request) g
 |---|---|---|
 | Hardware-independent software implementation | 179 / 195 | 179 / 195, 91.8 % |
 | Hardware-independent software acceptance | 173 / 195 | 174 / 195, 89.2 % |
-| Software verification (database, browser, emulator, model evaluation, device) | 91 / 210 | **109 / 210, 51.9 %** |
+| Software verification (database, browser, emulator, model evaluation, device) | 91 / 210 | **110 / 210, 52.4 %** |
 | AI development (accepted) | 41 / 48 | 41 / 48, 85.4 % |
 | OS development (accepted, hardware-independent) | 17 / 29 | 17 / 29, 58.6 % |
 | Hardware integration | 0 / 14 | 0 / 14 |
@@ -41,8 +41,8 @@ Round 10 began at 82 of 210 verified; the first part (27 November) took it to 91
 | State | Count | What it means |
 |---|---|---|
 | Physically validated (`device_validated`) | **0** | nothing has run on a physical watch or phone |
-| Verified | 109 | integration evidence that shows the whole title: real PostgreSQL, a real browser, an emulator, a model evaluation |
-| Accepted | 67 | functional evidence (unit tests, builds) without integration evidence of the whole title |
+| Verified | 110 | integration evidence that shows the whole title: real PostgreSQL, a real browser, an emulator, a model evaluation |
+| Accepted | 66 | functional evidence (unit tests, builds) without integration evidence of the whole title |
 | Implemented | 28 | code or a document, waiting for a reviewer, a build host, a device or a run (18 of them external documents, 5 hardware documents) |
 | Blocked by something outside the project | 53 | each names what it waits for (`blocked_by` in the register; `STATUS.md`, "Not done, and why") |
 | Not started | 1 | G2.e, the 24-hour soak: a free runner stops at 6 hours |
@@ -82,7 +82,7 @@ Round 10 began at 82 of 210 verified; the first part (27 November) took it to 91
 | The whole care journey's logs read for personal data; real driver errors' text kept out | `test_care_logs_no_personal_data_db.py`, `test_log_exception_text_db.py` | C-6.a, C-6.b verified |
 | The runbook drills: the worker stopped, key rotation | `docs/evidence/ops/DRILLS_ROUND10.md`, 10 of 10 | G4.c accepted, G2.a verified |
 | The phone app's web build in a real browser | `docs/evidence/browser/ROUND10_PHONE_WEB.md` | C-11.b, D2.b, D2.c, D2.d, C-16.a verified |
-| The Android journey's three experiences in one app | `PHONE_EMULATOR_SMOKE.md` | D2.a verified |
+| The Android journey's three experiences in one app; Talk only for the wearer | `PHONE_EMULATOR_SMOKE.md` (runs 45990580023, 46100618011) | D2.a, C-7.b verified |
 | An evidence label corrected (a PostgreSQL test filed as a unit test) | `VERIFICATION.md` | G2.d verified |
 
 **Defects found by the new tests, all fixed with a test that fails without the fix:**
@@ -112,7 +112,6 @@ tuned on it.
 | Item | Needs |
 |---|---|
 | iOS journey green; pull request 132 merged | the next native-checks run on the branch (the owner) |
-| C-7.b (Talk only for the wearer) | a phone emulator run with the new check |
 | G4.a deployment guide, G2.e interim soak, F1.g UMAFall | the three manual workflows, once on `main` |
 | Distress redirects on the real model | a model server (Ollama with Gemma 4, free) on a machine the session may install on |
 | G2.e 24-hour soak | a Linux server that stays up for a day |

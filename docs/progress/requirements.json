@@ -270,11 +270,15 @@
    "title": "The phone app offers Talk only to the wearer (isWearerOf)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/experience.test.ts"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md"
     }
    ]
   },

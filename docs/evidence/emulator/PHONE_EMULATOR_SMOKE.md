@@ -162,3 +162,11 @@ This is the native, authenticated Android journey the directive asked for, run o
 is not a physical phone (D2.i stays blocked on a device) and not the release build over HTTPS
 (the release build's own smoke proves it starts and draws sign-in; D-105).
 
+### Talk only for the wearer (run 46100618011, 28 November 2026)
+
+**Smoke 4 of 4 and journey 18 of 18** on GitHub's standard runner (pull request 133, commit
+`a7a44f8`), with two checks added for C-7.b: the family member's home is checked to offer no
+"Talk to IRA" (`patient_selected`: `"talk_offered_to_family": false`), and the carer's home fails if
+it shows the wearer's Talk card (`carer_home_isolated`, `adbkit.WEARER_ONLY_IDS`). The wearer's own
+account was offered Talk and got IRA's reply ("IRA: I'm listening, Ada.").
+
