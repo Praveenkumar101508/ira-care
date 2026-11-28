@@ -4,7 +4,12 @@ Every figure comes from `scripts/completion_summary.py` over `docs/progress/requ
 nothing is rounded up. Work ran on the build machine and GitHub's free runners; the owner's
 personal Mac was not used for anything, and nothing was bought.
 
-## Mandatory: must be fixed (carried from pull request 132)
+## Mandatory: done (carried from pull request 132)
+
+**Closed on 28 November 2026:** the iOS authenticated journey passed **16 of 16** on run 46106258647
+(pull request 133, every check green). Record: `docs/evidence/builds/IOS_SIMULATOR.md`.
+
+The history of the fix:
 
 Pull request 132 was merged on 28 November 2026 with **one check failing**: the iOS simulator job's
 authenticated care journey (`.github/workflows/ios-simulator.yml`, `scripts/simulator/ios_care_journey.py`).
@@ -58,9 +63,8 @@ Round 10 began at 82 of 210 verified; the first part (27 November) took it to 91
   `docs/ai/conversation/ROUND10_CONVERSATION.md`; four repeated worries were not redirected, and
   that redirect is the model's job, so only a real-model run can measure it (not done this round:
   the machine had no model server, and installing one was refused by the session's permissions).
-- **The iOS authenticated journey (D2.h's journey):** not yet passed. It reached 12 of 16 steps
-  (run 46083831505). The next run launched the locally signed app and stopped at sign-in, where
-  iOS autocorrect rewrote the username; that is fixed and committed (below), but not yet run.
+- **The iOS authenticated journey** failed on pull request 132 (merged with it failing) and **passed
+  16 of 16 on pull request 133** (run 46106258647) after the fixes listed in the mandatory section.
 
 ## What round 10 did
 

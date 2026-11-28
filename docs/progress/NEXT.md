@@ -9,7 +9,12 @@ browser with two fixes (D-112), and the authenticated iOS journey (its first run
 evaluation, datasets, Docker, AOSP or the soak (too little storage). Everything below runs on
 GitHub's free runners, the build machine, or a remote server.
 
-## Mandatory: must be fixed (carried from pull request 132)
+## Mandatory: done (carried from pull request 132)
+
+**Closed on 28 November 2026:** the iOS authenticated journey passed **16 of 16** on run 46106258647
+(pull request 133, every check green). Record: `docs/evidence/builds/IOS_SIMULATOR.md`.
+
+The history of the fix:
 
 Pull request 132 was merged on 28 November 2026 with **one check failing**: the iOS simulator job's
 authenticated care journey (`.github/workflows/ios-simulator.yml`, `scripts/simulator/ios_care_journey.py`).
@@ -31,7 +36,7 @@ Each outside need, with exactly what to ask for and what it unblocks: `docs/prog
 
 Owner actions, in order of use:
 
-1. **Pull request 132 is merged** (28 November); its iOS journey still fails: see "Mandatory" above.
+1. **Pull request 132 is merged** (28 November); its iOS journey now passes on pull request 133 (see above). Merge 133.
    The follow-up pull request carries the two fixes and this round's verification work.
 2. **After the merge, three manual workflows** (Actions, the workflow, "Run workflow" on `main`;
    each needs the file on the default branch first):

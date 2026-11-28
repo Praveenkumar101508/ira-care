@@ -90,3 +90,28 @@ This is the family app's native shell and its bundled JavaScript starting in the
 drawing the sign-in screen. It is not a sign-in against a backend (the next step, as above), nor a
 physical iPhone or a signed build (D2.i, D2.k).
 
+## The authenticated care journey: 16 of 16 (28 November 2026)
+
+**Run 46106258647, pull request 133, commit `0838076`: 16 of 16 steps passed**, after the launch
+checks (6 of 6) in the same job. The unsigned build is signed to run locally on the runner (identity
+"-", no Apple account), installed in an iPhone simulator, and driven by Maestro against the care
+server started on the runner (PostgreSQL with pgvector and Redis from Homebrew, the fictional seed).
+
+| Step | What it proves |
+|---|---|
+| `care_server_started`, `launched` | the server and the app are up |
+| `family_signed_in`, `patient_selected` | the family member signs in and sees the person |
+| `person_record_shown`, `plan_shown` | the record with the latest readings; medication and the care plan |
+| `help_alert_shown`, `acknowledged_in_app` | Help from the watch becomes the urgent banner; "I'm on my way" leaves the alert acknowledged on the server |
+| `appearance_kept_across_restart` | dark mode kept after the app is stopped and started (the keychain keeps the sign-in) |
+| `offline_state_shown`, `connectivity_recovered` | with the server stopped the app says alerts may be out of date, never "No open alerts."; it recovers when the server returns |
+| `secure_sign_out` | sign-out ends the session on the server and leaves nothing on screen |
+| `wearer_signed_in`, `wearer_talked_to_ira` | the wearer is offered Talk and gets IRA's reply |
+| `carer_signed_in`, `carer_home_isolated` | the carer's home, with none of the family's or the wearer's screens |
+
+What it took (each from a run's log): scrolling to off-screen fields; a server field typed only on
+request; no autocorrect on account fields; the warning bar kept off the tab bar; "I'm on my way"
+reachable by VoiceOver; signing to run locally so the keychain works; answering iOS's "Save
+Password?" sheet; one signing secret across the journey's server restarts. A simulator, not a
+physical iPhone (D2.i).
+

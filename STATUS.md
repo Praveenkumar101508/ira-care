@@ -7,8 +7,8 @@ register (`docs/progress/requirements.json`); the round-by-round detail is in
 [docs/progress/ROUND10_REPORT.md](docs/progress/ROUND10_REPORT.md), and every decision in
 [docs/DECISIONS.md](docs/DECISIONS.md).
 
-> **Mandatory fix outstanding:** pull request 132 was merged with the iOS journey failing; see
-> `docs/progress/NEXT.md`, "Mandatory: must be fixed".
+> **Mandatory fix done:** the iOS journey that pull request 132 was merged with failing passes 16 of 16
+> on pull request 133 (run 46106258647).
 
 ## The measures
 
@@ -31,7 +31,7 @@ register (`docs/progress/requirements.json`); the round-by-round detail is in
 | Wear OS watch app | Runs on the emulator | the 49-step care journey passed on GitHub's runner (run 45999809729): medication, check-in, fall countdown, Help, offline queue, reboot, permissions, unpair and pair again, accessibility |
 | Family phone app, Android | Runs on the emulator | the authenticated journey, 18 of 18 (run 45990580023; again on run 46100618011 with the Talk-only-for-the-wearer checks) |
 | Family phone app, in a browser | Runs (its web build) | the stale-wrist rule (after a fix), reminders, visits, appearance across devices and an expired sign-in renewed, 5 of 5 (`docs/evidence/browser/ROUND10_PHONE_WEB.md`) |
-| Family phone app, iOS | Launches in the simulator; the authenticated journey not yet passed | 6 of 6 launch checks (run 45994124214). The authenticated journey reached 12 of 16 steps (run 46083831505; the rest followed a lost sign-in at restart). Signed to run locally, the next run stopped at sign-in on iOS autocorrect; the fix is committed and not yet run |
+| Family phone app, iOS | Runs in the simulator | the authenticated journey, 16 of 16 (run 46106258647): sign-in, record, plan, Help acknowledged, appearance across a restart, offline and recovery, secure sign-out, the wearer's Talk, the carer's home (`docs/evidence/builds/IOS_SIMULATOR.md`) |
 | Carer dashboard | Runs in a browser | the deployment-administration journey, 4 of 4 in Chromium against a running server (`docs/evidence/browser/DEPLOYMENT_ADMIN_BROWSER.md`); demo pages refused in production, the monitoring-paused warning, wrist status never guessed, unavailable measurements refused, an expired sign-in renewed, an axe accessibility check of six pages and their contrast in light, dark and high-contrast appearances, the activity trend only under consent, 8 of 8, after fixing unnamed form controls and colour-only links the check found (`docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md`) |
 | Step-up authentication for deployment administrators | Built, verified | database and browser tests, including the two-person factory reset |
 | Server memory over time | 1-hour soak passes (1.996 % an hour against 5 %) | `docs/evidence/soak/WALLCLOCK_1H_ROUND9.md`; a 5.5-hour run is available on a free runner (`.github/workflows/soak.yml`) |
