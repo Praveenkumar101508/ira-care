@@ -108,8 +108,10 @@ def flow(steps: list[dict], bundle_id: str = BUNDLE_ID) -> str:
             # and the sign-in fields submit nothing on Return. Tapping the heading did not close it, so
             # the next tap landed on the keyboard (run 46060791832: the server address went into the
             # password field).
-            lines += into_view(rid) + ["- tapOn:", f"    id: {_q(rid)}", "- eraseText: 80", f"- inputText: {_q(text)}",
-                                       "- pressKey: Enter"]
+            lines += into_view(rid) + ["- tapOn:", f"    id: {_q(rid)}", "- eraseText: 80"]
+            chunks = list(text) if s.get("slow") else [text]
+            lines += [f"- inputText: {_q(chunk)}" for chunk in chunks]
+            lines += ["- pressKey: Enter"]
         elif "launch" in s:
             lines += ["- launchApp:", "    stopApp: false"]
         elif "stop" in s:
@@ -232,8 +234,19 @@ class Journey:
     def sign_in(self, login: dict, label: str) -> bool:
         t0 = time.time()
         nodes = self.wait_for(lambda n: find_id(n, "sign-in") is not None, self.a.ui_timeout)
-        # Username and password first, then the server behind "Advanced" (below them on screen).
-        steps = [{"type": ["username", login["email"]]}, {"type": ["password", login["password"]]}]
+        # iOS can reorder characters during a single Maestro inputText command.
+        # Verify the seeded username before submitting, with individual keystrokes as a fallback.
+        email = login["email"]
+        for slow in (False, True):
+            typed = self.run([{"type": ["username", email], "slow": slow}])
+            username = find_id(self.nodes(), "username")
+            if typed and username and username.get("text") == email:
+                break
+        else:
+            return self.step(f"{label}_signed_in", False, t0, reason="Simulator did not enter the seeded username",
+                             screenshot=self.shot(f"{label}_username_mismatch"))
+
+        steps = [{"type": ["password", login["password"]]}]
         # The test build's default server is this one (the workflow sets it, as the Android test build's
         # is the emulator's host), so the server field is typed only when it holds something else.
         # Typed only with --type-server: on iOS the field could not be cleared reliably (run 46064671882
