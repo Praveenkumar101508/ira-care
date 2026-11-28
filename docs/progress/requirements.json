@@ -388,11 +388,19 @@
    "title": "Overlapping and out-of-order refreshes show only the newest person (B1b)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/live.test.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/person_switch.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_TALK_AND_SWITCH.md"
     }
    ]
   },
@@ -508,11 +516,19 @@
    "title": "Talk screen shows IRA's answer as it arrives",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/talk_screen.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/talk_stream.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_TALK_AND_SWITCH.md"
     }
    ]
   },

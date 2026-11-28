@@ -11,16 +11,14 @@ document, a dataset decision), the row says so instead of inventing a test.
 | the AOSP build host (Cuttlefish) | 17 |
 | watch emulator journey on CI | 15 |
 | a physical watch or phone | 7 |
-| browser or database, here | 2 (C-10.c and C-23.b verified since, 28 November) |
+| browser or database, here | 4 (C-10.b, C-10.c, C-12.b and C-23.b verified since, 28 November) |
 | a staging server | 4 |
 | a reviewer | 1 |
 
 | Requirement | Title | Evidence now | Route to verification | How |
 |---|---|---|---|---|
 | C-10.a | Person record refreshes every 30 s and says when it last updated (B1) | unit_test | not an integration target | its browser verification is its own row, C-10.d (verified); counting the same run twice would inflate the measure |
-| C-10.b | Overlapping and out-of-order refreshes show only the newest person (B1b) | unit_test | browser or database, here | switch between two people quickly in the browser: only the newest person shows |
 | C-12.a | Phone Talk client reads the NDJSON stream incrementally (expo/fetch) | unit_test | a physical watch or phone | expo/fetch streaming is the native client; the web build uses the browser's fetch, so a browser run would not exercise it |
-| C-12.b | Talk screen shows IRA's answer as it arrives | unit_test | browser or database, here | the wearer's Talk screen in the phone's web build: the first sentence shows before the reply ends |
 | C-13.a | Phone speaks IRA's answer (speech out) | unit_test | a physical watch or phone | text-to-speech on a phone |
 | C-13.b | Phone listens for one utterance and keeps no recording (speech in) | unit_test | a physical watch or phone | a microphone on a phone |
 | C-15.a | Push token is unregistered on sign-out, and being offline does not block sign-out | unit_test | a physical watch or phone | push tokens need Firebase or APNs on a device; the web build has no push |

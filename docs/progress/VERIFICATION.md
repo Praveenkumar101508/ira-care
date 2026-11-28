@@ -331,11 +331,13 @@ but the provider-secret rotations and the compose wrappers themselves were not e
 
 ## Round 10, continued again (28 November 2026, after pull request 133)
 
-Software verification: 110 to 112 of 210. Every accepted-but-not-verified requirement is now read one
+Software verification: 110 to 114 of 210. Every accepted-but-not-verified requirement is now read one
 by one in `docs/progress/VERIFICATION_MATRIX.md`, with its single route to integration evidence.
 
 | Item | Evidence |
 |---|---|
 | C-10.c A failed section is named and the rest shows | the visits request made to fail in Chromium: named, the rest of the record shown, and nothing named once it works (`docs/evidence/browser/ROUND10_RECORD_AND_PHONE_A11Y.md`) |
 | C-23.b Automated accessibility checks on the phone app | axe in the phone app's web build on the sign-in screen and each experience's home and settings, after fixing an invalid autocomplete token and names that did not contain their visible words (WCAG 2.5.3) |
+| C-12.b Talk shows IRA's answer as it arrives | the wearer's Talk screen in the phone app's web build, the server's real reply released a line at a time: the first sentence shows before the rest arrive; a control with streaming switched off fails (`docs/evidence/browser/ROUND10_TALK_AND_SWITCH.md`) |
+| C-10.b Overlapping refreshes show only the newest person | the first person's 15 requests held back six seconds while the dashboard moves to the second: only the second person's heading ever shows, before and after the late answers land |
 
