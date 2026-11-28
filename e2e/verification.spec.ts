@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test, expect, type Page } from '@playwright/test';
-import { DASH, dashboardSignIn, info, login } from './helpers';
+import { Api, DASH, dashboardSignIn, info, login } from './helpers';
 
 /**
  * Round 10 verification in a real browser, against the running care server and the production
@@ -21,6 +21,9 @@ import { DASH, dashboardSignIn, info, login } from './helpers';
  *  - C-16.b with the server's access tokens lasting one minute (ACCESS_TOKEN_EXPIRE_MINUTES=1,
  *          E2E_ACCESS_TOKEN_SECONDS=60), a carer whose access token has expired is not signed out:
  *          the dashboard renews it with the refresh token and the record keeps loading;
+ *  - F7.i  the person's health tab shows the watch's activity estimate only under the
+ *          activity-sharing consent, labelled as an estimate (and as simulated when it is); without
+ *          the consent the watch's summaries are not stored and the panel says so;
  *  - C-23.a axe-core, run in the page, finds no serious or critical accessibility violation on the
  *          sign-in page, the people list, a person's record, alerts and visits;
  *  - C-23.d axe's colour-contrast rule on the same pages in light, dark, and each with the
@@ -153,6 +156,54 @@ test('a carer whose access token has expired stays signed in: the dashboard rene
   await expect(page.getByText(person.display_name).first()).toBeVisible();
   expect(renewals, 'renewed with the refresh token').toContain(200);
   expect(await token(), 'a new access token is kept').not.toBe(first);
+});
+
+test('the activity trend appears only under the sharing consent, and is labelled an estimate', async ({ page }) => {
+  test.skip(!ADMIN_DSN, 'set E2E_ADMIN_DSN to count the stored summaries');
+  const api = process.env.IRA_CARE_API ?? 'http://127.0.0.1:8010';
+  const model = (process.env.E2E_ACTIVITY_MODEL ?? '').split(' ');
+  test.skip(model.length !== 2, 'set E2E_ACTIVITY_MODEL to "<model_version> <model_sha256>" (care.activity.known_model())');
+  const stored = () => Number(sql(`SELECT count(*) FROM care_activity_periods WHERE person_id = '${person.id}'`));
+  const hour = Math.floor(Date.now() / 3_600_000) * 3_600_000;
+  const periods = [3, 2, 1].map((k) => ({
+    period_start: new Date(hour - k * 3_600_000).toISOString(), period_end: new Date(hour - (k - 1) * 3_600_000).toISOString(),
+    model_version: model[0], model_sha256: model[1], source: 'simulated',
+    seconds: { walking: 600 + 120 * k, sitting: 2400 }, reasons: {}, windows: (3000 + 120 * k) / 10, mean_confidence: 0.8,
+  }));
+  const send = () => fetch(`${api}/api/v1/care/devices/me/activity`, {
+    method: 'POST', headers: { 'X-Device-Token': person.device_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ periods }),
+  });
+  const mgr = await Api.signIn(i, manager);
+  const before = stored();
+
+  // No consent: nothing kept, and the record says it is not shared.
+  const refused = await send();
+  expect(refused.status, await refused.clone().text()).toBe(200);
+  expect((await refused.json()).sharing).toBe(false);
+  expect(stored(), 'nothing stored without the consent').toBe(before);
+  await dashboardSignIn(page, manager);
+  await page.goto(`${DASH}/people/${person.id}?tab=health`);
+  await expect(page.getByTestId('activity-not-shared')).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('activity-days')).toHaveCount(0);
+
+  // The person agrees: the same summaries are kept and shown, labelled as an estimate.
+  const consent = await mgr.req<{ id: string }>('POST', `/api/v1/care/people/${person.id}/consents`,
+    { kind: 'activity_sharing', granted: true, granted_by: 'person', granted_by_name: person.display_name });
+  try {
+    const kept = await send();
+    expect(kept.status, await kept.clone().text()).toBe(200);
+    expect(stored(), 'three hours stored').toBe(before + 3);
+    await page.reload();
+    const panel = page.getByTestId('activity-trend');
+    await expect(panel).toContainText('Activity (estimated)', { timeout: 30_000 });
+    await expect(page.getByTestId('activity-label')).toContainText(/estimate/i);
+    await expect(page.getByTestId('activity-simulated')).toBeVisible();
+    await expect(page.getByTestId('activity-days')).toBeVisible();
+    await expect(page.getByTestId('activity-not-shared')).toHaveCount(0);
+  } finally {
+    await mgr.req('POST', `/api/v1/care/consents/${consent.id}/revoke`, {}).catch(() => undefined);
+    sql(`DELETE FROM care_activity_periods WHERE person_id = '${person.id}'`);
+  }
 });
 
 const AXE = readFileSync(process.env.AXE_PATH ?? join(__dirname, '..', 'dashboard', 'node_modules', 'axe-core', 'axe.min.js'), 'utf8');

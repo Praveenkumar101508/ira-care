@@ -298,11 +298,11 @@ D1.f and D1.g (the server half of the watch's location and battery reports), G2.
 not the dashboard's banner), G2.g and G2.h (drills not on staging or off-site), E2.o (the watch's
 side of an instruction), F4.i (switched off), the three model cards and C-22.c.
 
-## Round 10, continued (28 November 2026): twelve more moved to verified
+## Round 10, continued (28 November 2026): thirteen more moved to verified
 
 Seven by new integration tests, run on the build machine against the running care server and the
 production dashboard build (`docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md`), and one by
-correcting an evidence label. Software verification: 91 to 103 of 210.
+correcting an evidence label. Software verification: 91 to 104 of 210.
 
 | Item | Evidence |
 |---|---|
@@ -313,6 +313,7 @@ correcting an evidence label. Software verification: 91 to 103 of 210.
 | C-16.b The dashboard renews an expired session | with one-minute access tokens, the first token refused by the server, and the record still loads through a renewal |
 | C-23.a Automated accessibility checks on the dashboard | axe-core in Chromium on six pages, no serious or critical violation, after fixing the unnamed controls it found on a person's record |
 | C-23.d Contrast in dark and high-contrast appearances | axe's colour-contrast rule in Chromium on six pages in light, dark and each with "more contrast": 24 checks, no violation |
+| F7.i Activity trend on the health tab, labelled an estimate | the watch's summaries refused without the sharing consent (nothing stored, "not shared" shown) and stored and shown as "Activity (estimated)" with it, in Chromium against the running server |
 | C-6.a Care logs carry no personal data | `tests/tenancy/test_care_logs_no_personal_data_db.py`: the 22-step care journey on PostgreSQL, every logger and the log-only provider read, nothing personal found; with a negative control |
 | C-6.b Exception text kept out of logs | `tests/tenancy/test_log_exception_text_db.py`: real errors from PostgreSQL and asyncpg whose messages quote a private sentence (invalid input, a refused argument, a duplicate key's detail), logged five ways through the production handler in both formats: the sentence never appears, the type always does; with the developer switch on, the same records carry it (the control) |
 | G2.a Backup files are private | the deployment's `deploy/backup.sh` run on PostgreSQL under umask 022: folder 0700, files 0600, still restores (`test_deploy_backup_private_db.py`), after the runbook drill found them 0644 and the script was fixed |

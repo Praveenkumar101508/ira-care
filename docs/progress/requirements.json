@@ -3396,7 +3396,7 @@
    "title": "Activity trend panel on the person's health tab, labelled as an estimate",
    "area": "ai",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -3405,6 +3405,14 @@
     {
      "kind": "build",
      "ref": "dashboard/src/components/ActivityTrend.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/verification.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md"
     }
    ]
   },

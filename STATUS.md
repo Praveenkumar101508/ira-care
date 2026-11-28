@@ -16,7 +16,7 @@ register (`docs/progress/requirements.json`); the round-by-round detail is in
 | --- | --- |
 | Hardware-independent software implementation | 179 / 195, 91.8 % |
 | Hardware-independent software acceptance | 174 / 195, 89.2 % |
-| Software verification (integration evidence: database, browser, emulator, model evaluation, device) | 103 / 210, 49.0 % |
+| Software verification (integration evidence: database, browser, emulator, model evaluation, device) | 104 / 210, 49.5 % |
 | AI development (accepted) | 41 / 48, 85.4 % |
 | OS development (accepted, hardware-independent) | 17 / 29, 58.6 % |
 | Hardware integration | 0 / 14 |
@@ -31,7 +31,7 @@ register (`docs/progress/requirements.json`); the round-by-round detail is in
 | Wear OS watch app | Runs on the emulator | the 49-step care journey passed on GitHub's runner (run 45999809729): medication, check-in, fall countdown, Help, offline queue, reboot, permissions, unpair and pair again, accessibility |
 | Family phone app, Android | Runs on the emulator | the authenticated journey, 18 of 18 (run 45990580023) |
 | Family phone app, iOS | Launches in the simulator; the authenticated journey not yet passed | 6 of 6 launch checks (run 45994124214). The authenticated journey reached 12 of 16 steps (run 46083831505; the rest followed a lost sign-in at restart). Signed to run locally, the next run stopped at sign-in on iOS autocorrect; the fix is committed and not yet run |
-| Carer dashboard | Runs in a browser | the deployment-administration journey, 4 of 4 in Chromium against a running server (`docs/evidence/browser/DEPLOYMENT_ADMIN_BROWSER.md`); demo pages refused in production, the monitoring-paused warning, wrist status never guessed, unavailable measurements refused, an expired sign-in renewed, an axe accessibility check of six pages and their contrast in light, dark and high-contrast appearances, 7 of 7, after fixing unnamed form controls the check found (`docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md`) |
+| Carer dashboard | Runs in a browser | the deployment-administration journey, 4 of 4 in Chromium against a running server (`docs/evidence/browser/DEPLOYMENT_ADMIN_BROWSER.md`); demo pages refused in production, the monitoring-paused warning, wrist status never guessed, unavailable measurements refused, an expired sign-in renewed, an axe accessibility check of six pages and their contrast in light, dark and high-contrast appearances, the activity trend only under consent, 8 of 8, after fixing unnamed form controls and colour-only links the check found (`docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md`) |
 | Step-up authentication for deployment administrators | Built, verified | database and browser tests, including the two-person factory reset |
 | Server memory over time | 1-hour soak passes (1.996 % an hour against 5 %) | `docs/evidence/soak/WALLCLOCK_1H_ROUND9.md`; a 5.5-hour run is available on a free runner (`.github/workflows/soak.yml`) |
 | IRA conversation and safety rules | Built, measured | 162-turn set unchanged; round 10 hold-out 31 of 32 (`docs/ai/conversation/ROUND10_CONVERSATION.md`) |

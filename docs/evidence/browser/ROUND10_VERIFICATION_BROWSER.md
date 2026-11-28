@@ -13,7 +13,7 @@ Results: `docs/evidence/browser/round10_verification_results.json`.
 | Browser | headless Chromium, Playwright 1.63.0 |
 | Accessibility checker | axe-core 4 (the dashboard's own development dependency), the WCAG 2.0 and 2.1 A and AA rules, run inside each page |
 
-## Browser: `e2e/verification.spec.ts`, 7 of 7 passed
+## Browser: `e2e/verification.spec.ts`, 8 of 8 passed
 
 | Requirement | Test | What it proves | Result |
 |---|---|---|---|
@@ -22,6 +22,7 @@ Results: `docs/evidence/browser/round10_verification_results.json`.
 | C-11.a | a silent watch is shown as last known, a watch that never said as unknown | the person's watch row set as a silent watch leaves it (worn, last sync three hours ago): the record says "last known on the wrist" and not "on the wrist"; never said: "wrist unknown"; negative control, worn and just synced: "on the wrist"; the row is put back afterwards | passed |
 | D4.b | a measurement IRA cannot make is refused from the watch and shown as not available | the person's own watch (its device token) sends blood oxygen (97 %) and blood pressure (120 mmHg): each refused with 422, and no row added to the person's readings; negative control, a heart rate from the same watch is accepted; the health tab lists both as not available, with no number and unit, and does not list heart rate | passed |
 | C-16.b | a carer whose access token has expired stays signed in | the server restarted with one-minute access tokens (`ACCESS_TOKEN_EXPIRE_MINUTES=1`); the carer signs in and opens a record; 75 s later the first access token is refused by the server (401), the page is reloaded, and the record loads and says it is live: no sign-in page, a renewal answered 200, and a new access token kept | passed (1.3 min, run on its own with `E2E_ACCESS_TOKEN_SECONDS=60`) |
+| F7.i | the activity trend appears only under the sharing consent, labelled an estimate | the person's watch sends three closed hours of the activity estimate (the shipped model's version and hash, marked simulated): without the person's `activity_sharing` consent the server answers `sharing: false`, stores nothing, and the health tab says the estimate is not shared; after the consent is recorded the same summaries are stored (3 rows) and the tab shows "Activity (estimated)", its estimate label, the simulated-input note and the daily table; the consent is revoked and the rows removed afterwards | passed |
 | C-23.a | axe finds no serious or critical violation | the sign-in page, the people list, a person's record (care and health tabs), alerts and visits | passed after the fix below |
 
 | C-23.d | text meets the contrast threshold in light, dark and more-contrast appearances | the browser told the page the system is light or dark, each with and without "more contrast" (`prefers-color-scheme`, `prefers-contrast`); axe's colour-contrast rule (WCAG 2 AA: 4.5 to 1, large text 3 to 1) on the sign-in page and five carer pages in all four: 24 checks, no violation. The dark appearance really rendered dark (body `rgb(20, 24, 27)`); on a person's record the rule examined 143 elements in each mode and left none undecided | passed |
@@ -29,7 +30,7 @@ Results: `docs/evidence/browser/round10_verification_results.json`.
 The first run of the monitoring test was started before the last job runs were five minutes old,
 and failed (correctly: monitoring had not yet paused). It was run again once they were.
 
-## A defect the browser found, fixed
+## Defects the browser found, fixed
 
 **Unnamed form controls on a person's record (critical, WCAG 1.3.1 and 4.1.2).** axe found three
 time fields (the routine's time, the quiet hours' start and end) and a drop-down (the routine's
@@ -39,6 +40,13 @@ name: the routine form, both "add to the circle" forms, the quiet hours, the usu
 safety settings' number fields and the communication profile's three drop-downs
 (`dashboard/src/app/people/[id]/page.tsx`). The run after the fix found nothing on any page; the
 dashboard's 161 unit tests still pass.
+
+**Links in text told apart by colour alone (serious, WCAG 1.4.1).** Every dashboard link had its
+underline removed (`a { text-decoration: none; }`), so a link inside a sentence or a list was only a
+different colour. axe found it on the home page once its "needs attention" and "awaiting" lists had
+items (the first runs had empty lists, so it could not be seen). Links inside paragraphs, list items
+and table cells are underlined now (`dashboard/src/app/globals.css`); navigation and tab pills keep
+their own look. The rerun found nothing on any page.
 
 ## Database: `supracloud-jarvis/ira/tests/tenancy/test_care_logs_no_personal_data_db.py`, 2 of 2 passed
 
