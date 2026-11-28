@@ -40,7 +40,7 @@ export function LoginScreen({ defaultBaseUrl, onLoggedIn, onJoin, notice = '' }:
         {notice ? <Text style={styles.error} accessibilityRole="alert" testID="signed-out-notice">{notice}</Text> : null}
         <Muted>Sign in with the account your care circle gave you.</Muted>
         <TextInput style={styles.input} placeholder="Username" accessibilityLabel="Username" autoCapitalize="none" autoCorrect={false} spellCheck={false} autoComplete="username" textContentType="username" keyboardType="email-address" value={username} onChangeText={setUsername} testID="username" />
-        <TextInput style={styles.input} placeholder="Password" accessibilityLabel="Password" secureTextEntry autoCorrect={false} autoComplete="password" textContentType="password" value={password} onChangeText={setPassword} testID="password" />
+        <TextInput style={styles.input} placeholder="Password" accessibilityLabel="Password" secureTextEntry autoCorrect={false} autoComplete="current-password" textContentType="password" value={password} onChangeText={setPassword} testID="password" />
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <BigButton label={busy ? 'Signing in…' : 'Sign in'} onPress={submit} disabled={busy || !username || !password} testID="sign-in" />
         {onJoin ? <BigButton label="I have an invitation link" color={colors.muted} onPress={onJoin} testID="open-join" /> : null}

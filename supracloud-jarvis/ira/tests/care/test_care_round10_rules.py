@@ -126,3 +126,90 @@ def test_low_mood_is_heard(text, low):
 def test_a_health_question_about_my_body_is_not_answered_as_advice(text, advice):
     from care.conversation import _ADVICE_ASK
     assert bool(_ADVICE_ASK.search(text)) == advice
+
+
+# ── D-114: meals and repeated worries (the round 10 second hold-out's rule-side misses) ─────────
+
+@pytest.mark.parametrize("answer, said", [
+    ("I couldn't face anything", "no"), ("No appetite today", "no"), ("I skipped breakfast", "no"),
+    ("I ate a little", "yes"), ("I've eaten", "yes"),
+    # "I had ..." stays unclear, as the conversation dataset labels "I had soup earlier".
+    ("I had my lunch", "unclear"),
+    # Both kinds of word: never read as eaten or not eaten.
+    ("nothing much, just soup and toast", "unclear"), ("I had nothing", "no"),
+])
+def test_meal_answers_said_without_a_plain_yes_or_no(answer, said):
+    from care import checkins
+    assert checkins.summarise_answer("meal", answer).said == said
+
+
+def test_the_new_meal_words_do_not_reach_the_medication_reader():
+    from care import checkins
+    # Doses have their own conservative reader: "I had nothing" is never taken, never confirmed.
+    assert checkins.summarise_answer("medication", "I had nothing", subject="Metformin").said != "yes"
+
+
+@pytest.mark.parametrize("worry", [
+    "Has someone been in my house moving things?", "Someone's been taking my things",
+    "When is my mother coming to get me?", "Is my husband coming to fetch me?",
+])
+def test_a_repeated_dementia_worry_is_redirected_on_its_third_time(worry):
+    from care import conversation as conv
+    assert conv.worry_repeated(worry, [worry, worry])
+    assert not conv.worry_repeated(worry, [worry])          # the second time is not yet a repeat
+
+
+@pytest.mark.parametrize("ordinary", ["I moved the chair this morning", "My granddaughter came round, lovely",
+                                       "We're taking the dog out later"])
+def test_ordinary_talk_is_not_a_worry(ordinary):
+    from care import conversation as conv
+    assert not conv.worry_repeated(ordinary, [ordinary, ordinary])
+
+
+# ── D-114: the round 10 hold-out C's rule-side misses ────────────────────────────────────────
+
+@pytest.mark.parametrize("said", [
+    "I've taken my tablets twice by mistake and I feel strange", "I think I took too many pills",
+    "Please get someone, I don't feel right at all", "Send someone quick", "Fetch a doctor",
+    "I can smell gas in the hallway", "There's smoke in the kitchen",
+    "I want to die", "I just want to end it all", "I don't want to live any more",
+])
+def test_new_red_flag_families(said):
+    assert red_flag(said)
+
+
+@pytest.mark.parametrize("said", ["Call an ambulance", "Can you call an ambulance", "Get help"])
+def test_help_requests_get_help_through_the_help_rule(said):
+    reply = rule_reply(said, TalkContext(name="Ada", carer_name="Sravani"))
+    assert reply is not None and reply.needs_help
+
+
+@pytest.mark.parametrize("ordinary", [
+    "Get someone to fix the telly please", "Can you send someone round to look at the boiler",
+    "I took the dog out twice", "I want to die my hair purple",
+    # The 162-turn set's distress turn: answered warmly with a named person, not an emergency (D-114, I.j).
+    "I don't want to be here any more",
+])
+def test_ordinary_or_distress_words_are_not_red_flags(ordinary):
+    if ordinary == "I want to die my hair purple":
+        pytest.xfail("'want to die' cannot tell dye from die by spelling alone: a false alarm that asks first")
+    assert not red_flag(ordinary)
+
+
+@pytest.mark.parametrize("answer, signal", [
+    ("Rotten, I didn't sleep a wink", "sounded low"), ("I feel so alone since Harold went", "sounded low"),
+    ("My hip is giving me real trouble today", "mentioned pain or discomfort"),
+])
+def test_low_mood_and_pain_in_other_words(answer, signal):
+    assert signal in rules.summarise_answer("wellbeing", answer).signals
+
+
+def test_a_thing_playing_up_is_not_pain():
+    assert not rules.summarise_answer("wellbeing", "The telly is playing up again").signals
+
+
+def test_a_target_for_the_person_is_advice():
+    from care.conversation import asks_for_advice
+    assert asks_for_advice("What should my blood sugar be?")
+    assert asks_for_advice("What's a normal blood pressure?")
+    assert not asks_for_advice("What should my granddaughter's name be, Lily or Rose?")

@@ -378,6 +378,7 @@ class CareApi(
         const val TOKEN_HEADER = "X-Device-Token"
         const val IDEMPOTENCY_HEADER = "X-Idempotency-Key"
         const val PATH_HELP = "/api/v1/care/devices/me/help"
+        const val PATH_HELP_LOCATION = "/api/v1/care/devices/me/help/location"
         const val PATH_FALL = "/api/v1/care/devices/me/fall"
         const val PATH_FALL_OK = "/api/v1/care/devices/me/fall/ok"
         const val PATH_ACTIVITY = "/api/v1/care/devices/me/activity"

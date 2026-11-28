@@ -311,6 +311,7 @@ class CareForegroundService : LifecycleService() {
                         lastAnswer = label ?: action.text.ifBlank { getString(R.string.im_ok) }, urgentPending = deps.outbox.size())
                     controller.reset()
                     syncNow()
+                    clearThankYouLater()
                 }
                 is CheckinController.Action.ReportMissed -> {
                     listening?.cancel()
@@ -334,6 +335,9 @@ class CareForegroundService : LifecycleService() {
                     else deps.outbox.enqueue(Outbox.KIND_HELP, CareApi.PATH_HELP, json.encodeToString(HelpRequest(via = action.via, location = fix)))
                     deps.status.value = deps.status.value.copy(urgentPending = deps.outbox.size())
                     deps.sync.drainOutbox()
+                    // No position in HELP_FIX_MS (a GPS fix from cold can take a minute): keep looking, and
+                    // send it to the open SOS when it comes, through the outbox so it survives no connection.
+                    if (fix == null) sendLateFix()
                     deps.speaker.speak("Sending your request for help. Stay where you are.", louder = true)
                     deps.status.value.sos.text()?.let { deps.speaker.speak(it, louder = true) }
                 }
@@ -424,9 +428,36 @@ class CareForegroundService : LifecycleService() {
         super.onDestroy()
     }
 
+    private var thankYou: Job? = null
+    private var lateFix: Job? = null
+
+    /** The position that comes after a Help request sent without one (POST /devices/me/help/location). */
+    private fun sendLateFix() {
+        lateFix?.cancel()
+        lateFix = lifecycleScope.launch(Dispatchers.IO) {
+            val fix = deps.location.currentFix(LATE_FIX_MS) ?: return@launch
+            deps.outbox.enqueue(Outbox.KIND_HELP_LOCATION, CareApi.PATH_HELP_LOCATION, json.encodeToString(fix))
+            deps.sync.drainOutbox()
+        }
+    }
+
+    /** "Thank you." is the answer's acknowledgement, not a state: after THANK_YOU_MS the face goes back to
+     *  what is true now (a carer's visit, "All well"). Left on, it hid the visit line until a restart. */
+    private fun clearThankYouLater() {
+        thankYou?.cancel()
+        thankYou = lifecycleScope.launch {
+            delay(THANK_YOU_MS)
+            deps.status.value = deps.status.value.copy(lastAnswer = null)
+        }
+    }
+
     companion object {
+        /** How long "Thank you." stays on the face after an answer. */
+        const val THANK_YOU_MS = 30_000L
         /** How long a Help request waits for a location fix before it is written to the outbox. */
         const val HELP_FIX_MS = 2_000L
+        /** How long the watch keeps looking for a position after a Help request sent without one. */
+        const val LATE_FIX_MS = 60_000L
         const val NOTIFICATION_ID = 1
         const val ACTION_OK = "care.ira.watch.OK"
         const val ACTION_HELP = "care.ira.watch.HELP"

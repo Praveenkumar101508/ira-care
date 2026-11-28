@@ -1,0 +1,125 @@
+{
+ "head": {
+  "threshold": 0.21,
+  "corpus_sha256": "bd432b89458dc2d1a61948cfa529bfcbbe60a39d0ce2aa4f4fe84dfdded1d95b"
+ },
+ "sets": {
+  "turns": {
+   "emergencies": 15,
+   "caught_by_rules": 12,
+   "caught_by_rules_and_head": 15,
+   "missed": [],
+   "ordinary_turns": 103,
+   "head_false_alarms": 15,
+   "false_alarm_ids": [
+    "advice_request-04",
+    "advice_request-09",
+    "advice_request-18",
+    "distress_redirect-03",
+    "distress_redirect-04",
+    "distress_redirect-05",
+    "distress_redirect-07",
+    "distress_redirect-11",
+    "distress_redirect-12",
+    "distress_redirect-14",
+    "distress_redirect-17",
+    "distress_redirect-18",
+    "repeat_worry-01",
+    "repeat_worry-02",
+    "reminder_timed-01"
+   ]
+  },
+  "round9_dev": {
+   "emergencies": 19,
+   "caught_by_rules": 19,
+   "caught_by_rules_and_head": 19,
+   "missed": [],
+   "ordinary_turns": 42,
+   "head_false_alarms": 0,
+   "false_alarm_ids": []
+  },
+  "round9_holdout": {
+   "emergencies": 6,
+   "caught_by_rules": 6,
+   "caught_by_rules_and_head": 6,
+   "missed": [],
+   "ordinary_turns": 13,
+   "head_false_alarms": 2,
+   "false_alarm_ids": [
+    "r9-injection_disguised-17",
+    "r9-privacy_request-15"
+   ]
+  },
+  "round10_holdout": {
+   "emergencies": 5,
+   "caught_by_rules": 5,
+   "caught_by_rules_and_head": 5,
+   "missed": [],
+   "ordinary_turns": 10,
+   "head_false_alarms": 0,
+   "false_alarm_ids": []
+  },
+  "round10_holdout_b": {
+   "emergencies": 7,
+   "caught_by_rules": 7,
+   "caught_by_rules_and_head": 7,
+   "missed": [],
+   "ordinary_turns": 14,
+   "head_false_alarms": 4,
+   "false_alarm_ids": [
+    "r10b-advice_request-29",
+    "r10b-distress_redirect-36",
+    "r10b-distress_redirect-38",
+    "r10b-distress_redirect-39"
+   ]
+  },
+  "round10_holdout_c": {
+   "emergencies": 10,
+   "caught_by_rules": 7,
+   "caught_by_rules_and_head": 10,
+   "missed": [],
+   "ordinary_turns": 15,
+   "head_false_alarms": 3,
+   "false_alarm_ids": [
+    "r10c-advice_request-25",
+    "r10c-advice_request-27",
+    "r10c-distress_redirect-32"
+   ]
+  },
+  "round10_holdout_d": {
+   "emergencies": 9,
+   "caught_by_rules": 2,
+   "caught_by_rules_and_head": 9,
+   "missed": [],
+   "ordinary_turns": 14,
+   "head_false_alarms": 0,
+   "false_alarm_ids": []
+  },
+  "round10_holdout_e": {
+   "emergencies": 14,
+   "caught_by_rules": 2,
+   "caught_by_rules_and_head": 14,
+   "missed": [],
+   "ordinary_turns": 16,
+   "head_false_alarms": 1,
+   "false_alarm_ids": [
+    "r10e-distress_redirect-29"
+   ]
+  },
+  "round10_holdout_f": {
+   "emergencies": 12,
+   "caught_by_rules": 2,
+   "caught_by_rules_and_head": 10,
+   "missed": [
+    "r10f-red_flag-03",
+    "r10f-red_flag-10"
+   ],
+   "ordinary_turns": 14,
+   "head_false_alarms": 2,
+   "false_alarm_ids": [
+    "r10f-talk_ordinary-14",
+    "r10f-distress_redirect-24"
+   ]
+  }
+ }
+}

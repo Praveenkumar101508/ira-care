@@ -15,9 +15,10 @@ object FaceText {
         fallCountdown != null -> "Did you fall? Are you OK?\nHelp in $fallCountdown s"
         sosText != null -> sosText
         question != null -> question
+        // The person must know the watch cannot reach anyone: never hidden behind a thank-you or a visit.
+        !online -> NO_CONNECTION
         lastAnswer != null -> "Thank you."
         visitText != null -> visitText
-        !online -> NO_CONNECTION
         else -> ALL_WELL
     }
 }

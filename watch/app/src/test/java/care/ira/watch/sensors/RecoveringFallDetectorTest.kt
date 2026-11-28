@@ -2,7 +2,6 @@ package care.ira.watch.sensors
 
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -107,7 +106,8 @@ class RecoveringFallDetectorTest {
         val shipped = FallModelSpec.parse(File("src/main/assets/fall_model.json").readText())
         assertEquals(FallModelSpec.MODE_RECOVER, shipped.mode)
         assertEquals(FallModelSpec.PROVENANCE_LICENSED_V3, shipped.provenance)
-        assertEquals(2.0f, shipped.candidateG, 0f)
-        assertFalse(shipped.threshold <= 0.5f)
+        // D-115: the low-impact setting, chosen on development data and confirmed once on held-out data.
+        assertEquals(1.6f, shipped.candidateG, 0f)
+        assertEquals(0.9f, shipped.threshold, 0f)
     }
 }

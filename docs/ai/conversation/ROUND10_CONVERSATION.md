@@ -69,3 +69,52 @@ person's weak legs, a chair's arm, breath got back, a nosebleed that stopped, dr
 (`holdout_b_after_fixes_fake.json`); the recorded hold-out figure stays 33 of 45. Every other set
 is unchanged: 162-turn 126 of 162 (red-flag recall 1.0), round 9 dev 129 of 129, round 9 hold-out
 41 of 41, round 10 hold-out A 32 of 32. The training dataset's label check passes.
+
+## Sets C to F and a second red-flag layer (28 November 2026, D-114)
+
+Each set below was written before it was run, scored once, and never tuned on. A set whose misses
+then informed a change no longer counts as independent; the next set does.
+
+| Set | Written | Scored | Result |
+|---|---|---|---|
+| C (44 turns) | after the B fixes (meal "couldn't face", repeated dementia worries) | rules, deterministic model | **29 of 44**; red-flag recall **0.4** on the rules' first pass: a double dose by mistake, "please get someone", a gas smell and "I don't want to be here anymore" missed |
+| D (40 turns) | after the C fixes (new red-flag families, low mood, pain, advice targets, worries) | rules, deterministic model | **25 of 40**; red-flag recall **0.33**: a fall in the bath, chest ache with clamminess, blood in vomit, wheezing, the smoke alarm, "ending my life" |
+| E (30 turns) | after the talk red-flag head was trained | rules and head | emergencies **9 of 14** (rules alone 2); 1 false alarm in 16 ordinary turns. Missed whole KINDS the head had not seen: someone else collapsed, a scald, water on electrics, an intruder, sudden loss of sight |
+| F (26 turns) | after the head's second training (those kinds added) | rules and head | **emergencies 10 of 12 (rules alone 2 of 12)**; 2 false alarms in 14 ordinary turns. Missed: a headache with a stiff neck and light hurting (possible meningitis); a deep cut. **This is the independent figure** |
+
+**What this shows.** Keyword rules catch emergencies in the words they were written for and miss
+most new wordings (2 of 12 on set F). Patching phrases set after set chases each new set's wording.
+So the rules were kept as the floor and a second layer added that reads meaning.
+
+**The talk red-flag head** (`care/models/redflag_talk_head.json`, `care/classifier.py`): the encoder
+the product already ships (all-MiniLM-L6-v2, Apache-2.0, ONNX on the CPU) and a small two-layer
+network (64 units), trained on an **original synthetic corpus** written for it
+(`scripts/training/redflag_talk_head.py`: 460 emergency sentences in 21 kinds, 355 ordinary ones
+including medicine questions, attempts to change IRA's rules, sadness without danger, reminders and
+memory questions; corpus SHA-256 in the head file). No evaluation sentence is in the corpus. The
+threshold is the highest that keeps recall at 0.98 on a synthetic validation split. A single
+logistic layer and a nearest-example score were compared on the development sets only (the 162-turn
+set and round 9 development): the network kept every emergency with half the logistic layer's false
+alarms; the nearest-example score was far worse.
+
+**In the product** (`conversation.talk`): only when the rules found nothing, a head detection gets
+the same ask-first path as a rule red flag ("That sounds serious, Ada. I'm getting help for you now;
+tell me if you're all right."; `needs_help`, cancellable on the watch). It can only add help, never
+remove a rule's red flag; if it fails, the rules and the model carry on (`tests/care/test_care_talk_redflag_head.py`).
+
+**Off by default, for the clinical safety officer to decide (I.j).** Across the held-out sets the
+head flags about 12 % of ordinary talk (12 of 96 turns), each an ask-first interruption that the
+person cancels. More emergencies caught against more interruptions is an alert-fatigue judgement,
+not a routine engineering one. The encoder is already in the server image; `IRA_CARE_CLASSIFIER=on`
+turns both the answer classifier and this head on. Results: `docs/evidence/eval/round10/redflag_talk_layers.json`
+(`scripts/eval/redflag_talk_eval.py`).
+
+**Also left for the clinical safety officer:** whether "I don't want to be here any more" is an
+emergency. The 162-turn set treats it as distress answered warmly with a named person; set C treated
+it as a red flag. The rules keep the project's existing convention and flag only unambiguous words
+about not wanting to live ("want to die", "end it all", "kill myself", "better off dead").
+
+**Still model-dependent, not measured here.** First-time worries and loneliness (an offer to let
+someone know), and reading a positive wellbeing ("Lovely, my daughter visited" as good), are the
+model's part by design: the rules never mark an answer "good", because "not good" contains "good".
+They need the real Gemma model, which this session could not install (`docs/progress/RESOURCE_REQUESTS.md`).

@@ -388,11 +388,19 @@
    "title": "Overlapping and out-of-order refreshes show only the newest person (B1b)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/live.test.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/person_switch.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_TALK_AND_SWITCH.md"
     }
    ]
   },
@@ -402,11 +410,19 @@
    "title": "A failed section is named and the rest of the record still shows (B1c)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "dashboard/src/__tests__/person_live.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/record_and_phone_a11y.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_RECORD_AND_PHONE_A11Y.md"
     }
    ]
   },
@@ -500,11 +516,19 @@
    "title": "Talk screen shows IRA's answer as it arrives",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/talk_screen.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/talk_stream.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_TALK_AND_SWITCH.md"
     }
    ]
   },
@@ -810,7 +834,7 @@
    "title": "Explicit unpair on the watch, with a warning and refusal while Help is pending (D7)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -819,6 +843,10 @@
     {
      "kind": "unit_test",
      "ref": "#53"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
     }
    ]
   },
@@ -974,11 +1002,19 @@
    "title": "Automated accessibility checks on the phone app",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "mobile/src/__tests__/accessibility.test.tsx"
+    },
+    {
+     "kind": "browser",
+     "ref": "e2e/record_and_phone_a11y.spec.ts"
+    },
+    {
+     "kind": "browser",
+     "ref": "docs/evidence/browser/ROUND10_RECORD_AND_PHONE_A11Y.md"
     }
    ]
   },
@@ -1110,11 +1146,15 @@
    "title": "Watch scheduled-visit state (arrival pauses check-ins)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
      "ref": "watch/app/src/test/java/care/ira/watch/outbox/VisitStateTest.kt"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
     }
    ]
   },
@@ -1174,7 +1214,7 @@
    "title": "Watch sends location with an SOS (GPS)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -1183,6 +1223,14 @@
     {
      "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_location_db.py::test_help_with_a_location_is_stored_on_the_alert_and_told_to_the_circle"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_location_db.py"
     }
    ]
   },
@@ -1192,7 +1240,7 @@
    "title": "Watch reports battery and sensor-permission state",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -1201,6 +1249,14 @@
     {
      "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_api_db.py"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
+    {
+     "kind": "unit_test",
+     "ref": "watch/app/src/test/java/care/ira/watch/service/BatteryLevelTest.kt"
     }
    ]
   },

@@ -17,4 +17,11 @@ class FaceTextTest {
         assertEquals("Sending for help…", FaceText.main(null, "Sending for help…", null, null, null, online = false))
         assertEquals("Ada, are you OK?", FaceText.main(null, null, "Ada, are you OK?", null, null, online = false))
     }
+
+    @Test fun noConnectionOutranksTheThankYouAndTheVisit() {
+        assertEquals(FaceText.NO_CONNECTION, FaceText.main(null, null, null, "I'm OK", null, online = false))
+        assertEquals(FaceText.NO_CONNECTION, FaceText.main(null, null, null, null, "Uday is here.", online = false))
+        assertEquals("Thank you.", FaceText.main(null, null, null, "I'm OK", "Uday is here.", online = true))
+        assertEquals("Uday is here.", FaceText.main(null, null, null, null, "Uday is here.", online = true))
+    }
 }

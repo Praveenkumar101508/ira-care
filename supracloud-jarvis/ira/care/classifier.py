@@ -99,12 +99,43 @@ class OnnxEncoder:
 Encoder = Callable[[Sequence[str]], np.ndarray]
 
 
+TALK_HEAD_PATH = Path(__file__).resolve().parent / "models" / "redflag_talk_head.json"
+
+
+class TalkRedFlagHead:
+    """The red-flag head for what the person says to IRA (D-114): a small two-layer network on the
+    same encoder, trained on an original synthetic corpus (`scripts/training/redflag_talk_head.py`).
+    It only ever ADDS a red flag behind the keyword rules; it never removes one."""
+
+    def __init__(self, spec: dict) -> None:
+        self.W1 = np.asarray(spec["W1"], np.float32)
+        self.b1 = np.asarray(spec["b1"], np.float32)
+        self.w2 = np.asarray(spec["w2"], np.float32)
+        self.b2 = float(spec["b2"])
+        self.threshold = float(spec["threshold"])
+        self.corpus_sha256 = spec.get("corpus", {}).get("sha256", "")
+
+    @classmethod
+    def load(cls, path: Path = TALK_HEAD_PATH) -> "TalkRedFlagHead":
+        return cls(json.loads(Path(path).read_text()))
+
+    def probabilities(self, embeddings) -> list[float]:
+        h = np.tanh(np.asarray(embeddings, np.float32) @ self.W1 + self.b1)
+        return [float(v) for v in 1 / (1 + np.exp(-(h @ self.w2 + self.b2)))]
+
+
 class Classifier:
-    def __init__(self, encoder: Encoder, heads: Heads) -> None:
-        self.encoder, self.heads = encoder, heads
+    def __init__(self, encoder: Encoder, heads: Heads, talk_head: Optional[TalkRedFlagHead] = None) -> None:
+        self.encoder, self.heads, self.talk_head = encoder, heads, talk_head
 
     def read(self, text: str) -> ClassifierReading:
         return self.heads.read(self.encoder([text])[0])
+
+    def talk_red_flag(self, text: str) -> bool:
+        """True when the talk head reads an emergency in what was said (at its threshold)."""
+        if self.talk_head is None or not (text or "").strip():
+            return False
+        return self.talk_head.probabilities(self.encoder([text]))[0] >= self.talk_head.threshold
 
 
 _instance: Optional[Classifier] = None
@@ -122,7 +153,8 @@ def configured() -> Optional[Classifier]:
         return None
     directory = Path(os.getenv(ENCODER_DIR_ENV) or (Path(__file__).resolve().parent / "models" / "encoder"))
     try:
-        _instance = Classifier(OnnxEncoder(directory), Heads.load())
+        talk_head = TalkRedFlagHead.load() if TALK_HEAD_PATH.exists() else None
+        _instance = Classifier(OnnxEncoder(directory), Heads.load(), talk_head)
         logger.info("care classifier on: %s from %s", _instance.heads.encoder, directory)
     except Exception as exc:  # noqa: BLE001 - the rules and the model still run
         logger.warning("care classifier unavailable (%s): the keyword rules and the model carry on", type(exc).__name__)
@@ -136,4 +168,4 @@ def use_classifier(instance: Optional[Classifier]) -> None:
     _instance, _tried = instance, True
 
 
-__all__ = ["Classifier", "ClassifierReading", "Heads", "OnnxEncoder", "configured", "use_classifier", "HEADS_PATH"]
+__all__ = ["Classifier", "ClassifierReading", "Heads", "OnnxEncoder", "TalkRedFlagHead", "TALK_HEAD_PATH", "configured", "use_classifier", "HEADS_PATH"]

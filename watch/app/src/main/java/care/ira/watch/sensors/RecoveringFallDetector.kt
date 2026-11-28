@@ -6,7 +6,7 @@ package care.ira.watch.sensors
  *
  *   rules     the rule detector runs unchanged: an impact at or above the carer's impactG followed
  *             by the full still window is a suspected fall, exactly as before (the backstop);
- *   candidate a sample at or above spec.candidateG (2.0 g) opens a candidate; its peak is the
+ *   candidate a sample at or above spec.candidateG (1.6 g shipped, D-115) opens a candidate; its peak is the
  *             largest magnitude in the next 1.5 s;
  *   model     two seconds after that peak the model scores the 4 s window, which then holds the
  *             peak at its middle as it was trained; at or above the threshold it is a suspected

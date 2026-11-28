@@ -1,0 +1,283 @@
+{
+ "what": "the shipped setting and the development-chosen candidate, once, on Erciyes (held out)",
+ "settings": {
+  "shipped": {
+   "candidate_g": 2.0,
+   "threshold": 0.95
+  },
+  "candidate": {
+   "candidate_g": 1.6,
+   "threshold": 0.9
+  }
+ },
+ "totals": {
+  "shipped": {
+   "falls": 1722,
+   "caught": 1509,
+   "adl": 1414,
+   "adl_alarms": 44
+  },
+  "candidate": {
+   "falls": 1722,
+   "caught": 1563,
+   "adl": 1414,
+   "adl_alarms": 59
+  }
+ },
+ "falls_the_candidate_loses": [],
+ "per_type": [
+  {
+   "code": 801,
+   "activity": "Yurume Ileri",
+   "recordings": 93,
+   "shipped": 0,
+   "candidate": 0
+  },
+  {
+   "code": 802,
+   "activity": "YurumeGeri",
+   "recordings": 92,
+   "shipped": 0,
+   "candidate": 0
+  },
+  {
+   "code": 803,
+   "activity": "TempoluYavasKosu",
+   "recordings": 92,
+   "shipped": 0,
+   "candidate": 0
+  },
+  {
+   "code": 804,
+   "activity": "ComelmeKalkma",
+   "recordings": 90,
+   "shipped": 0,
+   "candidate": 0
+  },
+  {
+   "code": 805,
+   "activity": "Egilme",
+   "recordings": 91,
+   "shipped": 0,
+   "candidate": 0
+  },
+  {
+   "code": 806,
+   "activity": "EgilmeVeAlma",
+   "recordings": 86,
+   "shipped": 2,
+   "candidate": 2
+  },
+  {
+   "code": 807,
+   "activity": "Topallama",
+   "recordings": 86,
+   "shipped": 0,
+   "candidate": 0
+  },
+  {
+   "code": 808,
+   "activity": "Tokezleme",
+   "recordings": 87,
+   "shipped": 2,
+   "candidate": 2
+  },
+  {
+   "code": 809,
+   "activity": "AyakBurkulmasi",
+   "recordings": 86,
+   "shipped": 3,
+   "candidate": 4
+  },
+  {
+   "code": 810,
+   "activity": "Oksurme",
+   "recordings": 87,
+   "shipped": 0,
+   "candidate": 0
+  },
+  {
+   "code": 811,
+   "activity": "Sandalye",
+   "recordings": 87,
+   "shipped": 0,
+   "candidate": 0
+  },
+  {
+   "code": 812,
+   "activity": "Kanepe",
+   "recordings": 88,
+   "shipped": 0,
+   "candidate": 0
+  },
+  {
+   "code": 813,
+   "activity": "HavayaOturma",
+   "recordings": 87,
+   "shipped": 0,
+   "candidate": 0
+  },
+  {
+   "code": 814,
+   "activity": "YatagaOturma",
+   "recordings": 87,
+   "shipped": 0,
+   "candidate": 0
+  },
+  {
+   "code": 815,
+   "activity": "YatagaUzanma",
+   "recordings": 87,
+   "shipped": 18,
+   "candidate": 25
+  },
+  {
+   "code": 816,
+   "activity": "YataktanKalkma",
+   "recordings": 88,
+   "shipped": 19,
+   "candidate": 26
+  },
+  {
+   "code": 901,
+   "activity": "OneDogruUzanma",
+   "recordings": 84,
+   "shipped": 84,
+   "candidate": 84
+  },
+  {
+   "code": 902,
+   "activity": "OneDogruKorunarakDusme",
+   "recordings": 89,
+   "shipped": 89,
+   "candidate": 89
+  },
+  {
+   "code": 903,
+   "activity": "OneDogruDizlerUzerine",
+   "recordings": 85,
+   "shipped": 62,
+   "candidate": 72
+  },
+  {
+   "code": 904,
+   "activity": "OneDogruDizlerUzerineArdindanUzanma",
+   "recordings": 88,
+   "shipped": 81,
+   "candidate": 84
+  },
+  {
+   "code": 905,
+   "activity": "OneCabukKalkma",
+   "recordings": 85,
+   "shipped": 79,
+   "candidate": 83
+  },
+  {
+   "code": 906,
+   "activity": "OneYavasKalkma",
+   "recordings": 84,
+   "shipped": 81,
+   "candidate": 81
+  },
+  {
+   "code": 907,
+   "activity": "OneDogruSagli",
+   "recordings": 86,
+   "shipped": 86,
+   "candidate": 86
+  },
+  {
+   "code": 908,
+   "activity": "OneDogruSollu",
+   "recordings": 85,
+   "shipped": 85,
+   "candidate": 85
+  },
+  {
+   "code": 909,
+   "activity": "GeriyeDogruOturma",
+   "recordings": 85,
+   "shipped": 65,
+   "candidate": 71
+  },
+  {
+   "code": 910,
+   "activity": "GeriyeDogruUzanma",
+   "recordings": 87,
+   "shipped": 80,
+   "candidate": 81
+  },
+  {
+   "code": 911,
+   "activity": "GeriyeDogruSagli",
+   "recordings": 87,
+   "shipped": 81,
+   "candidate": 82
+  },
+  {
+   "code": 912,
+   "activity": "GeriyeDogruSollu",
+   "recordings": 86,
+   "shipped": 83,
+   "candidate": 84
+  },
+  {
+   "code": 913,
+   "activity": "YanaSagli",
+   "recordings": 86,
+   "shipped": 82,
+   "candidate": 82
+  },
+  {
+   "code": 914,
+   "activity": "YanaSagliCabukKalkma",
+   "recordings": 85,
+   "shipped": 76,
+   "candidate": 78
+  },
+  {
+   "code": 915,
+   "activity": "YanaSollu",
+   "recordings": 86,
+   "shipped": 78,
+   "candidate": 81
+  },
+  {
+   "code": 916,
+   "activity": "YanaSolluCabukKalkma",
+   "recordings": 86,
+   "shipped": 51,
+   "candidate": 57
+  },
+  {
+   "code": 917,
+   "activity": "YataktanDusme",
+   "recordings": 89,
+   "shipped": 40,
+   "candidate": 45
+  },
+  {
+   "code": 918,
+   "activity": "Podyum",
+   "recordings": 86,
+   "shipped": 85,
+   "candidate": 85
+  },
+  {
+   "code": 919,
+   "activity": "Bayilma",
+   "recordings": 87,
+   "shipped": 80,
+   "candidate": 82
+  },
+  {
+   "code": 920,
+   "activity": "BayilmaDuvar",
+   "recordings": 86,
+   "shipped": 61,
+   "candidate": 71
+  }
+ ],
+ "licence": "Erciyes: CC BY 4.0 (UCI 455, doi:10.24432/C52028), A.T. Özdemir and B. Barshan"
+}

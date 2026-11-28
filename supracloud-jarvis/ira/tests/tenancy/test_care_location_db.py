@@ -158,3 +158,36 @@ async def test_a_watch_cannot_send_a_location_outside_an_sos(client, families):
     r = await client.post(f"{C}/devices/me/report", json={"readings": [{"kind": "location", "value": 51.5,
                           "unit": "", "recorded_at": "2026-11-21T10:00:00Z"}]}, headers={"X-Device-Token": p["token"]})
     assert r.status_code == 422
+
+
+async def test_a_position_that_arrives_after_help_is_attached_once_to_the_open_sos(client, families):
+    """Help never waits for a GPS fix; the fix that comes after it fills in the open SOS (D1.f)."""
+    fam = families["a"]
+    p = await _setup(client, fam)
+    dev = {"X-Device-Token": p["token"]}
+    r = await client.post(f"{C}/devices/me/help", json={"via": "button"}, headers=dev)
+    assert r.status_code == 201, r.text
+    alert_id = r.json()["id"]
+    client.act_as(fam, "admin", "workspace_admin")
+    assert (await client.get(f"{C}/alerts/{alert_id}")).json()["location_latitude"] is None
+    # The fix arrives: attached, and "at home" decided as for a position sent with Help.
+    r = await client.post(f"{C}/devices/me/help/location", json={"latitude": 51.5001, "longitude": -0.1201,
+                                                                  "accuracy_m": 9}, headers=dev)
+    assert r.status_code == 200 and r.json() == {"attached": True, "alert_id": alert_id}
+    got = (await client.get(f"{C}/alerts/{alert_id}")).json()
+    assert abs(got["location_latitude"] - 51.5001) < 1e-6 and got["at_home"] is True
+    # A second, different fix does not move it: the first position stands.
+    r = await client.post(f"{C}/devices/me/help/location", json={"latitude": 51.6, "longitude": -0.2}, headers=dev)
+    assert r.json() == {"attached": False, "alert_id": None}
+    assert abs((await client.get(f"{C}/alerts/{alert_id}")).json()["location_latitude"] - 51.5001) < 1e-6
+    # Negative controls: a closed SOS takes no position, and an invalid one is refused.
+    done = await client.post(f"{C}/alerts/{alert_id}/resolve", json={"resolution": "All well.", "outcome": "all_well"})
+    assert done.status_code == 200, done.text
+    r2 = await client.post(f"{C}/devices/me/help", json={"via": "button"}, headers=dev)
+    done = await client.post(f"{C}/alerts/{r2.json()['id']}/resolve", json={"resolution": "All well.", "outcome": "all_well"})
+    assert done.status_code == 200, done.text
+    r = await client.post(f"{C}/devices/me/help/location", json={"latitude": 51.5, "longitude": -0.12}, headers=dev)
+    assert r.json() == {"attached": False, "alert_id": None}
+    assert (await client.post(f"{C}/devices/me/help/location", json={"latitude": 99, "longitude": 0}, headers=dev)).status_code == 422
+    # Without a device token: refused.
+    assert (await client.post(f"{C}/devices/me/help/location", json={"latitude": 51.5, "longitude": -0.12})).status_code == 401

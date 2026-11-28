@@ -65,17 +65,23 @@ PERMISSIONS = ("android.permission.BODY_SENSORS", "android.permission.ACTIVITY_R
 #: The home column's Unpair button: its text, and the description Compose exposes in its place
 #: (watch/.../ui/MainActivity.kt).
 UNPAIR_BUTTON = ("Unpair watch", "Unpair this watch")
-GROUPS = ("medication", "checkin", "fall", "help_during_fall", "offline", "reboot", "permission", "unpair",
+GROUPS = ("medication", "checkin", "fall", "help_during_fall", "offline", "reboot", "permission", "visit", "unpair",
           "accessibility")
+#: The carer in the visit group (a fictional first name).
+VISIT_CARER = "Uday"
 
 #: The words the wrist shows (FaceText, SosState, the screens in MainActivity), matched by substring.
 HELP_RECEIVED = "Help request received."
+#: How long "Thank you." stays after an answer (CareForegroundService.THANK_YOU_MS).
+THANK_YOU_S = 30
 WAITING_FOR_CONNECTION = "Waiting for connection. Help request saved."
 OFFLINE_LINE = "Offline: saving for later"
 FALL_LINE = "Help in"
 PAIR_TITLE = "Pair this watch"
 PERMISSION_TITLE = "Background sensors"
 UNPAIR_WARNING = "Unpair this watch? IRA will stop watching over you"
+#: Unpairing.check while a fall countdown runs.
+UNPAIR_REFUSED_FALL = "A fall check is running. Answer it first."
 HELP_DESC = "Help. Tells your family"
 
 #: The alert kinds the server counts as an SOS for the wrist (care/sos.py SOS_KINDS, the two the watch opens).
@@ -88,6 +94,18 @@ MIN_TARGET_DP = 44
 MIN_TARGET_PX_FLOOR = 48
 
 #: The sensor permissions the permission group revokes and grants again (background first).
+#: A position given to the emulator's GPS before Help (latitude, longitude): central London, fictional.
+GPS_FIX = (51.5072, -0.1276)
+#: The battery level set on the emulator for the battery-report check.
+BATTERY_TEST_LEVEL = 23
+
+
+def gps_matches(alert: dict, fix: tuple, tolerance: float = 0.01) -> bool:
+    """True when the alert's stored location is within about a kilometre of the position given."""
+    lat, lon = alert.get("location_latitude"), alert.get("location_longitude")
+    return lat is not None and lon is not None and abs(float(lat) - fix[0]) <= tolerance and abs(float(lon) - fix[1]) <= tolerance
+
+
 SENSOR_PERMISSIONS = ("android.permission.BODY_SENSORS_BACKGROUND", "android.permission.BODY_SENSORS")
 
 #: The debug build's synthetic fall (watch/app/src/debug/.../SyntheticFallReceiver.kt).
@@ -346,17 +364,48 @@ def responder_line(name: str) -> str:
     return f"{name} is on the way."
 
 
-def face_text(countdown: int | None, sos_text: str | None, question: str | None, last_answer: str | None, online: bool) -> str:
-    """FaceText.main, for the API-only wrist (no visit line: the journey plans no visit)."""
+def face_text(countdown: int | None, sos_text: str | None, question: str | None, last_answer: str | None, online: bool,
+              visit_text: str | None = None) -> str:
+    """FaceText.main: the countdown, Help, a question, then "No connection" (never hidden), the thank-you
+    (for THANK_YOU_S after an answer), a carer's visit, and "All well"."""
     if countdown is not None:
         return f"Did you fall? Are you OK?\nHelp in {countdown} s"
     if sos_text:
         return sos_text
     if question:
         return question
+    if not online:
+        return "No connection.\nHelp is saved and sent when it is back."
     if last_answer is not None:
         return "Thank you."
-    return "All well" if online else "No connection.\nHelp is saved and sent when it is back."
+    if visit_text:
+        return visit_text
+    return "All well"
+
+
+def unpair_refusal(urgent_pending: int, sos_state: str | None, countdown: int | None) -> str | None:
+    """Unpairing.check: why unpairing is refused now, or None when it is allowed."""
+    if countdown is not None:
+        return UNPAIR_REFUSED_FALL
+    if urgent_pending > 0:
+        return ("One urgent message is still being sent. Unpair once it has gone." if urgent_pending == 1
+                else f"{urgent_pending} urgent messages are still being sent. Unpair once they have gone.")
+    if sos_state not in (None, "idle", "closed", "asking"):
+        return "Your Help request is still open. Unpair once it is closed."
+    return None
+
+
+def visit_text_of(visit: dict | None) -> str | None:
+    """VisitState.text(), from the server's `visit` (care/visits.py watch_state). The API-only wrist shows the
+    planned time in UTC; the watch shows it in its own zone."""
+    v = visit or {}
+    name = v.get("carer_name") or "Your carer"
+    if v.get("state") == "here":
+        return f"{name} is here."
+    if v.get("state") in ("expected", "late"):
+        at = (v.get("planned_start") or "")[11:16]
+        return f"{name} is coming at {at}." if at else f"{name} is coming today."
+    return None
 
 
 def sos_text_of(state: str | None, responder_name: str | None) -> str | None:
@@ -505,6 +554,8 @@ class ApiWrist:
         self.question: str | None = None
         self.checkin: dict | None = None
         self.last_answer: str | None = None
+        self.last_answer_at = 0.0
+        self.acknowledged_visits: set[str] = set()
         self.countdown: dict | None = None
         self.countdown_s = 30
         self.sos: dict = {}
@@ -557,6 +608,11 @@ class ApiWrist:
             return self.on_unauthorised()
         if code == 200:
             self.sos = me.get("sos") or {}
+            visit = self.sos.get("visit") or {}
+            if visit.get("state") == "here" and visit.get("visit_id") and visit["visit_id"] not in self.acknowledged_visits:
+                ack, _ = self.call("POST", f"/api/v1/care/devices/me/visits/{visit['visit_id']}/acknowledge", {})
+                if ack == 200:
+                    self.acknowledged_visits.add(visit["visit_id"])
             self.countdown_s = int((me.get("fall") or {}).get("fall_countdown_s") or 30)
         if self.question is None:
             code, due = self.call("GET", "/api/v1/care/devices/me/checkins/due")
@@ -578,10 +634,17 @@ class ApiWrist:
         if not self.permission:
             return [PERMISSION_TITLE, "Allow"]
         if self.screen == "unpair":
+            refused = unpair_refusal(sum(1 for e in self.outbox if e["kind"] in ("help", "fall_ok", "checkin_answer")),
+                                     self.sos.get("state"), self.countdown_left())
+            if refused:
+                return [refused, "Keep paired"]
             return ["Unpair this watch? IRA will stop watching over you, and your family and carers will be told.", "Keep paired", "Unpair"]
         sos_active = self.sos_text() is not None and self.sos.get("state") not in (None, "idle", "closed") or self.outbox
         kind = (self.checkin or {}).get("question_kind") if (self.checkin or {}).get("reminder_id") else None
-        out = [face_text(self.countdown_left(), self.sos_text(), self.question, self.last_answer, self.online)]
+        if self.last_answer is not None and time.time() - self.last_answer_at >= THANK_YOU_S:
+            self.last_answer = None
+        out = [face_text(self.countdown_left(), self.sos_text(), self.question, self.last_answer, self.online,
+                         visit_text_of(self.sos.get("visit")))]
         if not self.online:
             out.append(OFFLINE_LINE)
         buttons = reminder_buttons(kind) if self.countdown is None and not sos_active else []
@@ -642,7 +705,7 @@ class ApiWrist:
 
     def answer(self, body: dict, label: str) -> None:
         cid = self.checkin["id"]
-        self.question, self.checkin, self.last_answer = None, None, label
+        self.question, self.checkin, self.last_answer, self.last_answer_at = None, None, label, time.time()
         self.enqueue("checkin_answer", f"/api/v1/care/devices/me/checkins/{cid}/answer", body)
 
     def home(self, timeout: float) -> bool:
@@ -811,6 +874,12 @@ class Smoke:
     def api(self, method: str, path: str, body=None, headers=None, form=False):
         """A call that must succeed; the status and the server's words are in the error when it does not."""
         status, out = self.api_status(method, path, body, headers, form)
+        if status == 401 and headers is not None and "Authorization" in headers and any(
+                headers is h for h in (getattr(self, "h", None), getattr(self, "fam_h", None)) if h is not None):
+            # The journey outlives an access token (run 46143245120: 401 after 35 minutes); sign in again,
+            # as the dashboard and the app do, and retry once.
+            self.renew_sessions()
+            status, out = self.api_status(method, path, body, headers, form)
         if status is None or status >= 400:
             raise RuntimeError(f"{method} {path} answered {status}: {str(out)[:300]}")
         return out
@@ -846,8 +915,11 @@ class Smoke:
         for cmd in ("settings put secure user_setup_complete 1", "settings put global device_provisioned 1",
                     "dumpsys battery unplug", "dumpsys battery set status 3",
                     "svc power stayon true", "settings put system screen_off_timeout 2147483647",
-                    "input keyevent KEYCODE_WAKEUP"):
+                    "input keyevent KEYCODE_WAKEUP",
+                    # D1.f: location on, as on a watch the wearer set up; the GPS fix is given below.
+                    "cmd location set-location-enabled true", "settings put secure location_mode 3"):
             self.adb("shell", cmd, timeout=120, check=False)
+        self.adb("emu", "geo", "fix", str(GPS_FIX[1]), str(GPS_FIX[0]), timeout=60, check=False)
 
     def wait_for_host(self) -> tuple[bool, float]:
         """The guest can reach the host (the development server's address) before the app starts."""
@@ -862,6 +934,20 @@ class Smoke:
             # restarting): a failed step with the reason, not a crash.
             self.step("device_error", False, time.time(), error=str(exc)[:400])
             return self.finish()
+
+    def renew_sessions(self) -> None:
+        """New access tokens for the coordinator and the family member, written into the same header
+        dictionaries every caller holds."""
+        creds = self.creds
+        for key, headers in (("coordinator", self.h), ("family", self.fam_h)):
+            if headers is None:
+                continue
+            l = (next(x for x in creds["logins"] if x.get("role") == "workspace_admin") if key == "coordinator"
+                 else next(x for x in creds["logins"] if x.get("key") == "family"))
+            code, tok = self.api_status("POST", "/auth/cloud/login", {"email": l["email"], "password": l["password"]}, form=True)
+            if code == 200:
+                headers["Authorization"] = f"Bearer {tok['access_token']}"
+        self.sessions_renewed = getattr(self, "sessions_renewed", 0) + 1
 
     def login(self) -> None:
         """The coordinator's and the family member's sessions, and the person the journey is about."""
@@ -945,6 +1031,12 @@ class Smoke:
             return self.finish()
 
         t0 = time.time()
+        # D1.f: the emulator's GPS is given a position before Help, so the SOS can carry it.
+        geo_replies = []
+        for _ in range(3):   # repeated, so the GPS provider has a recent fix when Help asks for one
+            geo_replies.append(str(self.adb("emu", "geo", "fix", str(GPS_FIX[1]), str(GPS_FIX[0]), timeout=60, check=False)).strip()[:80])
+            time.sleep(2)
+        self.geo_replies = geo_replies
         self.adb("shell", "input", "tap", *map(str, centre(help_btn)))
         received = None
         deadline = time.time() + a.ui_timeout
@@ -961,6 +1053,24 @@ class Smoke:
         mine = [x for x in alerts if x.get("person_id") == person["id"] and x.get("kind") == "help_requested"]
         self.step("help_received_on_wrist", received is not None, t0, screenshot=shot)
         self.step("help_alert_on_server", len(mine) == 1, t0, alerts=[{k: x.get(k) for k in ("id", "kind", "status", "opened_at", "details")} for x in mine])
+        # D1.f: the watch sends one location fix with the SOS; the alert carries the position given above.
+        t0 = time.time()
+        located = None
+        if len(mine) == 1:
+            located = self.wait_until(lambda: (lambda al: al if gps_matches(al, GPS_FIX) else None)(
+                self.api("GET", f"/api/v1/care/alerts/{mine[0]['id']}", None, h)), 90)
+        diag = {}
+        if located is None:
+            # Why there was no position: the providers and last fixes as the system sees them, and the app's grants.
+            loc = str(self.adb("shell", "dumpsys", "location", timeout=60, check=False))
+            diag = {"geo_fix_replies": getattr(self, "geo_replies", None),
+                    "location_dumpsys": [l.strip()[:160] for l in loc.splitlines()
+                                         if any(w in l for w in ("provider", "Provider", "enabled", "last location", "Location["))][:40],
+                    "appops": str(self.adb("shell", "appops", "get", self.a.package, timeout=60, check=False)).strip()[:600],
+                    "alert_location": {k: (self.api("GET", f"/api/v1/care/alerts/{mine[0]['id']}", None, h) if mine else {}).get(k)
+                                       for k in ("location_latitude", "location_longitude")}}
+        self.step("help_alert_carries_location", located is not None, t0, expected=GPS_FIX,
+                  location={k: (located or {}).get(k) for k in ("location_latitude", "location_longitude", "location_accuracy_m")}, **diag)
 
         # A journey can pass while the app crashed and restarted on the way (run 45760714043's
         # crash after pairing was hidden that way in an earlier pass), so read the crash buffer.
@@ -1257,6 +1367,13 @@ class Smoke:
                                    self.a.ui_timeout)
         self.step("checkin_answered_by_touch", tapped is not None and answered is not None and answered.get("answered_via") == "button", t0,
                   answered_via=(answered or {}).get("answered_via"), answer_summary=(answered or {}).get("answer_summary"), voice_exercised=False)
+        # "Thank you." acknowledges the answer, then the face goes back to what is true now (it used to stay until a restart).
+        t0 = time.time()
+        thanked = w.wait_text("Thank you.", 20)
+        cleared = self.wait_until(lambda: not any("Thank you." in t for t in w.visible()), THANK_YOU_S + 90, every=5)
+        snap = w.snapshot("checkin_thank_you_cleared")
+        self.step("checkin_thank_you_clears", thanked is not None and bool(cleared), t0,
+                  cleared_after_s=round(time.time() - t0, 1), **snap)
 
     def inject_and_wait_countdown(self, label: str) -> tuple[dict | None, dict]:
         """A synthetic fall; the wrist's countdown and the server's asking alert, with the dump saved."""
@@ -1406,6 +1523,43 @@ class Smoke:
         self.step("permission_regranted_recovered", home and recovered is not None and all(c["ok"] for c in changes), t0,
                   changes=changes, background_sensor_permission=(recovered or {}).get("background_sensor_permission"), **snap)
 
+        # D1.g: the battery level the watch reports reaches the server's device row.
+        t0 = time.time()
+        self.adb("shell", "dumpsys", "battery", "set", "level", str(BATTERY_TEST_LEVEL), timeout=60, check=False)
+        battery = self.wait_until(lambda: next((d for d in self.devices() if str(d["id"]) == str(self.device["id"])
+                                                and d.get("battery_percent") == BATTERY_TEST_LEVEL), None), 300)
+        self.adb("shell", "dumpsys", "battery", "set", "level", "80", timeout=60, check=False)
+        self.step("battery_level_reported", battery is not None, t0, set_to=BATTERY_TEST_LEVEL,
+                  battery_percent=(battery or {}).get("battery_percent"))
+
+    def journey_visit(self) -> None:
+        """A carer's visit on the wrist (D1.b): planned, the wrist says the carer is coming; marked arrived, the wrist
+        says the carer is here and acknowledges it to the server (scheduled check-ins then pause, care/checkin_cycle.py);
+        departed, the line goes."""
+        w, pid = self.wrist, self.person["id"]
+        t0 = time.time()
+        visit = self.api("POST", f"/api/v1/care/people/{pid}/visits",
+                         {"planned_start": iso_now(20 * 60), "planned_end": iso_now(80 * 60), "carer_name": VISIT_CARER,
+                          "purpose": "Emulator journey."}, self.h)
+        # A Help request closed in the last ten minutes still shows first ("This is now resolved."): wait that out.
+        coming = w.wait_text(f"{VISIT_CARER} is coming", 720)
+        snap = w.snapshot("visit_expected")
+        if not self.step("visit_expected_shown", bool(visit.get("id")) and coming is not None, t0, visit_id=visit.get("id"), **snap):
+            return
+        t0 = time.time()
+        self.api("POST", f"/api/v1/care/visits/{visit['id']}/arrive", {}, self.h)
+        here = w.wait_text(f"{VISIT_CARER} is here", 300)
+        snap = w.snapshot("visit_here")
+        row = self.wait_until(lambda: (lambda r: r if r.get("acknowledged_at") else None)(
+            self.api("GET", f"/api/v1/care/visits/{visit['id']}", None, self.h)), 180)
+        self.step("visit_here_shown_and_acknowledged", here is not None and row is not None, t0,
+                  status=(row or {}).get("status"), acknowledged_at=(row or {}).get("acknowledged_at"), **snap)
+        t0 = time.time()
+        self.api("POST", f"/api/v1/care/visits/{visit['id']}/depart", {"outcome": "all_well", "notes": "Emulator journey."}, self.h)
+        gone = self.wait_until(lambda: not any(f"{VISIT_CARER} is here" in t for t in w.visible()), 300, every=5)
+        snap = w.snapshot("visit_departed")
+        self.step("visit_departed_cleared", bool(gone), t0, **snap)
+
     def journey_unpair(self) -> None:
         """Unpairing from the wrist, with its warning; the server's row; a dead token; pairing again."""
         w, pid = self.wrist, self.person["id"]
@@ -1455,6 +1609,32 @@ class Smoke:
         self.step("repaired_isolated", home and new.get("status") == "paired" and old.get("status") == "revoked" and str(dev2["id"]) != str(self.device["id"]), t0,
                   old_device={"id": old.get("id"), "status": old.get("status")}, new_device={"id": new.get("id"), "status": new.get("status")}, **snap)
         self.device = dev2
+        # C-21.b: unpairing is refused while something urgent is unfinished. A fall while the unpair screen is
+        # open: the screen says why and offers only "Keep paired"; back home, the countdown is answered.
+        t0 = time.time()
+        btn = w.scroll_to_text(*UNPAIR_BUTTON) if hasattr(w, "scroll_to_text") else w.wait_text(UNPAIR_BUTTON[0], 30)
+        tapped = w.tap("Unpair watch…", "Unpair this watch") if btn else None
+        warning = w.wait_text(UNPAIR_WARNING, self.a.ui_timeout) if tapped else None
+        before = self.alert_ids()
+        sent = w.inject_fall(3.2, 20, int(time.time() * 1000)) if warning else False
+        refused = w.wait_text(UNPAIR_REFUSED_FALL, 90) if sent else None
+        offered = [t for t in w.visible() if t == "Unpair"]
+        snap = w.snapshot("unpair_refused")
+        if not self.step("unpair_refused_during_fall_check", warning is not None and refused is not None and not offered, t0,
+                         fall_broadcast=sent, unpair_button_offered=bool(offered), **snap):
+            return
+        t0 = time.time()
+        kept = w.tap("Keep paired")
+        countdown = w.wait_text(FALL_LINE, 30) if kept else None
+        ok = w.tap("I'm OK") if countdown else None
+        alert = self.wait_until(lambda: next((a for a in self.person_alerts()
+                                              if a.get("kind") == "suspected_fall" and str(a["id"]) not in before), None), 60)
+        closed = self.wait_until(lambda: (lambda a: a if a.get("status") == "resolved" else None)(self.alert(alert["id"])), 90) if alert else None
+        rows = {str(d["id"]): d for d in self.devices()}
+        snap = w.snapshot("unpair_refused_answered")
+        self.step("fall_check_answered_still_paired", ok is not None and closed is not None
+                  and rows.get(str(dev2["id"]), {}).get("status") == "paired", t0,
+                  alert=self.brief(closed or alert), device_status=rows.get(str(dev2["id"]), {}).get("status"), **snap)
 
     def journey_accessibility(self) -> None:
         """Every clickable node on the dumped screens is labelled and big enough to tap."""

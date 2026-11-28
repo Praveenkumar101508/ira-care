@@ -703,6 +703,16 @@ async def device_help(body: schemas.HelpRequest, d: tuple[Principal, dict] = Dep
     return await _idempotent(principal, device, key, "help", 201, work)
 
 
+@router.post("/devices/me/help/location")
+async def device_help_location(body: schemas.LocationFix, d: tuple[Principal, dict] = Depends(require_device)):
+    """The watch's position, when it had none at the moment Help was sent: attached to the person's
+    newest open SOS that has no position yet. `attached` false when there is none (closed, too old,
+    or already located): the watch then stops trying, nothing else changes."""
+    principal, device = d
+    alert = await repo.attach_late_location(principal, device, body.model_dump())
+    return {"attached": alert is not None, "alert_id": str(alert["id"]) if alert else None}
+
+
 # ── Push registration for the family and carer apps ──────────────────────────
 
 @router.post("/push/register", status_code=201)

@@ -1,5 +1,5 @@
 {
- "threshold": 0.95,
+ "threshold": 0.9,
  "mean": [
   0.0014038723893463612,
   0.0008883678237907588,
@@ -14,7 +14,7 @@
  ],
  "windowSamples": 200,
  "rateHz": 50,
- "candidateG": 2.0,
+ "candidateG": 1.6, "settings": "D-115: candidate 1.6 g and threshold 0.9, chosen on BITS-2 and UCI HAR, confirmed once on Erciyes (held out): 1,563 of 1,722 falls against 1,509, none lost; docs/ai/fall/LOWIMPACT_CANDIDATE.md",
  "mode": "recover",
  "provenance": "ira-fall-v3-licensed",
  "trained_on": "BITS-2 (Zenodo 10013090, CC BY 4.0) and UCI HAR (UCI 240, CC BY 4.0) only; see docs/ai/fall/MODEL_CARD_V3.md",

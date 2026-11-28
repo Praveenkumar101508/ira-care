@@ -108,3 +108,33 @@ def test_typing_one_keystroke_at_a_time_types_every_character(j):
 def test_an_unknown_step_is_refused(j):
     with pytest.raises(ValueError):
         j.flow([{"swipe": "left"}])
+
+
+def test_a_sign_in_left_on_the_sign_in_screen_is_tried_once_more_and_both_attempts_recorded(j):
+    """Run 46158686899: on a slow runner the wearer's sign-in stayed on the sign-in screen, nothing refused."""
+    journey = j.Journey.__new__(j.Journey)
+    journey.steps, recorded = [], []
+    journey.step = lambda name, ok, t0, **info: (recorded.append({"step": name, "ok": ok, **info}), ok)[1]
+    journey.shot = lambda label: f"{label}.png"
+    on_sign_in = [{"resource-id": "sign-in", "text": "Sign in"}, {"resource-id": "username", "text": ""}]
+    home = [{"resource-id": "tab-home", "text": "Home"}]
+    tries = iter([(False, on_sign_in, True), (True, home, True)])
+    journey._sign_in_once = lambda login, label: next(tries)
+    assert journey.sign_in({"email": "w@x"}, "wearer") is True
+    assert [a["attempt"] for a in recorded[0]["attempts"]] == [1, 2] and recorded[0]["attempts"][1]["home"] is True
+    # Negative controls: a refusal on screen is not retried, and two failures stay a failure.
+    recorded.clear()
+    refused = on_sign_in + [{"resource-id": "", "text": "Wrong username or password."}]
+    tries = iter([(False, refused, True), (True, home, True)])
+    journey._sign_in_once = lambda login, label: next(tries)
+    assert journey.sign_in({"email": "w@x"}, "wearer") is False and len(recorded[0]["attempts"]) == 1
+    recorded.clear()
+    tries = iter([(False, on_sign_in, True), (False, on_sign_in, True)])
+    journey._sign_in_once = lambda login, label: next(tries)
+    assert journey.sign_in({"email": "w@x"}, "wearer") is False and len(recorded[0]["attempts"]) == 2
+
+
+def test_refusal_words_match_the_app_whatever_the_case(j):
+    assert j.refused_on_screen([{"text": "Wrong username or password."}])
+    assert j.refused_on_screen([{"text": "Too many sign-in attempts. Try again in a minute."}])
+    assert not j.refused_on_screen([{"text": "IRA CARE Sign in with the account your care circle gave you. Username Password Sign in"}])

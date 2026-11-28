@@ -398,3 +398,93 @@ def test_a_dead_emulator_network_is_reset_with_airplane_mode_then_the_host_is_aw
     assert ("shell", "cmd", "connectivity", "airplane-mode", "disable") in calls
     assert calls.index(("shell", "cmd", "connectivity", "airplane-mode", "enable")) < \
         calls.index(("shell", "cmd", "connectivity", "airplane-mode", "disable"))
+
+
+def test_the_sos_location_check_reads_the_alert_within_a_kilometre(smoke):
+    fix = smoke.GPS_FIX
+    assert smoke.gps_matches({"location_latitude": fix[0] + 0.001, "location_longitude": fix[1] - 0.002}, fix)
+    assert not smoke.gps_matches({"location_latitude": None, "location_longitude": None}, fix)
+    assert not smoke.gps_matches({"location_latitude": fix[0] + 0.5, "location_longitude": fix[1]}, fix)
+
+
+def test_the_journey_checks_location_and_battery(smoke):
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert '"help_alert_carries_location"' in text and '"emu", "geo", "fix"' in text
+    assert '"battery_level_reported"' in text and smoke.BATTERY_TEST_LEVEL not in (0, 80, 100)
+
+
+def test_face_text_mirror_keeps_no_connection_above_the_thank_you_and_shows_the_visit(smoke):
+    # As FaceText.main: "No connection" is never hidden behind a thank-you or a visit.
+    assert smoke.face_text(None, None, None, "I'm OK", False).startswith("No connection.")
+    assert smoke.face_text(None, None, None, None, False, "Uday is here.").startswith("No connection.")
+    assert smoke.face_text(None, None, None, "I'm OK", True, "Uday is here.") == "Thank you."
+    assert smoke.face_text(None, None, None, None, True, "Uday is here.") == "Uday is here."
+    assert smoke.face_text(None, None, None, None, True) == "All well"
+
+
+def test_visit_text_mirror_reads_the_server_visit_state(smoke):
+    assert smoke.visit_text_of({"state": "here", "carer_name": "Uday"}) == "Uday is here."
+    assert smoke.visit_text_of({"state": "expected", "carer_name": "Uday", "planned_start": "2026-11-28T14:05:00+00:00"}) == "Uday is coming at 14:05."
+    assert smoke.visit_text_of({"state": "late", "carer_name": None, "planned_start": None}) == "Your carer is coming today."
+    assert smoke.visit_text_of({"state": "none"}) is None
+    assert smoke.visit_text_of(None) is None
+
+
+def test_the_visit_group_plans_arrives_and_departs_and_the_thank_you_clears(smoke):
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert "visit" in smoke.GROUPS and smoke.GROUPS.index("visit") < smoke.GROUPS.index("unpair")
+    for name in ("visit_expected_shown", "visit_here_shown_and_acknowledged", "visit_departed_cleared", "checkin_thank_you_clears"):
+        assert f'"{name}"' in text, name
+    assert smoke.THANK_YOU_S == 30
+    kt = (SCRIPT.parents[2] / "watch/app/src/main/java/care/ira/watch/service/CareForegroundService.kt").read_text(encoding="utf-8")
+    assert "const val THANK_YOU_MS = 30_000L" in kt and "clearThankYouLater()" in kt
+
+
+def test_unpair_refusal_mirror_matches_the_watch(smoke):
+    kt = (SCRIPT.parents[2] / "watch/app/src/main/java/care/ira/watch/pairing/Unpairing.kt").read_text(encoding="utf-8")
+    assert smoke.unpair_refusal(0, None, 12) == smoke.UNPAIR_REFUSED_FALL
+    assert f'"{smoke.UNPAIR_REFUSED_FALL}"' in kt
+    assert smoke.unpair_refusal(1, None, None) == "One urgent message is still being sent. Unpair once it has gone."
+    assert smoke.unpair_refusal(0, "on_the_way", None) == "Your Help request is still open. Unpair once it is closed."
+    assert "Your Help request is still open. Unpair once it is closed." in kt
+    # Negative controls: nothing unfinished, and a closed request, allow unpairing.
+    assert smoke.unpair_refusal(0, None, None) is None
+    assert smoke.unpair_refusal(0, "closed", None) is None
+    assert '"unpair_refused_during_fall_check"' in SCRIPT.read_text(encoding="utf-8")
+
+
+def test_the_journey_signs_in_again_when_its_session_expires_and_turns_location_on(smoke):
+    text = SCRIPT.read_text(encoding="utf-8")
+    # Run 46143245120: the coordinator's token expired after 35 minutes and two groups failed with 401.
+    assert "def renew_sessions(self)" in text and 'headers["Authorization"] = f"Bearer' in text
+    assert "status == 401" in text
+    # D1.f: location on before the first Help, and the GPS fix given early.
+    assert "cmd location set-location-enabled true" in text
+
+
+def test_an_expired_session_is_renewed_in_place_and_the_call_retried_once(smoke, tmp_path):
+    class Args:
+        out, adb, serial, package, api_only = str(tmp_path), "adb", "emulator-5554", PKG, True
+
+    s = smoke.Smoke(Args())
+    s.creds = {"workspace_id": "w", "logins": [{"role": "workspace_admin", "email": "c@x", "password": "p"},
+                                               {"key": "family", "role": "family", "email": "f@x", "password": "p"}]}
+    s.h = {"Authorization": "Bearer old", "X-Workspace-ID": "w"}
+    s.fam_h = {"Authorization": "Bearer oldf", "X-Workspace-ID": "w"}
+    seen = []
+
+    def fake(method, path, body=None, headers=None, form=False):
+        seen.append((path, dict(headers or {})))
+        if path == "/auth/cloud/login":
+            return 200, {"access_token": "new-" + body["email"]}
+        return (401, {"error_code": "unauthenticated"}) if headers["Authorization"].endswith("old") else (200, {"ok": True})
+
+    s.api_status = fake
+    assert s.api("GET", "/api/v1/care/visits/1", None, s.h) == {"ok": True}
+    assert s.h["Authorization"] == "Bearer new-c@x" and s.fam_h["Authorization"] == "Bearer new-f@x"
+    assert [p for p, _ in seen] == ["/api/v1/care/visits/1", "/auth/cloud/login", "/auth/cloud/login", "/api/v1/care/visits/1"]
+    # Negative control: a device-token call (not a session) that gets 401 is not retried with a sign-in.
+    seen.clear()
+    with pytest.raises(RuntimeError):
+        s.api("GET", "/api/v1/care/devices/me", None, {"Authorization": "Bearer old"})   # not one of the journey's sessions
+    assert [p for p, _ in seen] == ["/api/v1/care/devices/me"]

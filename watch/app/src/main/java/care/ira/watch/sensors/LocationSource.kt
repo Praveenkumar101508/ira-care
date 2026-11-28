@@ -36,14 +36,21 @@ class AndroidLocationSource(private val context: Context) : LocationSource {
         val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
         if (!fine && !coarse) return null
         val manager = context.getSystemService(LocationManager::class.java) ?: return null
-        val provider = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
+        val provider = providerOrder(Build.VERSION.SDK_INT)
             .firstOrNull { runCatching { manager.isProviderEnabled(it) }.getOrDefault(false) } ?: return null
         return withTimeoutOrNull(timeoutMs) {
             try {
                 suspendCancellableCoroutine { cont ->
                     val signal = CancellationSignal()
                     cont.invokeOnCancellation { signal.cancel() }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        // High accuracy: the fused provider then uses GPS, not only the network's rough
+                        // position (CI run 46150286394: a BALANCED request, and no position at all).
+                        val request = android.location.LocationRequest.Builder(0L)
+                            .setQuality(android.location.LocationRequest.QUALITY_HIGH_ACCURACY)
+                            .setDurationMillis(timeoutMs.coerceAtLeast(1L)).build()
+                        manager.getCurrentLocation(provider, request, signal, executor) { loc -> cont.resume(loc?.let(::fix)) }
+                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         manager.getCurrentLocation(provider, signal, executor) { loc -> cont.resume(loc?.let(::fix)) }
                     } else {
                         @Suppress("DEPRECATION")
@@ -61,4 +68,12 @@ class AndroidLocationSource(private val context: Context) : LocationSource {
         accuracyM = if (loc.hasAccuracy()) loc.accuracy.toDouble() else null,
         recordedAt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(Instant.ofEpochMilli(loc.time).atOffset(ZoneOffset.UTC)),
     )
+}
+
+/** The location providers asked, best first. The fused provider (Android 12, API 31) is the one most
+ *  Wear OS watches without their own GPS answer through; it was never asked before (CI run 46146704537:
+ *  the Help alert had no position). Then GPS, the network and the passive provider. */
+internal fun providerOrder(sdk: Int): List<String> = buildList {
+    if (sdk >= 31) add("fused")   // LocationManager.FUSED_PROVIDER
+    add(LocationManager.GPS_PROVIDER); add(LocationManager.NETWORK_PROVIDER); add(LocationManager.PASSIVE_PROVIDER)
 }

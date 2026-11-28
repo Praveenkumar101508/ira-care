@@ -95,6 +95,10 @@ sequenceDiagram
     API->>DB: escalation tier 1 written as queued attempts in the same transaction
     API-->>W: 201, SOS state "received" (a repeat of the same key gets the stored answer)
     W-->>P: "Help request received", never "help is coming" until the server says so
+    opt no position within 2 s of the press
+        W->>API: POST /care/devices/me/help/location, once a fix comes (up to 60 s), through the outbox
+        API->>DB: the position stored on the open SOS that has none (an existing position stands)
+    end
     WK->>DB: picks up queued attempts after commit
     WK->>PR: tier 1: push, text, call to the circle (refuses emergency numbers)
     PR-->>WK: outcome recorded per attempt (log-only in demonstrations)
