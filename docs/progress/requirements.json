@@ -3654,10 +3654,10 @@
    "title": "Behaviour under concurrency: ceilings hold, saturated pools shed load",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
-     "kind": "unit_test",
+     "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/readiness/test_behaviour_under_load.py"
     }
    ]

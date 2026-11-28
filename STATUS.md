@@ -13,7 +13,7 @@ register (`docs/progress/requirements.json`); the round-by-round detail is in
 | --- | --- |
 | Hardware-independent software implementation | 179 / 195, 91.8 % |
 | Hardware-independent software acceptance | 173 / 195, 88.7 % |
-| Software verification (integration evidence: database, browser, emulator, model evaluation, device) | 98 / 210, 46.7 % |
+| Software verification (integration evidence: database, browser, emulator, model evaluation, device) | 99 / 210, 47.1 % |
 | AI development (accepted) | 41 / 48, 85.4 % |
 | OS development (accepted, hardware-independent) | 17 / 29, 58.6 % |
 | Hardware integration | 0 / 14 |

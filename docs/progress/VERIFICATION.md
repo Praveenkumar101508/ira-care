@@ -297,3 +297,20 @@ Left as accepted after review, because their integration evidence shows only par
 D1.f and D1.g (the server half of the watch's location and battery reports), G2.c (the heartbeat,
 not the dashboard's banner), G2.g and G2.h (drills not on staging or off-site), E2.o (the watch's
 side of an instruction), F4.i (switched off), the three model cards and C-22.c.
+
+## Round 10, continued (28 November 2026): eight more moved to verified
+
+Seven by new integration tests, run on the build machine against the running care server and the
+production dashboard build (`docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md`), and one by
+correcting an evidence label. Software verification: 91 to 99 of 210.
+
+| Item | Evidence |
+|---|---|
+| J.h Demo pages refused in production | `e2e/verification.spec.ts`: 404 for `/watch`, `/presenter`, `/simulator` from `next start`; the carer pages answer 200 |
+| G2.c Monitoring heartbeat shown on the dashboard | the banner absent while the care jobs run, and present on the home page and the record once a server started with no care jobs has had none run for five minutes (the half left out above) |
+| C-11.a Unknown and stale wrist status | a three-hour-silent watch reads "last known on the wrist", a never-reported one "wrist unknown", a just-synced one "on the wrist" |
+| D4.b Unavailable measurements | blood oxygen and blood pressure from the person's own watch refused (422) and not stored; listed as not available, with no value |
+| C-16.b The dashboard renews an expired session | with one-minute access tokens, the first token refused by the server, and the record still loads through a renewal |
+| C-23.a Automated accessibility checks on the dashboard | axe-core in Chromium on six pages, no serious or critical violation, after fixing the unnamed controls it found on a person's record |
+| C-6.a Care logs carry no personal data | `tests/tenancy/test_care_logs_no_personal_data_db.py`: the 22-step care journey on PostgreSQL, every logger and the log-only provider read, nothing personal found; with a negative control |
+| G2.d Behaviour under concurrency | **a label corrected, not new evidence**: `tests/readiness/test_behaviour_under_load.py` connects to PostgreSQL (it skips without `IRA_TEST_DATABASE_DSN`), runs in CI's database job, and passed 5 of 5 here against a real database; it had been filed as a unit test. A sweep of every accepted item found no other test filed this way |
