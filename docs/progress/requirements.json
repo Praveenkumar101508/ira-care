@@ -230,7 +230,7 @@
    "title": "Exception text kept out of logs across the whole backend, with a static checker (A5b)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -239,6 +239,10 @@
     {
      "kind": "unit_test",
      "ref": "#55"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_log_exception_text_db.py"
     }
    ]
   },

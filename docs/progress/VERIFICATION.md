@@ -298,11 +298,11 @@ D1.f and D1.g (the server half of the watch's location and battery reports), G2.
 not the dashboard's banner), G2.g and G2.h (drills not on staging or off-site), E2.o (the watch's
 side of an instruction), F4.i (switched off), the three model cards and C-22.c.
 
-## Round 10, continued (28 November 2026): ten more moved to verified
+## Round 10, continued (28 November 2026): eleven more moved to verified
 
 Seven by new integration tests, run on the build machine against the running care server and the
 production dashboard build (`docs/evidence/browser/ROUND10_VERIFICATION_BROWSER.md`), and one by
-correcting an evidence label. Software verification: 91 to 101 of 210.
+correcting an evidence label. Software verification: 91 to 102 of 210.
 
 | Item | Evidence |
 |---|---|
@@ -314,6 +314,7 @@ correcting an evidence label. Software verification: 91 to 101 of 210.
 | C-23.a Automated accessibility checks on the dashboard | axe-core in Chromium on six pages, no serious or critical violation, after fixing the unnamed controls it found on a person's record |
 | C-23.d Contrast in dark and high-contrast appearances | axe's colour-contrast rule in Chromium on six pages in light, dark and each with "more contrast": 24 checks, no violation |
 | C-6.a Care logs carry no personal data | `tests/tenancy/test_care_logs_no_personal_data_db.py`: the 22-step care journey on PostgreSQL, every logger and the log-only provider read, nothing personal found; with a negative control |
+| C-6.b Exception text kept out of logs | `tests/tenancy/test_log_exception_text_db.py`: real errors from PostgreSQL and asyncpg whose messages quote a private sentence (invalid input, a refused argument, a duplicate key's detail), logged five ways through the production handler in both formats: the sentence never appears, the type always does; with the developer switch on, the same records carry it (the control) |
 | G2.d Behaviour under concurrency | **a label corrected, not new evidence**: `tests/readiness/test_behaviour_under_load.py` connects to PostgreSQL (it skips without `IRA_TEST_DATABASE_DSN`), runs in CI's database job, and passed 5 of 5 here against a real database; it had been filed as a unit test. A sweep of every accepted item found no other test filed this way |
 | D2.a Wearer, family and carer experiences from one app | the Android journey, 18 of 18 on GitHub's emulator (run 45990580023, `docs/evidence/emulator/PHONE_EMULATOR_SMOKE.md`): one build signed in as the family member (person card, record, plan, Help banner, "I'm on my way"), as the wearer (Talk to IRA and its reply) and as the carer (the carer's cards, none of the family experience's) |
 
