@@ -1214,7 +1214,7 @@
    "title": "Watch sends location with an SOS (GPS)",
    "area": "software",
    "hardware_independent": true,
-   "state": "accepted",
+   "state": "verified",
    "evidence": [
     {
      "kind": "unit_test",
@@ -1223,6 +1223,14 @@
     {
      "kind": "db_test",
      "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_location_db.py::test_help_with_a_location_is_stored_on_the_alert_and_told_to_the_circle"
+    },
+    {
+     "kind": "emulator",
+     "ref": "docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md"
+    },
+    {
+     "kind": "db_test",
+     "ref": "supracloud-jarvis/ira/tests/tenancy/test_care_location_db.py"
     }
    ]
   },

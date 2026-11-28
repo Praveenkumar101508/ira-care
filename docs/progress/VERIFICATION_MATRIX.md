@@ -9,7 +9,7 @@ document, a dataset decision), the row says so instead of inventing a test.
 |---|---|
 | not an integration target | 18 |
 | the AOSP build host (Cuttlefish) | 17 |
-| watch emulator journey on CI | 15 (D1.b, D1.g and C-21.b verified since, 28 November) |
+| watch emulator journey on CI | 15 (D1.b, D1.f, D1.g and C-21.b verified since, 28 November) |
 | a physical watch or phone | 7 |
 | browser or database, here | 4 (C-10.b, C-10.c, C-12.b and C-23.b verified since, 28 November) |
 | a staging server | 4 |
@@ -34,7 +34,6 @@ document, a dataset decision), the row says so instead of inventing a test.
 | C-5.a | A negative, a doubt or trouble never ends the watch fall countdown as OK (A4b) | build, unit_test | watch emulator journey on CI | a synthetic fall's countdown answered with a doubt: the alert must stay open |
 | D1.a | Watch check-ins by voice and touch | build, unit_test | a physical watch or phone | touch is shown on the emulator; voice needs a microphone |
 | D1.c | Watch heart-rate and wrist readings batched and sent | unit_test | watch emulator journey on CI | simulated readings from the watch arrive at the server, marked simulated |
-| D1.f | Watch sends location with an SOS (GPS) | db_test, unit_test | watch emulator journey on CI | set the emulator's position (adb emu geo fix), press Help: the alert carries the location |
 | D1b.a | AOSP flavour builds and unit-tests with no Google service dependency | build | the AOSP build host (Cuttlefish) | the AOSP flavour on Cuttlefish |
 | D1b.b | Platform layer behind interfaces (one app for Wear OS and AOSP) | unit_test | the AOSP build host (Cuttlefish) | the AOSP flavour on Cuttlefish |
 | D2.f | Phone app typecheck and tests in CI | build | not an integration target | a CI build-and-test job: its evidence is the job |

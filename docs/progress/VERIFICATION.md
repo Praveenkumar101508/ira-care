@@ -331,7 +331,7 @@ but the provider-secret rotations and the compose wrappers themselves were not e
 
 ## Round 10, continued again (28 November 2026, after pull request 133)
 
-Software verification: 110 to 117 of 210. Every accepted-but-not-verified requirement is now read one
+Software verification: 110 to 118 of 210. Every accepted-but-not-verified requirement is now read one
 by one in `docs/progress/VERIFICATION_MATRIX.md`, with its single route to integration evidence.
 
 | Item | Evidence |
@@ -343,4 +343,5 @@ by one in `docs/progress/VERIFICATION_MATRIX.md`, with its single route to integ
 | D1.g Watch reports battery | the Wear emulator's battery set to 23 %: the server's device row reads 23, after fixing the watch's battery reading (`docs/evidence/emulator/WEAR_EMULATOR_JOURNEY.md`, run 46146704537) |
 | D1.b Watch visit state | a visit planned, arrived and departed through the API: the watch shows "Uday is coming", "Uday is here." (and acknowledges it to the server), then "All well" |
 | C-21.b Unpair refused while something urgent is unfinished | a fall while the unpair screen is open: refused, no Unpair button; the countdown answered and the watch still paired |
+| D1.f Watch sends location with an SOS | Help on the Wear emulator with a GPS fix set: the alert carries 51.5071983, −0.1275983 (5 m), run 46154458625, after the watch was made to ask a high-accuracy fix and to send a late position when Help goes without one |
 

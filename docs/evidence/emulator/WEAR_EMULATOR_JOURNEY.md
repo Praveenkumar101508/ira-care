@@ -221,3 +221,9 @@ and when Help went without a position it keeps looking for up to a minute and se
 open SOS (`POST /devices/me/help/location`, `tests/tenancy/test_care_location_db.py`); Help itself is
 never held back.
 
+
+**Run 46154458625, job 141007917435, commit `8640b91`: 57 of 57 steps passed.** `help_alert_carries_location`
+(D1.f): the Help alert carries 51.5071983, −0.1275983, accuracy 5 m, against the emulator fix
+51.5072, −0.1276, already on the alert when the journey first read it. The high-accuracy request got
+the fix inside Help's two seconds, so the late-position path (`POST /devices/me/help/location`) was not
+needed on this run; it is covered by `tests/tenancy/test_care_location_db.py`, not by the emulator.
